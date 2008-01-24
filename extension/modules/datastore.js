@@ -71,6 +71,11 @@ let SnowlDatastore = {
                    timestamp INTEGER, \
                    link TEXT",
   
+      parts:      "id INTEGER PRIMARY KEY, \
+                   messageID INTEGER NOT NULL REFERENCES messages(id), \
+                   content BLOB NOT NULL, \
+                   contentType TEXT NOT NULL",
+
       attributes: "id INTEGER PRIMARY KEY, \
                    namespace TEXT, \
                    name TEXT NOT NULL",
@@ -132,7 +137,7 @@ let SnowlDatastore = {
       dbConnection = this._dbCreate(dbService, dbFile);
     else {
       try {
-        dbConnection = dbService.openUnsharedDatabase(dbFile);
+        dbConnection = dbService.openDatabase(dbFile);
 
         // Get the version of the database in the file.
         var version = dbConnection.schemaVersion;
@@ -165,8 +170,8 @@ let SnowlDatastore = {
 
   _dbCreate: function(aDBService, aDBFile) {
       var dbConnection = aDBService.openDatabase(aDBFile);
-      for (var table in this._dbSchema)
-        dbConnection.createTable(table, this._dbSchema[table]);
+      for (var tableName in this._dbSchema.tables)
+        dbConnection.createTable(tableName, this._dbSchema.tables[tableName]);
       dbConnection.schemaVersion = this._dbVersion;
       return dbConnection;
   },
@@ -190,8 +195,8 @@ let SnowlDatastore = {
   },
 
   _dbMigrate0To1: function(aDBConnection) {
-    for (var table in this._dbSchema)
-      aDBConnection.createTable(table, this._dbSchema[table]);
+    for (var tableName in this._dbSchema.tables)
+      dbConnection.createTable(tableName, this._dbSchema.tables[tableName]);
   },
 
   get _selectSourcesStatement() {

@@ -6,21 +6,6 @@ if (typeof Cu == "undefined") Cu = Components.utils;
 var Snowl = {
   init: function() {
     this._initModules();
-
-try {
-SnowlDatastore.dbConnection.executeSimpleSQL("create virtual table recipe using fts3(name, ingredients)");
-insert into recipe (name, ingredients) values ('broccoli stew', 'broccoli peppers cheese tomatoes');
-  sqlite>insert into recipe (name, ingredients) values ('pumpkin stew', 'pumpkin onions garlic celery');
-  sqlite>insert into recipe (name, ingredients) values ('broccoli pie', 'broccoli cheese onions flour');
-  sqlite>insert into recipe (name, ingredients) values ('pumpkin pie', 'pumpkin sugar flour butter');
-  
-}
-catch(ex) {
-  let error = ex + "\n" + SnowlDatastore.dbConnection.lastError + ": " + SnowlDatastore.dbConnection.lastErrorString;
-  dump(error + "\n");
-  Cu.reportError(error);
-}
-
     //SnowlFeedClient.refresh("http://www.melez.com/mykzilla/atom.xml");
   },
 
