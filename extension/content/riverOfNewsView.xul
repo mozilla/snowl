@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://browser/skin/feeds/subscribe.css" type="text/css"?>
+
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      id="riverOfNewsView" flex="1">
+
+  <script type="application/x-javascript" src="riverOfNewsView.js"/>
+
+  <vbox datasources="profile:messages.sqlite" ref="*" querytype="storage" style="overflow: auto;" flex="1">
+    <template>
+      <query>
+        select subject, link, timestamp, content from messages JOIN parts on messages.id = parts.messageID
+      </query>
+      <action>
+        <html:div uri="?" class="entry">
+          <html:h3>
+            <!-- FIXME: check safety of link before inserting it into href? -->
+            <html:a href="?link"><textnode value="?subject"/></html:a>
+            <html:div class="lastUpdated">
+              <textnode value="?timestamp"/>
+            </html:div>
+          </html:h3>
+          <html:div class="feedEntryContent">
+            <textnode value="?content"/>
+          </html:div>
+          <html:div style="clear: both;"/>
+        </html:div>
+      </action>
+    </template>
+  </vbox>
+
+</page>
