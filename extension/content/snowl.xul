@@ -1,10 +1,45 @@
 <?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
+
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlOverlay">
 
-<!--  <script type="application/x-javascript" src="datastore.js"/> -->
+  <!-- <script type="application/x-javascript" src="datastore.js"/> -->
+  <script type="application/x-javascript" src="init.js"/>
   <script type="application/x-javascript" src="feedclient.js"/>
+  <script type="application/x-javascript" src="view.js"/>
   <script type="application/x-javascript" src="snowl.js"/>
 
-  <button oncommand="Snowl.getNewMessages()" label="Get New Messages"/>
+  <menupopup id="menu_viewPopup">
+    <menuitem insertafter="viewSidebarMenuMenu" label="Messages" type="checkbox"
+              checked="true" oncommand="Snowl.toggleView()" accesskey="M"/>
+  </menupopup>
+
+  <vbox id="appcontent">
+    <vbox id="snowlViewContainer" insertbefore="content">
+      <toolbar id="snowlViewToolbar" pack="end">
+        <button oncommand="Snowl.getNewMessages()" label="G"/>
+        <button oncommand="SnowlView.switchPosition()" label="S"/>
+        <textbox id="snowlFilterTextbox" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
+      </toolbar>
+      <listbox id="snowlView" flex="1">
+        <listcols>
+          <listcol flex="1"/>
+          <splitter class="tree-splitter"/>
+          <listcol flex="3"/>
+          <splitter class="tree-splitter"/>
+          <listcol flex="1"/>
+        </listcols>
+        <listhead>
+          <listheader label="Who"/>
+          <listheader label="What"/>
+          <listheader label="When"/>
+        </listhead>
+      </listbox>
+    </vbox>
+    <splitter id="snowlViewSplitter" insertbefore="content"/>
+  </vbox>
+
 </overlay>

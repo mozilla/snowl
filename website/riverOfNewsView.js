@@ -38,15 +38,28 @@ function escapeXML(aString) {
 }
 
 let RiverOfNews = {
-  _selectMessages: function() {
+  _selectMessages: function(aMatchWords) {
     netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 
-    let statement = SnowlDatastore.createStatement(
+    let conditions = [];
+
+    if (aMatchWords)
+      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :matchWords)");
+
+    let statementString = 
       "SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
        FROM sources JOIN messages ON sources.id = messages.sourceID \
-       JOIN parts ON messages.id = parts.messageID \
-       ORDER BY timestamp DESC"
-    );
+       JOIN parts on messages.id = parts.messageID";
+
+    if (conditions.length > 0)
+      statementString += " WHERE " + conditions.join(" AND ");
+
+    statementString += " ORDER BY timestamp DESC";
+
+    let statement = SnowlDatastore.createStatement(statementString);
+
+    if (aMatchWords)
+      statement.params.matchWords = aMatchWords;
 
     let messages = [];
     try {
@@ -60,6 +73,10 @@ let RiverOfNews = {
                         content: row.content });
       }
     }
+    catch(ex) {
+      dump(statementString + ": " + ex + ": " + SnowlDatastore.dbConnection.lastErrorString + "\n");
+      throw ex;
+    }
     finally {
       statement.reset();
     }
@@ -68,7 +85,20 @@ let RiverOfNews = {
   },
 
   onLoad: function() {
-    let messages = this._selectMessages();
+    this._rebuildView();
+  },
+  
+  onFilter: function() {
+    let filterTextbox = document.getElementById("filterTextbox");
+    this._rebuildView(filterTextbox.value);
+  },
+
+  _rebuildView: function(aMatchWords) {
+    let rootNode = document.getElementById("content");
+    while (rootNode.hasChildNodes())
+      rootNode.removeChild(rootNode.lastChild);
+
+    let messages = this._selectMessages(aMatchWords);
 
     for each (let message in messages) {
       let entry = new String(ENTRY_TEMPLATE);
@@ -85,7 +115,7 @@ let RiverOfNews = {
       }
 
       let container = document.createElementNS(HTML_NS, "div");
-      document.getElementById("content").appendChild(container);
+      rootNode.appendChild(container);
       container.innerHTML = entry;
     }
   }

@@ -10,6 +10,9 @@
   <script type="application/x-javascript" src="template.js"/>
   <script type="application/x-javascript" src="riverOfNewsView.js"/>
 
+  <hbox pack="end">
+    <textbox id="filterTextbox" type="timed" timeout="200" oncommand="RiverOfNews.onFilter()"/>
+  </hbox>
   <vbox id="content" style="overflow: auto; -moz-user-focus: normal;" flex="1"/>
 
 <!--

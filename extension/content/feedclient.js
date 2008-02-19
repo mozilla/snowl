@@ -1,3 +1,5 @@
+// FIXME: rename this file feed-source.js
+
 var SnowlFeedClient = {
   // XXX Make this take a feed ID once it stores the list of subscribed feeds
   // in the datastore.
@@ -30,6 +32,9 @@ var SnowlFeedClient = {
     dump("error loading feed " + aEvent.target.channel.originalURI + "\n");
   }
 };
+
+// XXX: rename this SnowlFeedSource?
+// XXX: make this inherit from a SnowlMessageSource interface?
 
 function SnowlFeed(aID, aURL, aTitle) {
   this.id = aID;
@@ -70,6 +75,10 @@ SnowlFeed.prototype = {
   // nsIFeedResultListener
 
   handleResult: function(result) {
+    // Now that we know we successfully downloaded the feed and obtained
+    // a result from it, update the "last refreshed" timestamp.
+    Snowl.resetLastRefreshed(this);
+
     let feed = result.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     for (let i = 0; i < feed.items.length; i++) {
@@ -150,9 +159,10 @@ dump(this.title + " adding message " + universalID + "\n");
     // Convert the content type specified by nsIFeedTextConstruct, which is
     // either "html", "xhtml", or "text", into an Internet media type.
     let contentType = aEntry.content ? this.contentTypes[aEntry.content.type] : null;
+    let contentText = aEntry.content ? aEntry.content.text : null;
     let messageID = Snowl.addSimpleMessage(this.id, aUniversalID, aEntry.title.text,
                                            author, timestamp, aEntry.link,
-                                           aEntry.content.text, contentType);
+                                           contentText, contentType);
 
     // Add metadata.
     let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).

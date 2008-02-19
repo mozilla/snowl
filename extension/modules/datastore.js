@@ -5,6 +5,9 @@ const Cu = Components.utils;
 
 EXPORTED_SYMBOLS = ["SnowlDatastore"];
 
+const TABLE_TYPE_NORMAL = 0;
+const TABLE_TYPE_FULLTEXT = 1;
+
 let SnowlDatastore = {
   get _storage() {
     var storage = Cc["@mozilla.org/storage/service;1"].
@@ -16,7 +19,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 1,
+  _dbVersion: 2,
 
   _dbSchema: {
     tables: {
@@ -59,30 +62,56 @@ let SnowlDatastore = {
     // FIXME: support labeling the subject as HTML or another content type.
 
     tables: {
-      sources:    "id INTEGER PRIMARY KEY, \
-                   url TEXT NOT NULL, \
-                   title TEXT NOT NULL",
-  
-      messages:   "id INTEGER PRIMARY KEY, \
-                   sourceID INTEGER NOT NULL REFERENCES sources(id), \
-                   universalID TEXT, \
-                   subject TEXT, \
-                   author TEXT, \
-                   timestamp INTEGER, \
-                   link TEXT",
-  
-      parts:      "id INTEGER PRIMARY KEY, \
-                   messageID INTEGER NOT NULL REFERENCES messages(id), \
-                   content BLOB NOT NULL, \
-                   contentType TEXT NOT NULL",
+      sources: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "url TEXT NOT NULL",
+          "title TEXT NOT NULL",
+          "lastRefreshed INTEGER",
+        ]
+      },
 
-      attributes: "id INTEGER PRIMARY KEY, \
-                   namespace TEXT, \
-                   name TEXT NOT NULL",
-  
-      metadata:   "messageID INTEGER REFERENCES messages(id), \
-                   attributeID INTEGER REFERENCES attributes(id), \
-                   value BLOB"
+      messages: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "sourceID INTEGER NOT NULL REFERENCES sources(id)",
+          "universalID TEXT",
+          "subject TEXT",
+          "author TEXT",
+          "timestamp INTEGER",
+          "link TEXT"
+        ]
+      },
+
+      parts: {
+        type: TABLE_TYPE_FULLTEXT,
+        columns: [
+          "messageID INTEGER NOT NULL REFERENCES messages(id)",
+          "contentType",
+          "content"
+        ]
+      },
+
+      attributes: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "namespace TEXT",
+          "name TEXT NOT NULL"
+        ]
+      },
+
+      metadata: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "messageID INTEGER REFERENCES messages(id)",
+          "attributeID INTEGER REFERENCES attributes(id)",
+          "value BLOB"
+        ]
+      }
+
     },
 
     fulltextTables: {
@@ -117,10 +146,10 @@ let SnowlDatastore = {
     return wrappedStatement;
   },
 
-  // _dbInit and the methods it calls (_dbCreate, _dbMigrate, and version-
-  // specific migration methods) must be careful not to call any method
-  // of the service that assumes the database connection has already been
-  // initialized, since it won't be initialized until at the end of _dbInit.
+  // _dbInit, the methods it calls (_dbCreateTables, _dbMigrate), and methods
+  // those methods call must be careful not to call any method of the service
+  // that assumes the database connection has already been initialized,
+  // since it won't be initialized until this function returns.
 
   _dbInit: function() {
     var dirService = Cc["@mozilla.org/file/directory_service;1"].
@@ -133,11 +162,12 @@ let SnowlDatastore = {
 
     var dbConnection;
 
-    if (!dbFile.exists())
+    if (!dbFile.exists()) {
       dbConnection = this._dbCreate(dbService, dbFile);
+    }
     else {
       try {
-        dbConnection = dbService.openDatabase(dbFile);
+        dbConnection = dbService.openUnsharedDatabase(dbFile);
 
         // Get the version of the database in the file.
         var version = dbConnection.schemaVersion;
@@ -169,11 +199,43 @@ let SnowlDatastore = {
   },
 
   _dbCreate: function(aDBService, aDBFile) {
-      var dbConnection = aDBService.openDatabase(aDBFile);
-      for (var tableName in this._dbSchema.tables)
-        dbConnection.createTable(tableName, this._dbSchema.tables[tableName]);
-      dbConnection.schemaVersion = this._dbVersion;
-      return dbConnection;
+    var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
+
+    dbConnection.beginTransaction();
+    try {
+      this._dbCreateTables(dbConnection);
+      dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      dbConnection.rollbackTransaction();
+      throw ex;
+    }
+
+    return dbConnection;
+  },
+
+  _dbCreateTables: function(aDBConnection) {
+    for (var tableName in this._dbSchema.tables) {
+      var table = this._dbSchema.tables[tableName];
+      switch (table.type) {
+        case TABLE_TYPE_FULLTEXT:
+          this._dbCreateFulltextTable(aDBConnection, tableName, table.columns);
+          break;
+        case TABLE_TYPE_NORMAL:
+        default:
+          aDBConnection.createTable(tableName, table.columns.join(", "));
+          break;
+      }
+    }
+
+    aDBConnection.schemaVersion = this._dbVersion;
+  },
+
+  _dbCreateFulltextTable: function(aDBConnection, aTableName, aColumns) {
+    aDBConnection.executeSimpleSQL(
+      "CREATE VIRTUAL TABLE " + aTableName +
+      " USING fts3(" + aColumns.join(", ") + ")"
+    );
   },
 
   _dbMigrate: function(aDBConnection, aOldVersion, aNewVersion) {
@@ -194,9 +256,15 @@ let SnowlDatastore = {
             " to v" + aNewVersion + ": no migrator function");
   },
 
-  _dbMigrate0To1: function(aDBConnection) {
-    for (var tableName in this._dbSchema.tables)
-      dbConnection.createTable(tableName, this._dbSchema.tables[tableName]);
+  /**
+   * Migrate the database schema from version 0 to version 1.  We never create
+   * a database with version 0, so the database can only have that version
+   * if the database file was created without the schema being constructed.
+   * Thus migrating the database is as simple as constructing the schema as if
+   * from scratch.
+   */
+  _dbMigrate0To2: function(aDBConnection) {
+    this._dbCreateTables(aDBConnection);
   },
 
   get _selectSourcesStatement() {

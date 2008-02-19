@@ -1,31 +1,20 @@
-if (typeof Cc == "undefined") Cc = Components.classes;
-if (typeof Ci == "undefined") Ci = Components.interfaces;
-if (typeof Cr == "undefined") Cr = Components.results;
-if (typeof Cu == "undefined") Cu = Components.utils;
-
 var Snowl = {
+  log: null,
+
   init: function() {
+    this._service = new SnowlService();
+
     this._initModules();
+
+    this.log = Log4Moz.Service.getLogger("Snowl.Controller");
+    this.log.warn("foo");
+
     //SnowlFeedClient.refresh("http://www.melez.com/mykzilla/atom.xml");
+    
+    SnowlView.onLoad();
   },
 
   _initModules: function() {
-    let ioSvc = Cc["@mozilla.org/network/io-service;1"].
-                getService(Ci.nsIIOService);
-    
-    let resProt = ioSvc.getProtocolHandler("resource").
-                  QueryInterface(Ci.nsIResProtocolHandler);
-    
-    if (!resProt.hasSubstitution("snowl")) {
-      let extMgr = Cc["@mozilla.org/extensions/manager;1"].
-                   getService(Ci.nsIExtensionManager);
-      let loc = extMgr.getInstallLocation("snowl@mozilla.org");
-      let extD = loc.getItemLocation("snowl@mozilla.org");
-      extD.append("modules");
-      resProt.setSubstitution("snowl", ioSvc.newFileURI(extD));
-    }
-    
-    Cu.import("resource://snowl/datastore.js");
   },
 
   getNewMessages: function() {
@@ -43,6 +32,19 @@ var Snowl = {
       sources.push(new SnowlFeed(row.id, row.url, row.title));
 
     return sources;
+  },
+
+  toggleView: function() {
+    let container = document.getElementById("snowlViewContainer");
+    let splitter = document.getElementById("snowlViewSplitter");
+    if (container.hidden) {
+      container.hidden = false;
+      splitter.hidden = false;
+    }
+    else {
+      container.hidden = true;
+      splitter.hidden = true;
+    }
   },
 
   /**
@@ -101,6 +103,21 @@ var Snowl = {
     let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
                       || SnowlDatastore.insertAttribute(aAttributeName);
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
+  },
+
+  /**
+   * Reset the last refreshed time for the given source to the current time.
+   *
+   * XXX should this be setLastRefreshed and take a time parameter
+   * to set the last refreshed time to?
+   *
+   * aSource {SnowlMessageSource} the source for which to set the time
+   */
+  resetLastRefreshed: function(aSource) {
+    let stmt = SnowlDatastore.createStatement("UPDATE sources SET lastRefreshed = :lastRefreshed WHERE id = :id");
+    stmt.params.lastRefreshed = new Date().getTime();
+    stmt.params.id = aSource.id;
+    stmt.execute();
   }
 };
 
