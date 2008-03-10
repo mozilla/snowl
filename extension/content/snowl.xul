@@ -24,20 +24,18 @@
         <button oncommand="SnowlView.switchPosition()" label="S"/>
         <textbox id="snowlFilterTextbox" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>
-      <listbox id="snowlView" flex="1">
-        <listcols>
-          <listcol flex="1"/>
+
+      <tree id="snowlView" flex="1" rows="10">
+        <treecols>
+          <treecol id="whoCol" label="Who" flex="1"/>
           <splitter class="tree-splitter"/>
-          <listcol flex="3"/>
+          <treecol id="whatCol" label="What" flex="5"/>
           <splitter class="tree-splitter"/>
-          <listcol flex="1"/>
-        </listcols>
-        <listhead>
-          <listheader label="Who"/>
-          <listheader label="What"/>
-          <listheader label="When"/>
-        </listhead>
-      </listbox>
+          <treecol id="whenCol" label="When" flex="1"/>
+        </treecols>
+      
+        <treechildren flex="1"/>
+      </tree>
     </vbox>
     <splitter id="snowlViewSplitter" insertbefore="content"/>
   </vbox>

@@ -52,41 +52,39 @@ let SnowlView = {
   },
 
   onFilter: function() {
-    let filterTextbox = document.getElementById("filterTextbox");
+    let filterTextbox = document.getElementById("snowlFilterTextbox");
     this._rebuildView(filterTextbox.value);
   },
 
   _rebuildView: function(aMatchWords) {
-    let rootNode = document.getElementById("snowlView");
+    let tree = document.getElementById("snowlView");
+    let children = tree.getElementsByTagName("treechildren")[0];
 
     // Empty the view.
-    let oldItems = rootNode.getElementsByTagName("listitem");
-    for (let i = 0; i < oldItems.length; i++)
-      oldItems[i].parentNode.removeChild(oldItems[i]);
+    while (children.hasChildNodes())
+      children.removeChild(children.lastChild);
 
     // Get the list of messages.
     let messages = this._getMessages(aMatchWords);
 
     for each (let message in messages) {
-      let item = document.createElement("listitem");
-      item.setAttribute("flex", "1");
+      let item = document.createElement("treeitem");
+      let row = document.createElement("treerow");
 
-      let authorCell = document.createElement("listcell");
+      let authorCell = document.createElement("treecell");
       authorCell.setAttribute("label", message.author);
-      authorCell.setAttribute("crop", "center");
 
-      let subjectCell = document.createElement("listcell");
+      let subjectCell = document.createElement("treecell");
       subjectCell.setAttribute("label", message.subject);
-      subjectCell.setAttribute("crop", "center");
-      
-      let timestampCell = document.createElement("listcell");
-      timestampCell.setAttribute("label", message.timestamp);
-      timestampCell.setAttribute("crop", "center");
 
-      item.appendChild(authorCell);
-      item.appendChild(subjectCell);
-      item.appendChild(timestampCell);
-      rootNode.appendChild(item);
+      let timestampCell = document.createElement("treecell");
+      timestampCell.setAttribute("label", message.timestamp);
+
+      row.appendChild(authorCell);
+      row.appendChild(subjectCell);
+      row.appendChild(timestampCell);
+      item.appendChild(row);
+      children.appendChild(item);
     }
   },
 
