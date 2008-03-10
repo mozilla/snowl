@@ -28,7 +28,7 @@ let SnowlView = {
                         subject: row.subject,
                         author: row.author,
                         link: row.link,
-                        timestamp: new Date(row.timestamp).toLocaleString(),
+                        timestamp: row.timestamp,
                         content: row.content });
       }
     }
@@ -67,8 +67,11 @@ let SnowlView = {
     // Get the list of messages.
     let messages = this._getMessages(aMatchWords);
 
+    let now = new Date().toLocaleDateString();
+
     for each (let message in messages) {
       let item = document.createElement("treeitem");
+      item.link = message.link;
       let row = document.createElement("treerow");
 
       let authorCell = document.createElement("treecell");
@@ -78,7 +81,11 @@ let SnowlView = {
       subjectCell.setAttribute("label", message.subject);
 
       let timestampCell = document.createElement("treecell");
-      timestampCell.setAttribute("label", message.timestamp);
+      let timestamp = new Date(message.timestamp);
+      let timestampLabel =
+        timestamp.toLocaleDateString() == now ? timestamp.toLocaleTimeString()
+                                              : timestamp.toLocaleString();
+      timestampCell.setAttribute("label", timestampLabel);
 
       row.appendChild(authorCell);
       row.appendChild(subjectCell);
@@ -105,6 +112,19 @@ let SnowlView = {
       appcontent.insertBefore(splitter, content);
       splitter.setAttribute("orient", "vertical");
     }
+  },
+
+  onSelect: function(aEvent) {
+    let tree = document.getElementById("snowlView");
+    if (tree.currentIndex == -1)
+      return;
+
+    // When we support opening multiple links in the background,
+    // perhaps use this code: http://lxr.mozilla.org/mozilla/source/browser/base/content/browser.js#1482
+
+    let children = tree.getElementsByTagName("treechildren")[0];
+    let link = children.childNodes[tree.currentIndex].link;
+    openUILink(link, aEvent, false, false, false, null, null);
   }
 
 };

@@ -25,15 +25,15 @@
         <textbox id="snowlFilterTextbox" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>
 
-      <tree id="snowlView" flex="1" rows="10">
+      <tree id="snowlView" flex="1" rows="10" onselect="SnowlView.onSelect(event)" enableColumnDrag="true">
         <treecols>
-          <treecol id="whoCol" label="Who" flex="1"/>
+          <treecol id="whoCol" label="Who" flex="1" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>
-          <treecol id="whatCol" label="What" flex="5"/>
+          <treecol id="whatCol" label="What" flex="5" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>
-          <treecol id="whenCol" label="When" flex="1"/>
+          <treecol id="whenCol" label="When" flex="1" persist="width ordinal hidden"/>
         </treecols>
-      
+
         <treechildren flex="1"/>
       </tree>
     </vbox>
