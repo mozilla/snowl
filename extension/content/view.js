@@ -1,9 +1,14 @@
 let SnowlView = {
+  sourceID: null,
+
   _getMessages: function(aMatchWords) {
     let conditions = [];
 
     if (aMatchWords)
       conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :matchWords)");
+
+    if (this.sourceID != null)
+      conditions.push("sourceID = :sourceID");
 
     let statementString = 
       "SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
@@ -19,6 +24,9 @@ let SnowlView = {
 
     if (aMatchWords)
       statement.params.matchWords = aMatchWords;
+
+    if (this.sourceID != null)
+      statement.params.sourceID = this.sourceID;
 
     let messages = [];
     try {
@@ -125,6 +133,10 @@ let SnowlView = {
     let children = tree.getElementsByTagName("treechildren")[0];
     let link = children.childNodes[tree.currentIndex].link;
     openUILink(link, aEvent, false, false, false, null, null);
-  }
+  },
 
+  setSource: function(aSourceID) {
+    this.sourceID = aSourceID;
+    this._rebuildView();
+  }
 };

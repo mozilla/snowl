@@ -17,6 +17,21 @@
               checked="true" oncommand="Snowl.toggleView()" accesskey="M"/>
   </menupopup>
 
+  <menupopup id="viewSidebarMenu">
+    <menuitem observes="viewSnowlSidebar"/>
+  </menupopup>
+
+  <broadcasterset id="mainBroadcasterSet"> 
+    <broadcaster id="viewSnowlSidebar"
+                 label="Subscriptions"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebarurl="chrome://snowl/content/sidebar.xul"
+                 sidebartitle="Subscriptions"
+                 oncommand="toggleSidebar('viewSnowlSidebar');" />
+  </broadcasterset>
+
   <vbox id="appcontent">
     <vbox id="snowlViewContainer" insertbefore="content">
       <toolbar id="snowlViewToolbar" pack="end">
