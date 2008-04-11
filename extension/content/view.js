@@ -92,8 +92,13 @@ catch(ex) {
     throw Cr.NS_ERROR_NO_INTERFACE;
   },
 
-  observe: function(aSubject, aTopic, aData) {
-    this._rebuildView();
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "messages:changed":
+        this._rebuildView();
+        break;
+    }
   },
 
   onUpdate: function() {

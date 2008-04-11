@@ -116,7 +116,8 @@ SourcesView = {
       throw ex;
     }
 
-    this._rebuildView();
+    this._obsSvc.notifyObservers(null, "sources:changed", null);
+    this._obsSvc.notifyObservers(null, "messages:changed", null);
   }
 
 };
