@@ -102,6 +102,7 @@ SourcesView = {
 
   onUnsubscribe: function(aEvent) {
     let sourceID = this._tree.view.getItemAtIndex(this._tree.currentIndex).sourceID;
+
     SnowlDatastore.dbConnection.beginTransaction();
     try {
       SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
@@ -114,6 +115,8 @@ SourcesView = {
       SnowlDatastore.dbConnection.rollbackTransaction();
       throw ex;
     }
+
+    this._rebuildView();
   }
 
 };
