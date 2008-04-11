@@ -1,0 +1,15 @@
+#content {
+  border: 1px solid threedshadow;
+  padding: 3em;
+  -moz-border-radius: 10px;
+  background-color: -moz-field;
+  color: -moz-fieldtext;
+}
+
+#title {
+  font-size: 2em;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  border-bottom: 1px solid threedlightshadow;
+}
+

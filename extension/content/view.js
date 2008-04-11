@@ -1,4 +1,15 @@
 let SnowlView = {
+  _log: null,
+
+  // Observer Service
+  get _obsSvc() {
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].
+                 getService(Ci.nsIObserverService);
+    delete this._obsSvc;
+    this._obsSvc = obsSvc;
+    return this._obsSvc;
+  },
+
   sourceID: null,
 
   _getMessages: function(aMatchWords) {
@@ -11,37 +22,45 @@ let SnowlView = {
       conditions.push("sourceID = :sourceID");
 
     let statementString = 
-      "SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
-       FROM sources JOIN messages ON sources.id = messages.sourceID \
-       JOIN parts on messages.id = parts.messageID";
+      //"SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
+      // FROM sources JOIN messages ON sources.id = messages.sourceID \
+      // LEFT JOIN parts on messages.id = parts.messageID";
+      "SELECT sources.title AS sourceTitle, subject, author, link, timestamp \
+       FROM sources JOIN messages ON sources.id = messages.sourceID";
 
     if (conditions.length > 0)
       statementString += " WHERE " + conditions.join(" AND ");
 
     statementString += " ORDER BY timestamp DESC";
 
+    this._log.info("getMessages: statementString = " + statementString);
+
     let statement = SnowlDatastore.createStatement(statementString);
 
-    if (aMatchWords)
+    if (aMatchWords) {
+      this._log.info("getMessages: aMatchWords = " + aMatchWords);
       statement.params.matchWords = aMatchWords;
+    }
 
-    if (this.sourceID != null)
+    if (this.sourceID != null) {
+      this._log.info("getMessages: sourceID = " + this.sourceID);
       statement.params.sourceID = this.sourceID;
+    }
 
     let messages = [];
     try {
       while (statement.step()) {
-        let row = statement.row;
-        messages.push({ sourceTitle: row.sourceTitle,
-                        subject: row.subject,
-                        author: row.author,
-                        link: row.link,
-                        timestamp: row.timestamp,
-                        content: row.content });
+        messages.push({ sourceTitle: statement.row.sourceTitle,
+                        subject: statement.row.subject,
+                        author: statement.row.author,
+                        link: statement.row.link,
+                        timestamp: statement.row.timestamp
+                        //,content: statement.row.content
+                      });
       }
     }
     catch(ex) {
-      dump(statementString + ": " + ex + ": " + SnowlDatastore.dbConnection.lastErrorString + "\n");
+      this._log.error(statementString + ": " + ex + ": " + SnowlDatastore.dbConnection.lastErrorString + "\n");
       throw ex;
     }
     finally {
@@ -52,9 +71,31 @@ let SnowlView = {
   },
 
   onLoad: function() {
+    this._log = Log4Moz.Service.getLogger("Snowl.View");
+
+try {
+    this._obsSvc.addObserver(this, "messages:changed", true);
+}
+catch(ex) {
+  alert(ex);
+}
     this._rebuildView();
   },
   
+  // nsISupports
+  QueryInterface: function(aIID) {
+    if (aIID.equals(Ci.nsIObserver) ||
+        aIID.equals(Ci.nsISupportsWeakReference) ||
+        aIID.equals(Ci.nsISupports))
+      return this;
+    
+    throw Cr.NS_ERROR_NO_INTERFACE;
+  },
+
+  observe: function(aSubject, aTopic, aData) {
+    this._rebuildView();
+  },
+
   onUpdate: function() {
     this._rebuildView();
   },

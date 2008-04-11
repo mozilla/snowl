@@ -38,7 +38,7 @@ SourcesView = {
     for (let i = 0; i < this._children.childNodes.length; i++) {
       let item = this._children.childNodes[i];
       if (item.sourceID == gBrowserWindow.SnowlView.sourceID) {
-        this._tree.view.selection.select(i)
+        this._tree.view.selection.select(i);
         break;
       }
     }
@@ -62,6 +62,22 @@ SourcesView = {
       return;
     let sourceID = this._children.childNodes[this._tree.currentIndex].sourceID;
     gBrowserWindow.SnowlView.setSource(sourceID);
+  },
+
+  onUnsubscribe: function(aEvent) {
+    let sourceID = this._tree.view.getItemAtIndex(this._tree.currentIndex).sourceID;
+    SnowlDatastore.dbConnection.beginTransaction();
+    try {
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages WHERE sourceID = " + sourceID);
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources WHERE id = " + sourceID);
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      throw ex;
+    }
   }
 
 };

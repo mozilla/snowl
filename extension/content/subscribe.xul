@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/subscribe.css" type"text/css"?>
+
+<page id="subscribeToFeedPage" title="Subscribe to Feed"
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      pack="center" align="center">
+
+  <script type="application/x-javascript" src="chrome://snowl/content/init.js"/>
+  <script type="application/x-javascript" src="chrome://snowl/content/feedclient.js"/>
+  <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
+
+  <vbox id="content">
+    <description id="title" value="Subscribe to Feed"/>
+    <vbox id="messages"/>
+    <hbox style="margin-top: 2em">
+      <spacer flex="1"/>
+      <button label="Close" oncommand="Subscriber.onClose()"/>
+    </hbox>
+  </vbox>
+</page>

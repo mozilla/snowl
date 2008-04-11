@@ -43,7 +43,8 @@
   <script type="application/x-javascript" src="chrome://snowl/content/init.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 
-  <tree id="sourcesView" flex="1" onselect="SourcesView.onSelect(event)">
+  <tree id="sourcesView" flex="1" onselect="SourcesView.onSelect(event)"
+        context="sourcesContextMenu">
     <treecols>
       <treecol id="nameCol" label="Name" flex="1"/>
     </treecols>
@@ -51,4 +52,7 @@
     <treechildren flex="1"/>
   </tree>
 
+  <menupopup id="sourcesContextMenu">
+    <menuitem label="Unsubscribe" oncommand="SourcesView.onUnsubscribe(event)"/>
+  </menupopup>
 </page>

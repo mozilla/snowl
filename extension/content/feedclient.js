@@ -29,7 +29,7 @@ var SnowlFeedClient = {
 
   onError: function(aEvent) {
     // FIXME: figure out what to do here.
-    dump("error loading feed " + aEvent.target.channel.originalURI + "\n");
+    Log4Moz.Service.getLogger("Snowl.FeedClient").error("loading feed " + aEvent.target.channel.originalURI);
   }
 };
 
@@ -40,12 +40,16 @@ function SnowlFeed(aID, aURL, aTitle) {
   this.id = aID;
   this.url = aURL;
   this.title = aTitle;
+
+  this._log = Log4Moz.Service.getLogger("Snowl.Feed");
 }
 
 SnowlFeed.prototype = {
   id: null,
   url: null,
   title: null,
+
+  _log: null,
 
 /*
   _uri: null,
@@ -77,23 +81,34 @@ SnowlFeed.prototype = {
   handleResult: function(result) {
     // Now that we know we successfully downloaded the feed and obtained
     // a result from it, update the "last refreshed" timestamp.
-    Snowl.resetLastRefreshed(this);
-
+try {
+    SnowlService.resetLastRefreshed(this);
+}
+catch(ex) {
+this._log.info(ex);
+}
     let feed = result.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    for (let i = 0; i < feed.items.length; i++) {
-      let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-      entry.QueryInterface(Ci.nsIFeedContainer);
-      let universalID = entry.id || this.generateID(entry);
-
-      if (Snowl.hasMessage(universalID))
-{
-dump(this.title + " already has message " + universalID + "\n");
-        continue;
-}
-
-dump(this.title + " adding message " + universalID + "\n");
-      this.addMessage(entry, universalID);
+    SnowlDatastore.dbConnection.beginTransaction();
+    try {
+      for (let i = 0; i < feed.items.length; i++) {
+        let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
+        entry.QueryInterface(Ci.nsIFeedContainer);
+        let universalID = entry.id || this.generateID(entry);
+  
+        if (SnowlService.hasMessage(universalID)) {
+          this._log.info(this.title + " has message " + universalID);
+          continue;
+        }
+  
+        this._log.info(this.title + " adding message " + universalID);
+        this.addMessage(entry, universalID);
+      }
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      throw ex;
     }
   },
 
@@ -127,7 +142,7 @@ dump(this.title + " adding message " + universalID + "\n");
 
   onError: function(aEvent) {
     // FIXME: figure out what to do here.
-    dump("error loading feed " + aEvent.target.channel.originalURI + "\n");
+    this._log.error("loading feed " + aEvent.target.channel.originalURI);
   },
 
   /**
@@ -160,42 +175,63 @@ dump(this.title + " adding message " + universalID + "\n");
     // either "html", "xhtml", or "text", into an Internet media type.
     let contentType = aEntry.content ? this.contentTypes[aEntry.content.type] : null;
     let contentText = aEntry.content ? aEntry.content.text : null;
-    let messageID = Snowl.addSimpleMessage(this.id, aUniversalID, aEntry.title.text,
-                                           author, timestamp, aEntry.link,
-                                           contentText, contentType);
+    let messageID = SnowlService.addSimpleMessage(this.id, aUniversalID,
+                                                  aEntry.title.text, author,
+                                                  timestamp, aEntry.link,
+                                                  contentText, contentType);
 
     // Add metadata.
     let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
                  fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
     while (fields.hasMoreElements()) {
       let field = fields.getNext().QueryInterface(Ci.nsIProperty);
+
       if (field.name == "authors") {
         let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
         while (values.hasMoreElements()) {
           let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
           // FIXME: store people records in a separate table with individual
           // columns for each person attribute (i.e. name, email, url)?
-          Snowl.addMetadatum(messageID,
-                             "atom:author",
-                             value.name && value.email ? value.name + "<" + value.email + ">"
-                                                       : value.name ? value.name : value.email);
+          SnowlService.addMetadatum(messageID,
+                                    "atom:author",
+                                    value.name && value.email ? value.name + "<" + value.email + ">"
+                                                              : value.name ? value.name : value.email);
         }
       }
+
       else if (field.name == "links") {
         let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
         while (values.hasMoreElements()) {
           let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
           // FIXME: store link records in a separate table with individual
           // colums for each link attribute (i.e. href, type, rel, title)?
-          Snowl.addMetadatum(messageID,
-                             "atom:link_" + value.get("rel"),
-                             value.get("href"));
+          SnowlService.addMetadatum(messageID,
+                                    "atom:link_" + value.get("rel"),
+                                    value.get("href"));
         }
       }
-      else
-        Snowl.addMetadatum(messageID, field.name, field.value);
-    }
 
+      // For some reason, the values of certain simple fields (like RSS2 guid)
+      // are property bags containing the value instead of the value itself.
+      // For those, we need to unwrap the extra layer. This strange behavior
+      // has been filed as bug 427907.
+      else if (typeof field.value == "object") {
+        if (field.value instanceof Ci.nsIPropertyBag2) {
+          let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
+          SnowlService.addMetadatum(messageID, field.name, value);
+        }
+        else if (field.value instanceof Ci.nsIArray) {
+          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+          while (values.hasMoreElements()) {
+            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
+            SnowlService.addMetadatum(messageID, field.name, value.get(field.name));
+          }
+        }
+      }
+
+      else
+        SnowlService.addMetadatum(messageID, field.name, field.value);
+    }
   },
 
   /**
