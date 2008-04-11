@@ -6,6 +6,15 @@ var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
 SourcesView = {
+  // Observer Service
+  get _obsSvc() {
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].
+                 getService(Ci.nsIObserverService);
+    delete this._obsSvc;
+    this._obsSvc = obsSvc;
+    return this._obsSvc;
+  },
+
   get _tree() {
     let tree = document.getElementById("sourcesView");
     delete this._tree;
@@ -21,6 +30,33 @@ SourcesView = {
   },
 
   init: function() {
+    this._obsSvc.addObserver(this, "sources:changed", true);
+    this._rebuildView();
+  },
+
+  //**************************************************************************//
+  // XPCOM Interface Implementations
+
+  // nsISupports
+  QueryInterface: function(aIID) {
+    if (aIID.equals(Ci.nsIObserver) ||
+        aIID.equals(Ci.nsISupportsWeakReference) ||
+        aIID.equals(Ci.nsISupports))
+      return this;
+
+    throw Cr.NS_ERROR_NO_INTERFACE;
+  },
+
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "sources:changed":
+        this._rebuildView();
+        break;
+    }
+  },
+
+  _rebuildView: function() {
     let statementString = "SELECT title, id FROM sources ORDER BY title";
 
     let statement = SnowlDatastore.createStatement(statementString);

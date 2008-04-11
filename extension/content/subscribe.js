@@ -130,6 +130,7 @@ catch(ex) {
 }
 
     this._appendMessage("You have been subscribed to '" + feed.title.plainText() + "'.");
+    this._obsSvc.notifyObservers(null, "sources:changed", null);
     this._obsSvc.notifyObservers(null, "messages:changed", null);
   },
 
