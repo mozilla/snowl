@@ -1,3 +1,5 @@
+dump("begin service importation\n");
+
 const EXPORTED_SYMBOLS = ["SnowlService"];
 
 const Cc = Components.classes;
@@ -8,6 +10,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/log4moz.js");
 Cu.import("resource://snowl/datastore.js");
+Cu.import("resource://snowl/feed.js");
 
 const PERMS_FILE      = 0644;
 const PERMS_DIRECTORY = 0755;
@@ -16,6 +19,12 @@ const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
 const PREF_CONTENTHANDLERS_BRANCH = "browser.contentHandlers.types.";
 const SNOWL_HANDLER_URI = "chrome://snowl/content/subscribe.xul?feed=%s";
 const SNOWL_HANDLER_TITLE = "Snowl";
+
+// How often to refresh sources, in milliseconds.
+const REFRESH_INTERVAL = 60 * 60 * 1000; // 60 minutes
+ 
+// How often to check if sources need refreshing, in milliseconds.
+const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
 
 let SnowlService = {
   // Preferences Service
@@ -48,6 +57,23 @@ let SnowlService = {
   _init: function() {
     this._initLogs();
     this._registerFeedHandler();
+    this._initTimer();
+
+    // FIXME: refresh stale sources on startup in a way that doesn't hang
+    // the UI thread.
+    //this._refreshStaleSources();
+  },
+
+  _timer: null,
+  _initTimer: function() {
+    this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let callback = {
+      _svc: this,
+      notify: function(aTimer) { this._svc._refreshStaleSources() }
+    };
+    this._timer.initWithCallback(callback,
+                                 REFRESH_CHECK_INTERVAL,
+                                 Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
   _initLogs: function() {
@@ -136,19 +162,48 @@ let SnowlService = {
     }
   },
 
-  /**
-   * Reset the last refreshed time for the given source to the current time.
-   *
-   * XXX should this be setLastRefreshed and take a time parameter
-   * to set the last refreshed time to?
-   *
-   * aSource {SnowlMessageSource} the source for which to set the time
-   */
-  resetLastRefreshed: function(aSource) {
-    let stmt = SnowlDatastore.createStatement("UPDATE sources SET lastRefreshed = :lastRefreshed WHERE id = :id");
-    stmt.params.lastRefreshed = new Date().getTime();
-    stmt.params.id = aSource.id;
-    stmt.execute();
+  _refreshStaleSources: function() {
+    this._log.info("refreshing stale sources");
+
+    // XXX Should SnowlDatastore::selectSources return SnowlSource objects,
+    // of which SnowlFeed is a subclass?  Or perhaps selectSources should simply
+    // return a database cursor, and SnowlService::getSources should return
+    // SnowlSource objects?
+    let allSources = SnowlDatastore.selectSources();
+    let now = new Date();
+    let staleSources = [];
+    for each (let source in allSources)
+{
+this._log.info("checking source: " + source.id);
+      if (now - source.lastRefreshed > REFRESH_INTERVAL)
+{
+this._log.info("source: " + source.id + " is stale");
+        staleSources.push(source);
+      }
+    }
+    this._refreshSources(staleSources);
+  },
+
+  refreshAllSources: function() {
+    let sources = SnowlDatastore.selectSources();
+    this._refreshSources(sources);
+  },
+
+  _refreshSources: function(aSources) {
+    for each (let source in aSources) {
+      let feed = new SnowlFeed(source.id, source.url, source.title);
+      feed.getNewMessages();
+
+      // We reset the last refreshed timestamp here even though the refresh
+      // is asynchronous, so we don't yet know whether it has succeeded.
+      // The upside of this approach is that we don't keep trying to refresh
+      // a source that isn't responding, but the downside is that it takes
+      // a long time for us to refresh a source that is only down for a short
+      // period of time.  We should instead keep trying when a source fails,
+      // but with a progressively longer interval (up to the standard one).
+      // FIXME: implement the approach described above.
+      feed.resetLastRefreshed();
+    }
   },
 
   /**
@@ -160,68 +215,10 @@ let SnowlService = {
    */
   hasMessage: function(aUniversalID) {
     return SnowlDatastore.selectHasMessage(aUniversalID);
-  },
-
-  /**
-   * Get the internal ID of the message with the given external ID.
-   *
-   * @param    aExternalID {string}
-   *           the external ID of the message
-   *
-   * @returns  {number}
-   *           the internal ID of the message, or undefined if the message
-   *           doesn't exist
-   */
-  getInternalIDForExternalID: function(aExternalID) {
-    return SnowlDatastore.selectInternalIDForExternalID(aExternalID);
-  },
-
-  /**
-   * Add a message with a single part to the datastore.
-   *
-   * @param aSourceID    {integer} the record ID of the message source
-   * @param aUniversalID {string}  the universal ID of the message
-   * @param aSubject     {string}  the title of the message
-   * @param aAuthor      {string}  the author of the message
-   * @param aTimestamp   {Date}    the date/time at which the message was sent
-   * @param aLink        {nsIURI}  a link to the content of the message,
-   *                               if the content is hosted on a server
-   * @param aContent     {string}  the content of the message, if the content
-   *                               is included with the message
-   * @param aContentType {string}  the media type of the content of the message,
-   *                               if the content is included with the message
-   *
-   * FIXME: allow callers to pass a set of arbitrary metadata name/value pairs
-   * that get written to the attributes table.
-   * 
-   * @returns {integer} the internal ID of the newly-created message
-   */
-  addSimpleMessage: function(aSourceID, aUniversalID, aSubject, aAuthor,
-                             aTimestamp, aLink, aContent, aContentType) {
-    // Convert the timestamp to milliseconds-since-epoch, which is how we store
-    // it in the datastore.
-    let timestamp = aTimestamp ? aTimestamp.getTime() : null;
-
-    // Convert the link to its string spec, which is how we store it
-    // in the datastore.
-    let link = aLink ? aLink.spec : null;
-
-    let messageID =
-      SnowlDatastore.insertMessage(aSourceID, aUniversalID, aSubject, aAuthor,
-                                   timestamp, link);
-
-    if (aContent)
-      SnowlDatastore.insertPart(messageID, aContent, aContentType);
-
-    return messageID;
-  },
-
-  addMetadatum: function(aMessageID, aAttributeName, aValue) {
-    // FIXME: speed this up by caching the list of known attributes.
-    let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
-                      || SnowlDatastore.insertAttribute(aAttributeName);
-    SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   }
+
 };
 
 SnowlService._init();
+
+dump("end service importation\n");

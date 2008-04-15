@@ -8,7 +8,6 @@
 
   <!-- <script type="application/x-javascript" src="datastore.js"/> -->
   <script type="application/x-javascript" src="init.js"/>
-  <script type="application/x-javascript" src="feedclient.js"/>
   <script type="application/x-javascript" src="view.js"/>
   <script type="application/x-javascript" src="snowl.js"/>
 
@@ -35,7 +34,7 @@
   <vbox id="appcontent">
     <vbox id="snowlViewContainer" insertbefore="content">
       <toolbar id="snowlViewToolbar" pack="end">
-        <button oncommand="Snowl.getNewMessages()" label="G"/>
+        <button oncommand="SnowlService.refreshAllSources()" label="G"/>
         <button oncommand="SnowlView.switchPosition()" label="S"/>
         <textbox id="snowlFilterTextbox" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>

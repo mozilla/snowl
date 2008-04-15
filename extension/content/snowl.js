@@ -16,23 +16,6 @@ var Snowl = {
   _initModules: function() {
   },
 
-  getNewMessages: function() {
-    let sources = this.getSources();
-    for each (let source in sources)
-      source.getNewMessages();
-  },
-
-  getSources: function() {
-    let sources = [];
-
-    let rows = SnowlDatastore.selectSources();
-
-    for each (let row in rows)
-      sources.push(new SnowlFeed(row.id, row.url, row.title));
-
-    return sources;
-  },
-
   toggleView: function() {
     let container = document.getElementById("snowlViewContainer");
     let splitter = document.getElementById("snowlViewSplitter");

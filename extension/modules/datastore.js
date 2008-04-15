@@ -248,7 +248,7 @@ let SnowlDatastore = {
 
   get _selectSourcesStatement() {
     let statement = this.createStatement(
-      "SELECT id, url, title FROM sources"
+      "SELECT id, url, title, lastRefreshed FROM sources"
     );
     this.__defineGetter__("_selectSourcesStatement", function() { return statement });
     return this._selectSourcesStatement;
@@ -256,10 +256,15 @@ let SnowlDatastore = {
 
   selectSources: function() {
     let sources = [];
+
     try {
       while (this._selectSourcesStatement.step()) {
         let row = this._selectSourcesStatement.row;
-        sources.push({ id: row.id, url: row.url, title: row.title });
+        sources.push({ id: row.id,
+                       url: row.url,
+                       title: row.title,
+                       lastRefreshed: new Date(row.lastRefreshed)
+                     });
       }
     }
     finally {

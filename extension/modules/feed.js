@@ -1,4 +1,14 @@
-// FIXME: rename this file feed-source.js
+dump("begin importing feed.js\n");
+
+EXPORTED_SYMBOLS = ["SnowlFeed"];
+
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
+
+Cu.import("resource://snowl/log4moz.js");
+Cu.import("resource://snowl/datastore.js");
 
 var SnowlFeedClient = {
   // XXX Make this take a feed ID once it stores the list of subscribed feeds
@@ -81,12 +91,8 @@ SnowlFeed.prototype = {
   handleResult: function(result) {
     // Now that we know we successfully downloaded the feed and obtained
     // a result from it, update the "last refreshed" timestamp.
-try {
-    SnowlService.resetLastRefreshed(this);
-}
-catch(ex) {
-this._log.info(ex);
-}
+    this.resetLastRefreshed(this);
+
     let feed = result.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     let currentMessages = [];
@@ -110,7 +116,7 @@ this._log.info(ex);
           continue;
         }
 
-        let internalID = SnowlService.getInternalIDForExternalID(universalID);
+        let internalID = this.getInternalIDForExternalID(universalID);
 
         if (internalID)
           this._log.info(this.title + " has message " + universalID);
@@ -197,7 +203,7 @@ this._log.info(ex);
     // either "html", "xhtml", or "text", into an Internet media type.
     let contentType = aEntry.content ? this.contentTypes[aEntry.content.type] : null;
     let contentText = aEntry.content ? aEntry.content.text : null;
-    let messageID = SnowlService.addSimpleMessage(this.id, aUniversalID,
+    let messageID = this.addSimpleMessage(this.id, aUniversalID,
                                                   aEntry.title.text, author,
                                                   timestamp, aEntry.link,
                                                   contentText, contentType);
@@ -214,7 +220,7 @@ this._log.info(ex);
           let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
           // FIXME: store people records in a separate table with individual
           // columns for each person attribute (i.e. name, email, url)?
-          SnowlService.addMetadatum(messageID,
+          this.addMetadatum(messageID,
                                     "atom:author",
                                     value.name && value.email ? value.name + "<" + value.email + ">"
                                                               : value.name ? value.name : value.email);
@@ -227,7 +233,7 @@ this._log.info(ex);
           let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
           // FIXME: store link records in a separate table with individual
           // colums for each link attribute (i.e. href, type, rel, title)?
-          SnowlService.addMetadatum(messageID,
+          this.addMetadatum(messageID,
                                     "atom:link_" + value.get("rel"),
                                     value.get("href"));
         }
@@ -240,19 +246,19 @@ this._log.info(ex);
       else if (typeof field.value == "object") {
         if (field.value instanceof Ci.nsIPropertyBag2) {
           let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
-          SnowlService.addMetadatum(messageID, field.name, value);
+          this.addMetadatum(messageID, field.name, value);
         }
         else if (field.value instanceof Ci.nsIArray) {
           let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
           while (values.hasMoreElements()) {
             let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            SnowlService.addMetadatum(messageID, field.name, value.get(field.name));
+            this.addMetadatum(messageID, field.name, value.get(field.name));
           }
         }
       }
 
       else
-        SnowlService.addMetadatum(messageID, field.name, field.value);
+        this.addMetadatum(messageID, field.name, field.value);
     }
 
     return messageID;
@@ -286,5 +292,87 @@ this._log.info(ex);
     let identity = this.stringToArray(entry.link.spec + entry.published + entry.title.text);
     hasher.update(identity, identity.length);
     return "urn:" + hasher.finish(true);
+  },
+
+  // FIXME: Make the rest of this stuff be part of a superclass from which
+  // this class is derived.
+
+  /**
+   * Get the internal ID of the message with the given external ID.
+   *
+   * @param    aExternalID {string}
+   *           the external ID of the message
+   *
+   * @returns  {number}
+   *           the internal ID of the message, or undefined if the message
+   *           doesn't exist
+   */
+  getInternalIDForExternalID: function(aExternalID) {
+    return SnowlDatastore.selectInternalIDForExternalID(aExternalID);
+  },
+
+  /**
+   * Add a message with a single part to the datastore.
+   *
+   * @param aSourceID    {integer} the record ID of the message source
+   * @param aUniversalID {string}  the universal ID of the message
+   * @param aSubject     {string}  the title of the message
+   * @param aAuthor      {string}  the author of the message
+   * @param aTimestamp   {Date}    the date/time at which the message was sent
+   * @param aLink        {nsIURI}  a link to the content of the message,
+   *                               if the content is hosted on a server
+   * @param aContent     {string}  the content of the message, if the content
+   *                               is included with the message
+   * @param aContentType {string}  the media type of the content of the message,
+   *                               if the content is included with the message
+   *
+   * FIXME: allow callers to pass a set of arbitrary metadata name/value pairs
+   * that get written to the attributes table.
+   * 
+   * @returns {integer} the internal ID of the newly-created message
+   */
+  addSimpleMessage: function(aSourceID, aUniversalID, aSubject, aAuthor,
+                             aTimestamp, aLink, aContent, aContentType) {
+    // Convert the timestamp to milliseconds-since-epoch, which is how we store
+    // it in the datastore.
+    let timestamp = aTimestamp ? aTimestamp.getTime() : null;
+
+    // Convert the link to its string spec, which is how we store it
+    // in the datastore.
+    let link = aLink ? aLink.spec : null;
+
+    let messageID =
+      SnowlDatastore.insertMessage(aSourceID, aUniversalID, aSubject, aAuthor,
+                                   timestamp, link);
+
+    if (aContent)
+      SnowlDatastore.insertPart(messageID, aContent, aContentType);
+
+    return messageID;
+  },
+
+  addMetadatum: function(aMessageID, aAttributeName, aValue) {
+    // FIXME: speed this up by caching the list of known attributes.
+    let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
+                      || SnowlDatastore.insertAttribute(aAttributeName);
+    SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
+  },
+
+  /**
+   * Reset the last refreshed time for the given source to the current time.
+   *
+   * XXX should this be setLastRefreshed and take a time parameter
+   * to set the last refreshed time to?
+   *
+   * aSource {SnowlMessageSource} the source for which to set the time
+   */
+  resetLastRefreshed: function() {
+    let stmt = SnowlDatastore.createStatement("UPDATE sources SET lastRefreshed = :lastRefreshed WHERE id = :id");
+    stmt.params.lastRefreshed = new Date().getTime();
+    stmt.params.id = this.id;
+    stmt.execute();
   }
+
 };
+
+dump("end importing feed.js\n");
