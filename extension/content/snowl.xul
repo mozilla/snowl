@@ -38,11 +38,11 @@
 
       <tree id="snowlView" flex="1" rows="10" onselect="SnowlView.onSelect(event)" enableColumnDrag="true">
         <treecols>
-          <treecol id="whoCol" label="Who" flex="1" persist="width ordinal hidden"/>
+          <treecol id="whoCol" label="Author" flex="1" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>
-          <treecol id="whatCol" label="What" flex="5" persist="width ordinal hidden"/>
+          <treecol id="whatCol" label="Subject" flex="5" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>
-          <treecol id="whenCol" label="When" flex="1" persist="width ordinal hidden"/>
+          <treecol id="whenCol" label="Date" flex="1" persist="width ordinal hidden"/>
         </treecols>
 
         <treechildren flex="1"/>
