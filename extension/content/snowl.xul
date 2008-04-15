@@ -6,12 +6,11 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlOverlay">
 
-  <script type="application/x-javascript" src="view.js"/>
   <script type="application/x-javascript" src="snowl.js"/>
 
   <menupopup id="menu_viewPopup">
     <menuitem insertafter="viewSidebarMenuMenu" label="Messages" type="checkbox"
-              checked="true" oncommand="Snowl.toggleView()" accesskey="M"/>
+              checked="true" oncommand="SnowlView.toggle()" accesskey="M"/>
   </menupopup>
 
   <menupopup id="viewSidebarMenu">

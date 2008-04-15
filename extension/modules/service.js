@@ -1,5 +1,3 @@
-dump("begin service importation\n");
-
 const EXPORTED_SYMBOLS = ["SnowlService"];
 
 const Cc = Components.classes;
@@ -220,5 +218,3 @@ this._log.info("source: " + source.id + " is stale");
 };
 
 SnowlService._init();
-
-dump("end service importation\n");
