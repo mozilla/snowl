@@ -7,7 +7,6 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       pack="center" align="center">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/init.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/feedclient.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
 

@@ -6,8 +6,6 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlOverlay">
 
-  <!-- <script type="application/x-javascript" src="datastore.js"/> -->
-  <script type="application/x-javascript" src="init.js"/>
   <script type="application/x-javascript" src="view.js"/>
   <script type="application/x-javascript" src="snowl.js"/>
 

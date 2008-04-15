@@ -40,7 +40,6 @@
 <page id="snowlSidebar" title="Subscriptions"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/init.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 
   <tree id="sourcesView" flex="1" onselect="SourcesView.onSelect(event)"

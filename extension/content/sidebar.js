@@ -1,3 +1,12 @@
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
+
+Cu.import("resource://snowl/service.js");
+Cu.import("resource://snowl/datastore.js");
+Cu.import("resource://snowl/log4moz.js");
+
 var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
                      QueryInterface(Ci.nsIDocShellTreeItem).
