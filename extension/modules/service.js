@@ -163,6 +163,20 @@ let SnowlService = {
   },
 
   /**
+   * Get the internal ID of the message with the given external ID.
+   *
+   * @param    aExternalID {string}
+   *           the external ID of the message
+   *
+   * @returns  {number}
+   *           the internal ID of the message, or undefined if the message
+   *           doesn't exist
+   */
+  getInternalIDForExternalID: function(aExternalID) {
+    return SnowlDatastore.selectInternalIDForExternalID(aExternalID);
+  },
+
+  /**
    * Add a message with a single part to the datastore.
    *
    * @param aSourceID    {integer} the record ID of the message source

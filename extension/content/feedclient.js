@@ -89,21 +89,43 @@ this._log.info(ex);
 }
     let feed = result.doc.QueryInterface(Components.interfaces.nsIFeed);
 
+    let currentMessages = [];
+
     SnowlDatastore.dbConnection.beginTransaction();
     try {
       for (let i = 0; i < feed.items.length; i++) {
         let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-        entry.QueryInterface(Ci.nsIFeedContainer);
-        let universalID = entry.id || this.generateID(entry);
-  
-        if (SnowlService.hasMessage(universalID)) {
-          this._log.info(this.title + " has message " + universalID);
+        //entry.QueryInterface(Ci.nsIFeedContainer);
+
+        // Figure out the ID for the entry, then check if the entry has already
+        // been retrieved.  If we can't figure out the entry's ID, then we skip
+        // the entry, since its ID is the only way for us to know whether or not
+        // it has already been retrieved.
+        let universalID;
+        try {
+          universalID = entry.id || this.generateID(entry);
+        }
+        catch(ex) {
+          this._log.warn(this.title + " couldn't retrieve a message: " + ex);
           continue;
         }
-  
-        this._log.info(this.title + " adding message " + universalID);
-        this.addMessage(entry, universalID);
+
+        let internalID = SnowlService.getInternalIDForExternalID(universalID);
+
+        if (internalID)
+          this._log.info(this.title + " has message " + universalID);
+        else {
+          this._log.info(this.title + " adding message " + universalID);
+          internalID = this.addMessage(entry, universalID);
+        }
+
+        currentMessages.push(internalID);
       }
+
+      // Update the current flag.
+      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 0 WHERE sourceID = " + this.id);
+      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE sourceID = " + this.id + " AND id IN (" + currentMessages.join(", ") + ")");
+
       SnowlDatastore.dbConnection.commitTransaction();
     }
     catch(ex) {
@@ -232,6 +254,8 @@ this._log.info(ex);
       else
         SnowlService.addMetadatum(messageID, field.name, field.value);
     }
+
+    return messageID;
   },
 
   /**
@@ -259,8 +283,8 @@ this._log.info(ex);
     let hasher = Cc["@mozilla.org/security/hash;1"].
                  createInstance(Ci.nsICryptoHash);
     hasher.init(Ci.nsICryptoHash.SHA1);
-    let identity = stringToArray(entry.link + entry.published + entry.title.text);
+    let identity = this.stringToArray(entry.link.spec + entry.published + entry.title.text);
     hasher.update(identity, identity.length);
-    let id = "urn:" + hasher.finish(true);
+    return "urn:" + hasher.finish(true);
   }
 };

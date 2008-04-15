@@ -19,36 +19,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 2,
-
-  _dbSchema: {
-    tables: {
-      groups:     "id           INTEGER PRIMARY KEY, \
-                   name         TEXT NOT NULL",
-  
-      settings:   "id           INTEGER PRIMARY KEY, \
-                   name         TEXT NOT NULL",
-  
-      prefs:      "id           INTEGER PRIMARY KEY, \
-                   groupID      INTEGER REFERENCES groups(id), \
-                   settingID    INTEGER NOT NULL REFERENCES settings(id), \
-                   value        BLOB"
-    },
-    indices: {
-      groups_idx: {
-        table: "groups",
-        columns: ["name"]
-      },
-      settings_idx: {
-        table: "settings",
-        columns: ["name"]
-      },
-      prefs_idx: {
-        table: "prefs",
-        columns: ["groupID", "settingID"]
-      }
-    }
-  },
+  _dbVersion: 3,
 
   _dbSchema: {
     // Note: the timestamp is stored as JavaScript milliseconds since epoch.
@@ -60,6 +31,9 @@ let SnowlDatastore = {
 
     // FIXME: make the datastore support multiple authors.
     // FIXME: support labeling the subject as HTML or another content type.
+    // FIXME: make universalID be called externalID instead.
+    // FIXME: index by universalID to make lookups (f.e. when checking if we
+    // already have a message) and updates (f.e. when setting current) faster.
 
     tables: {
       sources: {
@@ -81,7 +55,8 @@ let SnowlDatastore = {
           "subject TEXT",
           "author TEXT",
           "timestamp INTEGER",
-          "link TEXT"
+          "link TEXT",
+          "current BOOLEAN"
         ]
       },
 
@@ -267,6 +242,10 @@ let SnowlDatastore = {
     this._dbCreateTables(aDBConnection);
   },
 
+  _dbMigrate2To3: function(aDBConnection) {
+    aDBConnection.executeSimpleSQL("ALTER TABLE messages ADD COLUMN current BOOLEAN");
+  },
+
   get _selectSourcesStatement() {
     let statement = this.createStatement(
       "SELECT id, url, title FROM sources"
@@ -332,6 +311,29 @@ let SnowlDatastore = {
     }
 
     return false;
+  },
+
+  get _selectInternalIDForExternalIDStatement() {
+    let statement = this.createStatement(
+      "SELECT id FROM messages WHERE universalID = :externalID"
+    );
+    this.__defineGetter__("_selectInternalIDForExternalIDStatement", function() { return statement });
+    return this._selectInternalIDForExternalIDStatement;
+  },
+
+  selectInternalIDForExternalID: function(aExternalID) {
+    let internalID;
+
+    try {
+      this._selectInternalIDForExternalIDStatement.params.externalID = aExternalID;
+      if (this._selectInternalIDForExternalIDStatement.step())
+        internalID = this._selectInternalIDForExternalIDStatement.row["id"];
+    }
+    finally {
+      this._selectInternalIDForExternalIDStatement.reset();
+    }
+
+    return internalID;
   },
 
   get _insertMessageStatement() {
@@ -470,7 +472,6 @@ catch(ex) {
     this._insertMetadatumStatement.execute();
     return this.dbConnection.lastInsertRowID;
   }
-
 };
 
 SnowlDatastore._dbInit();

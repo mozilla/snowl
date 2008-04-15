@@ -10,6 +10,15 @@ let SnowlView = {
     return this._obsSvc;
   },
 
+  // Date Formatting Service
+  get _dfSvc() {
+    let dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
+                            getService(Ci.nsIScriptableDateFormat);
+    delete this._dfSvc;
+    this._dfSvc = dfSvc;
+    return this._dfSvc;
+  },
+
   sourceID: null,
 
   _getMessages: function(aMatchWords) {
@@ -121,8 +130,6 @@ catch(ex) {
     // Get the list of messages.
     let messages = this._getMessages(aMatchWords);
 
-    let now = new Date().toLocaleDateString();
-
     for each (let message in messages) {
       let item = document.createElement("treeitem");
       item.link = message.link;
@@ -136,9 +143,7 @@ catch(ex) {
 
       let timestampCell = document.createElement("treecell");
       let timestamp = new Date(message.timestamp);
-      let timestampLabel =
-        timestamp.toLocaleDateString() == now ? timestamp.toLocaleTimeString()
-                                              : timestamp.toLocaleString();
+      let timestampLabel = this._formatTimestamp(timestamp);
       timestampCell.setAttribute("label", timestampLabel);
 
       row.appendChild(authorCell);
@@ -147,6 +152,62 @@ catch(ex) {
       item.appendChild(row);
       children.appendChild(item);
     }
+  },
+
+  // From toolkit/mozapps/update/content/history.js
+
+  /**
+   * Formats a timestamp for human consumption using the date formatting service
+   * for locale-specific formatting along with some additional smarts for more
+   * human-readable representations of recent timestamps.
+   * @param   {Date} the timestamp to format
+   * @returns a human-readable string
+   */
+  _formatTimestamp: function(aTimestamp) {
+    let formattedString;
+
+    let now = new Date();
+
+    let yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    yesterday = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+
+    let sixDaysAgo = new Date(now - 6 * 24 * 60 * 60 * 1000);
+    sixDaysAgo = new Date(sixDaysAgo.getFullYear(), sixDaysAgo.getMonth(), sixDaysAgo.getDate());
+
+    if (aTimestamp.toLocaleDateString() == now.toLocaleDateString())
+      formattedString = this._dfSvc.FormatTime("",
+                                               this._dfSvc.timeFormatNoSeconds,
+                                               aTimestamp.getHours(),
+                                               aTimestamp.getMinutes(),
+                                               null);
+    else if (aTimestamp > yesterday)
+      formattedString = "Yesterday " + this._dfSvc.FormatTime("",
+                                                              this._dfSvc.timeFormatNoSeconds,
+                                                              aTimestamp.getHours(),
+                                                              aTimestamp.getMinutes(),
+                                                              null);
+    else if (aTimestamp > sixDaysAgo)
+      formattedString = this._dfSvc.FormatDateTime("",
+                                                   this._dfSvc.dateFormatWeekday, 
+                                                   this._dfSvc.timeFormatNoSeconds,
+                                                   aTimestamp.getFullYear(),
+                                                   aTimestamp.getMonth() + 1,
+                                                   aTimestamp.getDate(),
+                                                   aTimestamp.getHours(),
+                                                   aTimestamp.getMinutes(),
+                                                   aTimestamp.getSeconds());
+    else
+      formattedString = this._dfSvc.FormatDateTime("",
+                                                   this._dfSvc.dateFormatShort, 
+                                                   this._dfSvc.timeFormatNoSeconds,
+                                                   aTimestamp.getFullYear(),
+                                                   aTimestamp.getMonth() + 1,
+                                                   aTimestamp.getDate(),
+                                                   aTimestamp.getHours(),
+                                                   aTimestamp.getMinutes(),
+                                                   aTimestamp.getSeconds());
+
+    return formattedString;
   },
 
   switchPosition: function() {
