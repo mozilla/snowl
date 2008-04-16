@@ -38,7 +38,10 @@
         <textbox id="snowlFilterTextbox" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>
 
-      <tree id="snowlView" flex="1" rows="10" onselect="SnowlView.onSelect(event)" enableColumnDrag="true">
+      <tree id="snowlView" flex="1" rows="10" enableColumnDrag="true"
+            disableKeyNavigation="true"
+            onselect="SnowlView.onSelect(event)"
+            onkeypress="SnowlView.onKeyPress(event)">
         <treecols>
           <treecol id="whoCol" label="Author" flex="1" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>

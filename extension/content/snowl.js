@@ -255,12 +255,52 @@ catch(ex) {
     let row = children.childNodes[tree.currentIndex];
     window.loadURI(row.link, null, null, false);
 
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = 1 WHERE id = " + row.id);
+    this._setRead(row);
+  },
+
+  onKeyPress: function(aEvent) {
+    if (aEvent.altKey || aEvent.shiftKey || aEvent.metaKey || aEvent.ctrlKey)
+      return;
+
+    // which is either the charCode or the keyCode, depending on which is set.
+    this._log.info("onKeyPress: which = " + aEvent.which);
+
+    if (aEvent.charCode == "r".charCodeAt(0))
+      this._toggleRead();
+  },
+
+  _toggleRead: function() {
+this._log.info("_toggleRead");
+    let tree = document.getElementById("snowlView");
+    if (tree.currentIndex == -1)
+      return;
+
+    let children = tree.getElementsByTagName("treechildren")[0];
+    let row = children.childNodes[tree.currentIndex];
+
+    let cell = row.getElementsByTagName("treecell")[0];
+    if (cell.hasAttribute("properties"))
+      this._setRead(row);
+    else
+      this._setUnread(row);
+  },
+
+  _setRead: function(aRow) {
+this._log.info("_setRead");
+    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = 1 WHERE id = " + aRow.id);
     // Remove the "unread" property from the treecell.
-    let cells = row.getElementsByTagName("treecell");
-    for (let i = 0; i < cells.length; i++) {
+    let cells = aRow.getElementsByTagName("treecell");
+    for (let i = 0; i < cells.length; i++)
       cells[i].removeAttribute("properties");
-    }
+  },
+
+  _setUnread: function(aRow) {
+this._log.info("_setUnread");
+    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = 0 WHERE id = " + aRow.id);
+    // Remove the "unread" property from the treecell.
+    let cells = aRow.getElementsByTagName("treecell");
+    for (let i = 0; i < cells.length; i++)
+      cells[i].setAttribute("properties", "unread");
   },
 
   setSource: function(aSourceID) {
