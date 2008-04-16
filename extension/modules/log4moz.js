@@ -497,3 +497,35 @@ Log4MozService.prototype = {
 };
 
 Log4Moz.Service = new Log4MozService();
+
+Log4Moz.enumerateInterfaces = function(aObject) {
+  let interfaces = [];
+
+  for (i in Ci) {
+    try {
+      aObject.QueryInterface(Ci[i]);
+      interfaces.push(i);
+    }
+    catch(ex) {}
+  }
+
+  return interfaces;
+};
+
+Log4Moz.enumerateProperties = function(aObject, aExcludeComplexTypes) {
+  let properties = [];
+
+  for (p in aObject) {
+    try {
+      if (aExcludeComplexTypes &&
+          (typeof aObject[p] == "object" || typeof aObject[p] == "function"))
+        continue;
+      properties.push(p + " = " + aObject[p]);
+    }
+    catch(ex) {
+      properties.push(p + " = " + ex);
+    }
+  }
+
+  return properties;
+};

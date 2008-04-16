@@ -15,6 +15,8 @@ var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
 SourcesView = {
+  _log: null,
+
   // Observer Service
   get _obsSvc() {
     let obsSvc = Cc["@mozilla.org/observer-service;1"].
@@ -39,12 +41,53 @@ SourcesView = {
   },
 
   init: function() {
+    this._log = Log4Moz.Service.getLogger("Snowl.Sidebar");
     this._obsSvc.addObserver(this, "sources:changed", true);
-    this._rebuildView();
+    this._rebuildModel();
+    this._tree.view = this;
+
+    // Add a capturing click listener to the tree so we can find out if the user
+    // clicked on a row that is already selected (in which case we let them edit
+    // the source name).
+    this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
+  },
+
+
+  //**************************************************************************//
+  // nsITreeView
+
+  rowCount: 0,
+  getCellText : function(row,column){
+    if (column.id == "nameCol") return this._model[row].title;
+    return "foo";
+  },
+  setTree: function(treebox){ this._treebox = treebox; },
+  isContainer: function(row){ return false; },
+  isSeparator: function(row){ return false; },
+  isSorted: function(){ return false; },
+  getLevel: function(row){ return 0; },
+  getImageSrc: function(row,col){ return null; },
+  getRowProperties: function(row,props){},
+  getCellProperties: function(row,col,props){},
+  getColumnProperties: function(colid,col,props){},
+  isEditable: function() {
+    return true;
+  },
+  setCellText: function(row, col, value) {
+    let statement = SnowlDatastore.createStatement("UPDATE sources SET title = :title WHERE id = :id");
+    statement.params.title = this._model[row].title = value;
+    statement.params.id = this._model[row].id;
+
+    try {
+      statement.execute();
+    }
+    finally {
+      statement.reset();
+    }
   },
 
   //**************************************************************************//
-  // XPCOM Interface Implementations
+  // Misc XPCOM Interface Implementations
 
   // nsISupports
   QueryInterface: function(aIID) {
@@ -63,6 +106,27 @@ SourcesView = {
         this._rebuildView();
         break;
     }
+  },
+
+  _model: null,
+  _rebuildModel: function() {
+    let statementString = "SELECT title, id FROM sources ORDER BY title";
+    let statement = SnowlDatastore.createStatement(statementString);
+
+    this._model = [];
+
+    let i = 0;
+    this._model[i] = { id: null, title: "All" };
+
+    try {
+      while (statement.step())
+        this._model[++i] = { id: statement.row.id, title: statement.row.title };
+    }
+    finally {
+      statement.reset();
+    }
+
+    this.rowCount = i + 1;
   },
 
   _rebuildView: function() {
@@ -103,10 +167,25 @@ SourcesView = {
   },
 
   onSelect: function(aEvent) {
+this._log.info("on select");
+//this._log.info(Log4Moz.enumerateProperties(aEvent).join("\n"));
     if (this._tree.currentIndex == -1)
       return;
     let sourceID = this._children.childNodes[this._tree.currentIndex].sourceID;
     gBrowserWindow.SnowlView.setSource(sourceID);
+  },
+
+  onClick: function(aEvent) {
+this._log.info("on click");
+//this._log.info(Log4Moz.enumerateProperties(aEvent).join("\n"));
+//this._log.info(aEvent.target.nodeName);
+
+  let row = {}, col = {}, child = {};
+  this._tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, child);
+  if (this._tree.view.selection.isSelected(row.value))
+this._log.info(row.value + " is selected");
+else
+this._log.info(row.value + " is not selected");
   },
 
   onUnsubscribe: function(aEvent) {

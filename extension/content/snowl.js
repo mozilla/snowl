@@ -46,7 +46,7 @@ let SnowlView = {
 
     statementString += " ORDER BY timestamp DESC";
 
-    this._log.info("getMessages: statementString = " + statementString);
+    //this._log.info("getMessages: statementString = " + statementString);
 
     let statement = SnowlDatastore.createStatement(statementString);
 

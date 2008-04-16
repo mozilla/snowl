@@ -1,5 +1,3 @@
-dump("begin importing feed.js\n");
-
 EXPORTED_SYMBOLS = ["SnowlFeed"];
 
 const Cc = Components.classes;
@@ -39,7 +37,7 @@ var SnowlFeedClient = {
 
   onError: function(aEvent) {
     // FIXME: figure out what to do here.
-    Log4Moz.Service.getLogger("Snowl.FeedClient").error("loading feed " + aEvent.target.channel.originalURI);
+    Log4Moz.Service.getLogger("Snowl.FeedClient").error("loading feed " + aEvent.target.channel.originalURI.spec);
   }
 };
 
@@ -374,5 +372,3 @@ SnowlFeed.prototype = {
   }
 
 };
-
-dump("end importing feed.js\n");
