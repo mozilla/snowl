@@ -38,8 +38,9 @@ let SnowlView = {
       //"SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
       // FROM sources JOIN messages ON sources.id = messages.sourceID \
       // LEFT JOIN parts on messages.id = parts.messageID";
-      "SELECT sources.title AS sourceTitle, subject, author, link, timestamp \
-       FROM sources JOIN messages ON sources.id = messages.sourceID";
+      "SELECT sources.title AS sourceTitle, messages.id AS id, " +
+             "subject, author, link, timestamp, read " +
+      "FROM sources JOIN messages ON sources.id = messages.sourceID";
 
     if (conditions.length > 0)
       statementString += " WHERE " + conditions.join(" AND ");
@@ -63,11 +64,13 @@ let SnowlView = {
     let messages = [];
     try {
       while (statement.step()) {
-        messages.push({ sourceTitle: statement.row.sourceTitle,
+        messages.push({ id: statement.row.id,
+                        sourceTitle: statement.row.sourceTitle,
                         subject: statement.row.subject,
                         author: statement.row.author,
                         link: statement.row.link,
-                        timestamp: statement.row.timestamp
+                        timestamp: statement.row.timestamp,
+                        read: (statement.row.read ? true : false)
                         //,content: statement.row.content
                       });
       }
@@ -136,19 +139,26 @@ catch(ex) {
 
     for each (let message in messages) {
       let item = document.createElement("treeitem");
+      item.id = message.id;
       item.link = message.link;
       let row = document.createElement("treerow");
 
       let authorCell = document.createElement("treecell");
       authorCell.setAttribute("label", message.author);
+      if (!message.read)
+        authorCell.setAttribute("properties", "unread");
 
       let subjectCell = document.createElement("treecell");
       subjectCell.setAttribute("label", message.subject);
+      if (!message.read)
+        subjectCell.setAttribute("properties", "unread");
 
       let timestampCell = document.createElement("treecell");
       let timestamp = new Date(message.timestamp);
       let timestampLabel = this._formatTimestamp(timestamp);
       timestampCell.setAttribute("label", timestampLabel);
+      if (!message.read)
+        timestampCell.setAttribute("properties", "unread");
 
       row.appendChild(authorCell);
       row.appendChild(subjectCell);
@@ -242,8 +252,15 @@ catch(ex) {
     // perhaps use this code: http://lxr.mozilla.org/mozilla/source/browser/base/content/browser.js#1482
 
     let children = tree.getElementsByTagName("treechildren")[0];
-    let link = children.childNodes[tree.currentIndex].link;
-    window.loadURI(link, null, null, false);
+    let row = children.childNodes[tree.currentIndex];
+    window.loadURI(row.link, null, null, false);
+
+    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = 1 WHERE id = " + row.id);
+    // Remove the "unread" property from the treecell.
+    let cells = row.getElementsByTagName("treecell");
+    for (let i = 0; i < cells.length; i++) {
+      cells[i].removeAttribute("properties");
+    }
   },
 
   setSource: function(aSourceID) {

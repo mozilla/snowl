@@ -19,7 +19,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 3,
+  _dbVersion: 4,
 
   _dbSchema: {
     // Note: the timestamp is stored as JavaScript milliseconds since epoch.
@@ -56,7 +56,8 @@ let SnowlDatastore = {
           "author TEXT",
           "timestamp INTEGER",
           "link TEXT",
-          "current BOOLEAN"
+          "current BOOLEAN",
+          "read BOOLEAN"
         ]
       },
 
@@ -244,6 +245,10 @@ let SnowlDatastore = {
 
   _dbMigrate2To3: function(aDBConnection) {
     aDBConnection.executeSimpleSQL("ALTER TABLE messages ADD COLUMN current BOOLEAN");
+  },
+
+  _dbMigrate3To4: function(aDBConnection) {
+    aDBConnection.executeSimpleSQL("ALTER TABLE messages ADD COLUMN read BOOLEAN");
   },
 
   get _selectSourcesStatement() {
