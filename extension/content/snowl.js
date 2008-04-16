@@ -243,7 +243,7 @@ catch(ex) {
 
     let children = tree.getElementsByTagName("treechildren")[0];
     let link = children.childNodes[tree.currentIndex].link;
-    openUILink(link, aEvent, false, false, false, null, null);
+    window.loadURI(link, null, null, false);
   },
 
   setSource: function(aSourceID) {
