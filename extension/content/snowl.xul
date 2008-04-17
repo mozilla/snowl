@@ -35,7 +35,7 @@
       <toolbar id="snowlViewToolbar" pack="end">
         <button oncommand="SnowlService.refreshAllSources()" label="G"/>
         <button oncommand="SnowlView.switchPosition()" label="S"/>
-        <textbox id="snowlFilterTextbox" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
+        <textbox id="snowlFilter" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>
 
       <tree id="snowlView" flex="1" rows="10" enableColumnDrag="true"
@@ -43,11 +43,11 @@
             onselect="SnowlView.onSelect(event)"
             onkeypress="SnowlView.onKeyPress(event)">
         <treecols>
-          <treecol id="whoCol" label="Author" flex="1" persist="width ordinal hidden"/>
+          <treecol id="snowlAuthorCol" label="Author" flex="1" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>
-          <treecol id="whatCol" label="Subject" flex="5" persist="width ordinal hidden"/>
+          <treecol id="snowlSubjectCol" label="Subject" flex="5" persist="width ordinal hidden"/>
           <splitter class="tree-splitter"/>
-          <treecol id="whenCol" label="Date" flex="1" persist="width ordinal hidden"/>
+          <treecol id="snowlTimestampCol" label="Date" flex="1" persist="width ordinal hidden"/>
         </treecols>
 
         <treechildren flex="1"/>

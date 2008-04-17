@@ -17,21 +17,112 @@ let SnowlView = {
   // Date Formatting Service
   get _dfSvc() {
     let dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
-                            getService(Ci.nsIScriptableDateFormat);
+                getService(Ci.nsIScriptableDateFormat);
     delete this._dfSvc;
     this._dfSvc = dfSvc;
     return this._dfSvc;
   },
 
+  // Atom Service
+  get _atomSvc() {
+    let atomSvc = Cc["@mozilla.org/atom-service;1"].
+                  getService(Ci.nsIAtomService);
+    delete this._atomSvc;
+    this._atomSvc = atomSvc;
+    return this._atomSvc;
+  },
+
+  // The ID of the source to display.  The sidebar can set this to the source
+  // selected by the user.
+  // FIXME: make this an array of sources, and let the user select multiple
+  // sources to view multiple sources simultaneously.
   sourceID: null,
 
-  _getMessages: function(aMatchWords) {
+  get _filter() {
+    delete this._filter;
+    return this._filter = document.getElementById("snowlFilter");
+  },
+
+  get _tree() {
+    delete this._tree;
+    return this._tree = document.getElementById("snowlView");
+  },
+
+
+  //**************************************************************************//
+  // nsITreeView
+
+  get rowCount() {
+    this._log.info("get rowCount: " + this._model.length);
+    return this._model.length;
+  },
+
+  getCellText: function(aRow, aColumn) {
+    switch(aColumn.id) {
+      case "snowlAuthorCol":
+        return this._model[aRow].author;
+      case "snowlSubjectCol":
+        return this._model[aRow].subject;
+      case "snowlTimestampCol":
+        return this._formatTimestamp(new Date(this._model[aRow].timestamp));
+      default:
+        return null;
+    }
+  },
+
+  _treebox: null,
+  setTree: function(treebox){ this._treebox = treebox; },
+
+  isContainer: function(aRow) { return false },
+  isSeparator: function(aRow) { return false },
+  isSorted: function() { return false },
+  getLevel: function(aRow) { return 0 },
+  getImageSrc: function(aRow, aColumn) { return null },
+  getRowProperties: function (aRow, aProperties) {},
+
+  getCellProperties: function (aRow, aColumn, aProperties) {
+    // We have to set this on each cell rather than on the row as a whole
+    // because the styling we apply to unread messages (bold text) has to be
+    // specified by the ::-moz-tree-cell-text pseudo-element, which inherits
+    // only the cell's properties.
+    if (!this._model[aRow].read)
+      aProperties.AppendElement(this._atomSvc.getAtom("unread"));
+  },
+
+  getColumnProperties: function(aColumnID, aColumn, aProperties) {},
+
+  // We could implement inline tagging with an editable "Tags" column
+  // by making this true, adding editable="true" to the tree tag, and
+  // then marking only the tags column as editable.
+  isEditable: function() { return false },
+
+
+  //**************************************************************************//
+  // Model Generation
+
+  // A JavaScript data structure storing the data that appears in the view.
+  //
+  // Another way of doing this would be to select the data into a temporary
+  // table or view (either in the normal database or in the in-memory database).
+  // I'm not sure which approach is more memory-efficient or faster.
+  //
+  // Also, it's inaccurate to call this the model, since the model is really
+  // the database itself.  This is rather a view on the model, but I can't think
+  // of a good name for that.
+  _model: null,
+
+  _rebuildModel: function() {
     let conditions = [];
 
-    if (aMatchWords)
-      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :matchWords)");
+    // Step one: generate the query string.
 
-    if (this.sourceID != null)
+    // FIXME: use a left join here again like we used to do before we hit
+    // the bug with left joins to virtual tables that has been fixed
+    // with the upgrade to 3.5.8 on April 17.
+    if (this._filter.value)
+      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
+
+    if (this.sourceID)
       conditions.push("sourceID = :sourceID");
 
     let statementString = 
@@ -45,33 +136,35 @@ let SnowlView = {
     if (conditions.length > 0)
       statementString += " WHERE " + conditions.join(" AND ");
 
+    // FIXME: figure out the sort on the tree and use the same sort here
+    // if doing so is cheaper than retrieving the elements unsorted and letting
+    // the tree sorter handle sorting.
     statementString += " ORDER BY timestamp DESC";
 
-    //this._log.info("getMessages: statementString = " + statementString);
+
+    // Step two: create the statement and bind parameters to it.
 
     let statement = SnowlDatastore.createStatement(statementString);
 
-    if (aMatchWords) {
-      this._log.info("getMessages: aMatchWords = " + aMatchWords);
-      statement.params.matchWords = aMatchWords;
-    }
+    if (this._filter.value)
+      statement.params.filter = this._filter.value;
 
-    if (this.sourceID != null) {
-      this._log.info("getMessages: sourceID = " + this.sourceID);
+    if (this.sourceID)
       statement.params.sourceID = this.sourceID;
-    }
 
-    let messages = [];
+
+    // Step three: execute the query and retrieve its results.
+    this._model = [];
     try {
       while (statement.step()) {
-        messages.push({ id: statement.row.id,
-                        sourceTitle: statement.row.sourceTitle,
-                        subject: statement.row.subject,
-                        author: statement.row.author,
-                        link: statement.row.link,
-                        timestamp: statement.row.timestamp,
-                        read: (statement.row.read ? true : false)
-                        //,content: statement.row.content
+        this._model.push({ id:          statement.row.id,
+                           sourceTitle: statement.row.sourceTitle,
+                           subject:     statement.row.subject,
+                           author:      statement.row.author,
+                           link:        statement.row.link,
+                           timestamp:   statement.row.timestamp,
+                           read:        (statement.row.read ? true : false)
+                           //,content: statement.row.content
                       });
       }
     }
@@ -82,22 +175,27 @@ let SnowlView = {
     finally {
       statement.reset();
     }
-
-    return messages;
   },
+
+
+  //**************************************************************************//
+  // Initialization and Destruction
 
   init: function() {
     this._log = Log4Moz.Service.getLogger("Snowl.View");
-
-try {
     this._obsSvc.addObserver(this, "messages:changed", true);
-}
-catch(ex) {
-  alert(ex);
-}
-    this._rebuildView();
+    this._rebuildModel();
+    this._tree.view = this;
   },
-  
+
+  destroy: function() {
+    this._obsSvc.removeObserver(this, "messages:changed");
+  },
+
+
+  //**************************************************************************//
+  // Misc XPCOM Interfaces
+
   // nsISupports
   QueryInterface: function(aIID) {
     if (aIID.equals(Ci.nsIObserver) ||
@@ -112,60 +210,23 @@ catch(ex) {
   observe: function(subject, topic, data) {
     switch (topic) {
       case "messages:changed":
-        this._rebuildView();
+        this._onMessagesChanged();
         break;
     }
   },
 
-  onUpdate: function() {
-    this._rebuildView();
+
+  //**************************************************************************//
+  // Event & Notification Handling
+
+  _onMessagesChanged: function() {
+    this._rebuildModel();
+    this._tree.boxObject.invalidate();
   },
 
   onFilter: function() {
-    let filterTextbox = document.getElementById("snowlFilterTextbox");
-    this._rebuildView(filterTextbox.value);
-  },
-
-  _rebuildView: function(aMatchWords) {
-    let tree = document.getElementById("snowlView");
-    let children = tree.getElementsByTagName("treechildren")[0];
-
-    // Empty the view.
-    while (children.hasChildNodes())
-      children.removeChild(children.lastChild);
-
-    // Get the list of messages.
-    let messages = this._getMessages(aMatchWords);
-
-    for each (let message in messages) {
-      let item = document.createElement("treeitem");
-      item.id = message.id;
-      item.link = message.link;
-      let row = document.createElement("treerow");
-
-      let authorCell = document.createElement("treecell");
-      authorCell.setAttribute("label", message.author);
-      if (!message.read)
-        authorCell.setAttribute("properties", "unread");
-
-      let subjectCell = document.createElement("treecell");
-      subjectCell.setAttribute("label", message.subject);
-      if (!message.read)
-        subjectCell.setAttribute("properties", "unread");
-
-      let timestampCell = document.createElement("treecell");
-      let timestamp = new Date(message.timestamp);
-      let timestampLabel = this._formatTimestamp(timestamp);
-      timestampCell.setAttribute("label", timestampLabel);
-      if (!message.read)
-        timestampCell.setAttribute("properties", "unread");
-
-      row.appendChild(authorCell);
-      row.appendChild(subjectCell);
-      row.appendChild(timestampCell);
-      item.appendChild(row);
-      children.appendChild(item);
-    }
+    this._rebuildModel();
+    this._tree.boxObject.invalidate();
   },
 
   // From toolkit/mozapps/update/content/history.js
@@ -244,18 +305,18 @@ catch(ex) {
   },
 
   onSelect: function(aEvent) {
-    let tree = document.getElementById("snowlView");
-    if (tree.currentIndex == -1)
+    if (this._tree.currentIndex == -1)
       return;
 
     // When we support opening multiple links in the background,
-    // perhaps use this code: http://lxr.mozilla.org/mozilla/source/browser/base/content/browser.js#1482
+    // perhaps use this code:
+    // http://lxr.mozilla.org/mozilla/source/browser/base/content/browser.js#1482
 
-    let children = tree.getElementsByTagName("treechildren")[0];
-    let row = children.childNodes[tree.currentIndex];
-    window.loadURI(row.link, null, null, false);
+    let row = this._tree.currentIndex;
+    let message = this._model[row];
 
-    this._setRead(row);
+    window.loadURI(message.link, null, null, false);
+    this._setRead(true);
   },
 
   onKeyPress: function(aEvent) {
@@ -290,21 +351,18 @@ catch(ex) {
   },
 
   _goToPreviousUnreadMessage: function() {
-    let tree = document.getElementById("snowlView");
+    let currentIndex = this._tree.currentIndex;
+    let i = currentIndex - 1;
 
-    let children = tree.getElementsByTagName("treechildren")[0];
-
-    let i = tree.currentIndex - 1;
-    while (i != tree.currentIndex) {
+    while (i != currentIndex) {
       if (i < 0) {
-        i = tree.view.rowCount - 1;
+        i = this._model.length - 1;
         continue;
       }
 
-      let row = children.childNodes[i];
-      if (row.getElementsByTagName("treecell")[0].hasAttribute("properties")) {
-        tree.view.selection.select(i);
-        tree.treeBoxObject.ensureRowIsVisible(i);
+      if (!this._model[i].read) {
+        this.selection.select(i);
+        this._tree.treeBoxObject.ensureRowIsVisible(i);
         break;
       }
 
@@ -313,21 +371,18 @@ catch(ex) {
   },
 
   _goToNextUnreadMessage: function() {
-    let tree = document.getElementById("snowlView");
+    let currentIndex = this._tree.currentIndex;
+    let i = currentIndex + 1;
 
-    let children = tree.getElementsByTagName("treechildren")[0];
-
-    let i = tree.currentIndex + 1;
-    while (i != tree.currentIndex) {
-      if (i >= tree.view.rowCount) {
+    while (i != currentIndex) {
+      if (i > this._model.length - 1) {
         i = 0;
         continue;
       }
-
-      let row = children.childNodes[i];
-      if (row.getElementsByTagName("treecell")[0].hasAttribute("properties")) {
-        tree.view.selection.select(i);
-        tree.treeBoxObject.ensureRowIsVisible(i);
+this._log.info(i);
+      if (!this._model[i].read) {
+        this.selection.select(i);
+        this._tree.treeBoxObject.ensureRowIsVisible(i);
         break;
       }
 
@@ -337,41 +392,35 @@ catch(ex) {
 
   _toggleRead: function() {
 this._log.info("_toggleRead");
-    let tree = document.getElementById("snowlView");
-    if (tree.currentIndex == -1)
+    if (this._tree.currentIndex == -1)
       return;
 
-    let children = tree.getElementsByTagName("treechildren")[0];
-    let row = children.childNodes[tree.currentIndex];
-
-    let cell = row.getElementsByTagName("treecell")[0];
-    if (cell.hasAttribute("properties"))
-      this._setRead(row);
-    else
-      this._setUnread(row);
+    let row = this._tree.currentIndex;
+    let message = this._model[row];
+    this._setRead(!message.read);
   },
 
-  _setRead: function(aRow) {
-this._log.info("_setRead");
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = 1 WHERE id = " + aRow.id);
-    // Remove the "unread" property from the treecell.
-    let cells = aRow.getElementsByTagName("treecell");
-    for (let i = 0; i < cells.length; i++)
-      cells[i].removeAttribute("properties");
-  },
+  _setRead: function(aRead) {
+    let row = this._tree.currentIndex;
+    let message = this._model[row];
 
-  _setUnread: function(aRow) {
-this._log.info("_setUnread");
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = 0 WHERE id = " + aRow.id);
-    // Remove the "unread" property from the treecell.
-    let cells = aRow.getElementsByTagName("treecell");
-    for (let i = 0; i < cells.length; i++)
-      cells[i].setAttribute("properties", "unread");
+    message.read = aRead;
+try {
+    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
+                                                 (aRead ? "1" : "0") +
+                                                 " WHERE id = " + message.id);
+}
+catch(ex) {
+this._log.error(SnowlDatastore.dbConnection.lastErrorString);
+throw ex;
+}
+    this._tree.boxObject.invalidateRow(row);
   },
 
   setSource: function(aSourceID) {
     this.sourceID = aSourceID;
-    this._rebuildView();
+    this._rebuildModel();
+    this._tree.boxObject.invalidate();
   },
 
   toggle: function() {

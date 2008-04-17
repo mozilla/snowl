@@ -61,22 +61,26 @@ SourcesView = {
     if (column.id == "nameCol") return this._model[row].title;
     return "foo";
   },
+
+  _treebox: null,
   setTree: function(treebox){ this._treebox = treebox; },
-  isContainer: function(row){ return false; },
-  isSeparator: function(row){ return false; },
-  isSorted: function(){ return false; },
-  getLevel: function(row){ return 0; },
-  getImageSrc: function(row,col){ return null; },
-  getRowProperties: function(row,props){},
-  getCellProperties: function(row,col,props){},
-  getColumnProperties: function(colid,col,props){},
+
+  isContainer: function(aRow) { return false },
+  isSeparator: function(aRow) { return false },
+  isSorted: function() { return false },
+  getLevel: function(aRow) { return 0 },
+  getImageSrc: function(aRow, aColumn) { return null },
+  getRowProperties: function (aRow, aProperties) {},
+  getCellProperties: function (aRow, aColumn, aProperties) {},
+  getColumnProperties: function(aColumnID, aColumn, aProperties) {},
   isEditable: function() {
     return true;
   },
-  setCellText: function(row, col, value) {
+
+  setCellText: function(aRow, aCol, aValue) {
     let statement = SnowlDatastore.createStatement("UPDATE sources SET title = :title WHERE id = :id");
-    statement.params.title = this._model[row].title = value;
-    statement.params.id = this._model[row].id;
+    statement.params.title = this._model[aRow].title = aValue;
+    statement.params.id = this._model[aRow].id;
 
     try {
       statement.execute();
@@ -85,6 +89,7 @@ SourcesView = {
       statement.reset();
     }
   },
+
 
   //**************************************************************************//
   // Misc XPCOM Interface Implementations
@@ -171,7 +176,8 @@ this._log.info("on select");
 //this._log.info(Log4Moz.enumerateProperties(aEvent).join("\n"));
     if (this._tree.currentIndex == -1)
       return;
-    let sourceID = this._children.childNodes[this._tree.currentIndex].sourceID;
+    
+    let sourceID = this._model[this._tree.currentIndex].id;
     gBrowserWindow.SnowlView.setSource(sourceID);
   },
 
