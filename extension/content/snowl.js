@@ -259,7 +259,7 @@ catch(ex) {
   },
 
   onKeyPress: function(aEvent) {
-    if (aEvent.altKey || aEvent.shiftKey || aEvent.metaKey || aEvent.ctrlKey)
+    if (aEvent.altKey || aEvent.metaKey || aEvent.ctrlKey)
       return;
 
     // which is either the charCode or the keyCode, depending on which is set.
@@ -267,6 +267,72 @@ catch(ex) {
 
     if (aEvent.charCode == "r".charCodeAt(0))
       this._toggleRead();
+    else if (aEvent.charCode == " ".charCodeAt(0))
+      this._onSpacePress(aEvent);
+  },
+
+  // Based on SpaceHit in mailWindowOverlay.js
+  _onSpacePress: function(aEvent) {
+    if (aEvent.shiftKey) {
+      // if at the start of the message, go to the previous one
+      if (gBrowser.contentWindow.scrollY > 0)
+        gBrowser.contentWindow.scrollByPages(-1);
+      else
+        this._goToPreviousUnreadMessage();
+    }
+    else {
+      // if at the end of the message, go to the next one
+      if (gBrowser.contentWindow.scrollY < gBrowser.contentWindow.scrollMaxY)
+        gBrowser.contentWindow.scrollByPages(1);
+      else
+        this._goToNextUnreadMessage();
+    }
+  },
+
+  _goToPreviousUnreadMessage: function() {
+    let tree = document.getElementById("snowlView");
+
+    let children = tree.getElementsByTagName("treechildren")[0];
+
+    let i = tree.currentIndex - 1;
+    while (i != tree.currentIndex) {
+      if (i < 0) {
+        i = tree.view.rowCount - 1;
+        continue;
+      }
+
+      let row = children.childNodes[i];
+      if (row.getElementsByTagName("treecell")[0].hasAttribute("properties")) {
+        tree.view.selection.select(i);
+        tree.treeBoxObject.ensureRowIsVisible(i);
+        break;
+      }
+
+      i--;
+    }
+  },
+
+  _goToNextUnreadMessage: function() {
+    let tree = document.getElementById("snowlView");
+
+    let children = tree.getElementsByTagName("treechildren")[0];
+
+    let i = tree.currentIndex + 1;
+    while (i != tree.currentIndex) {
+      if (i >= tree.view.rowCount) {
+        i = 0;
+        continue;
+      }
+
+      let row = children.childNodes[i];
+      if (row.getElementsByTagName("treecell")[0].hasAttribute("properties")) {
+        tree.view.selection.select(i);
+        tree.treeBoxObject.ensureRowIsVisible(i);
+        break;
+      }
+
+      i++;
+    }
   },
 
   _toggleRead: function() {
