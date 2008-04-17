@@ -76,7 +76,10 @@ let SnowlView = {
     view.setAttribute("class", "source");
 
     let header = document.createElement("h2");
-    header.appendChild(document.createTextNode(aSource.title));
+    let link = document.createElement("a");
+    link.setAttribute("href", aSource.url);
+    link.appendChild(document.createTextNode(aSource.title));
+    header.appendChild(link);
     view.appendChild(header);
 
     let messageContainer = document.createElement("div");
@@ -105,10 +108,13 @@ let SnowlView = {
   _getSources: function() {
     let sources = [];
 
-    let statement = SnowlDatastore.createStatement("SELECT id, title FROM sources");
+    let statement = SnowlDatastore.createStatement("SELECT id, title, url FROM sources");
     try {
       while (statement.step())
-        sources.push({ id: statement.row.id, title: statement.row.title });
+        sources.push({ id: statement.row.id,
+                       title: statement.row.title,
+                       url: statement.row.url
+                     });
     }
     finally {
       statement.reset();

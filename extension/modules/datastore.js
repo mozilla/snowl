@@ -40,6 +40,7 @@ let SnowlDatastore = {
         type: TABLE_TYPE_NORMAL,
         columns: [
           "id INTEGER PRIMARY KEY",
+          // FIXME: rename this 'link'
           "url TEXT NOT NULL",
           "title TEXT NOT NULL",
           "lastRefreshed INTEGER",
