@@ -20,15 +20,17 @@ h2 {
   margin: 0.4em;
 }
 
-.messages > a {
+.messages a {
   font-weight: bold;
+  color: black;
   text-decoration: none;
   color: black;
   background-color: white;
 }
 
-.messages > a:visited {
+.messages a:visited {
   font-weight: normal;
+  color: #333333;
 }
 
 h2 > a {
