@@ -62,6 +62,8 @@ let SnowlView = {
     }
 
     // We divide the source views evenly into the columns.
+    // FIXME: place the remainder in the leftmost columns rather than in
+    // apparently random columns to make the page more predictable.
     for (let i = 0; i < this._sourceViews.length; i++) {
       let columnIndex = Math.ceil((i+1)/this._sourceViews.length * numColumns) - 1;
       let column = columns[columnIndex];
