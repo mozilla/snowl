@@ -51,7 +51,7 @@ let SnowlView = {
     // Because window.innerWidth changes with full zoom, the number of columns
     // can also change if the user zooms in and out, so we maximize horizontal
     // space at any monitor size and zoom.
-    let numColumns = Math.ceil(window.innerWidth / 400);
+    let numColumns = Math.floor(window.innerWidth / 400);
 
     let columns = [];
     for (let i = 0; i < numColumns; i++) {
