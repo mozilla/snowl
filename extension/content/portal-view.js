@@ -45,15 +45,13 @@ let SnowlView = {
     while (view.hasChildNodes())
       view.removeChild(view.lastChild);
 
-    // window.innerWidth skews high for HTML in chrome because of bug 429439,
-    // so we have to divide it by the constant of proportionality between the
-    // skewed value and the actual value to get the actual value.
-    let viewportWidth = Math.round(window.innerWidth / 1.2333);
-
-    // We give each column about 400px of space (including margins), enough for
-    // two columns on 800x600 and 1024x768 screens; three columns on 1200x800,
+    // We give each column 400px of space (including margins), enough for two
+    // columns on 800x600 and 1024x768 screens; three columns on 1200x800,
     // 1400x1050, and 1440x900 screens; and four columns on 1600x1200 screens.
-    let numColumns = Math.ceil(viewportWidth / 400);
+    // Because window.innerWidth changes with full zoom, the number of columns
+    // can also change if the user zooms in and out, so we maximize horizontal
+    // space at any monitor size and zoom.
+    let numColumns = Math.ceil(window.innerWidth / 400);
 
     let columns = [];
     for (let i = 0; i < numColumns; i++) {
