@@ -39,15 +39,27 @@
       </toolbar>
 
       <tree id="snowlView" flex="1" rows="10" enableColumnDrag="true"
+            persist="sortResource sortDirection"
+            sortResource="snowlTimestampCol" sortDirection="ascending"
             disableKeyNavigation="true"
             onselect="SnowlView.onSelect(event)"
             onkeypress="SnowlView.onKeyPress(event)">
         <treecols>
-          <treecol id="snowlAuthorCol" label="Author" flex="1" persist="width ordinal hidden"/>
+          <treecol id="snowlAuthorCol" label="Author" flex="1"
+                   persist="width ordinal hidden sortDirection"
+                   class="sortDirectionIndicator"
+                   onclick="SnowlView.onClickColumnHeader(event)"/>
           <splitter class="tree-splitter"/>
-          <treecol id="snowlSubjectCol" label="Subject" flex="5" persist="width ordinal hidden"/>
+          <treecol id="snowlSubjectCol" label="Subject" flex="5"
+                   persist="width ordinal hidden sortDirection"
+                   class="sortDirectionIndicator"
+                   onclick="SnowlView.onClickColumnHeader(event)"/>
           <splitter class="tree-splitter"/>
-          <treecol id="snowlTimestampCol" label="Date" flex="1" persist="width ordinal hidden"/>
+          <treecol id="snowlTimestampCol" label="Date" flex="1"
+                   persist="width ordinal hidden sortDirection"
+                   class="sortDirectionIndicator"
+                   sortDirection="ascending"
+                   onclick="SnowlView.onClickColumnHeader(event)"/>
         </treecols>
 
         <treechildren flex="1"/>

@@ -48,6 +48,12 @@ let SnowlView = {
     return this._tree = document.getElementById("snowlView");
   },
 
+  _columnToPropertyTranslations: {
+    "snowlAuthorCol": "author",
+    "snowlSubjectCol": "subject",
+    "snowlTimestampCol": "timestamp"
+  },
+
 
   //**************************************************************************//
   // nsITreeView
@@ -58,6 +64,8 @@ let SnowlView = {
   },
 
   getCellText: function(aRow, aColumn) {
+    // FIXME: use _columnToPropertyTranslations instead of hardcoding column
+    // IDs and property names here.
     switch(aColumn.id) {
       case "snowlAuthorCol":
         return this._model[aRow].author;
@@ -72,6 +80,7 @@ let SnowlView = {
 
   _treebox: null,
   setTree: function(treebox){ this._treebox = treebox; },
+  cycleHeader: function(aColumn) {},
 
   isContainer: function(aRow) { return false },
   isSeparator: function(aRow) { return false },
@@ -136,10 +145,8 @@ let SnowlView = {
     if (conditions.length > 0)
       statementString += " WHERE " + conditions.join(" AND ");
 
-    // FIXME: figure out the sort on the tree and use the same sort here
-    // if doing so is cheaper than retrieving the elements unsorted and letting
-    // the tree sorter handle sorting.
-    statementString += " ORDER BY timestamp DESC";
+    // XXX Would it be faster to let the DB engine sort the model?
+    //statementString += " ORDER BY timestamp DESC";
 
 
     // Step two: create the statement and bind parameters to it.
@@ -175,6 +182,53 @@ let SnowlView = {
     finally {
       statement.reset();
     }
+
+
+    // Step four: sort the results by the current sort property and direction.
+
+    let sortResource = this._tree.getAttribute("sortResource");
+    let property = this._columnToPropertyTranslations[sortResource];
+    let sortDirection = this._tree.getAttribute("sortDirection");
+    let order = sortDirection == "descending" ? -1 : 1;
+    this._sortModel(property, order);
+  },
+
+  _sortModel: function(aProperty, aOrder) {
+    let compare = function(a, b) {
+      if (SnowlView._prepareObjectForComparison(a[aProperty]) >
+          SnowlView._prepareObjectForComparison(b[aProperty]))
+        return 1 * aOrder;
+      if (SnowlView._prepareObjectForComparison(a[aProperty]) <
+          SnowlView._prepareObjectForComparison(b[aProperty]))
+        return -1 * aOrder;
+
+      // Fall back on the "subject" property.
+      if (aProperty != "subject") {
+        if (SnowlView._prepareObjectForComparison(a.subject) >
+            SnowlView._prepareObjectForComparison(b.subject))
+          return 1 * aOrder;
+        if (SnowlView._prepareObjectForComparison(a.subject) <
+            SnowlView._prepareObjectForComparison(b.subject))
+          return -1 * aOrder;
+      }
+
+      // Return an inconclusive result.
+      return 0;
+    };
+
+    this._model.sort(compare);
+  },
+
+  _prepareObjectForComparison: function(aObject) {
+    if (typeof aObject == "string")
+      return aObject.toLowerCase();
+
+    // Null values are neither greater than nor less than strings, so we
+    // convert them into empty strings, which is how they appear to users.
+    if (aObject == null)
+      return "";
+
+    return aObject;
   },
 
 
@@ -434,7 +488,39 @@ throw ex;
       container.hidden = true;
       splitter.hidden = true;
     }
+  },
+
+  onClickColumnHeader: function(aEvent) {
+    // FIXME: don't sort if the user right- or middle-clicked the header.
+
+    // Get the property by which to sort.
+    let column = aEvent.target;
+    let property = this._columnToPropertyTranslations[column.id];
+
+    // Get the order in which to sort.  We sort in ascending order by default,
+    // but if the user clicked on the current sort column, then we sort in the
+    // reverse of the current sort order.
+    let sortResource = this._tree.getAttribute("sortResource");
+    let sortDirection = this._tree.getAttribute("sortDirection");
+    let order = 1;
+    if (column.id == sortResource)
+      order = sortDirection == "ascending" ? -1 : 1;
+
+    // Perform the sort.
+    this._sortModel(property, order);
+
+    // Persist the sort options.
+    let direction = order == 1 ? "ascending" : "descending";
+    this._tree.setAttribute("sortResource", column.id);
+    this._tree.setAttribute("sortDirection", direction);
+
+    // Ensure only the current sort column displays a sort indicator.
+    let columns = this._tree.getElementsByTagName("treecol");
+    for (let i = 0; i < columns.length; i++)
+      columns[i].removeAttribute("sortDirection");
+    column.setAttribute("sortDirection", direction);
   }
+
 };
 
 window.addEventListener("load", function() { SnowlView.init() }, false);
