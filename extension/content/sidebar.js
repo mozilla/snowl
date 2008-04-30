@@ -195,7 +195,7 @@ this._log.info(row.value + " is not selected");
   },
 
   onUnsubscribe: function(aEvent) {
-    let sourceID = this._tree.view.getItemAtIndex(this._tree.currentIndex).sourceID;
+    let sourceID = this._model[this._tree.currentIndex].id;
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {

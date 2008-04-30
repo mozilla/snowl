@@ -59,7 +59,7 @@ let SnowlService = {
 
     // FIXME: refresh stale sources on startup in a way that doesn't hang
     // the UI thread.
-    //this._refreshStaleSources();
+    //this.refreshStaleSources();
   },
 
   _timer: null,
@@ -67,7 +67,7 @@ let SnowlService = {
     this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     let callback = {
       _svc: this,
-      notify: function(aTimer) { this._svc._refreshStaleSources() }
+      notify: function(aTimer) { this._svc.refreshStaleSources() }
     };
     this._timer.initWithCallback(callback,
                                  REFRESH_CHECK_INTERVAL,
@@ -160,7 +160,7 @@ let SnowlService = {
     }
   },
 
-  _refreshStaleSources: function() {
+  refreshStaleSources: function() {
     this._log.info("refreshing stale sources");
 
     // XXX Should SnowlDatastore::selectSources return SnowlSource objects,

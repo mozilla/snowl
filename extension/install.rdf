@@ -10,6 +10,7 @@
     <em:description>conversations redelivered</em:description>
     <em:creator>Myk Melez</em:creator>
     <em:homepageURL>http://people.mozilla.com/~myk/snowl/</em:homepageURL>
+    <em:optionsURL>chrome://snowl/content/preferences.xul</em:optionsURL>
 
     <!-- Firefox -->
     <em:targetApplication>
