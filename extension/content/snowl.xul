@@ -32,10 +32,11 @@
   </broadcasterset>
 
   <vbox id="appcontent">
-    <vbox id="snowlViewContainer" insertbefore="content" persist="hidden">
+    <vbox id="snowlViewContainer" insertbefore="content" placement="top"
+          persist="hidden placement">
       <toolbar id="snowlViewToolbar" pack="end">
         <button oncommand="SnowlService.refreshAllSources()" label="G"/>
-        <button oncommand="SnowlView.switchPosition()" label="S"/>
+        <button oncommand="SnowlView.switchPlacement()" label="S"/>
         <textbox id="snowlFilter" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>
 

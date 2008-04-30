@@ -238,6 +238,11 @@ let SnowlView = {
   init: function() {
     this._log = Log4Moz.Service.getLogger("Snowl.View");
     this._obsSvc.addObserver(this, "messages:changed", true);
+
+    let container = document.getElementById("snowlViewContainer");
+    if (container.getAttribute("placement") == "side")
+      this.placeOnSide();
+
     this._rebuildModel();
     this._tree.view = this;
   },
@@ -339,27 +344,47 @@ let SnowlView = {
     return formattedString;
   },
 
-  switchPosition: function() {
+  switchPlacement: function() {
     let container = document.getElementById("snowlViewContainer");
-    let splitter = document.getElementById("snowlViewSplitter");
-    let browser = document.getElementById("browser");
-    let content = document.getElementById("content");
     let appcontent = document.getElementById("appcontent");
 
-    if (container.parentNode == appcontent) {
-      browser.insertBefore(container, appcontent);
-      browser.insertBefore(splitter, appcontent);
-      splitter.setAttribute("orient", "horizontal");
-    }
-    else {
-      appcontent.insertBefore(container, content);
-      appcontent.insertBefore(splitter, content);
-      splitter.setAttribute("orient", "vertical");
-    }
+    if (container.parentNode == appcontent)
+      this.placeOnSide();
+    else
+      this.placeOnTop();
+  },
 
-    // Because we've moved the tree, we have to reattach the view to it, or we
-    // will get the error: "this._tree.boxObject.invalidate is not a function"
-    // when we switch sources.
+  placeOnSide: function() {
+    let browser = document.getElementById("browser");
+    let container = document.getElementById("snowlViewContainer");
+    let appcontent = document.getElementById("appcontent");
+    let splitter = document.getElementById("snowlViewSplitter");
+
+    browser.insertBefore(container, appcontent);
+    browser.insertBefore(splitter, appcontent);
+    splitter.setAttribute("orient", "horizontal");
+    container.setAttribute("placement", "side");
+
+    // Because we've moved the tree, we have to reattach the view to it,
+    // or we will get the error: "this._tree.boxObject.invalidate is not
+    // a function" when we switch sources.
+    this._tree.view = this;
+  },
+
+  placeOnTop: function() {
+    let appcontent = document.getElementById("appcontent");
+    let container = document.getElementById("snowlViewContainer");
+    let content = document.getElementById("content");
+    let splitter = document.getElementById("snowlViewSplitter");
+
+    appcontent.insertBefore(container, content);
+    appcontent.insertBefore(splitter, content);
+    splitter.setAttribute("orient", "vertical");
+    container.setAttribute("placement", "top");
+
+    // Because we've moved the tree, we have to reattach the view to it,
+    // or we will get the error: "this._tree.boxObject.invalidate is not
+    // a function" when we switch sources.
     this._tree.view = this;
   },
 
