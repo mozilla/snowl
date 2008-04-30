@@ -108,7 +108,8 @@ SourcesView = {
   observe: function(subject, topic, data) {
     switch (topic) {
       case "sources:changed":
-        this._rebuildView();
+        this._rebuildModel();
+        this._tree.boxObject.invalidate();
         break;
     }
   },
@@ -132,43 +133,6 @@ SourcesView = {
     }
 
     this.rowCount = i + 1;
-  },
-
-  _rebuildView: function() {
-    let statementString = "SELECT title, id FROM sources ORDER BY title";
-
-    let statement = SnowlDatastore.createStatement(statementString);
-
-    // Empty the view.
-    while (this._children.hasChildNodes())
-      this._children.removeChild(this._children.lastChild);
-
-    // Rebuild the view.
-    this._addItem(null, "All");
-    while (statement.step())
-      this._addItem(statement.row.id, statement.row.title);
-
-    // Select the subscription that the messages view is currently displaying.
-    for (let i = 0; i < this._children.childNodes.length; i++) {
-      let item = this._children.childNodes[i];
-      if (item.sourceID == gBrowserWindow.SnowlView.sourceID) {
-        this._tree.view.selection.select(i);
-        break;
-      }
-    }
-  },
-
-  _addItem: function(aSourceID, aTitle) {
-    let item = document.createElement("treeitem");
-    item.sourceID = aSourceID;
-    let row = document.createElement("treerow");
-
-    let titleCell = document.createElement("treecell");
-    titleCell.setAttribute("label", aTitle);
-
-    row.appendChild(titleCell);
-    item.appendChild(row);
-    this._children.appendChild(item);
   },
 
   onSelect: function(aEvent) {
