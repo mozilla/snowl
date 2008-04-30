@@ -356,6 +356,11 @@ let SnowlView = {
       appcontent.insertBefore(splitter, content);
       splitter.setAttribute("orient", "vertical");
     }
+
+    // Because we've moved the tree, we have to reattach the view to it, or we
+    // will get the error: "this._tree.boxObject.invalidate is not a function"
+    // when we switch sources.
+    this._tree.view = this;
   },
 
   onSelect: function(aEvent) {
