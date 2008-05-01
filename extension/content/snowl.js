@@ -411,7 +411,9 @@ let SnowlView = {
     this._log.info("onKeyPress: which = " + aEvent.which);
 
     if (aEvent.charCode == "r".charCodeAt(0))
-      this._toggleRead();
+      this._toggleRead(false);
+    if (aEvent.charCode == "R".charCodeAt(0))
+      this._toggleRead(true);
     else if (aEvent.charCode == " ".charCodeAt(0))
       this._onSpacePress(aEvent);
   },
@@ -474,21 +476,23 @@ this._log.info(i);
     }
   },
 
-  _toggleRead: function() {
-this._log.info("_toggleRead");
+  _toggleRead: function(aAll) {
+this._log.info("_toggleRead: all? " + aAll);
     if (this._tree.currentIndex == -1)
       return;
 
     let row = this._tree.currentIndex;
     let message = this._model[row];
-    this._setRead(!message.read);
+    if (aAll)
+      this._setAllRead(!message.read);
+    else
+      this._setRead(!message.read);
   },
 
   _setRead: function(aRead) {
     let row = this._tree.currentIndex;
     let message = this._model[row];
 
-    message.read = aRead;
 try {
     SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
                                                  (aRead ? "1" : "0") +
@@ -498,7 +502,18 @@ catch(ex) {
 this._log.error(SnowlDatastore.dbConnection.lastErrorString);
 throw ex;
 }
+    message.read = aRead;
     this._tree.boxObject.invalidateRow(row);
+  },
+
+  _setAllRead: function(aRead) {
+this._log.info("_setAllRead: aRead? " + aRead);
+    let ids = this._model.map(function(v) { return v.id });
+    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
+                                                 (aRead ? "1" : "0") +
+                                                 " WHERE id IN (" + ids.join(",") + ")");
+    this._model.forEach(function(v) { v.read = aRead });
+    this._tree.boxObject.invalidate();
   },
 
   setSource: function(aSourceID) {
