@@ -3,10 +3,10 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://snowl/log4moz.js");
-Cu.import("resource://snowl/service.js");
-Cu.import("resource://snowl/datastore.js");
-Cu.import("resource://snowl/feed.js");
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/feed.js");
 
 let Subscriber = {
   // Observer Service

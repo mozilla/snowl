@@ -5,8 +5,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://snowl/log4moz.js");
-Cu.import("resource://snowl/datastore.js");
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/datastore.js");
 
 var SnowlFeedClient = {
   // XXX Make this take a feed ID once it stores the list of subscribed feeds

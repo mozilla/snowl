@@ -1,6 +1,6 @@
-Cu.import("resource://snowl/service.js");
-Cu.import("resource://snowl/datastore.js");
-Cu.import("resource://snowl/log4moz.js");
+Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/log4moz.js");
 
 let SnowlView = {
   _log: null,

@@ -6,9 +6,9 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-Cu.import("resource://snowl/log4moz.js");
-Cu.import("resource://snowl/datastore.js");
-Cu.import("resource://snowl/feed.js");
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/feed.js");
 
 const PERMS_FILE      = 0644;
 const PERMS_DIRECTORY = 0755;

@@ -14,7 +14,7 @@ let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
-Components.utils.import("resource://snowl/datastore.js");
+Components.utils.import("resource://snowl/modules/datastore.js");
 
 // FIXME: check safety of the link before inserting it into the href?
 const ENTRY_TEMPLATE = ' \
