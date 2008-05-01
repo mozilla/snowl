@@ -35,6 +35,15 @@ let SnowlService = {
     return this._prefSvc;
   },
 
+  // Observer Service
+  get _obsSvc() {
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].
+                 getService(Ci.nsIObserverService);
+    delete this._obsSvc;
+    this._obsSvc = obsSvc;
+    return this._obsSvc;
+  },
+
   get _dirSvc() {
     let dirSvc = Cc["@mozilla.org/file/directory_service;1"].
                  getService(Ci.nsIProperties);
@@ -202,6 +211,8 @@ this._log.info("source: " + source.id + " is stale");
       // FIXME: implement the approach described above.
       feed.resetLastRefreshed();
     }
+
+    this._obsSvc.notifyObservers(null, "messages:changed", null);
   },
 
   /**
