@@ -279,13 +279,21 @@ let SnowlView = {
   // Event & Notification Handling
 
   _onMessagesChanged: function() {
+this._log.info("_onMessagesChanged");
     this._rebuildModel();
-    this._tree.boxObject.invalidate();
+
+    // The number of rows might have changed, so we need to let the tree know
+    // about that, and the simplest way to do it is to reinitialize the view.
+    this._tree.view = this;
   },
 
   onFilter: function() {
+this._log.info("onFilter");
     this._rebuildModel();
-    this._tree.boxObject.invalidate();
+
+    // The number of rows might have changed, so we need to let the tree know
+    // about that, and the simplest way to do it is to reinitialize the view.
+    this._tree.view = this;
   },
 
   // From toolkit/mozapps/update/content/history.js
@@ -517,9 +525,13 @@ this._log.info("_setAllRead: aRead? " + aRead);
   },
 
   setSource: function(aSourceID) {
+this._log.info("setSource: " + aSourceID);
     this.sourceID = aSourceID;
     this._rebuildModel();
-    this._tree.boxObject.invalidate();
+
+    // The number of rows might have changed, so we need to let the tree know
+    // about that, and the simplest way to do it is to reinitialize the view.
+    this._tree.view = this;
   },
 
   toggle: function() {
