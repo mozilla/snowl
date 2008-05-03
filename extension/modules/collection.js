@@ -5,19 +5,39 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
 
 /**
  * A group of messages.
  */
 function SnowlCollection(aSourceID, aFilter) {
-  this.sourceID = aSourceID;
-  this.filter = aFilter;
+  this._sourceID = aSourceID;
+  this._filter = aFilter;
 }
 
 SnowlCollection.prototype = {
-  sourceID: null,
-  filter: null,
+  _sourceID: null,
+
+  get sourceID() {
+    return this._sourceID;
+  },
+
+  set sourceID(newVal) {
+    this._sourceID = newVal;
+    this.invalidate();
+  },
+
+  _filter: null,
+
+  get filter() {
+    return this._filter;
+  },
+
+  set filter(newVal) {
+    this._filter = newVal;
+    this.invalidate();
+  },
 
   sortProperty: "timestamp",
   sortOrder: 1,
@@ -45,9 +65,13 @@ SnowlCollection.prototype = {
       statement.reset();
     }
 
-    this._sort();
+    this.sort(this.sortProperty, this.sortOrder);
 
     return this._messages;
+  },
+
+  invalidate: function() {
+    this._messages = null;
   },
 
   _generateStatement: function() {
@@ -83,26 +107,26 @@ SnowlCollection.prototype = {
     return statement;
   },
 
-  _sort: function() {
-    let property = this.sortProperty;
-    let order = this.sortOrder;
+  sort: function(aProperty, aOrder) {
+    this.sortProperty = aProperty;
+    this.sortOrder = aOrder;
 
     let compare = function(a, b) {
-      if (prepareObjectForComparison(a[property]) >
-          prepareObjectForComparison(b[property]))
-        return 1 * order;
-      if (prepareObjectForComparison(a[property]) <
-          prepareObjectForComparison(b[property]))
-        return -1 * order;
+      if (prepareObjectForComparison(a[aProperty]) >
+          prepareObjectForComparison(b[aProperty]))
+        return 1 * aOrder;
+      if (prepareObjectForComparison(a[aProperty]) <
+          prepareObjectForComparison(b[aProperty]))
+        return -1 * aOrder;
 
-      // Fall back on the "subject" property.
-      if (property != "subject") {
+      // Fall back on the "subject" aProperty.
+      if (aProperty != "subject") {
         if (prepareObjectForComparison(a.subject) >
             prepareObjectForComparison(b.subject))
-          return 1 * order;
+          return 1 * aOrder;
         if (prepareObjectForComparison(a.subject) <
             prepareObjectForComparison(b.subject))
-          return -1 * order;
+          return -1 * aOrder;
       }
 
       // Return an inconclusive result.

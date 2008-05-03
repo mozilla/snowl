@@ -1,5 +1,6 @@
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 
 let SnowlView = {
@@ -59,8 +60,8 @@ let SnowlView = {
   // nsITreeView
 
   get rowCount() {
-    this._log.info("get rowCount: " + this._model.length);
-    return this._model.length;
+    this._log.info("get rowCount: " + this._collection.messages.length);
+    return this._collection.messages.length;
   },
 
   getCellText: function(aRow, aColumn) {
@@ -68,11 +69,11 @@ let SnowlView = {
     // IDs and property names here.
     switch(aColumn.id) {
       case "snowlAuthorCol":
-        return this._model[aRow].author;
+        return this._collection.messages[aRow].author;
       case "snowlSubjectCol":
-        return this._model[aRow].subject;
+        return this._collection.messages[aRow].subject;
       case "snowlTimestampCol":
-        return this._formatTimestamp(new Date(this._model[aRow].timestamp));
+        return this._formatTimestamp(new Date(this._collection.messages[aRow].timestamp));
       default:
         return null;
     }
@@ -94,7 +95,7 @@ let SnowlView = {
     // because the styling we apply to unread messages (bold text) has to be
     // specified by the ::-moz-tree-cell-text pseudo-element, which inherits
     // only the cell's properties.
-    if (!this._model[aRow].read)
+    if (!this._collection.messages[aRow].read)
       aProperties.AppendElement(this._atomSvc.getAtom("unread"));
   },
 
@@ -104,132 +105,6 @@ let SnowlView = {
   // by making this true, adding editable="true" to the tree tag, and
   // then marking only the tags column as editable.
   isEditable: function() { return false },
-
-
-  //**************************************************************************//
-  // Model Generation
-
-  // A JavaScript data structure storing the data that appears in the view.
-  //
-  // Another way of doing this would be to select the data into a temporary
-  // table or view (either in the normal database or in the in-memory database).
-  // I'm not sure which approach is more memory-efficient or faster.
-  //
-  // Also, it's inaccurate to call this the model, since the model is really
-  // the database itself.  This is rather a view on the model, but I can't think
-  // of a good name for that.
-  _model: null,
-
-  _rebuildModel: function() {
-    let conditions = [];
-
-    // Step one: generate the query string.
-
-    // FIXME: use a left join here again like we used to do before we hit
-    // the bug with left joins to virtual tables that has been fixed
-    // with the upgrade to 3.5.8 on April 17.
-    if (this._filter.value)
-      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
-
-    if (this.sourceID)
-      conditions.push("sourceID = :sourceID");
-
-    let statementString = 
-      //"SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
-      // FROM sources JOIN messages ON sources.id = messages.sourceID \
-      // LEFT JOIN parts on messages.id = parts.messageID";
-      "SELECT sources.title AS sourceTitle, messages.id AS id, " +
-             "subject, author, link, timestamp, read " +
-      "FROM sources JOIN messages ON sources.id = messages.sourceID";
-
-    if (conditions.length > 0)
-      statementString += " WHERE " + conditions.join(" AND ");
-
-    // XXX Would it be faster to let the DB engine sort the model?
-    //statementString += " ORDER BY timestamp DESC";
-
-
-    // Step two: create the statement and bind parameters to it.
-
-    let statement = SnowlDatastore.createStatement(statementString);
-
-    if (this._filter.value)
-      statement.params.filter = this._filter.value;
-
-    if (this.sourceID)
-      statement.params.sourceID = this.sourceID;
-
-
-    // Step three: execute the query and retrieve its results.
-    this._model = [];
-    try {
-      while (statement.step()) {
-        this._model.push({ id:          statement.row.id,
-                           sourceTitle: statement.row.sourceTitle,
-                           subject:     statement.row.subject,
-                           author:      statement.row.author,
-                           link:        statement.row.link,
-                           timestamp:   statement.row.timestamp,
-                           read:        (statement.row.read ? true : false)
-                           //,content: statement.row.content
-                      });
-      }
-    }
-    catch(ex) {
-      this._log.error(statementString + ": " + ex + ": " + SnowlDatastore.dbConnection.lastErrorString + "\n");
-      throw ex;
-    }
-    finally {
-      statement.reset();
-    }
-
-
-    // Step four: sort the results by the current sort property and direction.
-
-    let sortResource = this._tree.getAttribute("sortResource");
-    let property = this._columnToPropertyTranslations[sortResource];
-    let sortDirection = this._tree.getAttribute("sortDirection");
-    let order = sortDirection == "descending" ? -1 : 1;
-    this._sortModel(property, order);
-  },
-
-  _sortModel: function(aProperty, aOrder) {
-    let compare = function(a, b) {
-      if (SnowlView._prepareObjectForComparison(a[aProperty]) >
-          SnowlView._prepareObjectForComparison(b[aProperty]))
-        return 1 * aOrder;
-      if (SnowlView._prepareObjectForComparison(a[aProperty]) <
-          SnowlView._prepareObjectForComparison(b[aProperty]))
-        return -1 * aOrder;
-
-      // Fall back on the "subject" property.
-      if (aProperty != "subject") {
-        if (SnowlView._prepareObjectForComparison(a.subject) >
-            SnowlView._prepareObjectForComparison(b.subject))
-          return 1 * aOrder;
-        if (SnowlView._prepareObjectForComparison(a.subject) <
-            SnowlView._prepareObjectForComparison(b.subject))
-          return -1 * aOrder;
-      }
-
-      // Return an inconclusive result.
-      return 0;
-    };
-
-    this._model.sort(compare);
-  },
-
-  _prepareObjectForComparison: function(aObject) {
-    if (typeof aObject == "string")
-      return aObject.toLowerCase();
-
-    // Null values are neither greater than nor less than strings, so we
-    // convert them into empty strings, which is how they appear to users.
-    if (aObject == null)
-      return "";
-
-    return aObject;
-  },
 
 
   //**************************************************************************//
@@ -243,7 +118,7 @@ let SnowlView = {
     if (container.getAttribute("placement") == "side")
       this.placeOnSide();
 
-    this._rebuildModel();
+    this._collection = new SnowlCollection();
     this._tree.view = this;
   },
 
@@ -279,20 +154,35 @@ let SnowlView = {
   // Event & Notification Handling
 
   _onMessagesChanged: function() {
-this._log.info("_onMessagesChanged");
-    this._rebuildModel();
+    // FIXME: make the collection listen for message changes and invalidate
+    // itself, then rebuild the view in a timeout to give the collection time
+    // to do so.
+    this._collection.invalidate();
 
-    // The number of rows might have changed, so we need to let the tree know
-    // about that, and the simplest way to do it is to reinitialize the view.
+    // Rebuild the view to reflect the new collection of messages.
+    // Since the number of rows might have changed, we do this by reinitializing
+    // the view instead of merely invalidating the box object (which doesn't
+    // expect changes to the number of rows).
     this._tree.view = this;
   },
 
   onFilter: function() {
-this._log.info("onFilter");
-    this._rebuildModel();
+    this._collection.filter = this._filter.value;
 
-    // The number of rows might have changed, so we need to let the tree know
-    // about that, and the simplest way to do it is to reinitialize the view.
+    // Rebuild the view to reflect the new collection of messages.
+    // Since the number of rows might have changed, we do this by reinitializing
+    // the view instead of merely invalidating the box object (which doesn't
+    // expect changes to the number of rows).
+    this._tree.view = this;
+  },
+
+  setSource: function(aSourceID) {
+    this._collection.sourceID = aSourceID;
+
+    // Rebuild the view to reflect the new collection of messages.
+    // Since the number of rows might have changed, we do this by reinitializing
+    // the view instead of merely invalidating the box object (which doesn't
+    // expect changes to the number of rows).
     this._tree.view = this;
   },
 
@@ -405,7 +295,7 @@ this._log.info("onFilter");
     // http://lxr.mozilla.org/mozilla/source/browser/base/content/browser.js#1482
 
     let row = this._tree.currentIndex;
-    let message = this._model[row];
+    let message = this._collection.messages[row];
 
     window.loadURI(message.link, null, null, false);
     this._setRead(true);
@@ -450,11 +340,11 @@ this._log.info("onFilter");
 
     while (i != currentIndex) {
       if (i < 0) {
-        i = this._model.length - 1;
+        i = this._collection.messages.length - 1;
         continue;
       }
 
-      if (!this._model[i].read) {
+      if (!this._collection.messages[i].read) {
         this.selection.select(i);
         this._tree.treeBoxObject.ensureRowIsVisible(i);
         break;
@@ -469,12 +359,12 @@ this._log.info("onFilter");
     let i = currentIndex + 1;
 
     while (i != currentIndex) {
-      if (i > this._model.length - 1) {
+      if (i > this._collection.messages.length - 1) {
         i = 0;
         continue;
       }
 this._log.info(i);
-      if (!this._model[i].read) {
+      if (!this._collection.messages[i].read) {
         this.selection.select(i);
         this._tree.treeBoxObject.ensureRowIsVisible(i);
         break;
@@ -490,7 +380,7 @@ this._log.info("_toggleRead: all? " + aAll);
       return;
 
     let row = this._tree.currentIndex;
-    let message = this._model[row];
+    let message = this._collection.messages[row];
     if (aAll)
       this._setAllRead(!message.read);
     else
@@ -499,7 +389,7 @@ this._log.info("_toggleRead: all? " + aAll);
 
   _setRead: function(aRead) {
     let row = this._tree.currentIndex;
-    let message = this._model[row];
+    let message = this._collection.messages[row];
 
 try {
     SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
@@ -516,22 +406,12 @@ throw ex;
 
   _setAllRead: function(aRead) {
 this._log.info("_setAllRead: aRead? " + aRead);
-    let ids = this._model.map(function(v) { return v.id });
+    let ids = this._collection.messages.map(function(v) { return v.id });
     SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
                                                  (aRead ? "1" : "0") +
                                                  " WHERE id IN (" + ids.join(",") + ")");
-    this._model.forEach(function(v) { v.read = aRead });
+    this._collection.messages.forEach(function(v) { v.read = aRead });
     this._tree.boxObject.invalidate();
-  },
-
-  setSource: function(aSourceID) {
-this._log.info("setSource: " + aSourceID);
-    this.sourceID = aSourceID;
-    this._rebuildModel();
-
-    // The number of rows might have changed, so we need to let the tree know
-    // about that, and the simplest way to do it is to reinitialize the view.
-    this._tree.view = this;
   },
 
   toggle: function() {
@@ -564,7 +444,7 @@ this._log.info("setSource: " + aSourceID);
       order = sortDirection == "ascending" ? -1 : 1;
 
     // Perform the sort.
-    this._sortModel(property, order);
+    this._collection.sort(property, order);
 
     // Persist the sort options.
     let direction = order == 1 ? "ascending" : "descending";
