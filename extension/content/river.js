@@ -52,6 +52,7 @@ var RiverHandler = {
   init: function SH_init() {
     this._riverWriter = new SnowlRiverWriter();
     this._riverWriter.init(window);
+    this._rebuildModel();
   },
 
   writeContent: function SH_writeContent() {
@@ -60,9 +61,6 @@ var RiverHandler = {
 
   uninit: function SH_uninit() {
     this._riverWriter.close();
-  },
-  
-  subscribe: function FH_subscribe() {
-    this._riverWriter.subscribe();
   }
+
 };
