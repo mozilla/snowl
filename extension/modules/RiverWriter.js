@@ -532,16 +532,5 @@ SnowlRiverWriter.prototype = {
     var historySvc = Cc["@mozilla.org/browser/nav-history-service;1"].
                      getService(Ci.nsINavHistoryService);
     historySvc.removeObserver(this);
-  },
-
-   onBeginUpdateBatch: function() { },
-   onEndUpdateBatch: function() { },
-   onVisit: function() { },
-   onTitleChanged: function() { },
-   onDeleteURI: function() { },
-   onClearHistory: function() { },
-   onPageExpired: function() { },
-
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver,
-                                         Ci.nsINavHistoryObserver])
+  }
 };
