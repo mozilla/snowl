@@ -72,83 +72,11 @@ function makeURI(aURLSpec, aCharset) {
 const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
-const TYPE_MAYBE_AUDIO_FEED = "application/vnd.mozilla.maybe.audio.feed";
-const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
 const URI_BUNDLE = "chrome://browser/locale/feeds/subscribe.properties";
 const SUBSCRIBE_PAGE_URI = "chrome://browser/content/feeds/subscribe.xhtml";
 
-const PREF_SELECTED_APP = "browser.feeds.handlers.application";
-const PREF_SELECTED_WEB = "browser.feeds.handlers.webservice";
-const PREF_SELECTED_ACTION = "browser.feeds.handler";
-const PREF_SELECTED_READER = "browser.feeds.handler.default";
-
-const PREF_VIDEO_SELECTED_APP = "browser.videoFeeds.handlers.application";
-const PREF_VIDEO_SELECTED_WEB = "browser.videoFeeds.handlers.webservice";
-const PREF_VIDEO_SELECTED_ACTION = "browser.videoFeeds.handler";
-const PREF_VIDEO_SELECTED_READER = "browser.videoFeeds.handler.default";
-
-const PREF_AUDIO_SELECTED_APP = "browser.audioFeeds.handlers.application";
-const PREF_AUDIO_SELECTED_WEB = "browser.audioFeeds.handlers.webservice";
-const PREF_AUDIO_SELECTED_ACTION = "browser.audioFeeds.handler";
-const PREF_AUDIO_SELECTED_READER = "browser.audioFeeds.handler.default";
-
-const PREF_SHOW_FIRST_RUN_UI = "browser.feeds.showFirstRunUI";
-
 const TITLE_ID = "feedTitleText";
 const SUBTITLE_ID = "feedSubtitleText";
-
-function getPrefAppForType(t) {
-  switch (t) {
-    case Ci.nsIFeed.TYPE_VIDEO:
-      return PREF_VIDEO_SELECTED_APP;
-
-    case Ci.nsIFeed.TYPE_AUDIO:
-      return PREF_AUDIO_SELECTED_APP;
-
-    default:
-      return PREF_SELECTED_APP;
-  }
-}
-
-function getPrefWebForType(t) {
-  switch (t) {
-    case Ci.nsIFeed.TYPE_VIDEO:
-      return PREF_VIDEO_SELECTED_WEB;
-
-    case Ci.nsIFeed.TYPE_AUDIO:
-      return PREF_AUDIO_SELECTED_WEB;
-
-    default:
-      return PREF_SELECTED_WEB;
-  }
-}
-
-function getPrefActionForType(t) {
-  switch (t) {
-    case Ci.nsIFeed.TYPE_VIDEO:
-      return PREF_VIDEO_SELECTED_ACTION;
-
-    case Ci.nsIFeed.TYPE_AUDIO:
-      return PREF_AUDIO_SELECTED_ACTION;
-
-    default:
-      return PREF_SELECTED_ACTION;
-  }
-}
-
-function getPrefReaderForType(t) {
-  switch (t) {
-    case Ci.nsIFeed.TYPE_VIDEO:
-      return PREF_VIDEO_SELECTED_READER;
-
-    case Ci.nsIFeed.TYPE_AUDIO:
-      return PREF_AUDIO_SELECTED_READER;
-
-    default:
-      return PREF_SELECTED_READER;
-  }
-}
 
 /**
  * Converts a number of bytes to the appropriate unit that results in a
@@ -184,20 +112,6 @@ SnowlRiverWriter.prototype = {
 
   _mimeSvc      : Cc["@mozilla.org/mime;1"].
                   getService(Ci.nsIMIMEService),
-
-  _getPropertyAsBag: function FW__getPropertyAsBag(container, property) {
-    return container.fields.getProperty(property).
-                     QueryInterface(Ci.nsIPropertyBag2);
-  },
-
-  _getPropertyAsString: function FW__getPropertyAsString(container, property) {
-    try {
-      return container.fields.getPropertyAsAString(property);
-    }
-    catch (e) {
-    }
-    return "";
-  },
 
   _setContentText: function FW__setContentText(id, text) {
     this._contentSandbox.element = this._document.getElementById(id);
@@ -267,28 +181,6 @@ SnowlRiverWriter.prototype = {
     return this.__contentSandbox;
   },
 
-  /**
-   * Calls doCommand for a the given XUL element within the context of the
-   * content document.
-   *
-   * @param aElement
-   *        the XUL element to call doCommand() on.
-   */
-  _safeDoCommand: function FW___safeDoCommand(aElement) {
-    this._contentSandbox.element = aElement;
-    Cu.evalInSandbox("element.doCommand();", this._contentSandbox);
-    this._contentSandbox.element = null;
-  },
-
-  __faviconService: null,
-  get _faviconService() {
-    if (!this.__faviconService)
-      this.__faviconService = Cc["@mozilla.org/browser/favicon-service;1"].
-                              getService(Ci.nsIFaviconService);
-
-    return this.__faviconService;
-  },
-
   __bundle: null,
   get _bundle() {
     if (!this.__bundle) {
@@ -305,39 +197,6 @@ SnowlRiverWriter.prototype = {
   
   _getString: function FW__getString(key) {
     return this._bundle.GetStringFromName(key);
-  },
-
-  /* Magic helper methods to be used instead of xbl properties */
-  _getSelectedItemFromMenulist: function FW__getSelectedItemFromList(aList) {
-    var node = aList.firstChild.firstChild;
-    while (node) {
-      if (node.localName == "menuitem" && node.getAttribute("selected") == "true")
-        return node;
-
-      node = node.nextSibling;
-    }
-
-    return null;
-  },
-
-  _setCheckboxCheckedState: function FW__setCheckboxCheckedState(aCheckbox, aValue) {
-    // see checkbox.xml, xbl bindings are not applied within the sandbox!
-    this._contentSandbox.checkbox = aCheckbox;
-    var codeStr;
-    var change = (aValue != (aCheckbox.getAttribute('checked') == 'true'));
-    if (aValue)
-      codeStr = "checkbox.setAttribute('checked', 'true'); ";
-    else
-      codeStr = "checkbox.removeAttribute('checked'); ";
-
-    if (change) {
-      this._contentSandbox.document = this._document;
-      codeStr += "var event = document.createEvent('Events'); " +
-                 "event.initEvent('CheckboxStateChange', true, true);" +
-                 "checkbox.dispatchEvent(event);"
-    }
-
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
   },
 
    /**
@@ -359,41 +218,6 @@ SnowlRiverWriter.prototype = {
     return dateService.FormatDateTime("", dateService.dateFormatLong, dateService.timeFormatNoSeconds,
                                       dateObj.getFullYear(), dateObj.getMonth()+1, dateObj.getDate(),
                                       dateObj.getHours(), dateObj.getMinutes(), dateObj.getSeconds());
-  },
-
-  /**
-   * Returns the feed type.
-   */
-  __feedType: null,
-  _getFeedType: function FW__getFeedType() {
-    if (this.__feedType != null)
-      return this.__feedType;
-
-    try {
-      // grab the feed because it's got the feed.type in it.
-      var container = this._getContainer();
-      var feed = container.QueryInterface(Ci.nsIFeed);
-      this.__feedType = feed.type;
-      return feed.type;
-    } catch (ex) { }
-
-    return Ci.nsIFeed.TYPE_FEED;
-  },
-
-  /**
-   * Maps a feed type to a maybe-feed mimetype.
-   */
-  _getMimeTypeForFeedType: function FW__getMimeTypeForFeedType() {
-    switch (this._getFeedType()) {
-      case Ci.nsIFeed.TYPE_VIDEO:
-        return TYPE_MAYBE_VIDEO_FEED;
-
-      case Ci.nsIFeed.TYPE_AUDIO:
-        return TYPE_MAYBE_AUDIO_FEED;
-
-      default:
-        return TYPE_MAYBE_FEED;
-    }
   },
 
   /**
@@ -646,256 +470,6 @@ SnowlRiverWriter.prototype = {
     return enclosuresDiv;
   },
 
-  /**
-   * Gets a valid nsIFeedContainer object from the parsed nsIFeedResult.
-   * Displays error information if there was one.
-   * @param   result
-   *          The parsed feed result
-   * @returns A valid nsIFeedContainer object containing the contents of
-   *          the feed.
-   */
-  _getContainer: function FW__getContainer(result) {
-    var feedService = 
-        Cc["@mozilla.org/browser/feeds/result-service;1"].
-        getService(Ci.nsIFeedResultService);
-
-    try {
-      var result = 
-        feedService.getFeedResult(this._getOriginalURI(this._window));
-    }
-    catch (e) {
-      this._log.info("Subscribe Preview: feed not available?!");
-    }
-    
-    if (result.bozo) {
-      this._log.info("Subscribe Preview: feed result is bozo?!");
-    }
-
-    try {
-      var container = result.doc;
-    }
-    catch (e) {
-      this._log.info("Subscribe Preview: no result.doc? Why didn't the original reload?");
-      return null;
-    }
-    return container;
-  },
-
-  /**
-   * Get moz-icon url for a file
-   * @param   file
-   *          A nsIFile object for which the moz-icon:// is returned
-   * @returns moz-icon url of the given file as a string
-   */
-  _getFileIconURL: function FW__getFileIconURL(file) {
-    var ios = Cc["@mozilla.org/network/io-service;1"].
-              getService(Components.interfaces.nsIIOService);
-    var fph = ios.getProtocolHandler("file")
-                 .QueryInterface(Ci.nsIFileProtocolHandler);
-    var urlSpec = fph.getURLSpecFromFile(file);
-    return "moz-icon://" + urlSpec + "?size=16";
-  },
-
-  /**
-   * Helper method to set the selected application and system default
-   * reader menuitems details from a file object
-   *   @param aMenuItem
-   *          The menuitem on which the attributes should be set
-   *   @param aFile
-   *          The menuitem's associated file
-   */
-  _initMenuItemWithFile: function(aMenuItem, aFile) {
-    this._contentSandbox.menuitem = aMenuItem;
-    this._contentSandbox.label = this._getFileDisplayName(aFile);
-    this._contentSandbox.image = this._getFileIconURL(aFile);
-    var codeStr = "menuitem.setAttribute('label', label); " +
-                  "menuitem.setAttribute('image', image);"
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
-  },
-
-  _setAlwaysUseCheckedState: function FW__setAlwaysUseCheckedState(feedType) {
-    var checkbox = this._document.getElementById("alwaysUse");
-    if (checkbox) {
-      var alwaysUse = false;
-      try {
-        var prefs = Cc["@mozilla.org/preferences-service;1"].
-                    getService(Ci.nsIPrefBranch);
-        if (prefs.getCharPref(getPrefActionForType(feedType)) != "ask")
-          alwaysUse = true;
-      }
-      catch(ex) { }
-      this._setCheckboxCheckedState(checkbox, alwaysUse);
-    }
-  },
-
-  _setSubscribeUsingLabel: function FW__setSubscribeUsingLabel() {
-    var stringLabel = "subscribeFeedUsing";
-    switch (this._getFeedType()) {
-      case Ci.nsIFeed.TYPE_VIDEO:
-        stringLabel = "subscribeVideoPodcastUsing";
-        break;
-
-      case Ci.nsIFeed.TYPE_AUDIO:
-        stringLabel = "subscribeAudioPodcastUsing";
-        break;
-    }
-
-    this._contentSandbox.subscribeUsing =
-      this._document.getElementById("subscribeUsingDescription");
-    this._contentSandbox.label = this._getString(stringLabel);
-    var codeStr = "subscribeUsing.setAttribute('value', label);"
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
-  },
-
-  _setAlwaysUseLabel: function FW__setAlwaysUseLabel() {
-    var checkbox = this._document.getElementById("alwaysUse");
-    if (checkbox) {
-      var handlersMenuList = this._document.getElementById("handlersMenuList");
-      if (handlersMenuList) {
-        var handlerName = this._getSelectedItemFromMenulist(handlersMenuList)
-                              .getAttribute("label");
-        var stringLabel = "alwaysUseForFeeds";
-        switch (this._getFeedType()) {
-          case Ci.nsIFeed.TYPE_VIDEO:
-            stringLabel = "alwaysUseForVideoPodcasts";
-            break;
-
-          case Ci.nsIFeed.TYPE_AUDIO:
-            stringLabel = "alwaysUseForAudioPodcasts";
-            break;
-        }
-
-        this._contentSandbox.checkbox = checkbox;
-        this._contentSandbox.label = this._getFormattedString(stringLabel, [handlerName]);
-        
-        var codeStr = "checkbox.setAttribute('label', label);";
-        Cu.evalInSandbox(codeStr, this._contentSandbox);
-      }
-    }
-  },
-
-  // nsIDomEventListener
-  handleEvent: function(event) {
-    // see comments in the write method
-    event = new XPCNativeWrapper(event);
-    if (event.target.ownerDocument != this._document) {
-      this._log.info("SnowlRiverWriter.handleEvent: Someone passed the feed writer as a listener to the events of another document!");
-      return;
-    }
-
-    if (event.type == "command") {
-      switch (event.target.id) {
-        case "subscribeButton":
-          this.subscribe();
-          break;
-        case "chooseApplicationMenuItem":
-          /* Bug 351263: Make sure to not steal focus if the "Choose
-           * Application" item is being selected with the keyboard. We do this
-           * by ignoring command events while the dropdown is closed (user
-           * arrowing through the combobox), but handling them while the
-           * combobox dropdown is open (user pressed enter when an item was
-           * selected). If we don't show the filepicker here, it will be shown
-           * when clicking "Subscribe Now".
-           */
-          var popupbox = this._document.getElementById("handlersMenuList")
-                             .firstChild.boxObject;
-          popupbox.QueryInterface(Components.interfaces.nsIPopupBoxObject);
-          if (popupbox.popupState == "hiding" && !this._chooseClientApp()) {
-            // Select the (per-prefs) selected handler if no application was
-            // selected
-            this._setSelectedHandler(this._getFeedType());
-          }
-          break;
-        default:
-          this._setAlwaysUseLabel();
-      }
-    }
-  },
-
-  _setSelectedHandler: function FW__setSelectedHandler(feedType) {
-    var prefs =   
-        Cc["@mozilla.org/preferences-service;1"].
-        getService(Ci.nsIPrefBranch);
-
-    var handler = "bookmarks";
-    try {
-      handler = prefs.getCharPref(getPrefReaderForType(feedType));
-    }
-    catch (ex) { }
-
-    switch (handler) {
-      case "web": {
-        var handlersMenuList = this._document.getElementById("handlersMenuList");
-        if (handlersMenuList) {
-          var url = prefs.getComplexValue(getPrefWebForType(feedType), Ci.nsISupportsString).data;
-          var handlers =
-            handlersMenuList.getElementsByAttribute("webhandlerurl", url);
-          if (handlers.length == 0) {
-            this._log.info("SnowlRiverWriter._setSelectedHandler: selected web handler isn't in the menulist")
-            return;
-          }
-
-          this._safeDoCommand(handlers[0]);
-        }
-        break;
-      }
-      case "client": {
-        try {
-          this._selectedApp =
-            prefs.getComplexValue(getPrefAppForType(feedType), Ci.nsILocalFile);
-        }
-        catch(ex) {
-          this._selectedApp = null;
-        }
-
-        if (this._selectedApp) {
-          this._initMenuItemWithFile(this._contentSandbox.selectedAppMenuItem,
-                                     this._selectedApp);
-          var codeStr = "selectedAppMenuItem.hidden = false; " +
-                        "selectedAppMenuItem.doCommand(); ";
-
-          // Only show the default reader menuitem if the default reader
-          // isn't the selected application
-          if (this._defaultSystemReader) {
-            var shouldHide =
-              this._defaultSystemReader.path == this._selectedApp.path;
-            codeStr += "defaultHandlerMenuItem.hidden = " + shouldHide + ";"
-          }
-          Cu.evalInSandbox(codeStr, this._contentSandbox);
-          break;
-        }
-      }
-      case "bookmarks":
-      default: {
-        var liveBookmarksMenuItem = this._document.getElementById("liveBookmarksMenuItem");
-        if (liveBookmarksMenuItem)
-          this._safeDoCommand(liveBookmarksMenuItem);
-      } 
-    }
-  },
-
-  /**
-   * Returns the original URI object of the feed and ensures that this
-   * component is only ever invoked from the preview document.  
-   * @param aWindow 
-   *        The window of the document invoking the RiverWriter
-   */
-  _getOriginalURI: function FW__getOriginalURI(aWindow) {
-    var chan = aWindow.QueryInterface(Ci.nsIInterfaceRequestor).
-               getInterface(Ci.nsIWebNavigation).
-               QueryInterface(Ci.nsIDocShell).currentDocumentChannel;
-
-    var uri = makeURI(SUBSCRIBE_PAGE_URI);
-    var resolvedURI = Cc["@mozilla.org/chrome/chrome-registry;1"].
-                      getService(Ci.nsIChromeRegistry).
-                      convertChromeURL(uri);
-
-    if (resolvedURI.equals(chan.URI))
-      return chan.originalURI;
-
-    return null;
-  },
-
   _window: null,
   _document: null,
   _feedURI: null,
@@ -951,7 +525,6 @@ SnowlRiverWriter.prototype = {
     this._document = null;
     this._window = null;
 
-    this.__faviconService = null;
     this.__bundle = null;
     //this._feedURI = null;
     this.__contentSandbox = null;
@@ -961,63 +534,6 @@ SnowlRiverWriter.prototype = {
     historySvc.removeObserver(this);
   },
 
-  /**
-   * Sets the icon for the given web-reader item in the readers menu
-   * if the favicon-service has the necessary icon stored.
-   * @param aURI
-   *        the reader URI.
-   * @param aMenuItem
-   *        the reader item in the readers menulist.
-   * @return true if the icon was set, false otherwise.
-   */
-  _setFaviconForWebReader:
-  function FW__setFaviconForWebReader(aURI, aMenuItem) {
-    var faviconsSvc = this._faviconService;
-    var faviconURL = null;
-    try {
-      faviconURL = faviconsSvc.getFaviconForPage(aURI);
-    }
-    catch(ex) { }
-
-    if (faviconURL) {
-      var mimeType = { };
-      var bytes = faviconsSvc.getFaviconData(faviconURL, mimeType,
-                                             { /* dataLen */ });
-      if (bytes) {
-        var dataURI = "data:" + mimeType.value + ";" + "base64," +
-                      btoa(String.fromCharCode.apply(null, bytes));
-
-        this._contentSandbox.menuItem = aMenuItem;
-        this._contentSandbox.dataURI = dataURI;
-        var codeStr = "menuItem.setAttribute('image', dataURI);";
-        Cu.evalInSandbox(codeStr, this._contentSandbox);
-        this._contentSandbox.menuItem = null;
-        this._contentSandbox.dataURI = null;
-
-        return true;
-      }
-    }
-
-    return false;
-  },
-
-   // nsINavHistoryService
-   onPageChanged: function FW_onPageChanged(aURI, aWhat, aValue) {
-     if (aWhat == Ci.nsINavHistoryObserver.ATTRIBUTE_FAVICON) {
-       // Go through the readers menu and look for the corresponding
-       // reader menu-item for the page if any.
-       var spec = aURI.spec;
-       var handlersMenulist = this._document.getElementById("handlersMenuList");
-       var possibleHandlers = handlersMenulist.firstChild.childNodes;
-       for (var i=0; i < possibleHandlers.length ; i++) {
-         if (possibleHandlers[i].getAttribute("webhandlerurl") == spec) {
-           this._setFaviconForWebReader(aURI, possibleHandlers[i]);
-           return;
-         }
-       }
-     }
-   },
-
    onBeginUpdateBatch: function() { },
    onEndUpdateBatch: function() { },
    onVisit: function() { },
@@ -1026,7 +542,6 @@ SnowlRiverWriter.prototype = {
    onClearHistory: function() { },
    onPageExpired: function() { },
 
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDOMEventListener,
-                                         Ci.nsIObserver,
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver,
                                          Ci.nsINavHistoryObserver])
 };
