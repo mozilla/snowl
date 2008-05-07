@@ -331,8 +331,6 @@ SnowlRiverWriter.prototype = {
       if (summary) {
         if (summary.base)
           body.setAttributeNS(XML_NS, "base", summary.base.spec);
-        else
-          this._log.info("no base?");
         docFragment = summary.createDocumentFragment(body);
         if (docFragment)
           body.appendChild(docFragment);
