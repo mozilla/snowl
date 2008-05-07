@@ -9,6 +9,9 @@ const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
 
 let SnowlDatastore = {
+  // FIXME: use the memoization technique for properties that aren't defined
+  // in the prototype here instead of the technique for properties that are
+  // defined in the prototype.
   get _storage() {
     var storage = Cc["@mozilla.org/storage/service;1"].
                   getService(Ci.mozIStorageService);

@@ -49,21 +49,9 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://snowl/modules/log4moz.js");
 
-function LOG(str) {
-  var prefB = Cc["@mozilla.org/preferences-service;1"].
-              getService(Ci.nsIPrefBranch);
-
-  var shouldLog = false;
-  try {
-    shouldLog = prefB.getBoolPref("feeds.log");
-  } 
-  catch (ex) {
-  }
-
-  if (shouldLog)
-    dump("*** Feeds: " + str + "\n");
-}
+let log = Log4Moz.Service.getLogger("Snowl.RiverWriter");
 
 /**
  * Wrapper function for nsIIOService::newURI.
@@ -188,6 +176,12 @@ function convertByteUnits(aBytes) {
 
 function SnowlRiverWriter() {}
 SnowlRiverWriter.prototype = {
+  get _log() {
+    let log = Log4Moz.Service.getLogger("Snowl.RiverWriter");
+    this.__defineGetter__("_log", function() { return log });
+    return this._log;
+  },
+
   _mimeSvc      : Cc["@mozilla.org/mime;1"].
                   getService(Ci.nsIMIMEService),
 
@@ -454,7 +448,7 @@ SnowlRiverWriter.prototype = {
       feedTitleText.style.marginRight = titleImageWidth + "px";
     }
     catch (e) {
-      LOG("Failed to set Title Image (this is benign): " + e);
+      this._log.info("Failed to set Title Image (this is benign): " + e);
     }
   },
 
@@ -514,7 +508,7 @@ SnowlRiverWriter.prototype = {
         if (summary.base)
           body.setAttributeNS(XML_NS, "base", summary.base.spec);
         else
-          LOG("no base?");
+          this._log.info("no base?");
         docFragment = summary.createDocumentFragment(body);
         if (docFragment)
           body.appendChild(docFragment);
@@ -670,18 +664,18 @@ SnowlRiverWriter.prototype = {
         feedService.getFeedResult(this._getOriginalURI(this._window));
     }
     catch (e) {
-      LOG("Subscribe Preview: feed not available?!");
+      this._log.info("Subscribe Preview: feed not available?!");
     }
     
     if (result.bozo) {
-      LOG("Subscribe Preview: feed result is bozo?!");
+      this._log.info("Subscribe Preview: feed result is bozo?!");
     }
 
     try {
       var container = result.doc;
     }
     catch (e) {
-      LOG("Subscribe Preview: no result.doc? Why didn't the original reload?");
+      this._log.info("Subscribe Preview: no result.doc? Why didn't the original reload?");
       return null;
     }
     return container;
@@ -785,7 +779,7 @@ SnowlRiverWriter.prototype = {
     // see comments in the write method
     event = new XPCNativeWrapper(event);
     if (event.target.ownerDocument != this._document) {
-      LOG("SnowlRiverWriter.handleEvent: Someone passed the feed writer as a listener to the events of another document!");
+      this._log.info("SnowlRiverWriter.handleEvent: Someone passed the feed writer as a listener to the events of another document!");
       return;
     }
 
@@ -837,7 +831,7 @@ SnowlRiverWriter.prototype = {
           var handlers =
             handlersMenuList.getElementsByAttribute("webhandlerurl", url);
           if (handlers.length == 0) {
-            LOG("SnowlRiverWriter._setSelectedHandler: selected web handler isn't in the menulist")
+            this._log.info("SnowlRiverWriter._setSelectedHandler: selected web handler isn't in the menulist")
             return;
           }
 
@@ -931,7 +925,7 @@ SnowlRiverWriter.prototype = {
     //             getService(Ci.nsIScriptSecurityManager);
     //this._feedPrincipal = secman.getCodebasePrincipal(this._feedURI);
 
-    //LOG("Subscribe Preview: feed uri = " + this._window.location.href);
+    //this._log.info("Subscribe Preview: feed uri = " + this._window.location.href);
   },
 
   writeContent: function FW_writeContent() {
