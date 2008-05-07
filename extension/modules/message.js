@@ -35,23 +35,31 @@ SnowlMessage.prototype = {
     return this._contentStatement;
   },
 
+  _content: null,
   get content() {
-    let content;
+    if (this._content) {
+      dump(this.id + " has content " + this._content.type + " " + this._content.text.length + "\n");
+      return this._content;
+    }
 
     try {
       this._contentStatement.params.messageID = this.id;
       if (this._contentStatement.step()) {
-        content = Cc["@mozilla.org/feed-textconstruct;1"].
-                  createInstance(Ci.nsIFeedTextConstruct);
-        content.text = this._contentStatement.row.content;
-        content.type = textConstructTypes[this._contentStatement.row.contentType];
+        this._content = Cc["@mozilla.org/feed-textconstruct;1"].
+                        createInstance(Ci.nsIFeedTextConstruct);
+        this._content.text = this._contentStatement.row.content;
+        this._content.type = textConstructTypes[this._contentStatement.row.contentType];
       }
     }
     finally {
       this._contentStatement.reset();
     }
 
-    return content;
+    return this._content;
+  },
+
+  set content(newValue) {
+    this._content = newValue;
   }
 
 };
