@@ -52,7 +52,7 @@ var RiverHandler = {
   _riverWriter: null,
 
   init: function SH_init() {
-    this._collection = new SnowlCollection();
+    this._collection = new SnowlCollection(null, null, true);
     this._riverWriter = new SnowlRiverWriter();
     this._riverWriter.init(window, this._collection);
   },
