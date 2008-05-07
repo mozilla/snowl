@@ -62,6 +62,7 @@ let SnowlDatastore = {
         ]
       },
 
+/*
       parts: {
         type: TABLE_TYPE_FULLTEXT,
         columns: [
@@ -70,6 +71,7 @@ let SnowlDatastore = {
           "content"
         ]
       },
+*/
 
       attributes: {
         type: TABLE_TYPE_NORMAL,
@@ -81,10 +83,11 @@ let SnowlDatastore = {
       },
 
       metadata: {
-        type: TABLE_TYPE_NORMAL,
+        type: TABLE_TYPE_FULLTEXT,
         columns: [
-          "messageID INTEGER REFERENCES messages(id)",
-          "attributeID INTEGER REFERENCES attributes(id)",
+          "messageID INTEGER NOT NULL REFERENCES messages(id)",
+          "attributeID INTEGER NOT NULL REFERENCES attributes(id)",
+          "contentType TEXT NOT NULL",
           "value BLOB"
         ]
       }

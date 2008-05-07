@@ -41,18 +41,20 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/RiverWriter.js");
 
 var RiverHandler = {
-  /**
-   * The SnowlRiverWriter object that produces the UI.
-   */
-  _riverWriter: null,
+  // The set of messages to display in the view.
+  _collection: null,
   
+  // The object that generates the view.
+  _riverWriter: null,
+
   init: function SH_init() {
+    this._collection = new SnowlCollection();
     this._riverWriter = new SnowlRiverWriter();
-    this._riverWriter.init(window);
-    this._rebuildModel();
+    this._riverWriter.init(window, this._collection);
   },
 
   writeContent: function SH_writeContent() {

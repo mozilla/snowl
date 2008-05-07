@@ -219,7 +219,17 @@ SnowlRiverWriter.prototype = {
 
   /**
    * Safely sets the href attribute on an anchor tag, providing the URI 
-   * specified can be loaded according to rules. 
+   * specified can be loaded according to rules.
+   *
+   * XXX Renamed from safeSetURIAttribute to unsafeSetURIAttribute to reflect
+   * that we've commented out the stuff that makes it safe.
+   *
+   * FIXME: I don't understand the security implications here, but presumably
+   * there's a reason this is here, and we should be respecting it, so make this
+   * work by giving each message in a collection have a reference to its source
+   * and then use the source's URI to create the principal with which we compare
+   * the URI.
+   * 
    * @param   element
    *          The element to set a URI attribute on
    * @param   attribute
@@ -227,8 +237,9 @@ SnowlRiverWriter.prototype = {
    * @param   uri
    *          The URI spec to set as the href
    */
-  _safeSetURIAttribute: 
-  function FW__safeSetURIAttribute(element, attribute, uri) {
+  _unsafeSetURIAttribute: 
+  function FW__unsafeSetURIAttribute(element, attribute, uri) {
+/*
     var secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
                  getService(Ci.nsIScriptSecurityManager);    
     const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
@@ -242,6 +253,7 @@ SnowlRiverWriter.prototype = {
       // Not allowed to load this link because secman.checkLoadURIStr threw
       return;
     }
+*/
 
     this._contentSandbox.element = element;
     this._contentSandbox.uri = uri;
@@ -417,7 +429,7 @@ SnowlRiverWriter.prototype = {
       
       // Set up the title image (supplied by the feed)
       var feedTitleImage = this._document.getElementById("feedTitleImage");
-      this._safeSetURIAttribute(feedTitleImage, "src", 
+      this._unsafeSetURIAttribute(feedTitleImage, "src", 
                                 parts.getPropertyAsAString("url"));
 
       // Set up the title image link
@@ -432,7 +444,7 @@ SnowlRiverWriter.prototype = {
       this._contentSandbox.feedTitleLink = null;
       this._contentSandbox.titleText = null;
 
-      this._safeSetURIAttribute(feedTitleLink, "href", 
+      this._unsafeSetURIAttribute(feedTitleLink, "href", 
                                 parts.getPropertyAsAString("link"));
 
       // Fix the margin on the main title, so that the image doesn't run over
@@ -451,35 +463,34 @@ SnowlRiverWriter.prototype = {
    * @param   container
    *          The container of entries in the feed
    */
-  _writeFeedContent: function FW__writeFeedContent(container) {
+  _writeFeedContent: function FW__writeFeedContent() {
     // Build the actual feed content
-    var feed = container.QueryInterface(Ci.nsIFeed);
-    if (feed.items.length == 0)
-      return;
+    //var feed = container.QueryInterface(Ci.nsIFeed);
+    //if (feed.items.length == 0)
+    //  return;
 
     this._contentSandbox.feedContent =
       this._document.getElementById("feedContent");
 
-    for (var i = 0; i < feed.items.length; ++i) {
-      var entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-      entry.QueryInterface(Ci.nsIFeedContainer);
+    for (let i = 0; i < this._collection.messages.length; ++i) {
+      let entry = this._collection.messages[i];
 
       var entryContainer = this._document.createElementNS(HTML_NS, "div");
       entryContainer.className = "entry";
 
       // If the entry has a title, make it a link
-      if (entry.title) {
+      if (entry.subject) {
         var a = this._document.createElementNS(HTML_NS, "a");
-        a.appendChild(this._document.createTextNode(entry.title.plainText()));
+        a.appendChild(this._document.createTextNode(entry.subject));
 
         // Entries are not required to have links, so entry.link can be null.
         if (entry.link)
-          this._safeSetURIAttribute(a, "href", entry.link.spec);
+          this._unsafeSetURIAttribute(a, "href", entry.link);
 
         var title = this._document.createElementNS(HTML_NS, "h3");
         title.appendChild(a);
 
-        var lastUpdated = this._parseDate(entry.updated);
+        var lastUpdated = this._parseDate(entry.timestamp);
         if (lastUpdated) {
           var dateDiv = this._document.createElementNS(HTML_NS, "div");
           dateDiv.className = "lastUpdated";
@@ -491,7 +502,13 @@ SnowlRiverWriter.prototype = {
       }
 
       var body = this._document.createElementNS(HTML_NS, "div");
-      var summary = entry.summary || entry.content;
+
+      // The summary is currently not stored and made available, so we can
+      // only use the content.
+      // FIXME: use the summary instead once it becomes available.
+      //var summary = entry.summary || entry.content;
+      var summary = entry.content;
+
       var docFragment = null;
       if (summary) {
         if (summary.base)
@@ -504,10 +521,10 @@ SnowlRiverWriter.prototype = {
 
         // If the entry doesn't have a title, append a # permalink
         // See http://scripting.com/rss.xml for an example
-        if (!entry.title && entry.link) {
+        if (!entry.subject && entry.link) {
           var a = this._document.createElementNS(HTML_NS, "a");
           a.appendChild(this._document.createTextNode("#"));
-          this._safeSetURIAttribute(a, "href", entry.link.spec);
+          this._unsafeSetURIAttribute(a, "href", entry.link);
           body.appendChild(this._document.createTextNode(" "));
           body.appendChild(a);
         }
@@ -617,7 +634,7 @@ SnowlRiverWriter.prototype = {
 
       var enc_href = this._document.createElementNS(HTML_NS, "a");
       enc_href.appendChild(this._document.createTextNode(this._getURLDisplayName(enc.get("url"))));
-      this._safeSetURIAttribute(enc_href, "href", enc.get("url"));
+      this._unsafeSetURIAttribute(enc_href, "href", enc.get("url"));
       enclosureDiv.appendChild(enc_href);
 
       if (type_text && size_text)
@@ -889,8 +906,11 @@ SnowlRiverWriter.prototype = {
   _document: null,
   _feedURI: null,
   _feedPrincipal: null,
+  _collection: null,
 
-  init: function FW_init(aWindow) {
+  init: function FW_init(aWindow, aCollection) {
+    this._collection = aCollection;
+
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
     // get a non-native object.
@@ -920,13 +940,13 @@ SnowlRiverWriter.prototype = {
 
     try {
       // Set up the feed content
-      var container = this._getContainer();
-      if (!container)
-        return;
+      //var container = this._getContainer();
+      //if (!container)
+      //  return;
 
-      this._setTitleText(container);
-      this._setTitleImage(container);
-      this._writeFeedContent(container);
+      //this._setTitleText(container);
+      //this._setTitleImage(container);
+      this._writeFeedContent();
     }
     finally {
       this._removeFeedFromCache();
