@@ -5,18 +5,27 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
 
 /**
  * A group of messages.
  */
-function SnowlCollection(aSourceID, aFilter) {
+function SnowlCollection(aSourceID, aFilter, aCurrent) {
   this._sourceID = aSourceID;
   this._filter = aFilter;
+
+  this._current = aCurrent;
 }
 
 SnowlCollection.prototype = {
+  get _log() {
+    let log = Log4Moz.Service.getLogger("Snowl.Collection");
+    this.__defineGetter__("_log", function() { return log });
+    return this._log;
+  },
+
   _sourceID: null,
 
   get sourceID() {
@@ -39,6 +48,8 @@ SnowlCollection.prototype = {
     this.invalidate();
   },
 
+  _current: undefined,
+
   sortProperty: "timestamp",
   sortOrder: 1,
 
@@ -49,17 +60,20 @@ SnowlCollection.prototype = {
       return this._messages;
 
     this._messages = [];
+    this._messageIndex = {};
 
     let statement = this._generateStatement();
     try {
-      while (statement.step())
-        this._messages.push(
-          new SnowlMessage(statement.row.id,
-                           statement.row.subject,
-                           statement.row.author,
-                           statement.row.link,
-                           statement.row.timestamp,
-                           (statement.row.read ? true : false)));
+      while (statement.step()) {
+        let message = new SnowlMessage(statement.row.id,
+                                       statement.row.subject,
+                                       statement.row.author,
+                                       statement.row.link,
+                                       statement.row.timestamp,
+                                       (statement.row.read ? true : false));
+        this._messages.push(message);
+        this._messageIndex[message.id] = message;
+      }
     }
     finally {
       statement.reset();
@@ -67,11 +81,41 @@ SnowlCollection.prototype = {
 
     this.sort(this.sortProperty, this.sortOrder);
 
+    // A bug in SQLite breaks relating a virtual table via a LEFT JOIN, so we
+    // can't pull content with our initial query.  Instead we do it here.
+    // FIXME: stop doing this once we upgrade to a version of SQLite that does
+    // not have this problem (i.e. 3.5.6+).
+    this._getContent();
+
+    this._log.info("Retrieved " + this._messages.length + " messages.");
+
     return this._messages;
   },
 
   invalidate: function() {
     this._messages = null;
+  },
+
+  _getContent: function() {
+    let query = "SELECT messageID, content, contentType " +
+                "FROM parts " +
+                "WHERE parts.messageID IN (" +
+                  this._messages.map(function(v) { return v.id }).join(",") +
+                ")";
+    let statement = SnowlDatastore.createStatement(query);
+
+    try {
+      while (statement.step()) {
+        let content = Cc["@mozilla.org/feed-textconstruct;1"].
+                      createInstance(Ci.nsIFeedTextConstruct);
+        content.text = statement.row.content;
+        content.type = textConstructTypes[statement.row.contentType];
+        this._messageIndex[statement.row.messageID].content = content;
+      }
+    }
+    finally {
+      statement.reset();
+    }
   },
 
   _generateStatement: function() {
@@ -93,8 +137,13 @@ SnowlCollection.prototype = {
     if (this.filter)
       conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
 
+    if (typeof this._current != "undefined")
+      conditions.push("current = " + (this._current ? "1" : "0"));
+
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
+
+    this._log.info(query);
 
     let statement = SnowlDatastore.createStatement(query);
 
@@ -148,3 +197,11 @@ function prepareObjectForComparison(aObject) {
 
   return aObject;
 }
+
+// FIXME: get this from message.js (or from something that both message.js and collection.js import).
+let textConstructTypes = {
+  "text/html": "html",
+  "application/xhtml+xml": "xhtml",
+  "text/plain": "text"
+};
+
