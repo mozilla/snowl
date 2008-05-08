@@ -45,6 +45,7 @@ let SnowlDatastore = {
           "id INTEGER PRIMARY KEY",
           // FIXME: rename this 'link'
           "url TEXT NOT NULL",
+          // FIXME: rename this "name"
           "title TEXT NOT NULL",
           "lastRefreshed INTEGER",
         ]

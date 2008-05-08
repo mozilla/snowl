@@ -41,6 +41,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// FIXME: make this part of river.js instead of a separate file.
+
 const EXPORTED_SYMBOLS = ["SnowlRiverWriter"];
 
 const Cc = Components.classes;
@@ -299,6 +301,10 @@ SnowlRiverWriter.prototype = {
       // If the entry has a title, make it a link
       if (entry.subject) {
         var a = this._document.createElementNS(HTML_NS, "a");
+        a.appendChild(this._document.createTextNode(entry.source.title));
+        a.appendChild(this._document.createTextNode(": "));
+        a.appendChild(this._document.createTextNode(entry.author));
+        a.appendChild(this._document.createTextNode(": "));
         a.appendChild(this._document.createTextNode(entry.subject));
 
         // Entries are not required to have links, so entry.link can be null.

@@ -6,6 +6,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/source.js");
 
 function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead) {
   this.id = aID;
@@ -36,11 +37,10 @@ SnowlMessage.prototype = {
   },
 
   _content: null,
+
   get content() {
-    if (this._content) {
-      dump(this.id + " has content " + this._content.type + " " + this._content.text.length + "\n");
+    if (this._content)
       return this._content;
-    }
 
     try {
       this._contentStatement.params.messageID = this.id;
@@ -60,6 +60,41 @@ SnowlMessage.prototype = {
 
   set content(newValue) {
     this._content = newValue;
+  },
+
+  get _sourceStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT sources.id, sources.url, sources.title " +
+      "FROM messages JOIN sources ON messages.sourceID = sources.id " +
+      "WHERE messages.id = :messageID"
+    );
+    this.__defineGetter__("_sourceStatement", function() { return statement });
+    return this._sourceStatement;
+  },
+
+  _source: null,
+
+  get source() {
+    if (!this._source) {
+      try {
+        this._sourceStatement.params.messageID = this.id;
+        if (this._sourceStatement.step())
+          // FIXME: get this from the snowl service and make the service cache
+          // sources so we don't create a new instance of the source object
+          // for every message.
+          this._source = new SnowlSource(this._sourceStatement.row.id,
+                                         this._sourceStatement.row.url,
+                                         this._sourceStatement.row.title);
+      }
+catch(ex) {
+  dump(ex + "\n");
+}
+      finally {
+        this._sourceStatement.reset();
+      }
+    }
+
+    return this._source;
   }
 
 };
