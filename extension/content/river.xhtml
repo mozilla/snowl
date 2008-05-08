@@ -15,18 +15,15 @@
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<html id="feedHandler"
-      xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      xmlns:aaa="http://www.w3.org/2005/07/aaa">
+<html id="feedHandler" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <head>
     <title>&feedPage.title;</title>
-    <link rel="stylesheet"
-          href="chrome://browser/skin/feeds/subscribe.css"
-          type="text/css"
-          media="all"/>
-    <script type="application/x-javascript"
-            src="chrome://snowl/content/river.js"/>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="chrome://browser/skin/feeds/subscribe.css"/>
+    <link rel="stylesheet" type="text/css" media="all"
+          href="chrome://snowl/content/river.css"/>
+    <script type="application/x-javascript" src="chrome://snowl/content/river.js"/>
   </head>
   <body onload="RiverHandler.writeContent();" onunload="RiverHandler.uninit();">
 
