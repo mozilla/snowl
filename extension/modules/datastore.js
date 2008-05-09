@@ -62,6 +62,8 @@ let SnowlDatastore = {
           "timestamp INTEGER",
           "link TEXT",
           "current BOOLEAN",
+          // FIXME: figure out how to make sure read has a default value.
+          // Maybe this is as simple as DEFAULT(0) if SQLite supports it.
           "read BOOLEAN"
         ]
       },

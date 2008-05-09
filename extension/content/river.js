@@ -44,7 +44,7 @@ const Cu = Components.utils;
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/RiverWriter.js");
 
-var RiverHandler = {
+var RiverView = {
   // The set of messages to display in the view.
   _collection: null,
   
@@ -55,14 +55,25 @@ var RiverHandler = {
     this._collection = new SnowlCollection(null, null, true);
     this._riverWriter = new SnowlRiverWriter();
     this._riverWriter.init(window, this._collection);
-  },
-
-  writeContent: function SH_writeContent() {
     this._riverWriter.writeContent();
   },
 
   uninit: function SH_uninit() {
     this._riverWriter.close();
-  }
+  },
 
+  onCommandUnreadButton: function(aEvent, aButton) {
+    // FIXME: instead of rebuilding from scratch each time, when going from
+    // all to unread, simply hide the ones that are read (f.e. by setting a CSS
+    // class on read items and then using a CSS rule to hide them).
+
+    if (aButton.checked) {
+      this._collection.read = false;
+      this._riverWriter.rebuildView();
+    }
+    else {
+      this._collection.read = undefined;
+      this._riverWriter.rebuildView();
+    }
+  }
 };

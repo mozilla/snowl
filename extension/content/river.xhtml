@@ -25,11 +25,12 @@
           href="chrome://snowl/content/river.css"/>
     <script type="application/x-javascript" src="chrome://snowl/content/river.js"/>
   </head>
-  <body onload="RiverHandler.writeContent();" onunload="RiverHandler.uninit();">
-
-    <script type="application/x-javascript">
-      RiverHandler.init();
-    </script>
+  <body onload="RiverView.init()" onunload="RiverView.uninit()">
+    <div id="toolbar">
+      <xul:button id="unreadButton" type="checkbox" label="Unread"
+                  oncommand="RiverView.onCommandUnreadButton(event, this)"/>
+      <input/>
+    </div>
 
     <div id="feedBody">
       <div id="feedTitle">

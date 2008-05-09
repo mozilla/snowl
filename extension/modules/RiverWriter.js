@@ -525,6 +525,14 @@ SnowlRiverWriter.prototype = {
     }
   },
 
+  rebuildView: function() {
+    let feedContent = this._document.getElementById("feedContent");
+    while (feedContent.hasChildNodes())
+      feedContent.removeChild(feedContent.lastChild);
+
+    this.writeContent();
+  },
+
   close: function FW_close() {
     this._document = null;
     this._window = null;

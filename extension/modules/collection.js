@@ -12,11 +12,12 @@ Cu.import("resource://snowl/modules/message.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(aSourceID, aFilter, aCurrent) {
+function SnowlCollection(aSourceID, aFilter, aCurrent, aRead) {
   this._sourceID = aSourceID;
   this._filter = aFilter;
 
   this._current = aCurrent;
+  this._read = aRead;
 }
 
 SnowlCollection.prototype = {
@@ -49,6 +50,22 @@ SnowlCollection.prototype = {
   },
 
   _current: undefined,
+
+  _read: undefined,
+
+  get read() {
+    return this._read;
+  },
+
+  set read(newValue) {
+    if (this._read === newValue)
+      return;
+
+    this._read = (typeof newValue == "undefined") ? undefined : newValue ? true : false;
+
+    // Invalidate the message cache.
+    this._messages = null;
+  },
 
   sortProperty: "timestamp",
   sortOrder: 1,
@@ -139,6 +156,9 @@ SnowlCollection.prototype = {
 
     if (typeof this._current != "undefined")
       conditions.push("current = " + (this._current ? "1" : "0"));
+
+    if (typeof this.read != "undefined")
+      conditions.push("read = " + (this.read ? "1" : "0 OR read IS NULL"));
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
