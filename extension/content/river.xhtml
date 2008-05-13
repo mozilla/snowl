@@ -29,19 +29,11 @@
     <xul:hbox id="toolbar" align="center">
       <xul:button id="unreadButton" type="checkbox" label="Unread"
                   oncommand="RiverView.onCommandUnreadButton(event, this)"/>
-      <input/>
+      <xul:textbox id="filterTextbox" type="timed" timeout="200"
+                   oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
     </xul:hbox>
 
-    <div id="feedBody">
-      <div id="feedTitle">
-        <a id="feedTitleLink">
-          <img id="feedTitleImage"/>
-        </a>
-        <div id="feedTitleContainer">
-          <h1 id="feedTitleText"/>
-          <h2 id="feedSubtitleText"/>
-        </div>
-      </div>
+    <div>
       <div id="feedContent"/>
     </div>
   </body>

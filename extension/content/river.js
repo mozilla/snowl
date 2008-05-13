@@ -64,6 +64,7 @@ function makeURI(aURLSpec, aCharset) {
 }
 
 const XML_NS = "http://www.w3.org/XML/1998/namespace"
+const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 const URI_BUNDLE = "chrome://browser/locale/feeds/subscribe.properties";
 
@@ -99,6 +100,24 @@ var RiverView = {
   _collection: null,
   
   init: function SH_init() {
+    // Explicitly wrap |window| in an XPCNativeWrapper to make sure
+    // it's a real native object! This will throw an exception if we
+    // get a non-native object.
+    this._window = new XPCNativeWrapper(window);
+    this._document = this._window.document;
+
+    this._collection = new SnowlCollection(null, null, true);
+
+    this._updateToolbar();
+
+    this.writeContent();
+  },
+
+  uninit: function SH_uninit() {
+    this.close();
+  },
+
+  _updateToolbar: function() {
     this._params = {};
     let query = window.location.search.substr(1);
     for each (let param in query.split("&")) {
@@ -112,23 +131,14 @@ var RiverView = {
       this._params[name] = value;
     }
 
-    this._collection = new SnowlCollection(null, null, true);
     if ("unread" in this._params) {
       this._collection.read = false;
       document.getElementById("unreadButton").checked = true;
     }
-
-    // Explicitly wrap |window| in an XPCNativeWrapper to make sure
-    // it's a real native object! This will throw an exception if we
-    // get a non-native object.
-    this._window = new XPCNativeWrapper(window);
-    this._document = this._window.document;
-
-    this.writeContent();
-  },
-
-  uninit: function SH_uninit() {
-    this.close();
+    if ("filter" in this._params) {
+      this._collection.filter = this._params.filter;
+      document.getElementById("filterTextbox").value = this._params.filter;
+    }
   },
 
   onCommandUnreadButton: function(aEvent, aButton) {
@@ -145,9 +155,29 @@ var RiverView = {
       this.rebuildView();
     }
 
-    let query = aButton.checked ? "?unread" : "";
+    this._updateURI();
+  },
+
+  onCommandFilterTextbox: function(aEvent, aFilterTextbox) {
+    this._collection.filter = aFilterTextbox.value;
+    this.rebuildView();
+    this._updateURI();
+  },
+
+  _updateURI: function() {
+    let params = [];
+
+    if (typeof this._collection.read != "undefined" && !this._collection.read)
+      params.push("unread");
+
+    if (this._collection.filter)
+      params.push("filter=" + encodeURIComponent(this._collection.filter));
+
+    let query = params.length > 0 ? "?" + params.join("&") : "";
     let spec = "chrome://snowl/content/river.xhtml" + query;
-    let uri = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(spec, null, null);
+    let uri = Cc["@mozilla.org/network/io-service;1"].
+              getService(Ci.nsIIOService).
+              newURI(spec, null, null);
 
     let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIWebNavigation).
@@ -157,8 +187,11 @@ var RiverView = {
                          getInterface(Ci.nsIDOMWindow);
 
     gBrowserWindow.gBrowser.docShell.setCurrentURI(uri);
+
+    // FIXME: figure out how to make reload reload the new URI instead of
+    // the original one.
   },
-  
+
   onScroll: function(aEvent) {
     // The "current message" is the topmost one whose header appears on the page
     // 
@@ -376,8 +409,10 @@ var RiverView = {
         sourceBox.className = "source";
 
         if (entry.author) {
-          let author = this._document.createElementNS(HTML_NS, "div");
-          author.appendChild(this._document.createTextNode(entry.author));
+          let author = this._document.createElementNS(XUL_NS, "label");
+          author.setAttribute("crop", "end");
+          author.setAttribute("value", entry.author);
+          //author.appendChild(this._document.createTextNode(entry.author));
           sourceBox.appendChild(author);
         }
 
