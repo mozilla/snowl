@@ -68,7 +68,6 @@ let SnowlDatastore = {
         ]
       },
 
-/*
       parts: {
         type: TABLE_TYPE_FULLTEXT,
         columns: [
@@ -77,7 +76,6 @@ let SnowlDatastore = {
           "content"
         ]
       },
-*/
 
       attributes: {
         type: TABLE_TYPE_NORMAL,
@@ -116,6 +114,7 @@ let SnowlDatastore = {
   dbConnection: null,
 
   createStatement: function(aSQLString) {
+dump("createStatement: " + aSQLString + "\n");
     try {
       var statement = this.dbConnection.createStatement(aSQLString);
     }
