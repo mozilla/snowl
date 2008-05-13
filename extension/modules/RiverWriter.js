@@ -297,6 +297,7 @@ SnowlRiverWriter.prototype = {
 
       var entryContainer = this._document.createElementNS(HTML_NS, "div");
       entryContainer.className = "entry";
+      entryContainer.setAttribute("index", i);
 
       // If the entry has a title, make it a link
       if (entry.subject) {
@@ -521,7 +522,7 @@ SnowlRiverWriter.prototype = {
       this._writeFeedContent();
     }
     finally {
-      this._removeFeedFromCache();
+      //this._removeFeedFromCache();
     }
   },
 

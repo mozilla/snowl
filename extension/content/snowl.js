@@ -390,26 +390,12 @@ this._log.info("_toggleRead: all? " + aAll);
   _setRead: function(aRead) {
     let row = this._tree.currentIndex;
     let message = this._collection.messages[row];
-
-try {
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
-                                                 (aRead ? "1" : "0") +
-                                                 " WHERE id = " + message.id);
-}
-catch(ex) {
-this._log.error(SnowlDatastore.dbConnection.lastErrorString);
-throw ex;
-}
     message.read = aRead;
     this._tree.boxObject.invalidateRow(row);
   },
 
   _setAllRead: function(aRead) {
-this._log.info("_setAllRead: aRead? " + aRead);
     let ids = this._collection.messages.map(function(v) { return v.id });
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
-                                                 (aRead ? "1" : "0") +
-                                                 " WHERE id IN (" + ids.join(",") + ")");
     this._collection.messages.forEach(function(v) { v.read = aRead });
     this._tree.boxObject.invalidate();
   },

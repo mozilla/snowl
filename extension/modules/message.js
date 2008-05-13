@@ -14,7 +14,7 @@ function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead) {
   this.author = aAuthor;
   this.link = aLink;
   this.timestamp = aTimestamp;
-  this.read = aRead;
+  this._read = aRead;
 }
 
 SnowlMessage.prototype = {
@@ -24,7 +24,23 @@ SnowlMessage.prototype = {
   // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,
-  read: null,
+
+
+  _read: undefined,
+
+  get read() {
+    return this._read;
+  },
+
+  set read(newValue) {
+    if (this._read == newValue)
+      return;
+    this._read = newValue ? true : false;
+    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
+                                                 (this._read ? "1" : "0") +
+                                                 " WHERE id = " + this.id);
+  },
+
 
   // FIXME: also store and make available the summary.
 

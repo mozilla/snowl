@@ -52,7 +52,24 @@ var RiverView = {
   _riverWriter: null,
 
   init: function SH_init() {
+    this._params = {};
+    let query = window.location.search.substr(1);
+    for each (let param in query.split("&")) {
+      let name, value;
+      if (param.indexOf("=") != -1) {
+        [name, value] = param.split("=");
+        value = decodeURIComponent(value);
+      }
+      else
+        name = param;
+      this._params[name] = value;
+    }
+
     this._collection = new SnowlCollection(null, null, true);
+    if ("unread" in this._params) {
+      this._collection.read = false;
+      document.getElementById("unreadButton").checked = true;
+    }
     this._riverWriter = new SnowlRiverWriter();
     this._riverWriter.init(window, this._collection);
     this._riverWriter.writeContent();
@@ -75,5 +92,45 @@ var RiverView = {
       this._collection.read = undefined;
       this._riverWriter.rebuildView();
     }
+
+    let query = aButton.checked ? "?unread" : "";
+    let spec = "chrome://snowl/content/river.xhtml" + query;
+    let uri = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService).newURI(spec, null, null);
+
+    let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                         getInterface(Ci.nsIWebNavigation).
+                         QueryInterface(Ci.nsIDocShellTreeItem).
+                         rootTreeItem.
+                         QueryInterface(Ci.nsIInterfaceRequestor).
+                         getInterface(Ci.nsIDOMWindow);
+
+    gBrowserWindow.gBrowser.docShell.setCurrentURI(uri);
+  },
+  
+  onScroll: function(aEvent) {
+    // The "current message" is the topmost one whose header appears on the page
+    // 
+    var scrollTop = window.scrollTop;
+    //dump(document.elementFromPoint(100, 0) + "\n");
+
+    // FIXME: pick the x coordinate based on the actual position of the content
+    // rather than using an arbitrary value.
+
+    let node = document.elementFromPoint(100, 0);
+    while (node.getAttribute("class") != "entry" && node.parentNode)
+      node = node.parentNode;
+
+    //dump(node + " " + node.getAttribute("class") + "\n");
+
+    // FIXME: make sure we haven't found some element within a entry's content
+    // that happens to have class="entry" set on it.
+    if (node.getAttribute("class") == "entry") {
+      let index = node.getAttribute("index");
+      for (let i = 0; i <= index; i++)
+        this._collection.messages[i].read = true;
+    }
+
   }
 };
+
+window.addEventListener("scroll", function(evt) RiverView.onScroll(evt), false);

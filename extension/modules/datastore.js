@@ -114,7 +114,6 @@ let SnowlDatastore = {
   dbConnection: null,
 
   createStatement: function(aSQLString) {
-dump("createStatement: " + aSQLString + "\n");
     try {
       var statement = this.dbConnection.createStatement(aSQLString);
     }
