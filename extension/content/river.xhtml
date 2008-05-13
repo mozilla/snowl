@@ -26,11 +26,11 @@
     <script type="application/x-javascript;version=1.8" src="chrome://snowl/content/river.js"/>
   </head>
   <body onload="RiverView.init()" onunload="RiverView.uninit()">
-    <div id="toolbar">
+    <xul:hbox id="toolbar" align="center">
       <xul:button id="unreadButton" type="checkbox" label="Unread"
                   oncommand="RiverView.onCommandUnreadButton(event, this)"/>
       <input/>
-    </div>
+    </xul:hbox>
 
     <div id="feedBody">
       <div id="feedTitle">
