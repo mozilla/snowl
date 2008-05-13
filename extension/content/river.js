@@ -358,83 +358,100 @@ var RiverView = {
     }
   },
 
-  /**
-   * Writes all entries contained in the feed.
-   * @param   container
-   *          The container of entries in the feed
-   */
-  _writeFeedContent: function FW__writeFeedContent() {
-    // Build the actual feed content
-    //var feed = container.QueryInterface(Ci.nsIFeed);
-    //if (feed.items.length == 0)
-    //  return;
-
+  // FIXME: make this about the messages and the view, not a feed.
+  _writeFeedContent: function() {
     this._contentSandbox.feedContent =
       this._document.getElementById("feedContent");
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let entry = this._collection.messages[i];
 
+      // FIXME: make this a message rather than an entry.
       var entryContainer = this._document.createElementNS(HTML_NS, "div");
       entryContainer.className = "entry";
       entryContainer.setAttribute("index", i);
 
-      // If the entry has a title, make it a link
-      if (entry.subject) {
-        var a = this._document.createElementNS(HTML_NS, "a");
+      {
+        let sourceBox = this._document.createElementNS(HTML_NS, "div");
+        sourceBox.className = "source";
+
+        if (entry.author) {
+          let author = this._document.createElementNS(HTML_NS, "div");
+          author.appendChild(this._document.createTextNode(entry.author));
+          sourceBox.appendChild(author);
+        }
+
+        let a = this._document.createElementNS(HTML_NS, "a");
         a.appendChild(this._document.createTextNode(entry.source.title));
-        a.appendChild(this._document.createTextNode(": "));
-        a.appendChild(this._document.createTextNode(entry.author));
-        a.appendChild(this._document.createTextNode(": "));
-        a.appendChild(this._document.createTextNode(entry.subject));
+        if (entry.source.url)
+          this._unsafeSetURIAttribute(a, "href", entry.source.url);
+        sourceBox.appendChild(a);
 
-        // Entries are not required to have links, so entry.link can be null.
-        if (entry.link)
-          this._unsafeSetURIAttribute(a, "href", entry.link);
-
-        var title = this._document.createElementNS(HTML_NS, "h3");
-        title.appendChild(a);
-
-        var lastUpdated = this._parseDate(entry.timestamp);
-        if (lastUpdated) {
-          var dateDiv = this._document.createElementNS(HTML_NS, "div");
-          dateDiv.className = "lastUpdated";
-          dateDiv.textContent = lastUpdated;
-          title.appendChild(dateDiv);
-        }
-
-        entryContainer.appendChild(title);
+        entryContainer.appendChild(sourceBox);
       }
 
-      var body = this._document.createElementNS(HTML_NS, "div");
+      {
+        let contentBox = this._document.createElementNS(HTML_NS, "div");
+        contentBox.className = "content";
 
-      // The summary is currently not stored and made available, so we can
-      // only use the content.
-      // FIXME: use the summary instead once it becomes available.
-      //var summary = entry.summary || entry.content;
-      var summary = entry.content;
-
-      var docFragment = null;
-      if (summary) {
-        if (summary.base)
-          body.setAttributeNS(XML_NS, "base", summary.base.spec);
-        docFragment = summary.createDocumentFragment(body);
-        if (docFragment)
-          body.appendChild(docFragment);
-
-        // If the entry doesn't have a title, append a # permalink
-        // See http://scripting.com/rss.xml for an example
-        if (!entry.subject && entry.link) {
+        if (entry.subject) {
           var a = this._document.createElementNS(HTML_NS, "a");
-          a.appendChild(this._document.createTextNode("#"));
-          this._unsafeSetURIAttribute(a, "href", entry.link);
-          body.appendChild(this._document.createTextNode(" "));
-          body.appendChild(a);
+          a.appendChild(this._document.createTextNode(entry.subject));
+  
+          // Entries are not required to have links, so entry.link can be null.
+          if (entry.link)
+            this._unsafeSetURIAttribute(a, "href", entry.link);
+
+          var title = this._document.createElementNS(HTML_NS, "h3");
+          title.appendChild(a);
+  
+          contentBox.appendChild(title);
         }
 
+        var body = this._document.createElementNS(HTML_NS, "div");
+  
+        // The summary is currently not stored and made available, so we can
+        // only use the content.
+        // FIXME: use the summary instead once it becomes available.
+        //var summary = entry.summary || entry.content;
+        var summary = entry.content;
+  
+        var docFragment = null;
+        if (summary) {
+          if (summary.base)
+            body.setAttributeNS(XML_NS, "base", summary.base.spec);
+          docFragment = summary.createDocumentFragment(body);
+          if (docFragment)
+            body.appendChild(docFragment);
+  
+          // If the entry doesn't have a title, append a # permalink
+          // See http://scripting.com/rss.xml for an example
+          if (!entry.subject && entry.link) {
+            var a = this._document.createElementNS(HTML_NS, "a");
+            a.appendChild(this._document.createTextNode("#"));
+            this._unsafeSetURIAttribute(a, "href", entry.link);
+            body.appendChild(this._document.createTextNode(" "));
+            body.appendChild(a);
+          }
+  
+        }
+        body.className = "feedEntryContent";
+        contentBox.appendChild(body);
+
+        entryContainer.appendChild(contentBox);
       }
-      body.className = "feedEntryContent";
-      entryContainer.appendChild(body);
+
+      {
+        let timestampBox = this._document.createElementNS(HTML_NS, "div");
+        timestampBox.className = "timestamp";
+
+        // FIXME: entry.timestamp should already be a date object.
+        var lastUpdated = this._formatTimestamp(new Date(entry.timestamp));
+        if (lastUpdated)
+          timestampBox.textContent = lastUpdated;
+
+        entryContainer.appendChild(timestampBox);
+      }
 
       if (entry.enclosures && entry.enclosures.length > 0) {
         var enclosuresDiv = this._buildEnclosureDiv(entry);
@@ -598,6 +615,70 @@ var RiverView = {
     var historySvc = Cc["@mozilla.org/browser/nav-history-service;1"].
                      getService(Ci.nsINavHistoryService);
     historySvc.removeObserver(this);
+  },
+
+  // Date Formatting Service
+  get _dfSvc() {
+    let dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
+                getService(Ci.nsIScriptableDateFormat);
+    delete this._dfSvc;
+    this._dfSvc = dfSvc;
+    return this._dfSvc;
+  },
+
+  // FIXME: this also appears in the mail view; factor it out.
+  /**
+   * Formats a timestamp for human consumption using the date formatting service
+   * for locale-specific formatting along with some additional smarts for more
+   * human-readable representations of recent timestamps.
+   * @param   {Date} the timestamp to format
+   * @returns a human-readable string
+   */
+  _formatTimestamp: function(aTimestamp) {
+    let formattedString;
+
+    let now = new Date();
+
+    let yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    yesterday = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
+
+    let sixDaysAgo = new Date(now - 6 * 24 * 60 * 60 * 1000);
+    sixDaysAgo = new Date(sixDaysAgo.getFullYear(), sixDaysAgo.getMonth(), sixDaysAgo.getDate());
+
+    if (aTimestamp.toLocaleDateString() == now.toLocaleDateString())
+      formattedString = this._dfSvc.FormatTime("",
+                                               this._dfSvc.timeFormatNoSeconds,
+                                               aTimestamp.getHours(),
+                                               aTimestamp.getMinutes(),
+                                               null);
+    else if (aTimestamp > yesterday)
+      formattedString = "Yesterday " + this._dfSvc.FormatTime("",
+                                                              this._dfSvc.timeFormatNoSeconds,
+                                                              aTimestamp.getHours(),
+                                                              aTimestamp.getMinutes(),
+                                                              null);
+    else if (aTimestamp > sixDaysAgo)
+      formattedString = this._dfSvc.FormatDateTime("",
+                                                   this._dfSvc.dateFormatWeekday, 
+                                                   this._dfSvc.timeFormatNoSeconds,
+                                                   aTimestamp.getFullYear(),
+                                                   aTimestamp.getMonth() + 1,
+                                                   aTimestamp.getDate(),
+                                                   aTimestamp.getHours(),
+                                                   aTimestamp.getMinutes(),
+                                                   aTimestamp.getSeconds());
+    else
+      formattedString = this._dfSvc.FormatDateTime("",
+                                                   this._dfSvc.dateFormatShort, 
+                                                   this._dfSvc.timeFormatNoSeconds,
+                                                   aTimestamp.getFullYear(),
+                                                   aTimestamp.getMonth() + 1,
+                                                   aTimestamp.getDate(),
+                                                   aTimestamp.getHours(),
+                                                   aTimestamp.getMinutes(),
+                                                   aTimestamp.getSeconds());
+
+    return formattedString;
   }
 
 };
