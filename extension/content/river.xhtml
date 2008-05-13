@@ -14,11 +14,12 @@
 ]>
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
 
 <html id="feedHandler" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <head>
-    <title>&feedPage.title;</title>
+    <title>A River of Messages</title>
     <link rel="stylesheet" type="text/css" media="all"
           href="chrome://browser/skin/feeds/subscribe.css"/>
     <link rel="stylesheet" type="text/css" media="all"
@@ -29,6 +30,13 @@
     <xul:hbox id="toolbar" align="center">
       <xul:button id="unreadButton" type="checkbox" label="Unread"
                   oncommand="RiverView.onCommandUnreadButton(event, this)"/>
+
+      <!-- Bug 348830 means there can't be whitespace between the menulist tags
+         - and the menupopup tag. -->
+      <xul:menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)"
+        ><xul:menupopup id="sourcePopup"
+      /></xul:menulist>
+
       <xul:textbox id="filterTextbox" type="timed" timeout="200"
                    oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
     </xul:hbox>

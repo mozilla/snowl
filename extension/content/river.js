@@ -41,6 +41,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
@@ -111,6 +112,8 @@ var RiverView = {
     this._updateToolbar();
 
     this.writeContent();
+
+    this.rebuildSourceMenu();
   },
 
   uninit: function SH_uninit() {
@@ -189,7 +192,7 @@ var RiverView = {
     gBrowserWindow.gBrowser.docShell.setCurrentURI(uri);
 
     // FIXME: figure out how to make reload reload the new URI instead of
-    // the original one.
+    // the original one.  It looks like nsISHEntry has a setURI method I can use.
   },
 
   onScroll: function(aEvent) {
@@ -714,8 +717,38 @@ var RiverView = {
                                                    aTimestamp.getSeconds());
 
     return formattedString;
-  }
+  },
 
+  rebuildSourceMenu: function() {
+    let statementString = "SELECT title, id FROM sources ORDER BY title";
+    let statement = SnowlDatastore.createStatement(statementString);
+
+    let sources = [];
+
+    let i = 0;
+    sources[i] = { id: null, title: "All" };
+
+    try {
+      while (statement.step())
+        sources[++i] = { id: statement.row.id, title: statement.row.title };
+    }
+    finally {
+      statement.reset();
+    }
+
+    let sourceMenu = document.getElementById("sourceMenu");
+    sourceMenu.removeAllItems();
+    for each (let source in sources)
+      sourceMenu.appendItem(source.title, source.id);
+
+    sourceMenu.selectedIndex = 0;
+  },
+
+  onCommandSourceMenu: function(aEvent) {
+    let sourceMenu = document.getElementById("sourceMenu");
+    this._collection.sourceID = sourceMenu.selectedItem.value;
+    this.rebuildView();
+  }
 };
 
 window.addEventListener("scroll", function(evt) RiverView.onScroll(evt), false);

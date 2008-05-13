@@ -34,6 +34,9 @@ SnowlCollection.prototype = {
   },
 
   set sourceID(newVal) {
+    if (this._sourceID == newVal)
+      return;
+
     this._sourceID = newVal;
     this.invalidate();
   },
@@ -45,6 +48,9 @@ SnowlCollection.prototype = {
   },
 
   set filter(newVal) {
+    if (this._filter == newVal)
+      return;
+
     this._filter = newVal;
     this.invalidate();
   },
