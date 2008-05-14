@@ -213,10 +213,15 @@ var RiverView = {
                          QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIDOMWindow);
 
+    // Update the docshell with the new URI.  This updates the location bar
+    // and gets used by the bookmarks service when the user bookmarks the page.
     gBrowserWindow.gBrowser.docShell.setCurrentURI(uri);
 
-    // FIXME: figure out how to make reload reload the new URI instead of
-    // the original one.  It looks like nsISHEntry has a setURI method I can use.
+    // Update the session history entry for the page with the new URI.
+    // This gets used when the user reloads the page or traverses history.
+    let history = gBrowserWindow.gBrowser.sessionHistory;
+    let historyEntry = history.getEntryAtIndex(history.index, false);
+    historyEntry.setURI(uri);
   },
 
   onScroll: function(aEvent) {
