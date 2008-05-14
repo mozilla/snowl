@@ -116,10 +116,6 @@ var RiverView = {
     this.writeContent();
   },
 
-  uninit: function SH_uninit() {
-    this.close();
-  },
-
   _updateToolbar: function() {
     this._params = {};
     let query = window.location.search.substr(1);
@@ -669,19 +665,6 @@ var RiverView = {
       feedContent.removeChild(feedContent.lastChild);
 
     this.writeContent();
-  },
-
-  close: function FW_close() {
-    this._document = null;
-    this._window = null;
-
-    this.__bundle = null;
-    //this._feedURI = null;
-    this.__contentSandbox = null;
-
-    var historySvc = Cc["@mozilla.org/browser/nav-history-service;1"].
-                     getService(Ci.nsINavHistoryService);
-    historySvc.removeObserver(this);
   },
 
   // Date Formatting Service
