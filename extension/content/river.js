@@ -109,11 +109,11 @@ var RiverView = {
 
     this._collection = new SnowlCollection(null, null, true);
 
+    this.rebuildSourceMenu();
+
     this._updateToolbar();
 
     this.writeContent();
-
-    this.rebuildSourceMenu();
   },
 
   uninit: function SH_uninit() {
@@ -138,10 +138,24 @@ var RiverView = {
       this._collection.read = false;
       document.getElementById("unreadButton").checked = true;
     }
+
     if ("filter" in this._params) {
       this._collection.filter = this._params.filter;
       document.getElementById("filterTextbox").value = this._params.filter;
     }
+
+    if ("sourceID" in this._params) {
+      this._collection.sourceID = this._params.sourceID;
+      let menu = document.getElementById("sourceMenu");
+      let item;
+      for (let i = 0; item = menu.getItemAtIndex(i); i++) {
+        if (item.value == this._params.sourceID) {
+          menu.selectedItem = item;
+          break;
+        }
+      }
+    }
+
   },
 
   onCommandUnreadButton: function(aEvent, aButton) {
@@ -167,6 +181,13 @@ var RiverView = {
     this._updateURI();
   },
 
+  onCommandSourceMenu: function(aEvent) {
+    let sourceMenu = document.getElementById("sourceMenu");
+    this._collection.sourceID = sourceMenu.selectedItem.value;
+    this.rebuildView();
+    this._updateURI();
+  },
+
   _updateURI: function() {
     let params = [];
 
@@ -175,6 +196,9 @@ var RiverView = {
 
     if (this._collection.filter)
       params.push("filter=" + encodeURIComponent(this._collection.filter));
+
+    if (this._collection.sourceID)
+      params.push("sourceID=" + encodeURIComponent(this._collection.sourceID));
 
     let query = params.length > 0 ? "?" + params.join("&") : "";
     let spec = "chrome://snowl/content/river.xhtml" + query;
@@ -742,12 +766,6 @@ var RiverView = {
       sourceMenu.appendItem(source.title, source.id);
 
     sourceMenu.selectedIndex = 0;
-  },
-
-  onCommandSourceMenu: function(aEvent) {
-    let sourceMenu = document.getElementById("sourceMenu");
-    this._collection.sourceID = sourceMenu.selectedItem.value;
-    this.rebuildView();
   }
 };
 
