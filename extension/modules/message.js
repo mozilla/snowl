@@ -80,7 +80,8 @@ SnowlMessage.prototype = {
 
   get _sourceStatement() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT sources.id, sources.url, sources.title " +
+      "SELECT sources.id, sources.url, sources.title, sources.lastRefreshed, " +
+             "sources.importance " +
       "FROM messages JOIN sources ON messages.sourceID = sources.id " +
       "WHERE messages.id = :messageID"
     );
@@ -100,7 +101,9 @@ SnowlMessage.prototype = {
           // for every message.
           this._source = new SnowlSource(this._sourceStatement.row.id,
                                          this._sourceStatement.row.url,
-                                         this._sourceStatement.row.title);
+                                         this._sourceStatement.row.title,
+                                         new Date(this._sourceStatement.row.lastRefreshed),
+                                         this._sourceStatement.row.importance);
       }
 catch(ex) {
   dump(ex + "\n");

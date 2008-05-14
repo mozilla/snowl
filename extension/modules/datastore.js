@@ -48,6 +48,7 @@ let SnowlDatastore = {
           // FIXME: rename this "name"
           "title TEXT NOT NULL",
           "lastRefreshed INTEGER",
+          "importance INTEGER"
         ]
       },
 
@@ -118,10 +119,9 @@ let SnowlDatastore = {
       var statement = this.dbConnection.createStatement(aSQLString);
     }
     catch(ex) {
-      Cu.reportError("error creating statement " + aSQLString + ": " +
-                     this.dbConnection.lastError + " - " +
-                     this.dbConnection.lastErrorString);
-      throw ex;
+      throw("error creating statement " + aSQLString + " - " +
+            this.dbConnection.lastError + ": " +
+            this.dbConnection.lastErrorString + " - " + ex);
     }
 
     var wrappedStatement = Cc["@mozilla.org/storage/statement-wrapper;1"].
