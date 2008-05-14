@@ -31,3 +31,8 @@ html {
 label {
   -moz-margin-start: 0;
 }
+
+html {
+  font: message-box;
+  font-size: 100%;
+}
