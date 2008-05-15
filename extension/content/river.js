@@ -236,7 +236,13 @@ var RiverView = {
     // This gets used when the user reloads the page or traverses history.
     let history = gBrowserWindow.gBrowser.sessionHistory;
     let historyEntry = history.getEntryAtIndex(history.index, false);
-    historyEntry.setURI(uri);
+    if (historyEntry instanceof Ci.nsISHEntry)
+      historyEntry.setURI(uri);
+    else
+      this._log.error("can't update session history URI for " +
+                      "'" + historyEntry.title + "' " +
+                      "<" + historyEntry.URI.spec + ">; " +
+                      "entry is not an instance of nsISHEntry");
   },
 
   onScroll: function(aEvent) {
