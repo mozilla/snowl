@@ -58,7 +58,7 @@ SourcesView = {
 
   rowCount: 0,
   getCellText : function(row,column){
-    if (column.id == "nameCol") return this._model[row].title;
+    if (column.id == "nameCol") return this._model[row].name;
     return "foo";
   },
 
@@ -78,8 +78,8 @@ SourcesView = {
   },
 
   setCellText: function(aRow, aCol, aValue) {
-    let statement = SnowlDatastore.createStatement("UPDATE sources SET title = :title WHERE id = :id");
-    statement.params.title = this._model[aRow].title = aValue;
+    let statement = SnowlDatastore.createStatement("UPDATE sources SET name = :name WHERE id = :id");
+    statement.params.name = this._model[aRow].name = aValue;
     statement.params.id = this._model[aRow].id;
 
     try {
@@ -114,19 +114,20 @@ SourcesView = {
     }
   },
 
+  // FIXME: use real SnowlSource objects here.
   _model: null,
   _rebuildModel: function() {
-    let statementString = "SELECT title, id FROM sources ORDER BY title";
+    let statementString = "SELECT name, id FROM sources ORDER BY name";
     let statement = SnowlDatastore.createStatement(statementString);
 
     this._model = [];
 
     let i = 0;
-    this._model[i] = { id: null, title: "All" };
+    this._model[i] = { id: null, name: "All" };
 
     try {
       while (statement.step())
-        this._model[++i] = { id: statement.row.id, title: statement.row.title };
+        this._model[++i] = { id: statement.row.id, name: statement.row.name };
     }
     finally {
       statement.reset();

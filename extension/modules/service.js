@@ -9,6 +9,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 const PERMS_FILE      = 0644;
 const PERMS_DIRECTORY = 0755;
@@ -169,6 +170,36 @@ let SnowlService = {
     }
   },
 
+  get _getSourcesStatement() {
+    let statement = this.createStatement(
+      "SELECT id, name, machineURI, humanURI, lastRefreshed, importance FROM sources"
+    );
+    delete this._getSourcesStatement;
+    this._getSourcesStatement = statement;
+    return this._getSourcesStatement;
+  },
+
+  getSources: function() {
+    let sources = [];
+
+    try {
+      while (this._getSourcesStatement.step()) {
+        let row = this._getSourcesStatement.row;
+        sources.push(new SnowlSource(row.id,
+                                     row.name,
+                                     URI.get(row.machineURI),
+                                     URI.get(row.humanURI),
+                                     new Date(row.lastRefreshed),
+                                     row.importance));
+      }
+    }
+    finally {
+      this._getSourcesStatement.reset();
+    }
+
+    return sources;
+  },
+
   refreshStaleSources: function() {
     this._log.info("refreshing stale sources");
 
@@ -176,7 +207,7 @@ let SnowlService = {
     // of which SnowlFeed is a subclass?  Or perhaps selectSources should simply
     // return a database cursor, and SnowlService::getSources should return
     // SnowlSource objects?
-    let allSources = SnowlDatastore.selectSources();
+    let allSources = this.getSources();
     let now = new Date();
     let staleSources = [];
     for each (let source in allSources)
@@ -192,13 +223,14 @@ this._log.info("source: " + source.id + " is stale");
   },
 
   refreshAllSources: function() {
-    let sources = SnowlDatastore.selectSources();
+    let sources = this.getSources();
     this._refreshSources(sources);
   },
 
   _refreshSources: function(aSources) {
     for each (let source in aSources) {
-      let feed = new SnowlFeed(source.id, source.url, source.title);
+dump("_refreshSources: " + source.machineURI + "\n");
+      let feed = new SnowlFeed(source.id, source.machineURI.spec, source.name);
       feed.getNewMessages();
 
       // We reset the last refreshed timestamp here even though the refresh

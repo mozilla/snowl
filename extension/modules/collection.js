@@ -143,11 +143,10 @@ SnowlCollection.prototype = {
 
   _generateStatement: function() {
     let query = 
-      //"SELECT sources.title AS sourceTitle, subject, author, link, timestamp, content \
+      //"SELECT subject, author, link, timestamp, content \
       // FROM sources JOIN messages ON sources.id = messages.sourceID \
       // LEFT JOIN parts on messages.id = parts.messageID";
-      "SELECT sources.title AS sourceTitle, messages.id AS id, " +
-             "subject, author, link, timestamp, read " +
+      "SELECT messages.id, subject, author, link, timestamp, read " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID";
 
     let conditions = [];

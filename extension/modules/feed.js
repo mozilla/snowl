@@ -41,9 +41,6 @@ var SnowlFeedClient = {
   }
 };
 
-// XXX: rename this SnowlFeedSource?
-// XXX: make this inherit from a SnowlMessageSource interface?
-
 function SnowlFeed(aID, aURL, aTitle) {
   this.id = aID;
   this.url = aURL;
@@ -52,29 +49,14 @@ function SnowlFeed(aID, aURL, aTitle) {
   this._log = Log4Moz.Service.getLogger("Snowl.Feed");
 }
 
+// FIXME: make this a subclass of SnowlSource.
+
 SnowlFeed.prototype = {
   id: null,
   url: null,
   title: null,
 
   _log: null,
-
-/*
-  _uri: null,
-  get uri() {
-    return this._uri;
-  },
-
-  get id() {
-    var id = Snowl.datastore.selectSourceID(this.uri.spec);
-    if (!id)
-      return null;
-    // We have an ID, and it won't change over the life of this object,
-    // so memoize it for performance.
-    this.__defineGetter__("id", function() { return id });
-    return this.id;
-  },
-*/
 
   QueryInterface: function(aIID) {
     if (aIID.equals(Ci.nsIFeedResultListener) ||
@@ -151,6 +133,7 @@ SnowlFeed.prototype = {
     request.addEventListener("error", function(aEvent) { t.onError(aEvent) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
+dump("about to getNewMessages for " + this.url + "\n");
     request.open("GET", this.url, true);
     request.send(null);
   },

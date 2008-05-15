@@ -58,12 +58,12 @@ let SnowlPreferences = {
     }
   },
 
-  _importItem: function(aURL, aTitle) {
+  _importItem: function(aURL, aName) {
     // FIXME: create the statement once and then reuse it each time.
-    let statement = SnowlDatastore.createStatement("INSERT INTO sources (url, title) VALUES (:url, :title)");
+    let statement = SnowlDatastore.createStatement("INSERT INTO sources (machineURI, name) VALUES (:machineURI, :name)");
     try {
-      statement.params.url = aURL;
-      statement.params.title = aTitle;
+      statement.params.machineURI = aURL;
+      statement.params.name = aName;
       statement.step();
     }
     finally {

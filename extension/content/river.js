@@ -45,6 +45,7 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 let log = Log4Moz.Service.getLogger("Snowl.River");
 
@@ -97,6 +98,24 @@ function convertByteUnits(aBytes) {
 }
 
 var RiverView = {
+  // Date Formatting Service
+  get _dfSvc() {
+    let dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
+                getService(Ci.nsIScriptableDateFormat);
+    delete this._dfSvc;
+    this._dfSvc = dfSvc;
+    return this._dfSvc;
+  },
+
+  // Favicon Service
+  get _faviconSvc() {
+    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                     getService(Ci.nsIFaviconService);
+    delete this._faviconSvc;
+    this._faviconSvc = faviconSvc;
+    return this._faviconSvc;
+  },
+
   // The set of messages to display in the view.
   _collection: null,
   
@@ -445,9 +464,9 @@ var RiverView = {
         }
 
         let a = this._document.createElementNS(HTML_NS, "a");
-        a.appendChild(this._document.createTextNode(entry.source.title));
-        if (entry.source.url)
-          this._unsafeSetURIAttribute(a, "href", entry.source.url);
+        a.appendChild(this._document.createTextNode(entry.source.name));
+        if (entry.source.humanURI)
+          this._unsafeSetURIAttribute(a, "href", entry.source.humanURI.spec);
         sourceBox.appendChild(a);
 
         entryContainer.appendChild(sourceBox);
@@ -667,15 +686,6 @@ var RiverView = {
     this.writeContent();
   },
 
-  // Date Formatting Service
-  get _dfSvc() {
-    let dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
-                getService(Ci.nsIScriptableDateFormat);
-    delete this._dfSvc;
-    this._dfSvc = dfSvc;
-    return this._dfSvc;
-  },
-
   // FIXME: this also appears in the mail view; factor it out.
   /**
    * Formats a timestamp for human consumption using the date formatting service
@@ -732,17 +742,20 @@ var RiverView = {
   },
 
   rebuildSourceMenu: function() {
-    let statementString = "SELECT title, id FROM sources ORDER BY title";
+    let statementString = "SELECT name, id, humanURI FROM sources ORDER BY name";
     let statement = SnowlDatastore.createStatement(statementString);
 
     let sources = [];
 
     let i = 0;
-    sources[i] = { id: null, title: "All" };
+    sources[i] = { id: null, name: "All" };
 
     try {
+      // FIXME: instantiate SnowlSource objects here instead of generic objects.
       while (statement.step())
-        sources[++i] = { id: statement.row.id, title: statement.row.title };
+        sources[++i] = { id: statement.row.id,
+                         name: statement.row.name,
+                         humanURI: URI.get(statement.row.humanURI) };
     }
     finally {
       statement.reset();
@@ -750,8 +763,10 @@ var RiverView = {
 
     let sourceMenu = document.getElementById("sourceMenu");
     sourceMenu.removeAllItems();
-    for each (let source in sources)
-      sourceMenu.appendItem(source.title, source.id);
+    for each (let source in sources) {
+      let item = sourceMenu.appendItem(source.name, source.id);
+      item.image = this._faviconSvc.getFaviconImageForPage(source.humanURI || URI.get("chrome://snowl/content/noHumanURI.html"));
+    }
 
     sourceMenu.selectedIndex = 0;
   }

@@ -1,9 +1,9 @@
+EXPORTED_SYMBOLS = ["SnowlDatastore"];
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
-
-EXPORTED_SYMBOLS = ["SnowlDatastore"];
 
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
@@ -43,10 +43,9 @@ let SnowlDatastore = {
         type: TABLE_TYPE_NORMAL,
         columns: [
           "id INTEGER PRIMARY KEY",
-          // FIXME: rename this 'link'
-          "url TEXT NOT NULL",
-          // FIXME: rename this "name"
-          "title TEXT NOT NULL",
+          "name TEXT NOT NULL",
+          "machineURI TEXT NOT NULL",
+          "humanURI TEXT",
           "lastRefreshed INTEGER",
           "importance INTEGER"
         ]
@@ -257,57 +256,6 @@ let SnowlDatastore = {
 
   _dbMigrate3To4: function(aDBConnection) {
     aDBConnection.executeSimpleSQL("ALTER TABLE messages ADD COLUMN read BOOLEAN");
-  },
-
-  get _selectSourcesStatement() {
-    let statement = this.createStatement(
-      "SELECT id, url, title, lastRefreshed FROM sources"
-    );
-    this.__defineGetter__("_selectSourcesStatement", function() { return statement });
-    return this._selectSourcesStatement;
-  },
-
-  selectSources: function() {
-    let sources = [];
-
-    try {
-      while (this._selectSourcesStatement.step()) {
-        let row = this._selectSourcesStatement.row;
-        sources.push({ id: row.id,
-                       url: row.url,
-                       title: row.title,
-                       lastRefreshed: new Date(row.lastRefreshed)
-                     });
-      }
-    }
-    finally {
-      this._selectSourcesStatement.reset();
-    }
-
-    return sources;
-  },
-
-  get _selectSourceIDStatement() {
-    let statement = this.createStatement(
-      "SELECT id FROM sources WHERE url = :url"
-    );
-    this.__defineGetter__("_selectSourceIDStatement", function() { return statement });
-    return this._selectSourceIDStatement;
-  },
-
-  selectSourceID: function(aURL) {
-    let id;
-
-    try {
-      this._selectSourceIDStatement.params.url = aURL;
-      if (this._selectSourceIDStatement.step())
-        id = this._selectSourceIDStatement.row["id"];
-    }
-    finally {
-      this._selectSourceIDStatement.reset();
-    }
-
-    return id;
   },
 
   get _selectHasMessageStatement() {

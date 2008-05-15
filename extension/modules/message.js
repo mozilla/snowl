@@ -78,38 +78,25 @@ SnowlMessage.prototype = {
     this._content = newValue;
   },
 
-  get _sourceStatement() {
+  // FIXME: for performance, make this a class property rather than an instance
+  // property?
+  get _getSourceIDStatement() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT sources.id, sources.url, sources.title, sources.lastRefreshed, " +
-             "sources.importance " +
-      "FROM messages JOIN sources ON messages.sourceID = sources.id " +
-      "WHERE messages.id = :messageID"
+      "SELECT sourceID FROM messages WHERE id = :id"
     );
-    this.__defineGetter__("_sourceStatement", function() { return statement });
-    return this._sourceStatement;
+    this.__defineGetter__("_getSourceIDStatement", function() { return statement });
+    return this._getSourceIDStatement;
   },
-
-  _source: null,
 
   get source() {
     if (!this._source) {
       try {
-        this._sourceStatement.params.messageID = this.id;
-        if (this._sourceStatement.step())
-          // FIXME: get this from the snowl service and make the service cache
-          // sources so we don't create a new instance of the source object
-          // for every message.
-          this._source = new SnowlSource(this._sourceStatement.row.id,
-                                         this._sourceStatement.row.url,
-                                         this._sourceStatement.row.title,
-                                         new Date(this._sourceStatement.row.lastRefreshed),
-                                         this._sourceStatement.row.importance);
+        this._getSourceIDStatement.params.id = this.id;
+        if (this._getSourceIDStatement.step())
+          this._source = SnowlSource.get(this._getSourceIDStatement.row.sourceID);
       }
-catch(ex) {
-  dump(ex + "\n");
-}
       finally {
-        this._sourceStatement.reset();
+        this._getSourceIDStatement.reset();
       }
     }
 
