@@ -519,18 +519,18 @@ var RiverView = {
   // FIXME: make this about the messages and the view, not a feed.
   _writeFeedContent: function() {
     this._contentSandbox.feedContent =
-      this._document.getElementById("feedContent");
+      this._document.getElementById("collectionRows");
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let entry = this._collection.messages[i];
 
       // FIXME: make this a message rather than an entry.
-      var entryContainer = this._document.createElementNS(HTML_NS, "div");
+      var entryContainer = this._document.createElementNS(XUL_NS, "row");
       entryContainer.className = "entry";
       entryContainer.setAttribute("index", i);
 
       {
-        let sourceBox = this._document.createElementNS(HTML_NS, "div");
+        let sourceBox = this._document.createElementNS(XUL_NS, "vbox");
         sourceBox.className = "source";
 
         if (entry.author) {
@@ -551,7 +551,7 @@ var RiverView = {
       }
 
       {
-        let contentBox = this._document.createElementNS(HTML_NS, "div");
+        let contentBox = this._document.createElementNS(XUL_NS, "vbox");
         contentBox.className = "content";
 
         if (entry.subject) {
@@ -564,18 +564,18 @@ var RiverView = {
 
           var title = this._document.createElementNS(HTML_NS, "h3");
           title.appendChild(a);
-  
+
           contentBox.appendChild(title);
         }
 
         var body = this._document.createElementNS(HTML_NS, "div");
-  
+
         // The summary is currently not stored and made available, so we can
         // only use the content.
         // FIXME: use the summary instead once it becomes available.
         //var summary = entry.summary || entry.content;
         var summary = entry.content;
-  
+
         var docFragment = null;
         if (summary) {
           if (summary.base)
@@ -583,7 +583,7 @@ var RiverView = {
           docFragment = summary.createDocumentFragment(body);
           if (docFragment)
             body.appendChild(docFragment);
-  
+
           // If the entry doesn't have a title, append a # permalink
           // See http://scripting.com/rss.xml for an example
           if (!entry.subject && entry.link) {
@@ -602,13 +602,13 @@ var RiverView = {
       }
 
       {
-        let timestampBox = this._document.createElementNS(HTML_NS, "div");
+        let timestampBox = this._document.createElementNS(XUL_NS, "description");
         timestampBox.className = "timestamp";
 
         // FIXME: entry.timestamp should already be a date object.
         var lastUpdated = this._formatTimestamp(new Date(entry.timestamp));
         if (lastUpdated)
-          timestampBox.textContent = lastUpdated;
+          timestampBox.appendChild(document.createTextNode(lastUpdated));
 
         entryContainer.appendChild(timestampBox);
       }
@@ -757,9 +757,9 @@ var RiverView = {
   },
 
   rebuildView: function() {
-    let feedContent = this._document.getElementById("feedContent");
-    while (feedContent.hasChildNodes())
-      feedContent.removeChild(feedContent.lastChild);
+    let collectionRows = this._document.getElementById("collectionRows");
+    while (collectionRows.hasChildNodes())
+      collectionRows.removeChild(collectionRows.lastChild);
 
     this.writeContent();
   },

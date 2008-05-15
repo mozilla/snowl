@@ -51,25 +51,42 @@ button {
 }
 
 
+#feedContent {
+  width: 100%;
+  -moz-box-flex: 1;
+}
+
+#sourceColumn {
+  -moz-box-flex: 1;
+}
+
+#contentColumn {
+  -moz-box-flex: 8;
+}
+
+#timestampColumn {
+  -moz-box-flex: 1;
+}
+
 .entry {
   margin-top: 3em;
+  -moz-user-focus: normal;
+  -moz-user-select: -moz-all;
 }
 
 .source {
-  width: 100px;
-  float: left;
-  margin-right: 35px;
+  padding-right: 2em;
+  min-width: 14em;
+  font-size: smaller;
 }
 
 .content {
-  width: 500px;
-  float: left;
 }
 
 .timestamp {
-  width: 100px;
-  float: left;
-  margin-left: 35px;
+  padding-left: 2em;
+  font-size: smaller;
+  min-width: 14em;
 }
 
 h3 {

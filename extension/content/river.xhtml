@@ -43,8 +43,15 @@
                    oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
     </xul:hbox>
 
-    <div>
-      <div id="feedContent"/>
-    </div>
+  <xul:box style="margin: 1em;">
+    <xul:grid id="feedContent">
+      <xul:columns flex="1">
+        <xul:column id="sourceColumn"/>
+        <xul:column id="contentColumn"/>
+        <xul:column id="timestampColumn"/>
+      </xul:columns>
+      <xul:rows id="collectionRows"/>
+    </xul:grid>
+  </xul:box>
   </body>
 </html>
