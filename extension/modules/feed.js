@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["SnowlFeed"];
+EXPORTED_SYMBOLS = ["SnowlFeed", "SnowlFeedSubscriber"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -352,6 +352,101 @@ dump("about to getNewMessages for " + this.url + "\n");
     stmt.params.lastRefreshed = new Date().getTime();
     stmt.params.id = this.id;
     stmt.execute();
+  }
+
+};
+
+// XXX Should we make this part of the Feed object?
+// FIXME: make this accept a callback to which it reports on its progress
+// so we can provide feedback to the user in subscription interfaces.
+function SnowlFeedSubscriber(aURI, aName) {
+  this.uri = aURI;
+  this.name = aName;
+}
+
+SnowlFeedSubscriber.prototype = {
+  uri: null,
+  name: null,
+
+  // Observer Service
+  get _obsSvc() {
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].
+                 getService(Ci.nsIObserverService);
+    delete this._obsSvc;
+    this._obsSvc = obsSvc;
+    return this._obsSvc;
+  },
+
+  QueryInterface: function(aIID) {
+    if (aIID.equals(Ci.nsIDOMEventListener) ||
+        aIID.equals(Ci.nsIFeedResultListener) ||
+        aIID.equals(Ci.nsISupports))
+      return this;
+
+    throw Cr.NS_ERROR_NO_INTERFACE;
+  },
+
+  subscribe: function() {
+    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+
+    request = request.QueryInterface(Ci.nsIDOMEventTarget);
+    request.addEventListener("load", this, false);
+    request.addEventListener("error", this, false);
+
+    request = request.QueryInterface(Ci.nsIXMLHttpRequest);
+    request.open("GET", this.uri.spec, true);
+    request.send(null);
+  },
+
+  // nsIDOMEventListener
+
+  handleEvent: function(aEvent) {
+    switch(aEvent.type) {
+      case "load":
+        this.onLoad(aEvent);
+        break;
+      case "error":
+        this.onError(aEvent);
+        break;
+    }
+  },
+
+  onLoad: function(aEvent) {
+    let request = aEvent.target;
+
+    // FIXME: notify the user about the problem.
+    if (request.responseText.length == 0)
+      throw("feed contains no data");
+
+    let parser = Cc["@mozilla.org/feed-processor;1"].
+                 createInstance(Ci.nsIFeedProcessor);
+    parser.listener = this;
+    parser.parseFromString(request.responseText, request.channel.URI);
+  },
+
+  // nsIFeedResultListener
+
+  handleResult: function(aResult) {
+    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+
+    // Subscribe to the feed.
+    let name = this.name || feed.title.plainText();
+    let statement = SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) VALUES (:name, :machineURI, :humanURI)");
+    statement.params.name = name;
+    statement.params.machineURI = this.uri.spec;
+    statement.params.humanURI = feed.link.spec;
+    dump("subscribing to " + name + " <" + this.uri.spec + ">\n");
+    statement.step();
+
+    let id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+    // Now refresh the feed to import all its items.
+    dump("refreshing " + this.uri.spec + "\n");
+    let feed2 = new SnowlFeed(id, this.uri.spec, name);
+    feed2.handleResult(aResult);
+
+    this._obsSvc.notifyObservers(null, "sources:changed", null);
+    this._obsSvc.notifyObservers(null, "messages:changed", null);
   }
 
 };

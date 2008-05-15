@@ -5,6 +5,8 @@ const Cu = Components.utils;
 
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 let SnowlPreferences = {
   onImportOPML: function() {
@@ -30,18 +32,16 @@ let SnowlPreferences = {
     let outline = xmlDocument.getElementsByTagName("body")[0];
 
     this._importOutline(outline);
-
-    SnowlService.refreshStaleSources();
   },
 
   _importOutline: function(aOutline) {
     // If this outline represents a feed, subscribe the user to the feed.
-    var url = aOutline.getAttribute("xmlUrl");
-    if (url) {
+    let uri = URI.get(aOutline.getAttribute("xmlUrl"));
+    if (uri) {
       // FIXME: make sure the user isn't already subscribed to the feed
       // before subscribing them.
-      let title = aOutline.getAttribute("title") || aOutline.getAttribute("text") || "untitled";
-      this._importItem(url, title);
+      let name = aOutline.getAttribute("title") || aOutline.getAttribute("text") || "untitled";
+      this._importItem(uri, name);
     }
 
     if (aOutline.hasChildNodes()) {
@@ -59,15 +59,7 @@ let SnowlPreferences = {
   },
 
   _importItem: function(aURL, aName) {
-    // FIXME: create the statement once and then reuse it each time.
-    let statement = SnowlDatastore.createStatement("INSERT INTO sources (machineURI, name) VALUES (:machineURI, :name)");
-    try {
-      statement.params.machineURI = aURL;
-      statement.params.name = aName;
-      statement.step();
-    }
-    finally {
-      statement.reset();
-    }
+    let subscriber = new SnowlFeedSubscriber(aURL, aName);
+    subscriber.subscribe();
   }
 };
