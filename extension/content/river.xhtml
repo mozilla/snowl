@@ -13,9 +13,6 @@
   %feedDTD;
 ]>
 
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
-
 <html id="feedHandler" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <head>
@@ -25,15 +22,22 @@
     <script type="application/x-javascript;version=1.8" src="chrome://snowl/content/river.js"/>
   </head>
   <body onload="RiverView.init()">
-    <xul:hbox id="toolbar" align="center">
-      <xul:button id="unreadButton" type="checkbox" label="Unread"
-                  oncommand="RiverView.onCommandUnreadButton(event, this)"/>
-
+    <xul:hbox id="toolbar" align="center" style="width: 100%">
       <!-- Bug 348830 means there can't be whitespace between the menulist tags
          - and the menupopup tag. -->
       <xul:menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)"
         ><xul:menupopup id="sourcePopup"
       /></xul:menulist>
+
+      <xul:button id="unreadButton" type="checkbox" checked="false"
+                  label="U"
+                  oncommand="RiverView.onCommandUnreadButton(event)"/>
+
+      <xul:button id="orderButton" type="checkbox" checked="false"
+                  image="chrome://snowl/content/arrow-down.png"
+                  oncommand="RiverView.onCommandOrderButton(event)"/>
+
+      <xul:spacer flex="1"/>
 
       <xul:textbox id="filterTextbox" type="timed" timeout="200"
                    oncommand="RiverView.onCommandFilterTextbox(event, this)"/>

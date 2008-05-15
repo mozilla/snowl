@@ -116,6 +116,20 @@ var RiverView = {
     return this._faviconSvc;
   },
 
+  get _orderButton() {
+    let orderButton = document.getElementById("orderButton");
+    delete this._orderButton;
+    this._orderButton = orderButton;
+    return this._orderButton;
+  },
+
+  get _unreadButton() {
+    let unreadButton = document.getElementById("unreadButton");
+    delete this._unreadButton;
+    this._unreadButton = unreadButton;
+    return this._unreadButton;
+  },
+
   // The set of messages to display in the view.
   _collection: null,
   
@@ -151,7 +165,7 @@ var RiverView = {
 
     if ("unread" in this._params) {
       this._collection.read = false;
-      document.getElementById("unreadButton").checked = true;
+      this._unreadButton.checked = true;
     }
 
     if ("filter" in this._params) {
@@ -171,14 +185,25 @@ var RiverView = {
       }
     }
 
+    if ("order" in this._params) {
+      switch(this._params.order) {
+        case "descending":
+          this._setOrder(-1);
+          break;
+        case "ascending":
+        default:
+          this._setOrder(1);
+          break;
+      }
+    }
   },
 
-  onCommandUnreadButton: function(aEvent, aButton) {
+  onCommandUnreadButton: function(aEvent) {
     // FIXME: instead of rebuilding from scratch each time, when going from
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
     // class on read items and then using a CSS rule to hide them).
 
-    if (aButton.checked) {
+    if (this._unreadButton.checked) {
       this._collection.read = false;
       this.rebuildView();
     }
@@ -188,6 +213,50 @@ var RiverView = {
     }
 
     this._updateURI();
+  },
+
+  onCommandOrderButton: function(aEvent) {
+    // checkState can be either 0, 1, or 2.  The default is 0, which means
+    // to sort in ascending order.  The value 1 means to sort in descending
+    // order.  The value 2 is undefined, but users can't make the button
+    // switch to that state; it must be set programmatically, and we don't
+    // use it (presumably we could one day make it mean "sort randomly").
+
+    switch(this._orderButton.checked) {
+      case true:
+        this._setOrder(-1);
+        break;
+      case false:
+      default:
+        this._setOrder(1);
+        break;
+    }
+
+    // Presumably here we could do messages.reverse(), which would be faster,
+    // but can we be sure the messages started in the reverse of the new state?
+    this._collection.sort(this._collection.sortProperty,
+                          this._collection.sortOrder);
+
+    this.rebuildView();
+    this._updateURI();
+  },
+
+  _setOrder: function(aOrder) {
+    switch (aOrder) {
+      case -1:
+        this._collection.sortOrder = -1;
+        this._orderButton.checkState = 1;
+        this._orderButton.checked = true;
+        this._orderButton.image = "chrome://snowl/content/arrow-up.png";
+        break;
+      case 1:
+      default:
+        this._collection.sortOrder = 1;
+        this._orderButton.checkState = 0;
+        this._orderButton.checked = false;
+        this._orderButton.image = "chrome://snowl/content/arrow-down.png";
+        break;
+    }
   },
 
   onCommandFilterTextbox: function(aEvent, aFilterTextbox) {
@@ -214,6 +283,9 @@ var RiverView = {
 
     if (this._collection.sourceID)
       params.push("sourceID=" + encodeURIComponent(this._collection.sourceID));
+
+    if (this._collection.sortOrder == -1)
+      params.push("order=descending");
 
     let query = params.length > 0 ? "?" + params.join("&") : "";
     let spec = "chrome://snowl/content/river.xhtml" + query;

@@ -1,3 +1,56 @@
+html {
+  color: black;
+  background-color: white;
+  font: message-box;
+  font-size: 100%;
+}
+
+body {
+  /* Remove the default margin around the body so the toolbar blends in
+   * with the surrounding chrome and appears to be part of it (rather than
+   * having white space all around it, which looks odd). */
+  margin: 0;
+}
+
+
+#toolbar {
+  color: -moz-DialogText;
+  background-color: -moz-dialog;
+  font: message-box;
+}
+
+/* Show icons in the sources menulist. */
+#sourceMenu > menupopup > menuitem > .menu-iconic-left {
+  display: block;
+}
+
+button {
+  /* Let the buttons be small. */
+  min-width: 0;
+
+  /* Make the button square and as tall as the list of sources.
+   * XXX Does this work on Windows and Mac? */
+  width: 29px;
+  height: 29px;
+}
+
+#orderButton .button-icon {
+  /* Compensate for the icon being packed to the left of its enclosing box.
+   * Maybe we should pack center (although we have to remove -moz-appearance
+   * to do that) or make the icon file larger instead.
+   * XXX Does this work on Windows and Mac? */
+  padding-left: 2px;
+}
+
+#unreadButton .button-text {
+  /* Compensate for the text being packed to the right of its enclosing box.
+   * Maybe we should pack center (although we have to remove -moz-appearance
+   * to do that).
+   * XXX Does this work on Windows and Mac? */
+  padding-right: 2px;
+}
+
+
 .entry {
   margin-top: 3em;
 }
@@ -23,21 +76,6 @@ h3 {
   margin-top: 0;
 }
 
-html { 
-  background-color: white;
-  color: black;
-}
-
 label {
   -moz-margin-start: 0;
-}
-
-html {
-  font: message-box;
-  font-size: 100%;
-}
-
-/* Show icons on the sources menulist. */
-#sourceMenu > menupopup > menuitem > .menu-iconic-left {
-  display: block;
 }
