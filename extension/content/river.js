@@ -765,7 +765,10 @@ var RiverView = {
     sourceMenu.removeAllItems();
     for each (let source in sources) {
       let item = sourceMenu.appendItem(source.name, source.id);
-      item.image = this._faviconSvc.getFaviconImageForPage(source.humanURI || URI.get("chrome://snowl/content/noHumanURI.html"));
+      item.className = "menuitem-iconic";
+      let uri = source.humanURI || URI.get("urn:use-default-icon");
+      let favicon = this._faviconSvc.getFaviconImageForPage(uri);
+      item.image = favicon.spec;
     }
 
     sourceMenu.selectedIndex = 0;

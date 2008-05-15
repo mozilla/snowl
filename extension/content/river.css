@@ -36,3 +36,8 @@ html {
   font: message-box;
   font-size: 100%;
 }
+
+/* Show icons on the sources menulist. */
+#sourceMenu > menupopup > menuitem > .menu-iconic-left {
+  display: block;
+}
