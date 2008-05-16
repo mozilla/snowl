@@ -44,13 +44,13 @@
     </xul:hbox>
 
   <xul:box style="margin: 1em;">
-    <xul:grid id="feedContent">
+    <xul:grid flex="1">
       <xul:columns flex="1">
         <xul:column id="sourceColumn"/>
-        <xul:column id="contentColumn"/>
+        <xul:column id="contentColumn" flex="1"/>
         <xul:column id="timestampColumn"/>
       </xul:columns>
-      <xul:rows id="collectionRows"/>
+      <xul:rows id="messagesContainer"/>
     </xul:grid>
   </xul:box>
   </body>

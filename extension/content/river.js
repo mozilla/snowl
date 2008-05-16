@@ -518,119 +518,112 @@ var RiverView = {
 
   // FIXME: make this about the messages and the view, not a feed.
   _writeFeedContent: function() {
-    this._contentSandbox.feedContent =
-      this._document.getElementById("collectionRows");
+    this._contentSandbox.messagesContainer =
+      this._document.getElementById("messagesContainer");
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
-      let entry = this._collection.messages[i];
+      let message = this._collection.messages[i];
 
-      // FIXME: make this a message rather than an entry.
-      var entryContainer = this._document.createElementNS(XUL_NS, "row");
-      entryContainer.className = "entry";
-      entryContainer.setAttribute("index", i);
+      // FIXME: make this a message rather than an message.
+      let messageContainer = this._document.createElementNS(XUL_NS, "row");
+      messageContainer.className = "message";
+      messageContainer.setAttribute("index", i);
 
       {
-        let sourceBox = this._document.createElementNS(XUL_NS, "vbox");
-        sourceBox.className = "source";
+        let sourceContainer = this._document.createElementNS(XUL_NS, "vbox");
+        sourceContainer.className = "source";
 
-        if (entry.author) {
+        if (message.author) {
           let author = this._document.createElementNS(XUL_NS, "label");
           author.setAttribute("crop", "end");
-          author.setAttribute("value", entry.author);
-          //author.appendChild(this._document.createTextNode(entry.author));
-          sourceBox.appendChild(author);
+          author.setAttribute("value", message.author);
+          sourceContainer.appendChild(author);
         }
 
         let a = this._document.createElementNS(HTML_NS, "a");
-        a.appendChild(this._document.createTextNode(entry.source.name));
-        if (entry.source.humanURI)
-          this._unsafeSetURIAttribute(a, "href", entry.source.humanURI.spec);
-        sourceBox.appendChild(a);
+        a.appendChild(this._document.createTextNode(message.source.name));
+        if (message.source.humanURI)
+          this._unsafeSetURIAttribute(a, "href", message.source.humanURI.spec);
+        sourceContainer.appendChild(a);
 
-        entryContainer.appendChild(sourceBox);
+        messageContainer.appendChild(sourceContainer);
       }
 
       {
-        let contentBox = this._document.createElementNS(XUL_NS, "vbox");
-        contentBox.className = "content";
+        let contentContainer = this._document.createElementNS(HTML_NS, "div");
+        contentContainer.className = "content";
 
-        if (entry.subject) {
-          var a = this._document.createElementNS(HTML_NS, "a");
-          a.appendChild(this._document.createTextNode(entry.subject));
+        if (message.subject) {
+          let a = this._document.createElementNS(HTML_NS, "a");
+          a.appendChild(this._document.createTextNode(message.subject));
   
-          // Entries are not required to have links, so entry.link can be null.
-          if (entry.link)
-            this._unsafeSetURIAttribute(a, "href", entry.link);
+          if (message.link)
+            this._unsafeSetURIAttribute(a, "href", message.link);
 
-          var title = this._document.createElementNS(HTML_NS, "h3");
-          title.appendChild(a);
+          let subject = this._document.createElementNS(HTML_NS, "h3");
+          subject.appendChild(a);
 
-          contentBox.appendChild(title);
+          contentContainer.appendChild(subject);
         }
 
-        var body = this._document.createElementNS(HTML_NS, "div");
+        let body = this._document.createElementNS(HTML_NS, "div");
+        body.className = "body";
 
         // The summary is currently not stored and made available, so we can
         // only use the content.
         // FIXME: use the summary instead once it becomes available.
-        //var summary = entry.summary || entry.content;
-        var summary = entry.content;
-
-        var docFragment = null;
+        //var summary = message.summary || message.content;
+        let summary = message.content;
         if (summary) {
           if (summary.base)
             body.setAttributeNS(XML_NS, "base", summary.base.spec);
-          docFragment = summary.createDocumentFragment(body);
+
+          let docFragment = summary.createDocumentFragment(body);
           if (docFragment)
             body.appendChild(docFragment);
 
-          // If the entry doesn't have a title, append a # permalink
-          // See http://scripting.com/rss.xml for an example
-          if (!entry.subject && entry.link) {
-            var a = this._document.createElementNS(HTML_NS, "a");
+          // If the message doesn't have a subject, but it does have a link,
+          // append a # permalink. See http://scripting.com/rss.xml for an example.
+          if (!message.subject && message.link) {
+            let a = this._document.createElementNS(HTML_NS, "a");
             a.appendChild(this._document.createTextNode("#"));
-            this._unsafeSetURIAttribute(a, "href", entry.link);
+            this._unsafeSetURIAttribute(a, "href", message.link);
             body.appendChild(this._document.createTextNode(" "));
             body.appendChild(a);
           }
   
         }
-        body.className = "feedEntryContent";
-        contentBox.appendChild(body);
 
-        entryContainer.appendChild(contentBox);
+        contentContainer.appendChild(body);
+
+        if (message.enclosures && message.enclosures.length > 0) {
+          let enclosuresDiv = this._buildEnclosureDiv(message);
+          contentContainer.appendChild(enclosuresDiv);
+        }
+
+        messageContainer.appendChild(contentContainer);
       }
 
       {
-        let timestampBox = this._document.createElementNS(XUL_NS, "description");
-        timestampBox.className = "timestamp";
+        let timestampContainer = this._document.createElementNS(XUL_NS, "description");
+        timestampContainer.className = "timestamp";
 
-        // FIXME: entry.timestamp should already be a date object.
-        var lastUpdated = this._formatTimestamp(new Date(entry.timestamp));
+        // FIXME: message.timestamp should already be a date object.
+        var lastUpdated = this._formatTimestamp(new Date(message.timestamp));
         if (lastUpdated)
-          timestampBox.appendChild(document.createTextNode(lastUpdated));
+          timestampContainer.appendChild(document.createTextNode(lastUpdated));
 
-        entryContainer.appendChild(timestampBox);
+        messageContainer.appendChild(timestampContainer);
       }
 
-      if (entry.enclosures && entry.enclosures.length > 0) {
-        var enclosuresDiv = this._buildEnclosureDiv(entry);
-        entryContainer.appendChild(enclosuresDiv);
-      }
+      this._contentSandbox.messageContainer = messageContainer;
 
-      this._contentSandbox.entryContainer = entryContainer;
-      this._contentSandbox.clearDiv =
-        this._document.createElementNS(HTML_NS, "div");
-      this._contentSandbox.clearDiv.style.clear = "both";
-      
-      var codeStr = "feedContent.appendChild(entryContainer); " +
-                     "feedContent.appendChild(clearDiv);"
+      var codeStr = "messagesContainer.appendChild(messageContainer);";
       Cu.evalInSandbox(codeStr, this._contentSandbox);
     }
 
-    this._contentSandbox.feedContent = null;
-    this._contentSandbox.entryContainer = null;
-    this._contentSandbox.clearDiv = null;
+    this._contentSandbox.messagesContainer = null;
+    this._contentSandbox.messageContainer = null;
   },
 
   /**
@@ -757,9 +750,9 @@ var RiverView = {
   },
 
   rebuildView: function() {
-    let collectionRows = this._document.getElementById("collectionRows");
-    while (collectionRows.hasChildNodes())
-      collectionRows.removeChild(collectionRows.lastChild);
+    let messagesContainer = this._document.getElementById("messagesContainer");
+    while (messagesContainer.hasChildNodes())
+      messagesContainer.removeChild(messagesContainer.lastChild);
 
     this.writeContent();
   },

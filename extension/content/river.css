@@ -51,24 +51,7 @@ button {
 }
 
 
-#feedContent {
-  width: 100%;
-  -moz-box-flex: 1;
-}
-
-#sourceColumn {
-  -moz-box-flex: 1;
-}
-
-#contentColumn {
-  -moz-box-flex: 8;
-}
-
-#timestampColumn {
-  -moz-box-flex: 1;
-}
-
-.entry {
+.message {
   margin-top: 3em;
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
@@ -76,17 +59,28 @@ button {
 
 .source {
   padding-right: 2em;
-  min-width: 14em;
   font-size: smaller;
+  min-width: 14em;
+  max-width: 14em;
+  width: 14em;
 }
 
-.content {
+.body {
+  /* -moz-column-width alone won't create the correct number of columns,
+   * but if I include a high -moz-column-count, it'll ignore the count
+   * and instead create the correct number of columns based on the width
+   * of the screen, which is what it is supposed to be doing by itself.
+   * Perhaps this is a bug (maybe with columnar HTML in XUL). */
+  -moz-column-width: 20em;
+  -moz-column-count: 20;
 }
 
 .timestamp {
   padding-left: 2em;
   font-size: smaller;
   min-width: 14em;
+  max-width: 14em;
+  width: 14em;
 }
 
 h3 {
