@@ -5,9 +5,23 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// FIXME: factor this out into a common file.
+const PART_TYPE_CONTENT = 1;
+const PART_TYPE_SUMMARY = 2;
+
+// Media type to nsIFeedTextConstruct::type mappings.
+// FIXME: get this from message.js (or from something that both message.js
+// and collection.js import).
+const textConstructTypes = {
+  "text/html": "html",
+  "application/xhtml+xml": "xhtml",
+  "text/plain": "text"
+};
+
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 /**
  * A group of messages.
@@ -120,9 +134,9 @@ SnowlCollection.prototype = {
   },
 
   _getContent: function() {
-    let query = "SELECT messageID, content, contentType " +
-                "FROM parts " +
-                "WHERE parts.messageID IN (" +
+    let query = "SELECT messageID, content, mediaType, baseURI, languageCode " +
+                "FROM parts WHERE partType = " + PART_TYPE_CONTENT +
+                " AND messageID IN (" +
                   this._messages.map(function(v) { return v.id }).join(",") +
                 ")";
     let statement = SnowlDatastore.createStatement(query);
@@ -132,7 +146,9 @@ SnowlCollection.prototype = {
         let content = Cc["@mozilla.org/feed-textconstruct;1"].
                       createInstance(Ci.nsIFeedTextConstruct);
         content.text = statement.row.content;
-        content.type = textConstructTypes[statement.row.contentType];
+        content.type = textConstructTypes[statement.row.mediaType];
+        content.base = URI.get(statement.row.baseURI);
+        content.lang = statement.row.languageCode;
         this._messageIndex[statement.row.messageID].content = content;
       }
     }
@@ -222,11 +238,3 @@ function prepareObjectForComparison(aObject) {
 
   return aObject;
 }
-
-// FIXME: get this from message.js (or from something that both message.js and collection.js import).
-let textConstructTypes = {
-  "text/html": "html",
-  "application/xhtml+xml": "xhtml",
-  "text/plain": "text"
-};
-

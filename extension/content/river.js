@@ -571,11 +571,7 @@ var RiverView = {
         let body = this._document.createElementNS(HTML_NS, "div");
         body.className = "body";
 
-        // The summary is currently not stored and made available, so we can
-        // only use the content.
-        // FIXME: use the summary instead once it becomes available.
-        //var summary = message.summary || message.content;
-        let summary = message.content;
+        let summary = message.content || message.summary;
         if (summary) {
           if (summary.base)
             body.setAttributeNS(XML_NS, "base", summary.base.spec);

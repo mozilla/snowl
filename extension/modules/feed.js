@@ -5,8 +5,13 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// FIXME: factor this out into a common file.
+const PART_TYPE_CONTENT = 1;
+const PART_TYPE_SUMMARY = 2;
+
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 var SnowlFeedClient = {
   // XXX Make this take a feed ID once it stores the list of subscribed feeds
@@ -120,8 +125,8 @@ SnowlFeed.prototype = {
     }
   },
 
-  // nsIFeedTextConstruct::type to MIME media type mappings.
-  contentTypes: { html: "text/html", xhtml: "application/xhtml+xml", text: "text/plain" },
+  // nsIFeedTextConstruct::type to media type mappings.
+  mediaTypes: { html: "text/html", xhtml: "application/xhtml+xml", text: "text/plain" },
 
   getNewMessages: function() {
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
@@ -180,14 +185,25 @@ dump("about to getNewMessages for " + this.url + "\n");
     // Convert the publication date/time string into a JavaScript Date object.
     let timestamp = aEntry.published ? new Date(aEntry.published) : null;
 
-    // Convert the content type specified by nsIFeedTextConstruct, which is
-    // either "html", "xhtml", or "text", into an Internet media type.
-    let contentType = aEntry.content ? this.contentTypes[aEntry.content.type] : null;
-    let contentText = aEntry.content ? aEntry.content.text : null;
+    // FIXME: wrap all queries that add the message into a transaction?
+
+    // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
                                           aEntry.title.text, author,
-                                          timestamp, aEntry.link,
-                                          contentText, contentType);
+                                          timestamp, aEntry.link);
+
+    // Add parts
+    if (aEntry.content) {
+      this.addPart(messageID, PART_TYPE_CONTENT, aEntry.content.text,
+                   (aEntry.content.base ? aEntry.content.base.spec : null),
+                   aEntry.content.lang, this.mediaTypes[aEntry.content.type]);
+    }
+
+    if (aEntry.summary) {
+      this.addPart(messageID, PART_TYPE_SUMMARY, aEntry.summary.text,
+                   (aEntry.summary.base ? aEntry.summary.base.spec : null),
+                   aEntry.summary.lang, this.mediaTypes[aEntry.summary.type]);
+    }
 
     // Add metadata.
     let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
@@ -302,18 +318,11 @@ dump("about to getNewMessages for " + this.url + "\n");
    * @param aTimestamp   {Date}    the date/time at which the message was sent
    * @param aLink        {nsIURI}  a link to the content of the message,
    *                               if the content is hosted on a server
-   * @param aContent     {string}  the content of the message, if the content
-   *                               is included with the message
-   * @param aContentType {string}  the media type of the content of the message,
-   *                               if the content is included with the message
    *
-   * FIXME: allow callers to pass a set of arbitrary metadata name/value pairs
-   * that get written to the attributes table.
-   * 
    * @returns {integer} the internal ID of the newly-created message
    */
   addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthor,
-                             aTimestamp, aLink, aContent, aContentType) {
+                             aTimestamp, aLink) {
     // Convert the timestamp to milliseconds-since-epoch, which is how we store
     // it in the datastore.
     let timestamp = aTimestamp ? aTimestamp.getTime() : null;
@@ -326,10 +335,29 @@ dump("about to getNewMessages for " + this.url + "\n");
       SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthor,
                                    timestamp, link);
 
-    if (aContent)
-      SnowlDatastore.insertPart(messageID, aContent, aContentType);
-
     return messageID;
+  },
+
+  get _addPartStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO parts(messageID, partType, content, baseURI, languageCode, mediaType) \
+       VALUES (:messageID, :partType, :content, :baseURI, :languageCode, :mediaType)"
+    );
+    this.__defineGetter__("_addPartStatement", function() { return statement });
+    return this._addPartStatement;
+  },
+
+  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
+                    aMediaType) {
+    this._addPartStatement.params.messageID = aMessageID;
+    this._addPartStatement.params.partType = aPartType;
+    this._addPartStatement.params.content = aContent;
+    this._addPartStatement.params.baseURI = aBaseURI;
+    this._addPartStatement.params.languageCode = aLanguageCode;
+    this._addPartStatement.params.mediaType = aMediaType;
+    this._addPartStatement.execute();
+
+    return SnowlDatastore.dbConnection.lastInsertRowID;
   },
 
   addMetadatum: function(aMessageID, aAttributeName, aValue) {

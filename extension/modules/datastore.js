@@ -71,8 +71,11 @@ let SnowlDatastore = {
         type: TABLE_TYPE_FULLTEXT,
         columns: [
           "messageID INTEGER NOT NULL REFERENCES messages(id)",
-          "contentType",
-          "content"
+          "partType INTEGER NOT NULL",
+          "content NOT NULL",
+          "mediaType TEXT",
+          "baseURI TEXT",
+          "languageCode TEXT",
         ]
       },
 
@@ -331,32 +334,6 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.timestamp = aTimestamp;
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
-    return this.dbConnection.lastInsertRowID;
-  },
-
-  get _insertPartStatement() {
-    let statement = this.createStatement(
-      "INSERT INTO parts(messageID, content, contentType) \
-       VALUES (:messageID, :content, :contentType)"
-    );
-    this.__defineGetter__("_insertPartStatement", function() { return statement });
-    return this._insertPartStatement;
-  },
-
-  /**
-   * Insert a record into the parts table.
-   * 
-   * @param aMessageID    {integer} the record ID of the message
-   * @param aContentType  {string}  the Internet media type of the content
-   * @param aContent      {string}  the content
-   *
-   * @returns {integer} the ID of the newly-created record
-   */
-  insertPart: function(aMessageID, aContent, aContentType) {
-    this._insertPartStatement.params.messageID = aMessageID;
-    this._insertPartStatement.params.content = aContent;
-    this._insertPartStatement.params.contentType = aContentType;
-    this._insertPartStatement.execute();
     return this.dbConnection.lastInsertRowID;
   },
 

@@ -5,8 +5,22 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// FIXME: factor this out into a common file.
+const PART_TYPE_CONTENT = 1;
+const PART_TYPE_SUMMARY = 2;
+
+// Media type to nsIFeedTextConstruct::type mappings.
+// FIXME: get this from message.js (or from something that both message.js
+// and collection.js import).
+const textConstructTypes = {
+  "text/html": "html",
+  "application/xhtml+xml": "xhtml",
+  "text/plain": "text"
+};
+
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead) {
   this.id = aID;
@@ -41,41 +55,57 @@ SnowlMessage.prototype = {
                                                  " WHERE id = " + this.id);
   },
 
-
-  // FIXME: also store and make available the summary.
-
-  get _contentStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT content, contentType FROM parts WHERE messageID = :messageID"
-    );
-    this.__defineGetter__("_contentStatement", function() { return statement });
-    return this._contentStatement;
+  _content: null,
+  get content() {
+    if (!this._content)
+      this._content = this._getPart(PART_TYPE_CONTENT);
+    return this._content;
+  },
+  set content(newValue) {
+    this._content = newValue;
   },
 
-  _content: null,
+  _summary: null,
+  get summary() {
+    if (!this._summary)
+      this._summary = this._getPart(PART_TYPE_SUMMARY);
+    return this._summary;
+  },
+  set summary(newValue) {
+    this._summary = newValue;
+  },
 
-  get content() {
-    if (this._content)
-      return this._content;
+  get _getPartStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT content, mediaType, baseURI, languageCode FROM parts " +
+      "WHERE messageID = :messageID AND partType = :partType"
+    );
+    this.__defineGetter__("_getPartStatement", function() { return statement });
+    return this._getPartStatement;
+  },
+
+  _getPart: function(aPartType) {
+    let part;
 
     try {
-      this._contentStatement.params.messageID = this.id;
-      if (this._contentStatement.step()) {
-        this._content = Cc["@mozilla.org/feed-textconstruct;1"].
-                        createInstance(Ci.nsIFeedTextConstruct);
-        this._content.text = this._contentStatement.row.content;
-        this._content.type = textConstructTypes[this._contentStatement.row.contentType];
+      this._getPartStatement.params.messageID = this.id;
+      this._getPartStatement.params.partType = aPartType;
+      if (this._getPartStatement.step()) {
+        // FIXME: instead of a text construct, return a JS object that knows
+        // its ID and part type.
+        part = Cc["@mozilla.org/feed-textconstruct;1"].
+               createInstance(Ci.nsIFeedTextConstruct);
+        part.text = this._getPartStatement.row.content;
+        part.type = textConstructTypes[this._getPartStatement.row.mediaType];
+        part.base = URI.get(this._getPartStatement.row.baseURI);
+        part.lang = this._getPartStatement.row.languageCode;
       }
     }
     finally {
-      this._contentStatement.reset();
+      this._getPartStatement.reset();
     }
 
-    return this._content;
-  },
-
-  set content(newValue) {
-    this._content = newValue;
+    return part;
   },
 
   // FIXME: for performance, make this a class property rather than an instance
@@ -103,10 +133,4 @@ SnowlMessage.prototype = {
     return this._source;
   }
 
-};
-
-let textConstructTypes = {
-  "text/html": "html",
-  "application/xhtml+xml": "xhtml",
-  "text/plain": "text"
 };

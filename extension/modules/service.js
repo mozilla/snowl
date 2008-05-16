@@ -9,6 +9,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 const PERMS_FILE      = 0644;
@@ -171,7 +172,7 @@ let SnowlService = {
   },
 
   get _getSourcesStatement() {
-    let statement = this.createStatement(
+    let statement = SnowlDatastore.createStatement(
       "SELECT id, name, machineURI, humanURI, lastRefreshed, importance FROM sources"
     );
     delete this._getSourcesStatement;
