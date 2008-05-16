@@ -39,6 +39,7 @@ SnowlMessage.prototype = {
   link: null,
   timestamp: null,
 
+  // FIXME: figure out whether or not setters should update the database.
 
   _read: undefined,
 

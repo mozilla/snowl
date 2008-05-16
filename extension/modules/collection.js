@@ -179,7 +179,7 @@ SnowlCollection.prototype = {
       conditions.push("current = " + (this._current ? "1" : "0"));
 
     if (typeof this.read != "undefined")
-      conditions.push("(read = " + (this.read ? "1" : "0 OR read IS NULL") + ")");
+      conditions.push("(read = " + (this.read ? "1" : "0") + ")");
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
