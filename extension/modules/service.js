@@ -250,12 +250,12 @@ dump("_refreshSources: " + source.machineURI + "\n");
   /**
    * Determine whether or not the datastore contains the message with the given ID.
    *
-   * @param aUniversalID {string}  the universal ID of the message
+   * @param aExternalID {string}  the external ID of the message
    *
    * @returns {boolean} whether or not the datastore contains the message
    */
-  hasMessage: function(aUniversalID) {
-    return SnowlDatastore.selectHasMessage(aUniversalID);
+  hasMessage: function(aExternalID) {
+    return SnowlDatastore.selectHasMessage(aExternalID);
   }
 
 };

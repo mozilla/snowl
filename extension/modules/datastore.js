@@ -27,15 +27,14 @@ let SnowlDatastore = {
   _dbSchema: {
     // Note: the timestamp is stored as JavaScript milliseconds since epoch.
 
-    // Note: the universalID is a unique identifier established by the source
+    // Note: the externalID is a unique identifier established by the source
     // of the message which remains constant across message transfer points
     // and destinations.  For feeds this is the entry ID; for email messages
     // it's the message ID.
 
     // FIXME: make the datastore support multiple authors.
     // FIXME: support labeling the subject as HTML or another content type.
-    // FIXME: make universalID be called externalID instead.
-    // FIXME: index by universalID to make lookups (f.e. when checking if we
+    // FIXME: index by externalID to make lookups (f.e. when checking if we
     // already have a message) and updates (f.e. when setting current) faster.
 
     tables: {
@@ -56,7 +55,7 @@ let SnowlDatastore = {
         columns: [
           "id INTEGER PRIMARY KEY",
           "sourceID INTEGER NOT NULL REFERENCES sources(id)",
-          "universalID TEXT",
+          "externalID TEXT",
           "subject TEXT",
           "author TEXT",
           "timestamp INTEGER",
@@ -260,15 +259,15 @@ let SnowlDatastore = {
 
   get _selectHasMessageStatement() {
     let statement = this.createStatement(
-      "SELECT 1 FROM messages WHERE universalID = :universalID"
+      "SELECT 1 FROM messages WHERE externalID = :externalID"
     );
     this.__defineGetter__("_selectHasMessageStatement", function() { return statement });
     return this._selectHasMessageStatement;
   },
 
-  selectHasMessage: function(aUniversalID) {
+  selectHasMessage: function(aExternalID) {
     try {
-      this._selectHasMessageStatement.params.universalID = aUniversalID;
+      this._selectHasMessageStatement.params.externalID = aExternalID;
       if (this._selectHasMessageStatement.step())
         return true;
     }
@@ -281,7 +280,7 @@ let SnowlDatastore = {
 
   get _selectInternalIDForExternalIDStatement() {
     let statement = this.createStatement(
-      "SELECT id FROM messages WHERE universalID = :externalID"
+      "SELECT id FROM messages WHERE externalID = :externalID"
     );
     this.__defineGetter__("_selectInternalIDForExternalIDStatement", function() { return statement });
     return this._selectInternalIDForExternalIDStatement;
@@ -304,8 +303,8 @@ let SnowlDatastore = {
 
   get _insertMessageStatement() {
     let statement = this.createStatement(
-      "INSERT INTO messages(sourceID, universalID, subject, author, timestamp, link) \
-       VALUES (:sourceID, :universalID, :subject, :author, :timestamp, :link)"
+      "INSERT INTO messages(sourceID, externalID, subject, author, timestamp, link) \
+       VALUES (:sourceID, :externalID, :subject, :author, :timestamp, :link)"
     );
     this.__defineGetter__("_insertMessageStatement", function() { return statement });
     return this._insertMessageStatement;
@@ -315,7 +314,7 @@ let SnowlDatastore = {
    * Insert a record into the messages table.
    * 
    * @param aSourceID    {integer} the record ID of the message source
-   * @param aUniversalID {string}  the universal ID of the message
+   * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
    * @param aAuthor      {string}  the author of the message
    * @param aTimestamp   {Date}    the date/time at which the message was sent
@@ -324,9 +323,9 @@ let SnowlDatastore = {
    *
    * @returns {integer} the ID of the newly-created record
    */
-  insertMessage: function(aSourceID, aUniversalID, aSubject, aAuthor, aTimestamp, aLink) {
+  insertMessage: function(aSourceID, aExternalID, aSubject, aAuthor, aTimestamp, aLink) {
     this._insertMessageStatement.params.sourceID = aSourceID;
-    this._insertMessageStatement.params.universalID = aUniversalID;
+    this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
     this._insertMessageStatement.params.author = aAuthor;
     this._insertMessageStatement.params.timestamp = aTimestamp;

@@ -87,22 +87,22 @@ SnowlFeed.prototype = {
         // been retrieved.  If we can't figure out the entry's ID, then we skip
         // the entry, since its ID is the only way for us to know whether or not
         // it has already been retrieved.
-        let universalID;
+        let externalID;
         try {
-          universalID = entry.id || this.generateID(entry);
+          externalID = entry.id || this.generateID(entry);
         }
         catch(ex) {
           this._log.warn(this.title + " couldn't retrieve a message: " + ex);
           continue;
         }
 
-        let internalID = this.getInternalIDForExternalID(universalID);
+        let internalID = this.getInternalIDForExternalID(externalID);
 
         if (internalID)
-          this._log.info(this.title + " has message " + universalID);
+          this._log.info(this.title + " has message " + externalID);
         else {
-          this._log.info(this.title + " adding message " + universalID);
-          internalID = this.addMessage(entry, universalID);
+          this._log.info(this.title + " adding message " + externalID);
+          internalID = this.addMessage(entry, externalID);
         }
 
         currentMessages.push(internalID);
@@ -158,9 +158,9 @@ dump("about to getNewMessages for " + this.url + "\n");
    * Add a message to the datastore for the given feed entry.
    *
    * @param aEntry        {nsIFeedEntry}  the feed entry
-   * @param aUniversalID  {string}        the universal ID of the feed entry
+   * @param aExternalID   {string}        the external ID of the feed entry
    */
-  addMessage: function(aEntry, aUniversalID) {
+  addMessage: function(aEntry, aExternalID) {
     // Combine the first author's name and email address into a single string
     // that we'll use as the author of the message.
     let author = null;
@@ -184,10 +184,10 @@ dump("about to getNewMessages for " + this.url + "\n");
     // either "html", "xhtml", or "text", into an Internet media type.
     let contentType = aEntry.content ? this.contentTypes[aEntry.content.type] : null;
     let contentText = aEntry.content ? aEntry.content.text : null;
-    let messageID = this.addSimpleMessage(this.id, aUniversalID,
-                                                  aEntry.title.text, author,
-                                                  timestamp, aEntry.link,
-                                                  contentText, contentType);
+    let messageID = this.addSimpleMessage(this.id, aExternalID,
+                                          aEntry.title.text, author,
+                                          timestamp, aEntry.link,
+                                          contentText, contentType);
 
     // Add metadata.
     let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
@@ -296,7 +296,7 @@ dump("about to getNewMessages for " + this.url + "\n");
    * Add a message with a single part to the datastore.
    *
    * @param aSourceID    {integer} the record ID of the message source
-   * @param aUniversalID {string}  the universal ID of the message
+   * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
    * @param aAuthor      {string}  the author of the message
    * @param aTimestamp   {Date}    the date/time at which the message was sent
@@ -312,7 +312,7 @@ dump("about to getNewMessages for " + this.url + "\n");
    * 
    * @returns {integer} the internal ID of the newly-created message
    */
-  addSimpleMessage: function(aSourceID, aUniversalID, aSubject, aAuthor,
+  addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthor,
                              aTimestamp, aLink, aContent, aContentType) {
     // Convert the timestamp to milliseconds-since-epoch, which is how we store
     // it in the datastore.
@@ -323,7 +323,7 @@ dump("about to getNewMessages for " + this.url + "\n");
     let link = aLink ? aLink.spec : null;
 
     let messageID =
-      SnowlDatastore.insertMessage(aSourceID, aUniversalID, aSubject, aAuthor,
+      SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthor,
                                    timestamp, link);
 
     if (aContent)
