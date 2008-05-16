@@ -540,11 +540,13 @@ var RiverView = {
           sourceContainer.appendChild(author);
         }
 
+        let source = this._document.createElementNS(XUL_NS, "description");
         let a = this._document.createElementNS(HTML_NS, "a");
         a.appendChild(this._document.createTextNode(message.source.name));
         if (message.source.humanURI)
           this._unsafeSetURIAttribute(a, "href", message.source.humanURI.spec);
-        sourceContainer.appendChild(a);
+        source.appendChild(a);
+        sourceContainer.appendChild(source);
 
         messageContainer.appendChild(sourceContainer);
       }
