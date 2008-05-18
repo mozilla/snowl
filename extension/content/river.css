@@ -52,10 +52,13 @@ button {
 
 
 .message {
-  margin-bottom: 2em;
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
   -moz-box-align: baseline;
+
+  padding-bottom: 1em;
+  border-bottom: 3px dotted #ccc;
+  margin-bottom: 1em;
 }
 
 .origin {
