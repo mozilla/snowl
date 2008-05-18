@@ -207,7 +207,7 @@ function temp() {
 					return func.apply(this,arguments);			
 				}
 				catch (e) {
-					alert(e.message || e);
+					Components.utils.reportError(e.message || e);
 				}
 			}
 			newFunc.noTryCatch = func;
