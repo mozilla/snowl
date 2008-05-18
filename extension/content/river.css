@@ -1,8 +1,6 @@
 html {
   color: black;
   background-color: white;
-  font: message-box;
-  font-size: 100%;
 }
 
 body {
@@ -25,7 +23,7 @@ body {
 }
 
 button {
-  /* Let the buttons be small. */
+  /* Let the buttons be narrow. */
   min-width: 0;
 }
 
@@ -43,6 +41,22 @@ button {
    * to do that).
    * XXX Does this work on Windows and Mac? */
   padding-right: 2px;
+}
+
+
+/* Source, author, subject, and timestamp are more chrome than content,
+ * so we style them as such. */
+.origin, .subject, .timestamp {
+  font: message-box;
+}
+
+.source > a, .subject > a {
+  text-decoration: none;
+  color: black;
+}
+
+.source > a:visited, .subject > a:visited {
+  color: #555;
 }
 
 
@@ -64,18 +78,20 @@ button {
   width: 14em;
 }
 
-/* Source and subject are more chrome than content, and users expect them to be
- * links, so underlining seems an out of place and unnecessary distraction. */
-.source > a, .subject > a {
-  text-decoration: none;
-}
-
 /* Don't draw borders around hyperlinked favicons, but do pad them a bit
  * between the end of the favicon and the start of its label. */
 a > img {
   border: 0;
   -moz-padding-end: 1px;
   
+}
+
+.subject {
+  margin-top: 0;
+}
+
+.subject > a {
+  font-size: 150%;
 }
 
 .body {
@@ -94,10 +110,6 @@ a > img {
   min-width: 14em;
   max-width: 14em;
   width: 14em;
-}
-
-h3 {
-  margin-top: 0;
 }
 
 label {
