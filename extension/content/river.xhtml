@@ -23,7 +23,7 @@
     <script type="application/javascript;version=1.8" src="chrome://snowl/content/river.js"/>
   </head>
   <body onload="RiverView.init()">
-    <xul:hbox id="toolbar" align="center" style="width: 100%">
+    <xul:hbox id="toolbar" style="width: 100%">
       <!-- Bug 348830 means there can't be whitespace between the menulist tags
          - and the menupopup tag. -->
       <xul:menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)"

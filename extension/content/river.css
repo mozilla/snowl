@@ -27,11 +27,6 @@ body {
 button {
   /* Let the buttons be small. */
   min-width: 0;
-
-  /* Make the button square and as tall as the list of sources.
-   * XXX Does this work on Windows and Mac? */
-  width: 29px;
-  height: 29px;
 }
 
 #orderButton .button-icon {
