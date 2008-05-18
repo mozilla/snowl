@@ -530,25 +530,26 @@ var RiverView = {
       messageContainer.setAttribute("index", i);
 
       {
-        let sourceContainer = this._document.createElementNS(XUL_NS, "vbox");
-        sourceContainer.className = "source";
+        let originContainer = this._document.createElementNS(XUL_NS, "vbox");
+        originContainer.className = "origin";
 
         if (message.author) {
           let author = this._document.createElementNS(XUL_NS, "label");
           author.setAttribute("crop", "end");
           author.setAttribute("value", message.author);
-          sourceContainer.appendChild(author);
+          originContainer.appendChild(author);
         }
 
         let source = this._document.createElementNS(XUL_NS, "description");
+        source.className = "source";
         let a = this._document.createElementNS(HTML_NS, "a");
         a.appendChild(this._document.createTextNode(message.source.name));
         if (message.source.humanURI)
           this._unsafeSetURIAttribute(a, "href", message.source.humanURI.spec);
         source.appendChild(a);
-        sourceContainer.appendChild(source);
+        originContainer.appendChild(source);
 
-        messageContainer.appendChild(sourceContainer);
+        messageContainer.appendChild(originContainer);
       }
 
       {
@@ -563,6 +564,7 @@ var RiverView = {
             this._unsafeSetURIAttribute(a, "href", message.link);
 
           let subject = this._document.createElementNS(HTML_NS, "h3");
+          subject.className = "subject";
           subject.appendChild(a);
 
           contentContainer.appendChild(subject);

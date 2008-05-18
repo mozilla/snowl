@@ -57,12 +57,18 @@ button {
   -moz-user-select: -moz-all;
 }
 
-.source {
+.origin {
   padding-right: 2em;
   font-size: smaller;
   min-width: 14em;
   max-width: 14em;
   width: 14em;
+}
+
+/* Source and subject are more chrome than content, and users expect them to be
+ * links, so underlining seems an out of place and unnecessary distraction. */
+.source > a, .subject > a {
+  text-decoration: none;
 }
 
 .body {
