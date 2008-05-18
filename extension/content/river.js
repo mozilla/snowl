@@ -516,8 +516,34 @@ var RiverView = {
     }
   },
 
-  // FIXME: make this about the messages and the view, not a feed.
-  _writeFeedContent: strand(function() {
+  /**
+   * A JavaScript Strands Future with which we pause the writing of messages
+   * so as not to hork the UI thread.
+   */
+  _futureWriteMessages: null,
+
+  /**
+   * Sleep the specified number of milliseconds before continuing at the point
+   * in the caller where this function was called.  For the most part, this is
+   * a generic sleep routine like the one provided by JavaScript Strands,
+   * but we store the Future this function creates in the _futureWriteMessages
+   * property so we can interrupt it when writeMessages gets called again
+   * while it is currently writing messages.
+   */
+  _sleepWriteMessages: strand(function(millis) {
+    this._futureWriteMessages = new Future();
+    setTimeout(this._futureWriteMessages.fulfill, millis);
+    yield this._futureWriteMessages.result();
+  }),
+
+  _writeMessages: strand(function() {
+    // Interrupt a strand currently writing messages so we don't both try
+    // to write messages at the same time.
+    // FIXME: figure out how to suppress the exception this throws to the error
+    // console, since this interruption is expected and normal behavior.
+    if (this._futureWriteMessages)
+      this._futureWriteMessages.interrupt();
+
     this._contentSandbox.messagesContainer =
       this._document.getElementById("messagesContainer");
 
@@ -623,7 +649,7 @@ var RiverView = {
 
       // Sleep after every message so we don't hork the UI thread and users
       // can immediately start reading messages while we finish writing them.
-      yield sleep(0);
+      yield this._sleepWriteMessages(0);
     }
 
     this._contentSandbox.messagesContainer = null;
@@ -746,7 +772,7 @@ var RiverView = {
 
       //this._setTitleText(container);
       //this._setTitleImage(container);
-      this._writeFeedContent();
+      this._writeMessages();
     }
     finally {
       //this._removeFeedFromCache();
