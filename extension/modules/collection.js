@@ -29,7 +29,6 @@ Cu.import("resource://snowl/modules/URI.js");
 function SnowlCollection(aSourceID, aFilter, aCurrent, aRead) {
   this._sourceID = aSourceID;
   this._filter = aFilter;
-
   this._current = aCurrent;
   this._read = aRead;
 }
@@ -70,6 +69,20 @@ SnowlCollection.prototype = {
   },
 
   _current: undefined,
+
+  get current() {
+    return this._current;
+  },
+
+  set current(newValue) {
+    if (this._current === newValue)
+      return;
+
+    this._current = (typeof newValue == "undefined") ? undefined : newValue ? true : false;
+
+    // Invalidate the message cache.
+    this._messages = null;
+  },
 
   _read: undefined,
 
@@ -175,11 +188,11 @@ SnowlCollection.prototype = {
     if (this.filter)
       conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
 
-    if (typeof this._current != "undefined")
-      conditions.push("current = " + (this._current ? "1" : "0"));
+    if (typeof this.current != "undefined")
+      conditions.push("current = " + (this.current ? "1" : "0"));
 
     if (typeof this.read != "undefined")
-      conditions.push("(read = " + (this.read ? "1" : "0") + ")");
+      conditions.push("read = " + (this.read ? "1" : "0"));
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");

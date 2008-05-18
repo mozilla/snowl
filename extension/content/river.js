@@ -116,11 +116,11 @@ var RiverView = {
     return this._faviconSvc;
   },
 
-  get _orderButton() {
-    let orderButton = document.getElementById("orderButton");
-    delete this._orderButton;
-    this._orderButton = orderButton;
-    return this._orderButton;
+  get _currentButton() {
+    let currentButton = document.getElementById("currentButton");
+    delete this._currentButton;
+    this._currentButton = currentButton;
+    return this._currentButton;
   },
 
   get _unreadButton() {
@@ -128,6 +128,13 @@ var RiverView = {
     delete this._unreadButton;
     this._unreadButton = unreadButton;
     return this._unreadButton;
+  },
+
+  get _orderButton() {
+    let orderButton = document.getElementById("orderButton");
+    delete this._orderButton;
+    this._orderButton = orderButton;
+    return this._orderButton;
   },
 
   // The set of messages to display in the view.
@@ -140,7 +147,7 @@ var RiverView = {
     this._window = new XPCNativeWrapper(window);
     this._document = this._window.document;
 
-    this._collection = new SnowlCollection(null, null, true);
+    this._collection = new SnowlCollection();
 
     this.rebuildSourceMenu();
 
@@ -161,6 +168,11 @@ var RiverView = {
       else
         name = param;
       this._params[name] = value;
+    }
+
+    if ("current" in this._params) {
+      this._collection.current = true;
+      this._currentButton.checked = true;
     }
 
     if ("unread" in this._params) {
@@ -190,6 +202,16 @@ var RiverView = {
       this._orderButton.image = "chrome://snowl/content/arrow-up.png";
       this._collection.sortOrder = -1;
     }
+  },
+
+  onCommandCurrentButton: function(aEvent) {
+    if (this._currentButton.checked)
+      this._collection.current = true;
+    else
+      this._collection.current = undefined;
+
+    this.rebuildView();
+    this._updateURI();
   },
 
   onCommandUnreadButton: function(aEvent) {
@@ -239,6 +261,9 @@ var RiverView = {
 
   _updateURI: function() {
     let params = [];
+
+    if (typeof this._collection.current != "undefined" && this._collection.current)
+      params.push("current");
 
     if (typeof this._collection.read != "undefined" && !this._collection.read)
       params.push("unread");
