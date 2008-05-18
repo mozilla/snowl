@@ -55,6 +55,7 @@ button {
   margin-bottom: 2em;
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
+  -moz-box-align: baseline;
 }
 
 .origin {
