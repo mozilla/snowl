@@ -318,31 +318,63 @@ var RiverView = {
   },
 
   onScroll: function(aEvent) {
-    // The "current message" is the topmost one whose header appears on the page
-    // 
-    var scrollTop = window.scrollTop;
-    //dump(document.elementFromPoint(100, 0) + "\n");
-
-    // FIXME: pick the x coordinate based on the actual position of the content
-    // rather than using an arbitrary value.
-
-    let node = document.elementFromPoint(100, 0);
-    while (node.getAttribute("class") != "entry" && node.parentNode)
-      node = node.parentNode;
-
-    //dump(node + " " + node.getAttribute("class") + "\n");
-
-    // FIXME: make sure we haven't found some element within a entry's content
-    // that happens to have class="entry" set on it.
-    if (node.getAttribute("class") == "entry") {
-      let index = node.getAttribute("index");
-      for (let i = 0; i <= index; i++)
-        this._collection.messages[i].read = true;
-    }
-
+    this._markMessagesRead(aEvent);
   },
 
+  _markMessagesRead: function(aEvent) {
+    // Since we generate the content dynamically, and it can change with every
+    // reload, the previous scroll position isn't particularly meaningful,
+    // and it could even be dangerous, since it could mean that messages
+    // appearing above it get marked read when they haven't been.
+    
+    // I'm not sure what to do about this, since it's useful to go back
+    // to the previous scroll position when going to another page and then
+    // coming back to this one, and I can't figure out how to turn off scroll
+    // when reloading but leave it enabled when traveling through history.
 
+    // I could reset the scroll on unload, but that would disable the bfcache,
+    // which would cause the page to get reloaded when traveling through
+    // history, which I don't want.  Or I could turn off saving of the scroll
+    // through nsISHEntry::saveLayoutStateFlag, but that turns it off
+    // for both cases.
+    
+    // Maybe the right approach is to only mark messages read when the user
+    // has actually scrolled by them.
+
+    // FIXME: figure out what to do about this.
+
+    // The vertical offset relative to the top of the document of the topmost
+    // and bottommost pixels visible in the viewport.
+    let viewportTopY = window.scrollY;
+    let viewportBottomY = window.scrollY + window.innerHeight - 1;
+
+    let rows = document.getElementById("messagesContainer").childNodes;
+    for (let i = 0; i < rows.length; i++) {
+      let row = rows[i];
+
+      // The vertical offset relative to the top of the document of the topmost
+      // and bottommost pixels of the row.
+      let rowTopY = row.boxObject.y;
+      let rowBottomY = row.boxObject.y + row.boxObject.height - 1;
+
+      // If the current row is completely above the bottom of the viewport,
+      // then mark it read.
+      if (rowBottomY < viewportBottomY)
+        this._collection.messages[i].read = true;
+
+      // XXX If there are two messages completely visible in the viewport,
+      // we currently mark both read.  Is that the correct behavior, or should
+      // we only mark the topmost message read?
+
+      // We've run into the first message that is not completely above
+      // the bottom of the viewport.  There's nothing more to do, so we can
+      // break out of the loop.
+      // FIXME: also record the last message marked read so we can start
+      // from that message next time.
+      else
+        break;
+    }
+  },
 
   get _log() {
     let log = Log4Moz.Service.getLogger("Snowl.River");
