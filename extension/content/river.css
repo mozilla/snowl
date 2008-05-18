@@ -52,7 +52,7 @@ button {
 
 
 .message {
-  margin-top: 3em;
+  margin-bottom: 2em;
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
 }
