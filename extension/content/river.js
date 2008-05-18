@@ -185,16 +185,10 @@ var RiverView = {
       }
     }
 
-    if ("order" in this._params) {
-      switch(this._params.order) {
-        case "descending":
-          this._setOrder(-1);
-          break;
-        case "ascending":
-        default:
-          this._setOrder(1);
-          break;
-      }
+    if ("order" in this._params && this._params.order == "descending") {
+      this._orderButton.checked = true;
+      this._orderButton.image = "chrome://snowl/content/arrow-up.png";
+      this._collection.sortOrder = -1;
     }
   },
 
@@ -203,60 +197,31 @@ var RiverView = {
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
     // class on read items and then using a CSS rule to hide them).
 
-    if (this._unreadButton.checked) {
+    if (this._unreadButton.checked)
       this._collection.read = false;
-      this.rebuildView();
-    }
-    else {
+    else
       this._collection.read = undefined;
-      this.rebuildView();
-    }
 
+    this.rebuildView();
     this._updateURI();
   },
 
   onCommandOrderButton: function(aEvent) {
-    // checkState can be either 0, 1, or 2.  The default is 0, which means
-    // to sort in ascending order.  The value 1 means to sort in descending
-    // order.  The value 2 is undefined, but users can't make the button
-    // switch to that state; it must be set programmatically, and we don't
-    // use it (presumably we could one day make it mean "sort randomly").
-
-    switch(this._orderButton.checked) {
-      case true:
-        this._setOrder(-1);
-        break;
-      case false:
-      default:
-        this._setOrder(1);
-        break;
+    if (this._orderButton.checked) {
+      this._orderButton.image = "chrome://snowl/content/arrow-up.png";
+      this._collection.sortOrder = -1;
+    }
+    else {
+      this._orderButton.image = "chrome://snowl/content/arrow-down.png";
+      this._collection.sortOrder = 1;
     }
 
     // Presumably here we could do messages.reverse(), which would be faster,
     // but can we be sure the messages started in the reverse of the new state?
     this._collection.sort(this._collection.sortProperty,
                           this._collection.sortOrder);
-
     this.rebuildView();
     this._updateURI();
-  },
-
-  _setOrder: function(aOrder) {
-    switch (aOrder) {
-      case -1:
-        this._collection.sortOrder = -1;
-        this._orderButton.checkState = 1;
-        this._orderButton.checked = true;
-        this._orderButton.image = "chrome://snowl/content/arrow-up.png";
-        break;
-      case 1:
-      default:
-        this._collection.sortOrder = 1;
-        this._orderButton.checkState = 0;
-        this._orderButton.checked = false;
-        this._orderButton.image = "chrome://snowl/content/arrow-down.png";
-        break;
-    }
   },
 
   onCommandFilterTextbox: function(aEvent, aFilterTextbox) {
