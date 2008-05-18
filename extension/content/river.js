@@ -569,6 +569,10 @@ var RiverView = {
         let source = this._document.createElementNS(XUL_NS, "description");
         source.className = "source";
         let a = this._document.createElementNS(HTML_NS, "a");
+        let icon = document.createElementNS(HTML_NS, "img");
+        let uri = message.source.humanURI || URI.get("urn:use-default-icon");
+        icon.src = this._faviconSvc.getFaviconImageForPage(uri).spec;
+        a.appendChild(icon);
         a.appendChild(this._document.createTextNode(message.source.name));
         if (message.source.humanURI)
           this._unsafeSetURIAttribute(a, "href", message.source.humanURI.spec);

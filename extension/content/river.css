@@ -75,6 +75,14 @@ button {
   text-decoration: none;
 }
 
+/* Don't draw borders around hyperlinked favicons, but do pad them a bit
+ * between the end of the favicon and the start of its label. */
+a > img {
+  border: 0;
+  -moz-padding-end: 1px;
+  
+}
+
 .body {
   /* -moz-column-width alone won't create the correct number of columns,
    * but if I include a high -moz-column-count, it'll ignore the count
