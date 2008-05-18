@@ -517,7 +517,7 @@ var RiverView = {
   },
 
   // FIXME: make this about the messages and the view, not a feed.
-  _writeFeedContent: function() {
+  _writeFeedContent: strand(function() {
     this._contentSandbox.messagesContainer =
       this._document.getElementById("messagesContainer");
 
@@ -620,11 +620,15 @@ var RiverView = {
 
       var codeStr = "messagesContainer.appendChild(messageContainer);";
       Cu.evalInSandbox(codeStr, this._contentSandbox);
+
+      // Sleep after every message so we don't hork the UI thread and users
+      // can immediately start reading messages while we finish writing them.
+      yield sleep(0);
     }
 
     this._contentSandbox.messagesContainer = null;
     this._contentSandbox.messageContainer = null;
-  },
+  }),
 
   /**
    * Takes a url to a media item and returns the best name it can come up with.
