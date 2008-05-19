@@ -590,37 +590,9 @@ var RiverView = {
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
-      // FIXME: make this a message rather than an message.
       let messageContainer = this._document.createElementNS(XUL_NS, "row");
       messageContainer.className = "message";
       messageContainer.setAttribute("index", i);
-
-      {
-        let originContainer = this._document.createElementNS(XUL_NS, "vbox");
-        originContainer.className = "origin";
-
-        if (message.author) {
-          let author = this._document.createElementNS(XUL_NS, "label");
-          author.setAttribute("crop", "end");
-          author.setAttribute("value", message.author);
-          originContainer.appendChild(author);
-        }
-
-        let source = this._document.createElementNS(XUL_NS, "description");
-        source.className = "source";
-        let a = this._document.createElementNS(HTML_NS, "a");
-        let icon = document.createElementNS(HTML_NS, "img");
-        let uri = message.source.humanURI || URI.get("urn:use-default-icon");
-        icon.src = this._faviconSvc.getFaviconImageForPage(uri).spec;
-        a.appendChild(icon);
-        a.appendChild(this._document.createTextNode(message.source.name));
-        if (message.source.humanURI)
-          this._unsafeSetURIAttribute(a, "href", message.source.humanURI.spec);
-        source.appendChild(a);
-        originContainer.appendChild(source);
-
-        messageContainer.appendChild(originContainer);
-      }
 
       {
         let contentContainer = this._document.createElementNS(HTML_NS, "div");
@@ -675,15 +647,41 @@ var RiverView = {
       }
 
       {
-        let timestampContainer = this._document.createElementNS(XUL_NS, "description");
-        timestampContainer.className = "timestamp";
+        let metadataContainer = this._document.createElementNS(XUL_NS, "vbox");
+        metadataContainer.className = "metadata";
+        messageContainer.appendChild(metadataContainer);
 
-        // FIXME: message.timestamp should already be a date object.
-        var lastUpdated = this._formatTimestamp(new Date(message.timestamp));
-        if (lastUpdated)
-          timestampContainer.appendChild(document.createTextNode(lastUpdated));
+        {
+          let source = this._document.createElementNS(XUL_NS, "description");
+          source.className = "source";
+          let a = this._document.createElementNS(HTML_NS, "a");
+          let icon = document.createElementNS(HTML_NS, "img");
+          let uri = message.source.humanURI || URI.get("urn:use-default-icon");
+          icon.src = this._faviconSvc.getFaviconImageForPage(uri).spec;
+          a.appendChild(icon);
+          a.appendChild(this._document.createTextNode(message.source.name));
+          if (message.source.humanURI)
+            this._unsafeSetURIAttribute(a, "href", message.source.humanURI.spec);
+          source.appendChild(a);
+          metadataContainer.appendChild(source);
+        }
 
-        messageContainer.appendChild(timestampContainer);
+        if (message.author) {
+          let author = this._document.createElementNS(XUL_NS, "label");
+          author.setAttribute("crop", "end");
+          author.setAttribute("value", message.author);
+          metadataContainer.appendChild(author);
+        }
+
+        {
+          let timestampContainer = this._document.createElementNS(XUL_NS, "description");
+          timestampContainer.className = "timestamp";
+          // FIXME: message.timestamp should already be a date object.
+          var lastUpdated = this._formatTimestamp(new Date(message.timestamp));
+          if (lastUpdated)
+            timestampContainer.appendChild(document.createTextNode(lastUpdated));
+          metadataContainer.appendChild(timestampContainer);
+        }
       }
 
       this._contentSandbox.messageContainer = messageContainer;

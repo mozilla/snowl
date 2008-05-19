@@ -57,14 +57,6 @@ toolbarbutton {
   margin-bottom: 1em;
 }
 
-.origin {
-  padding-right: 2em;
-  font-size: smaller;
-  min-width: 14em;
-  max-width: 14em;
-  width: 14em;
-}
-
 /* Don't draw borders around hyperlinked favicons, but do pad them a bit
  * between the end of the favicon and the start of its label. */
 a > img {
@@ -82,21 +74,37 @@ a > img {
 }
 
 .body {
-  /* -moz-column-width alone won't create the correct number of columns,
-   * but if I include a high -moz-column-count, it'll ignore the count
-   * and instead create the correct number of columns based on the width
-   * of the screen, which is what it is supposed to be doing by itself.
-   * Perhaps this is a bug (maybe with columnar HTML in XUL). */
-  -moz-column-width: 30em;
+  /* Set wide to accommodate wide images, which seem to often appear in blog
+   * posts.  Even so, it's not wide enough for some images, which intrude upon
+   * the column to their right.  The CSS3 module on columns
+   * <http://www.w3.org/TR/css3-multicol/> says they should be clipped,
+   * but that isn't happening.*/
+
+  -moz-column-width: 500px;
+  -moz-column-gap: 1em;
+
+  /* column-width alone won't create the correct number of columns, but if
+   * I include a high column-count, Gecko ignores the count and instead creates
+   * the correct number of columns based on the width of the screen, which is
+   * what column-width is supposed to accomplish on its own.
+   * Perhaps this is a bug (maybe with mixing columnar HTML and XUL). */
+
   -moz-column-count: 20;
+
+  /* Unfortunately, sometimes two columns pushes the metadata column partially
+   * off the page, so a horizontal scrollbar appears.  Maybe this is another bug
+   * with columnar HTML and XUL. */
 }
 
-.timestamp {
-  padding-left: 2em;
+.metadata {
   font-size: smaller;
-  min-width: 14em;
-  max-width: 14em;
-  width: 14em;
+
+  /* One would think these could be applied to the metadata column rather than
+   * its individual cells, but apparently that isn't the case. */
+  padding-left: 2em;
+  max-width: 20em;
+  min-width: 20em;
+  width: 20em;
 }
 
 label {
