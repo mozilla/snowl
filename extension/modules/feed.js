@@ -103,10 +103,11 @@ SnowlFeed.prototype = {
 
         let internalID = this.getInternalIDForExternalID(externalID);
 
-        if (internalID)
-          this._log.info(this.title + " has message " + externalID);
+        if (internalID) {
+          //this._log.info(this.title + " has message " + externalID);
+        }
         else {
-          this._log.info(this.title + " adding message " + externalID);
+          //this._log.info(this.title + " adding message " + externalID);
           internalID = this.addMessage(entry, externalID);
         }
 
@@ -138,7 +139,7 @@ SnowlFeed.prototype = {
     request.addEventListener("error", function(aEvent) { t.onError(aEvent) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-dump("about to getNewMessages for " + this.url + "\n");
+//dump("about to getNewMessages for " + this.url + "\n");
     request.open("GET", this.url, true);
     request.send(null);
   },
@@ -400,8 +401,7 @@ SnowlFeedSubscriber.prototype = {
   get _obsSvc() {
     let obsSvc = Cc["@mozilla.org/observer-service;1"].
                  getService(Ci.nsIObserverService);
-    delete this._obsSvc;
-    this._obsSvc = obsSvc;
+    this.__defineGetter__("_obsSvc", function() { return obsSvc });
     return this._obsSvc;
   },
 
@@ -463,13 +463,13 @@ SnowlFeedSubscriber.prototype = {
     statement.params.name = name;
     statement.params.machineURI = this.uri.spec;
     statement.params.humanURI = feed.link.spec;
-    dump("subscribing to " + name + " <" + this.uri.spec + ">\n");
+    //dump("subscribing to " + name + " <" + this.uri.spec + ">\n");
     statement.step();
 
     let id = SnowlDatastore.dbConnection.lastInsertRowID;
 
     // Now refresh the feed to import all its items.
-    dump("refreshing " + this.uri.spec + "\n");
+    //dump("refreshing " + this.uri.spec + "\n");
     let feed2 = new SnowlFeed(id, this.uri.spec, name);
     feed2.handleResult(aResult);
 
