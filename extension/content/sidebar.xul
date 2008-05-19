@@ -70,7 +70,7 @@
                    oncommand="SourcesView.onCommandUnsubscribeButton()"/>
     <toolbarbutton id="snowlRefreshButton"
                    image="chrome://snowl/content/icons/arrow_refresh_small.png"
-                   oncommand="SourcesView.onCommandRefreshButton()"/>
+                   oncommand="SnowlService.refreshAllSources()"/>
   </toolbar>
 
   <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
