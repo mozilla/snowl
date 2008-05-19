@@ -51,6 +51,50 @@ SnowlSource.get = function(aID) {
   return null;
 }
 
+SnowlSource.__defineGetter__("_getAllStatement",
+  function() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT id, name, machineURI, humanURI, lastRefreshed, importance " +
+      "FROM sources ORDER BY name"
+    );
+    this.__defineGetter__("_getAllStatement", function() { return statement });
+    return this._getAllStatement;
+  }
+);
+
+/**
+ * Get all sources.
+ */
+SnowlSource.getAll = function() {
+  let sources = [];
+
+  try {
+    while (this._getAllStatement.step())
+      sources.push(new SnowlSource(this._getAllStatement.row.id,
+                                   this._getAllStatement.row.name,
+                                   URI.get(this._getAllStatement.row.machineURI),
+                                   URI.get(this._getAllStatement.row.humanURI),
+                                   new Date(this._getAllStatement.row.lastRefreshed),
+                                   this._getAllStatement.row.importance));
+  }
+  finally {
+    this._getAllStatement.reset();
+  }
+
+  return sources;
+}
+
+    // Favicon Service
+SnowlSource.__defineGetter__("faviconSvc",
+  function() {
+    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                     getService(Ci.nsIFaviconService);
+    delete this.faviconSvc;
+    this.faviconSvc = faviconSvc;
+    return this.faviconSvc;
+  }
+);
+
 SnowlSource.prototype = {
   id: null,
 
@@ -72,5 +116,19 @@ SnowlSource.prototype = {
 
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.
-  importance: null
+  importance: null,
+
+  get faviconURI() {
+    if (this.humanURI) {
+      try {
+        return SnowlSource.faviconSvc.getFaviconForPage(this.humanURI);
+      }
+      catch(ex) { /* no known favicon; use the default */ }
+    }
+
+    // The default favicon for feed sources.
+    // FIXME: once we support other types of sources, override this
+    // with a type-specific icon.
+    return URI.get("chrome://browser/skin/feeds/feedIcon16.png");
+  }
 };

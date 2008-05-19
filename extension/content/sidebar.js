@@ -6,6 +6,7 @@ const Cu = Components.utils;
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -135,10 +136,14 @@ SourcesView = {
   //**************************************************************************//
   // nsITreeView
 
-  rowCount: 0,
-  getCellText : function(row,column){
-    if (column.id == "nameCol") return this._model[row].name;
-    return "foo";
+  get rowCount() {
+    return this._model.length;
+  },
+
+  getCellText : function(aRow, aColumn) {
+    if (aColumn.id == "nameCol")
+      return this._model[aRow].name;
+    return null;
   },
 
   _treebox: null,
@@ -148,7 +153,13 @@ SourcesView = {
   isSeparator: function(aRow) { return false },
   isSorted: function() { return false },
   getLevel: function(aRow) { return 0 },
-  getImageSrc: function(aRow, aColumn) { return null },
+
+  getImageSrc: function(aRow, aColumn) {
+    if (aColumn.id == "nameCol")
+      return this._model[aRow].faviconURI.spec;
+    return null;
+  },
+
   getRowProperties: function (aRow, aProperties) {},
   getCellProperties: function (aRow, aColumn, aProperties) {},
   getColumnProperties: function(aColumnID, aColumn, aProperties) {},
@@ -197,26 +208,12 @@ SourcesView = {
     }
   },
 
-  // FIXME: use real SnowlSource objects here.
   _model: null,
   _rebuildModel: function() {
-    let statementString = "SELECT name, id FROM sources ORDER BY name";
-    let statement = SnowlDatastore.createStatement(statementString);
-
-    this._model = [];
-
-    let i = 0;
-    this._model[i] = { id: null, name: "All" };
-
-    try {
-      while (statement.step())
-        this._model[++i] = { id: statement.row.id, name: statement.row.name };
-    }
-    finally {
-      statement.reset();
-    }
-
-    this.rowCount = i + 1;
+    this._model = SnowlSource.getAll();
+    this._model.unshift({ id: null,
+                          name: "All",
+                          faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
   },
 
   onSelect: function(aEvent) {

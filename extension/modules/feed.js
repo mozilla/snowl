@@ -107,7 +107,7 @@ SnowlFeed.prototype = {
           //this._log.info(this.title + " has message " + externalID);
         }
         else {
-          //this._log.info(this.title + " adding message " + externalID);
+          this._log.info(this.title + " adding message " + externalID);
           internalID = this.addMessage(entry, externalID);
         }
 
