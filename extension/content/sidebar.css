@@ -1,0 +1,8 @@
+
+toolbarbutton {
+  -moz-appearance: none;
+}
+
+.toolbarbutton-icon {
+  -moz-margin-end: 0;
+}

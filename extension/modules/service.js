@@ -213,7 +213,7 @@ let SnowlService = {
     let staleSources = [];
     for each (let source in allSources)
 {
-this._log.info("checking source: " + source.id);
+//this._log.info("checking source: " + source.id);
       if (now - source.lastRefreshed > REFRESH_INTERVAL)
 {
 this._log.info("source: " + source.id + " is stale");

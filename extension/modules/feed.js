@@ -422,6 +422,11 @@ SnowlFeedSubscriber.prototype = {
     request.addEventListener("error", this, false);
 
     request = request.QueryInterface(Ci.nsIXMLHttpRequest);
+
+    // The feed processor is going to parse the XML, so set the MIME type
+    // in order to turn off parsing by XMLHttpRequest itself.
+    request.overrideMimeType("text/plain");
+
     request.open("GET", this.uri.spec, true);
     request.send(null);
   },
@@ -437,6 +442,10 @@ SnowlFeedSubscriber.prototype = {
         this.onError(aEvent);
         break;
     }
+  },
+
+  onError: function(aEvent) {
+dump("XMLHTTPRequest.onError for " + this.name + " <" + this.uri.spec + ">: " + aEvent.target.status + " " + aEvent.target.statusText + " " + aEvent.target.responseText.length + "\n");
   },
 
   onLoad: function(aEvent) {

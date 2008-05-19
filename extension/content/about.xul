@@ -1,0 +1,14 @@
+<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        windowtype="Snowl:About"
+        title="About Snowl"
+        buttons="accept">
+  <description value="Snowl"/>
+  <description>
+    Icons come from
+    the <html:a href="http://www.famfamfam.com/lab/icons/silk/">Silk icon set
+    by famfamfam</html:a>, licensed under
+    a <html:a href="http://creativecommons.org/licenses/by/2.5/">Creative Commons
+    Attribution 2.5 License</html:a>.
+  </description>
+</dialog>
