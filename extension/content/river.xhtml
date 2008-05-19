@@ -23,22 +23,26 @@
     <script type="application/javascript;version=1.8" src="chrome://snowl/content/river.js"/>
   </head>
   <body onload="RiverView.init()">
-    <xul:hbox id="toolbar" style="width: 100%">
+    <xul:toolbar id="toolbar" style="width: 100%">
       <!-- Bug 348830 means there can't be whitespace between the menulist tags
          - and the menupopup tag. -->
       <xul:menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)"
         ><xul:menupopup id="sourcePopup"
       /></xul:menulist>
 
-      <xul:button id="currentButton" type="checkbox"
-                  label="C"
+      <xul:toolbarbutton id="currentButton" class="toolbarButton" type="checkbox"
+                  image="chrome://snowl/content/icons/newspaper.png"
                   oncommand="RiverView.onCommandCurrentButton(event)"/>
 
-      <xul:button id="unreadButton" type="checkbox"
-                  label="U"
+      <xul:toolbarbutton id="unreadButton" class="toolbarButton" type="checkbox"
+                  image="chrome://snowl/content/icons/new.png"
                   oncommand="RiverView.onCommandUnreadButton(event)"/>
 
-      <xul:button id="orderButton" type="checkbox"
+      <xul:toolbarbutton id="bodyButton" class="toolbarButton" type="checkbox"
+                  image="chrome://snowl/content/icons/page_white_text.png"
+                  oncommand="RiverView.onCommandBodyButton(event)"/>
+
+      <xul:toolbarbutton id="orderButton" class="toolbarButton" type="checkbox"
                   image="chrome://snowl/content/arrow-down.png"
                   oncommand="RiverView.onCommandOrderButton(event)"/>
 
@@ -46,7 +50,7 @@
 
       <xul:textbox id="filterTextbox" type="timed" timeout="200"
                    oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
-    </xul:hbox>
+    </xul:toolbar>
 
   <xul:box style="margin: 1em;">
     <xul:grid flex="1">

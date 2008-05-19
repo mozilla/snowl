@@ -130,6 +130,13 @@ var RiverView = {
     return this._unreadButton;
   },
 
+  get _bodyButton() {
+    let bodyButton = document.getElementById("bodyButton");
+    delete this._bodyButton;
+    this._bodyButton = bodyButton;
+    return this._bodyButton;
+  },
+
   get _orderButton() {
     let orderButton = document.getElementById("orderButton");
     delete this._orderButton;
@@ -180,6 +187,9 @@ var RiverView = {
       this._unreadButton.checked = true;
     }
 
+    if ("body" in this._params)
+      this._bodyButton.checked = true;
+
     if ("filter" in this._params) {
       this._collection.filter = this._params.filter;
       document.getElementById("filterTextbox").value = this._params.filter;
@@ -228,6 +238,11 @@ var RiverView = {
     this._updateURI();
   },
 
+  onCommandBodyButton: function(aEvent) {
+    this.rebuildView();
+    this._updateURI();
+  },
+
   onCommandOrderButton: function(aEvent) {
     if (this._orderButton.checked) {
       this._orderButton.image = "chrome://snowl/content/arrow-up.png";
@@ -267,6 +282,9 @@ var RiverView = {
 
     if (typeof this._collection.read != "undefined" && !this._collection.read)
       params.push("unread");
+
+    if (this._bodyButton.checked)
+      params.push("body");
 
     if (this._collection.filter)
       params.push("filter=" + encodeURIComponent(this._collection.filter));
@@ -624,33 +642,33 @@ var RiverView = {
 
         let body = this._document.createElementNS(HTML_NS, "div");
         body.className = "body";
-
-        let summary = message.content || message.summary;
-        if (summary) {
-          if (summary.base)
-            body.setAttributeNS(XML_NS, "base", summary.base.spec);
-
-          let docFragment = summary.createDocumentFragment(body);
-          if (docFragment)
-            body.appendChild(docFragment);
-
-          // If the message doesn't have a subject, but it does have a link,
-          // append a # permalink. See http://scripting.com/rss.xml for an example.
-          if (!message.subject && message.link) {
-            let a = this._document.createElementNS(HTML_NS, "a");
-            a.appendChild(this._document.createTextNode("#"));
-            this._unsafeSetURIAttribute(a, "href", message.link);
-            body.appendChild(this._document.createTextNode(" "));
-            body.appendChild(a);
-          }
-  
-        }
-
         contentContainer.appendChild(body);
 
-        if (message.enclosures && message.enclosures.length > 0) {
-          let enclosuresDiv = this._buildEnclosureDiv(message);
-          contentContainer.appendChild(enclosuresDiv);
+        if (this._bodyButton.checked) {
+          let summary = message.content || message.summary;
+          if (summary) {
+            if (summary.base)
+              body.setAttributeNS(XML_NS, "base", summary.base.spec);
+  
+            let docFragment = summary.createDocumentFragment(body);
+            if (docFragment)
+              body.appendChild(docFragment);
+  
+            // If the message doesn't have a subject, but it does have a link,
+            // append a # permalink. See http://scripting.com/rss.xml for an example.
+            if (!message.subject && message.link) {
+              let a = this._document.createElementNS(HTML_NS, "a");
+              a.appendChild(this._document.createTextNode("#"));
+              this._unsafeSetURIAttribute(a, "href", message.link);
+              body.appendChild(this._document.createTextNode(" "));
+              body.appendChild(a);
+            }
+          }
+
+          if (message.enclosures && message.enclosures.length > 0) {
+            let enclosuresDiv = this._buildEnclosureDiv(message);
+            contentContainer.appendChild(enclosuresDiv);
+          }
         }
 
         messageContainer.appendChild(contentContainer);
