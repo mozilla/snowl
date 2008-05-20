@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<?xml-stylesheet href="chrome://snowl/content/river2.css" type="text/css"?>
+
+<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        title="Snowl: Messages"
+        onload="RiverView.init()">
+
+  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/river2.js"/>
+
+  <toolbar id="toolbar">
+    <menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)">
+      <menupopup id="sourcePopup"/>
+    </menulist>
+
+    <toolbarbutton id="currentButton" class="toolbarButton" type="checkbox"
+                image="chrome://snowl/content/icons/newspaper.png"
+                oncommand="RiverView.onCommandCurrentButton(event)"
+                tooltiptext="Only show current messages."/>
+
+    <toolbarbutton id="unreadButton" class="toolbarButton" type="checkbox"
+                image="chrome://snowl/content/icons/new.png"
+                oncommand="RiverView.onCommandUnreadButton(event)"
+                tooltiptext="Only show unread messages."/>
+
+    <toolbarbutton id="bodyButton" class="toolbarButton" type="checkbox"
+                image="chrome://snowl/content/icons/page_white_text.png"
+                oncommand="RiverView.onCommandBodyButton(event)"
+                tooltiptext="Show message summaries/content."/>
+
+    <toolbarbutton id="orderButton" class="toolbarButton" type="checkbox"
+                image="chrome://snowl/content/arrow-down.png"
+                oncommand="RiverView.onCommandOrderButton(event)"
+                tooltiptext="Reverse the order of the messages."/>
+
+    <spacer flex="1"/>
+
+    <textbox id="filterTextbox" type="timed" timeout="200"
+                 oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
+  </toolbar>
+
+  <vbox id="messages"/>
+
+</window>

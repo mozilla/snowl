@@ -1,23 +1,12 @@
-html {
-  color: black;
-  background-color: white;
-}
-
-body {
-  /* Remove the default margin around the body so the toolbar blends in
-   * with the surrounding chrome and appears to be part of it (rather than
-   * having white space all around it, which looks odd). */
-  margin: 0;
-}
-
 #toolbar {
   font: message-box;
   -moz-box-align: center;
-  width: 100%;
 }
 
 #messages {
-  margin: 10px;
+  -moz-box-flex: 1;
+  overflow: auto;
+  padding: 10px;
 }
 
 /* Show icons in the sources menulist. */
@@ -55,22 +44,19 @@ toolbarbutton {
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
   -moz-box-align: baseline;
-}
-
-.content {
-  float: left;
-  clear: both;
-  width: 75%;
 
   padding-bottom: 1em;
   border-bottom: 3px dotted #ccc;
   margin-bottom: 1em;
+}
+
+.content {
+  -moz-box-flex: 1;
   margin-right: 2em;
 }
 
 .metadata {
-  float: left;
-  width: 20%;
+  width: 20em;
 
   font: message-box;
   font-size: smaller;
@@ -81,21 +67,20 @@ toolbarbutton {
    * posts.  Even so, it's not wide enough for some images, which intrude upon
    * the column to their right.  The CSS3 module on columns
    * <http://www.w3.org/TR/css3-multicol/> says they should be clipped,
-   * but that isn't happening. */
+   * but that isn't happening.*/
 
+/* Commented out because columns don't work in XUL due to bug 434683.
   -moz-column-width: 500px;
   -moz-column-gap: 1em;
+*/
+
 }
 
 /* Don't draw borders around hyperlinked favicons, but do pad them a bit
- * between the end of the favicon and the start of the source name. */
+ * between the end of the favicon and the start of its label. */
 a > img {
   border: 0;
   -moz-padding-end: 1px;
-}
-
-.subject {
-  margin-top: 0;
 }
 
 .subject > a {

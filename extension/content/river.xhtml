@@ -1,29 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<!DOCTYPE html [
-  <!ENTITY % htmlDTD
-    PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-    "DTD/xhtml1-strict.dtd">
-  %htmlDTD;
-  <!ENTITY % globalDTD
-    SYSTEM "chrome://global/locale/global.dtd">
-  %globalDTD;
-  <!ENTITY % feedDTD
-    SYSTEM "chrome://browser/locale/feeds/subscribe.dtd">
-  %feedDTD;
-]>
-
-<html id="feedHandler" xmlns="http://www.w3.org/1999/xhtml"
+<html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <head>
     <title>Snowl: Messages</title>
-    <link rel="stylesheet" type="text/css" media="all"
-          href="chrome://snowl/content/river.css"/>
+    <link rel="stylesheet" type="text/css" href="chrome://snowl/content/river.css"/>
     <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
     <script type="application/javascript;version=1.8" src="chrome://snowl/content/river.js"/>
   </head>
   <body onload="RiverView.init()">
-    <xul:toolbar id="toolbar" style="width: 100%">
+    <xul:toolbar id="toolbar">
       <!-- Bug 348830 means there can't be whitespace between the menulist tags
          - and the menupopup tag. -->
       <xul:menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)"
@@ -56,14 +42,6 @@
                    oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
     </xul:toolbar>
 
-  <xul:box style="margin: 1em;">
-    <xul:grid flex="1">
-      <xul:columns flex="1">
-        <xul:column id="contentColumn" flex="1"/>
-        <xul:column id="metadataColumn"/>
-      </xul:columns>
-      <xul:rows id="messagesContainer"/>
-    </xul:grid>
-  </xul:box>
+    <div id="messages"/>
   </body>
 </html>

@@ -296,7 +296,7 @@ var RiverView = {
       params.push("order=descending");
 
     let query = params.length > 0 ? "?" + params.join("&") : "";
-    let spec = "chrome://snowl/content/river.xhtml" + query;
+    let spec = "chrome://snowl/content/river.xul" + query;
     let uri = Cc["@mozilla.org/network/io-service;1"].
               getService(Ci.nsIIOService).
               newURI(spec, null, null);
@@ -501,62 +501,6 @@ var RiverView = {
   },
 
   /**
-   * Writes the feed title into the preview document.
-   * @param   container
-   *          The feed container
-   */
-  _setTitleText: function FW__setTitleText(container) {
-    if (container.title) {
-      this._setContentText(TITLE_ID, container.title.plainText());
-      this._document.title = container.title.plainText();
-    }
-
-    var feed = container.QueryInterface(Ci.nsIFeed);
-    if (feed && feed.subtitle)
-      this._setContentText(SUBTITLE_ID, container.subtitle.plainText());
-  },
-
-  /**
-   * Writes the title image into the preview document if one is present.
-   * @param   container
-   *          The feed container
-   */
-  _setTitleImage: function FW__setTitleImage(container) {
-    try {
-      var parts = container.image;
-      
-      // Set up the title image (supplied by the feed)
-      var feedTitleImage = this._document.getElementById("feedTitleImage");
-      this._unsafeSetURIAttribute(feedTitleImage, "src", 
-                                parts.getPropertyAsAString("url"));
-
-      // Set up the title image link
-      var feedTitleLink = this._document.getElementById("feedTitleLink");
-
-      var titleText = this._getFormattedString("linkTitleTextFormat", 
-                                               [parts.getPropertyAsAString("title")]);
-      this._contentSandbox.feedTitleLink = feedTitleLink;
-      this._contentSandbox.titleText = titleText;
-      var codeStr = "feedTitleLink.setAttribute('title', titleText);";
-      Cu.evalInSandbox(codeStr, this._contentSandbox);
-      this._contentSandbox.feedTitleLink = null;
-      this._contentSandbox.titleText = null;
-
-      this._unsafeSetURIAttribute(feedTitleLink, "href", 
-                                parts.getPropertyAsAString("link"));
-
-      // Fix the margin on the main title, so that the image doesn't run over
-      // the underline
-      var feedTitleText = this._document.getElementById("feedTitleText");
-      var titleImageWidth = parseInt(parts.getPropertyAsAString("width")) + 15;
-      feedTitleText.style.marginRight = titleImageWidth + "px";
-    }
-    catch (e) {
-      this._log.info("Failed to set Title Image (this is benign): " + e);
-    }
-  },
-
-  /**
    * A JavaScript Strands Future with which we pause the writing of messages
    * so as not to hork the UI thread.
    */
@@ -590,12 +534,12 @@ var RiverView = {
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
-      let messageContainer = this._document.createElementNS(HTML_NS, "div");
+      let messageContainer = this._document.createElementNS(XUL_NS, "hbox");
       messageContainer.className = "message";
       messageContainer.setAttribute("index", i);
 
       {
-        let contentContainer = this._document.createElementNS(HTML_NS, "div");
+        let contentContainer = this._document.createElementNS(XUL_NS, "vbox");
         contentContainer.className = "content";
 
         if (message.subject) {
@@ -605,16 +549,19 @@ var RiverView = {
           if (message.link)
             this._unsafeSetURIAttribute(a, "href", message.link);
 
-          let subject = this._document.createElementNS(HTML_NS, "h3");
+          let subject = this._document.createElementNS(XUL_NS, "description");
           subject.className = "subject";
           subject.appendChild(a);
 
           contentContainer.appendChild(subject);
         }
 
+        let foo = this._document.createElementNS(XUL_NS, "description");
+        foo.className = "bodyContainer";
         let body = this._document.createElementNS(HTML_NS, "div");
         body.className = "body";
-        contentContainer.appendChild(body);
+        contentContainer.appendChild(foo);
+        foo.appendChild(body);
 
         if (this._bodyButton.checked) {
           let summary = message.content || message.summary;
@@ -647,12 +594,12 @@ var RiverView = {
       }
 
       {
-        let metadataContainer = this._document.createElementNS(HTML_NS, "div");
+        let metadataContainer = this._document.createElementNS(XUL_NS, "vbox");
         metadataContainer.className = "metadata";
         messageContainer.appendChild(metadataContainer);
 
         {
-          let source = this._document.createElementNS(HTML_NS, "div");
+          let source = this._document.createElementNS(XUL_NS, "description");
           source.className = "source";
           let a = this._document.createElementNS(HTML_NS, "a");
           let icon = document.createElementNS(HTML_NS, "img");
@@ -667,14 +614,14 @@ var RiverView = {
         }
 
         if (message.author) {
-          let author = this._document.createElementNS(HTML_NS, "div");
+          let author = this._document.createElementNS(XUL_NS, "label");
           author.setAttribute("crop", "end");
           author.setAttribute("value", message.author);
           metadataContainer.appendChild(author);
         }
 
         {
-          let timestampContainer = this._document.createElementNS(HTML_NS, "div");
+          let timestampContainer = this._document.createElementNS(XUL_NS, "description");
           timestampContainer.className = "timestamp";
           // FIXME: message.timestamp should already be a date object.
           var lastUpdated = this._formatTimestamp(new Date(message.timestamp));
