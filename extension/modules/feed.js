@@ -19,6 +19,19 @@ const mediaTypes = { html: "text/html",
                      xhtml: "application/xhtml+xml",
                      text: "text/plain" };
 
+/**
+ * Convert a string to an array of character codes.
+ *
+ * @param string {string} the string to convert
+ * @returns {array} the array of character codes
+ */
+function stringToArray(string) {
+  var array = [];
+  for (let i = 0; i < string.length; i++)
+    array.push(string.charCodeAt(i));
+  return array;
+}
+
 function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   // Call the superclass's constructor to initialize the new instance.
   SnowlSource.call(this, aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
@@ -80,7 +93,7 @@ SnowlFeed.prototype = {
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    let currentMessages = [];
+    let currentMessageIDs = [];
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {
@@ -94,29 +107,25 @@ SnowlFeed.prototype = {
         // it has already been retrieved.
         let externalID;
         try {
-          externalID = entry.id || this.generateID(entry);
+          externalID = entry.id || this._generateID(entry);
         }
         catch(ex) {
-          this._log.warn(this.name + " couldn't retrieve a message: " + ex);
+          this._log.warn("couldn't retrieve a message: " + ex);
           continue;
         }
 
-        let internalID = this.getInternalIDForExternalID(externalID);
+        let internalID = this._getInternalIDForExternalID(externalID);
+        if (internalID)
+          continue;
 
-        if (internalID) {
-          //this._log.info(this.name + " has message " + externalID);
-        }
-        else {
-          this._log.info(this.name + " adding message " + externalID);
-          internalID = this.addMessage(entry, externalID);
-        }
-
-        currentMessages.push(internalID);
+        this._log.info(this.name + " adding message " + externalID);
+        internalID = this._addMessage(entry, externalID);
+        currentMessageIDs.push(internalID);
       }
 
       // Update the current flag.
       SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 0 WHERE sourceID = " + this.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE sourceID = " + this.id + " AND id IN (" + currentMessages.join(", ") + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE id IN (" + currentMessageIDs.join(", ") + ")");
 
       SnowlDatastore.dbConnection.commitTransaction();
     }
@@ -135,7 +144,7 @@ SnowlFeed.prototype = {
    * @param aEntry        {nsIFeedEntry}  the feed entry
    * @param aExternalID   {string}        the external ID of the feed entry
    */
-  addMessage: function(aEntry, aExternalID) {
+  _addMessage: function(aEntry, aExternalID) {
     // Combine the first author's name and email address into a single string
     // that we'll use as the author of the message.
     let author = null;
@@ -154,8 +163,6 @@ SnowlFeed.prototype = {
 
     // Convert the publication date/time string into a JavaScript Date object.
     let timestamp = aEntry.published ? new Date(aEntry.published) : null;
-
-    // FIXME: wrap all queries that add the message into a transaction?
 
     // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
@@ -187,10 +194,10 @@ SnowlFeed.prototype = {
           let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
           // FIXME: store people records in a separate table with individual
           // columns for each person attribute (i.e. name, email, url)?
-          this.addMetadatum(messageID,
-                                    "atom:author",
-                                    value.name && value.email ? value.name + "<" + value.email + ">"
-                                                              : value.name ? value.name : value.email);
+          this._addMetadatum(messageID,
+                             "atom:author",
+                             value.name && value.email ? value.name + "<" + value.email + ">"
+                                                       : value.name ? value.name : value.email);
         }
       }
 
@@ -200,9 +207,9 @@ SnowlFeed.prototype = {
           let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
           // FIXME: store link records in a separate table with individual
           // colums for each link attribute (i.e. href, type, rel, title)?
-          this.addMetadatum(messageID,
-                                    "atom:link_" + value.get("rel"),
-                                    value.get("href"));
+          this._addMetadatum(messageID,
+                             "atom:link_" + value.get("rel"),
+                             value.get("href"));
         }
       }
 
@@ -213,35 +220,22 @@ SnowlFeed.prototype = {
       else if (typeof field.value == "object") {
         if (field.value instanceof Ci.nsIPropertyBag2) {
           let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
-          this.addMetadatum(messageID, field.name, value);
+          this._addMetadatum(messageID, field.name, value);
         }
         else if (field.value instanceof Ci.nsIArray) {
           let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
           while (values.hasMoreElements()) {
             let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            this.addMetadatum(messageID, field.name, value.get(field.name));
+            this._addMetadatum(messageID, field.name, value.get(field.name));
           }
         }
       }
 
       else
-        this.addMetadatum(messageID, field.name, field.value);
+        this._addMetadatum(messageID, field.name, field.value);
     }
 
     return messageID;
-  },
-
-  /**
-   * Convert a string to an array of character codes.
-   *
-   * @param string {string} the string to convert
-   * @returns {array} the array of character codes
-   */
-  stringToArray: function(string) {
-    var array = [];
-    for (let i = 0; i < string.length; i++)
-      array.push(string.charCodeAt(i));
-    return array;
   },
 
   /**
@@ -252,11 +246,11 @@ SnowlFeed.prototype = {
    * @param entry {nsIFeedEntry} the entry for which to generate an ID
    * @returns {string} an ID for the entry
    */
-  generateID: function(entry) {
+  _generateID: function(entry) {
     let hasher = Cc["@mozilla.org/security/hash;1"].
                  createInstance(Ci.nsICryptoHash);
     hasher.init(Ci.nsICryptoHash.SHA1);
-    let identity = this.stringToArray(entry.link.spec + entry.published + entry.title.text);
+    let identity = stringToArray(entry.link.spec + entry.published + entry.title.text);
     hasher.update(identity, identity.length);
     return "urn:" + hasher.finish(true);
   },
@@ -274,7 +268,7 @@ SnowlFeed.prototype = {
    *           the internal ID of the message, or undefined if the message
    *           doesn't exist
    */
-  getInternalIDForExternalID: function(aExternalID) {
+  _getInternalIDForExternalID: function(aExternalID) {
     return SnowlDatastore.selectInternalIDForExternalID(aExternalID);
   },
 
@@ -330,7 +324,7 @@ SnowlFeed.prototype = {
     return SnowlDatastore.dbConnection.lastInsertRowID;
   },
 
-  addMetadatum: function(aMessageID, aAttributeName, aValue) {
+  _addMetadatum: function(aMessageID, aAttributeName, aValue) {
     // FIXME: speed this up by caching the list of known attributes.
     let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
                       || SnowlDatastore.insertAttribute(aAttributeName);
