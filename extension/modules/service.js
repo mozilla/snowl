@@ -240,7 +240,7 @@ this._log.info("source: " + source.id + " is stale");
       // period of time.  We should instead keep trying when a source fails,
       // but with a progressively longer interval (up to the standard one).
       // FIXME: implement the approach described above.
-      source.resetLastRefreshed();
+      source.lastRefreshed = new Date();
     }
 
     this._obsSvc.notifyObservers(null, "messages:changed", null);

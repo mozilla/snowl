@@ -13,7 +13,7 @@ function SnowlSource(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImport
   this.name = aName;
   this.machineURI = aMachineURI;
   this.humanURI = aHumanURI;
-  this.lastRefreshed = aLastRefreshed;
+  this._lastRefreshed = aLastRefreshed;
   this.importance = aImportance;
 }
 
@@ -112,7 +112,22 @@ SnowlSource.prototype = {
 
   // A JavaScript Date object representing the last time this source
   // was checked for updates to its set of messages.
-  lastRefreshed: null,
+  _lastRefreshed: null,
+
+  get lastRefreshed() {
+    return this._lastRefreshed;
+  },
+
+  set lastRefreshed(newValue) {
+    this._lastRefreshed = newValue;
+
+    let stmt = SnowlDatastore.createStatement("UPDATE sources " +
+                                              "SET lastRefreshed = :lastRefreshed " +
+                                              "WHERE id = :id");
+    stmt.params.lastRefreshed = this._lastRefreshed.getTime();
+    stmt.params.id = this.id;
+    stmt.execute();
+  },
 
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.

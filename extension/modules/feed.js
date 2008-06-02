@@ -76,7 +76,7 @@ SnowlFeed.prototype = {
   onRefreshResult: function(aResult) {
     // Now that we know we successfully downloaded the feed and obtained
     // a result from it, update the "last refreshed" timestamp.
-    this.resetLastRefreshed(this);
+    this.lastRefreshed = new Date();
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
@@ -335,22 +335,6 @@ SnowlFeed.prototype = {
     let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
                       || SnowlDatastore.insertAttribute(aAttributeName);
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
-  },
-
-  /**
-   * Reset the last refreshed time for the given source to the current time.
-   *
-   * XXX should this be setLastRefreshed and take a time parameter
-   * to set the last refreshed time to?
-   *
-   * aSource {SnowlMessageSource} the source for which to set the time
-   */
-  // FIXME: make this a setter for the lastRefreshed property.
-  resetLastRefreshed: function() {
-    let stmt = SnowlDatastore.createStatement("UPDATE sources SET lastRefreshed = :lastRefreshed WHERE id = :id");
-    stmt.params.lastRefreshed = new Date().getTime();
-    stmt.params.id = this.id;
-    stmt.execute();
   },
 
   // FIXME: make this accept a callback to which it reports on its progress
