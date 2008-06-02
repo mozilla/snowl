@@ -186,12 +186,12 @@ let SnowlService = {
     try {
       while (this._getSourcesStatement.step()) {
         let row = this._getSourcesStatement.row;
-        sources.push(new SnowlSource(row.id,
-                                     row.name,
-                                     URI.get(row.machineURI),
-                                     URI.get(row.humanURI),
-                                     new Date(row.lastRefreshed),
-                                     row.importance));
+        sources.push(new SnowlFeed(row.id,
+                                   row.name,
+                                   URI.get(row.machineURI),
+                                   URI.get(row.humanURI),
+                                   new Date(row.lastRefreshed),
+                                   row.importance));
       }
     }
     finally {
@@ -230,9 +230,8 @@ this._log.info("source: " + source.id + " is stale");
 
   _refreshSources: function(aSources) {
     for each (let source in aSources) {
-dump("_refreshSources: " + source.machineURI + "\n");
-      let feed = new SnowlFeed(source.id, source.machineURI.spec, source.name);
-      feed.getNewMessages();
+dump("_refreshSources: " + source.machineURI.spec + "\n");
+      source.getNewMessages();
 
       // We reset the last refreshed timestamp here even though the refresh
       // is asynchronous, so we don't yet know whether it has succeeded.
@@ -242,7 +241,7 @@ dump("_refreshSources: " + source.machineURI + "\n");
       // period of time.  We should instead keep trying when a source fails,
       // but with a progressively longer interval (up to the standard one).
       // FIXME: implement the approach described above.
-      feed.resetLastRefreshed();
+      source.resetLastRefreshed();
     }
 
     this._obsSvc.notifyObservers(null, "messages:changed", null);

@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["SnowlFeed", "SnowlFeedSubscriber"];
+EXPORTED_SYMBOLS = ["SnowlFeed"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -12,73 +12,72 @@ const PART_TYPE_SUMMARY = 2;
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/source.js");
 
-var SnowlFeedClient = {
-  // XXX Make this take a feed ID once it stores the list of subscribed feeds
-  // in the datastore.
-  refresh: function(aFeedURL) {
+function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+  // Call the superclass's constructor to initialize the new instance.
+  SnowlSource.call(this, aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+
+  // XXX Can't this be defined when the prototype is?
+  this._log = Log4Moz.Service.getLogger("Snowl.Feed");
+}
+
+SnowlFeed.prototype = {
+  __proto__: SnowlSource.prototype,
+
+  _log: null,
+
+  // Observer Service
+  get _obsSvc() {
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].
+                 getService(Ci.nsIObserverService);
+    this.__defineGetter__("_obsSvc", function() { return obsSvc });
+    return this._obsSvc;
+  },
+
+  // FIXME: rename this refresh.
+  getNewMessages: function() {
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
     request.QueryInterface(Ci.nsIDOMEventTarget);
     let t = this;
-    request.addEventListener("load", function(aEvent) { t.onLoad(aEvent) }, false);
-    request.addEventListener("error", function(aEvent) { t.onError(aEvent) }, false);
+    request.addEventListener("load", function(e) { t.onRefreshLoad(e) }, false);
+    request.addEventListener("error", function(e) { t.onRefreshError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", aFeedURL, true);
+
+    // The feed processor is going to parse the XML, so override the MIME type
+    // in order to turn off parsing by XMLHttpRequest itself.
+    request.overrideMimeType("text/plain");
+
+    request.open("GET", this.machineURI.spec, true);
     request.send(null);
   },
 
-  onLoad: function(aEvent) {
+  onRefreshLoad: function(aEvent) {
     let request = aEvent.target;
 
-    if (request.responseText.length > 0) {
-      let parser = Cc["@mozilla.org/feed-processor;1"].
-                   createInstance(Ci.nsIFeedProcessor);
-      parser.listener = new SnowlFeed(request.channel.originalURI);
-      parser.parseFromString(request.responseText, request.channel.URI);
-    }
+    // XXX What's the right way to handle this?
+    if (request.responseText.length == 0)
+      throw("feed contains no data");
+
+    let parser = Cc["@mozilla.org/feed-processor;1"].
+                 createInstance(Ci.nsIFeedProcessor);
+    parser.listener = { t: this, handleResult: function(r) { this.t.onRefreshResult(r) } };
+    parser.parseFromString(request.responseText, request.channel.URI);
   },
 
-  onError: function(aEvent) {
-    // FIXME: figure out what to do here.
-    Log4Moz.Service.getLogger("Snowl.FeedClient").error("loading feed " + aEvent.target.channel.originalURI.spec);
-  }
-};
-
-function SnowlFeed(aID, aURL, aTitle) {
-  this.id = aID;
-  this.url = aURL;
-  this.title = aTitle;
-
-  this._log = Log4Moz.Service.getLogger("Snowl.Feed");
-}
-
-// FIXME: make this a subclass of SnowlSource.
-
-SnowlFeed.prototype = {
-  id: null,
-  url: null,
-  title: null,
-
-  _log: null,
-
-  QueryInterface: function(aIID) {
-    if (aIID.equals(Ci.nsIFeedResultListener) ||
-        aIID.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
+  onRefreshError: function(aEvent) {
+    this._log.error("onRefreshError: " + aEvent.target.status + " " +
+                    aEvent.target.statusText + " " + aEvent.target.responseText.length);
   },
 
-  // nsIFeedResultListener
-
-  handleResult: function(result) {
+  onRefreshResult: function(aResult) {
     // Now that we know we successfully downloaded the feed and obtained
     // a result from it, update the "last refreshed" timestamp.
     this.resetLastRefreshed(this);
 
-    let feed = result.doc.QueryInterface(Components.interfaces.nsIFeed);
+    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     let currentMessages = [];
 
@@ -97,17 +96,17 @@ SnowlFeed.prototype = {
           externalID = entry.id || this.generateID(entry);
         }
         catch(ex) {
-          this._log.warn(this.title + " couldn't retrieve a message: " + ex);
+          this._log.warn(this.name + " couldn't retrieve a message: " + ex);
           continue;
         }
 
         let internalID = this.getInternalIDForExternalID(externalID);
 
         if (internalID) {
-          //this._log.info(this.title + " has message " + externalID);
+          //this._log.info(this.name + " has message " + externalID);
         }
         else {
-          this._log.info(this.title + " adding message " + externalID);
+          this._log.info(this.name + " adding message " + externalID);
           internalID = this.addMessage(entry, externalID);
         }
 
@@ -124,41 +123,13 @@ SnowlFeed.prototype = {
       SnowlDatastore.dbConnection.rollbackTransaction();
       throw ex;
     }
+
+    // FIXME: only do this if something has actually changed.
+    this._obsSvc.notifyObservers(null, "messages:changed", null);
   },
 
   // nsIFeedTextConstruct::type to media type mappings.
   mediaTypes: { html: "text/html", xhtml: "application/xhtml+xml", text: "text/plain" },
-
-  getNewMessages: function() {
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    request.QueryInterface(Ci.nsIDOMEventTarget);
-    // FIXME: just pass "this" and make this implement nsIDOMEventListener.
-    let t = this;
-    request.addEventListener("load", function(aEvent) { t.onLoad(aEvent) }, false);
-    request.addEventListener("error", function(aEvent) { t.onError(aEvent) }, false);
-
-    request.QueryInterface(Ci.nsIXMLHttpRequest);
-//dump("about to getNewMessages for " + this.url + "\n");
-    request.open("GET", this.url, true);
-    request.send(null);
-  },
-
-  onLoad: function(aEvent) {
-    let request = aEvent.target;
-
-    if (request.responseText.length > 0) {
-      let parser = Cc["@mozilla.org/feed-processor;1"].
-                   createInstance(Ci.nsIFeedProcessor);
-      parser.listener = this;
-      parser.parseFromString(request.responseText, request.channel.URI);
-    }
-  },
-
-  onError: function(aEvent) {
-    // FIXME: figure out what to do here.
-    this._log.error("loading feed " + aEvent.target.channel.originalURI);
-  },
 
   /**
    * Add a message to the datastore for the given feed entry.
@@ -376,114 +347,85 @@ SnowlFeed.prototype = {
    *
    * aSource {SnowlMessageSource} the source for which to set the time
    */
+  // FIXME: make this a setter for the lastRefreshed property.
   resetLastRefreshed: function() {
     let stmt = SnowlDatastore.createStatement("UPDATE sources SET lastRefreshed = :lastRefreshed WHERE id = :id");
     stmt.params.lastRefreshed = new Date().getTime();
     stmt.params.id = this.id;
     stmt.execute();
-  }
-
-};
-
-// XXX Should we make this part of the Feed object?
-// FIXME: make this accept a callback to which it reports on its progress
-// so we can provide feedback to the user in subscription interfaces.
-function SnowlFeedSubscriber(aURI, aName) {
-  this.uri = aURI;
-  this.name = aName;
-}
-
-SnowlFeedSubscriber.prototype = {
-  uri: null,
-  name: null,
-
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    this.__defineGetter__("_obsSvc", function() { return obsSvc });
-    return this._obsSvc;
   },
 
-  QueryInterface: function(aIID) {
-    if (aIID.equals(Ci.nsIDOMEventListener) ||
-        aIID.equals(Ci.nsIFeedResultListener) ||
-        aIID.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  },
-
+  // FIXME: make this accept a callback to which it reports on its progress
+  // so we can provide feedback to the user in subscription interfaces.
   subscribe: function() {
+    this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
+
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
     request = request.QueryInterface(Ci.nsIDOMEventTarget);
-    request.addEventListener("load", this, false);
-    request.addEventListener("error", this, false);
+
+    let t = this;
+    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
+    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
     request = request.QueryInterface(Ci.nsIXMLHttpRequest);
 
-    // The feed processor is going to parse the XML, so set the MIME type
+    // The feed processor is going to parse the XML, so override the MIME type
     // in order to turn off parsing by XMLHttpRequest itself.
     request.overrideMimeType("text/plain");
 
-    request.open("GET", this.uri.spec, true);
+    request.open("GET", this.machineURI.spec, true);
     request.send(null);
   },
 
-  // nsIDOMEventListener
-
-  handleEvent: function(aEvent) {
-    switch(aEvent.type) {
-      case "load":
-        this.onLoad(aEvent);
-        break;
-      case "error":
-        this.onError(aEvent);
-        break;
-    }
-  },
-
-  onError: function(aEvent) {
-dump("XMLHTTPRequest.onError for " + this.name + " <" + this.uri.spec + ">: " + aEvent.target.status + " " + aEvent.target.statusText + " " + aEvent.target.responseText.length + "\n");
-  },
-
-  onLoad: function(aEvent) {
+  onSubscribeLoad: function(aEvent) {
     let request = aEvent.target;
 
-    // FIXME: notify the user about the problem.
+    // XXX What's the right way to handle this?
     if (request.responseText.length == 0)
       throw("feed contains no data");
 
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);
-    parser.listener = this;
+    parser.listener = { t: this, handleResult: function(r) { this.t.onSubscribeResult(r) } };
     parser.parseFromString(request.responseText, request.channel.URI);
   },
 
-  // nsIFeedResultListener
+  onSubscribeError: function(aEvent) {
+    this._log.error("onSubscribeError: " + aEvent.target.status + " " +
+                    aEvent.target.statusText + " " + aEvent.target.responseText.length);
+  },
 
-  handleResult: function(aResult) {
+  onSubscribeResult: function(aResult) {
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    // Subscribe to the feed.
-    let name = this.name || feed.title.plainText();
-    let statement = SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) VALUES (:name, :machineURI, :humanURI)");
-    statement.params.name = name;
-    statement.params.machineURI = this.uri.spec;
-    statement.params.humanURI = feed.link.spec;
-    //dump("subscribing to " + name + " <" + this.uri.spec + ">\n");
-    statement.step();
+    // Extract the name (if we don't already have one) and human URI from the feed.
+    if (!this.name)
+      this.name = feed.title.plainText();
+    this.humanURI = feed.link;
 
-    let id = SnowlDatastore.dbConnection.lastInsertRowID;
+    // Add the source to the database.
+    let statement =
+      SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
+                                     "VALUES (:name, :machineURI, :humanURI)");
+    try {
+      statement.params.name = this.name;
+      statement.params.machineURI = this.machineURI.spec;
+      statement.params.humanURI = this.humanURI.spec;
+      statement.step();
+    }
+    finally {
+      statement.reset();
+    }
 
-    // Now refresh the feed to import all its items.
-    //dump("refreshing " + this.uri.spec + "\n");
-    let feed2 = new SnowlFeed(id, this.uri.spec, name);
-    feed2.handleResult(aResult);
+    // Extract the ID of the source from the newly-created database record.
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
 
+    // Let observers know about the new source.
     this._obsSvc.notifyObservers(null, "sources:changed", null);
-    this._obsSvc.notifyObservers(null, "messages:changed", null);
+
+    // Refresh the feed to import all its items.
+    this.onRefreshResult(aResult);
   }
 
 };

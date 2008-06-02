@@ -108,9 +108,9 @@ SourcesView = {
     let uri = URI.get(aOutline.getAttribute("xmlUrl"));
     if (uri) {
       // FIXME: make sure the user isn't already subscribed to the feed
-      // before subscribing them.
+      // before subscribing her to it.
       let name = aOutline.getAttribute("title") || aOutline.getAttribute("text") || "untitled";
-      this._importItem(uri, name);
+      new SnowlFeed(null, name, uri).subscribe();
     }
 
     if (aOutline.hasChildNodes()) {
@@ -125,11 +125,6 @@ SourcesView = {
         this._importOutline(child);
       }
     }
-  },
-
-  _importItem: function(aURL, aName) {
-    let subscriber = new SnowlFeedSubscriber(aURL, aName);
-    subscriber.subscribe();
   },
 
 
