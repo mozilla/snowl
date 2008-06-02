@@ -230,8 +230,7 @@ this._log.info("source: " + source.id + " is stale");
 
   _refreshSources: function(aSources) {
     for each (let source in aSources) {
-dump("_refreshSources: " + source.machineURI.spec + "\n");
-      source.getNewMessages();
+      source.refresh();
 
       // We reset the last refreshed timestamp here even though the refresh
       // is asynchronous, so we don't yet know whether it has succeeded.

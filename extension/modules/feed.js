@@ -37,8 +37,7 @@ SnowlFeed.prototype = {
     return this._obsSvc;
   },
 
-  // FIXME: rename this refresh.
-  getNewMessages: function() {
+  refresh: function() {
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
     request.QueryInterface(Ci.nsIDOMEventTarget);
