@@ -22,15 +22,12 @@ const mediaTypes = { html: "text/html",
 function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   // Call the superclass's constructor to initialize the new instance.
   SnowlSource.call(this, aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
-
-  // XXX Can't this be defined when the prototype is?
-  this._log = Log4Moz.Service.getLogger("Snowl.Feed");
 }
 
 SnowlFeed.prototype = {
   __proto__: SnowlSource.prototype,
 
-  _log: null,
+  _log: Log4Moz.Service.getLogger("Snowl.Feed"),
 
   // Observer Service
   get _obsSvc() {
