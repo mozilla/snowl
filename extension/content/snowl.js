@@ -2,6 +2,7 @@ Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 let SnowlView = {
   _log: null,
@@ -297,7 +298,10 @@ let SnowlView = {
     let row = this._tree.currentIndex;
     let message = this._collection.messages[row];
 
-    window.loadURI(message.link, null, null, false);
+    //window.loadURI(message.link, null, null, false);
+    let url = "chrome://snowl/content/message/message.xul?id=" + message.id;
+    window.loadURI(url, null, null, false);
+
     this._setRead(true);
   },
 

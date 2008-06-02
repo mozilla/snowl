@@ -31,6 +31,31 @@ function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead) {
   this._read = aRead;
 }
 
+SnowlMessage.get = function(aID) {
+  let message;
+
+  let statement = SnowlDatastore.createStatement(
+    "SELECT subject, author, link, timestamp, read FROM messages WHERE id = :id"
+  );
+
+  try {
+    statement.params.id = aID;
+    if (statement.step()) {
+      message = new SnowlMessage(aID,
+                                 statement.row.subject,
+                                 statement.row.author,
+                                 statement.row.link,
+                                 statement.row.timestamp,
+                                 (statement.row.read ? true : false));
+    }
+  }
+  finally {
+    statement.reset();
+  }
+
+  return message;
+};
+
 SnowlMessage.prototype = {
   id: null,
   subject: null,
