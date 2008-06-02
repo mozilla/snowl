@@ -5,6 +5,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/source.js");
+
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
 const PART_TYPE_SUMMARY = 2;
@@ -13,11 +18,6 @@ const PART_TYPE_SUMMARY = 2;
 const mediaTypes = { html: "text/html",
                      xhtml: "application/xhtml+xml",
                      text: "text/plain" };
-
-Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/URI.js");
-Cu.import("resource://snowl/modules/source.js");
 
 function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   // Call the superclass's constructor to initialize the new instance.
