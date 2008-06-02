@@ -9,6 +9,11 @@ const Cu = Components.utils;
 const PART_TYPE_CONTENT = 1;
 const PART_TYPE_SUMMARY = 2;
 
+// nsIFeedTextConstruct::type to media type mappings.
+const mediaTypes = { html: "text/html",
+                     xhtml: "application/xhtml+xml",
+                     text: "text/plain" };
+
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -128,9 +133,6 @@ SnowlFeed.prototype = {
     this._obsSvc.notifyObservers(null, "messages:changed", null);
   },
 
-  // nsIFeedTextConstruct::type to media type mappings.
-  mediaTypes: { html: "text/html", xhtml: "application/xhtml+xml", text: "text/plain" },
-
   /**
    * Add a message to the datastore for the given feed entry.
    *
@@ -168,13 +170,13 @@ SnowlFeed.prototype = {
     if (aEntry.content) {
       this.addPart(messageID, PART_TYPE_CONTENT, aEntry.content.text,
                    (aEntry.content.base ? aEntry.content.base.spec : null),
-                   aEntry.content.lang, this.mediaTypes[aEntry.content.type]);
+                   aEntry.content.lang, mediaTypes[aEntry.content.type]);
     }
 
     if (aEntry.summary) {
       this.addPart(messageID, PART_TYPE_SUMMARY, aEntry.summary.text,
                    (aEntry.summary.base ? aEntry.summary.base.spec : null),
-                   aEntry.summary.lang, this.mediaTypes[aEntry.summary.type]);
+                   aEntry.summary.lang, mediaTypes[aEntry.summary.type]);
     }
 
     // Add metadata.
