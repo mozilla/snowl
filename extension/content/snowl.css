@@ -16,3 +16,11 @@ toolbarbutton.snowlToolbarButton {
 .snowlToolbarButton .toolbarbutton-text {
   display: none;
 }
+
+#snowlViewContainer[placement="top"] #snowlPlacementButton {
+  list-style-image: url("chrome://snowl/content/icons/application_tile_horizontal.png");
+}
+
+#snowlViewContainer[placement="side"] #snowlPlacementButton {
+  list-style-image: url("chrome://snowl/content/icons/application_split.png");
+}
