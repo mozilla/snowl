@@ -94,6 +94,7 @@ SnowlFeed.prototype = {
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     let currentMessageIDs = [];
+    let messagesChanged = false;
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {
@@ -118,12 +119,14 @@ SnowlFeed.prototype = {
         if (internalID)
           continue;
 
+        messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
         internalID = this._addMessage(entry, externalID);
         currentMessageIDs.push(internalID);
       }
 
       // Update the current flag.
+      // XXX Should this affect whether or not messages have changed?
       SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 0 WHERE sourceID = " + this.id);
       SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE id IN (" + currentMessageIDs.join(", ") + ")");
 
@@ -134,8 +137,8 @@ SnowlFeed.prototype = {
       throw ex;
     }
 
-    // FIXME: only do this if something has actually changed.
-    this._obsSvc.notifyObservers(null, "messages:changed", null);
+    if (messagesChanged)
+      this._obsSvc.notifyObservers(null, "messages:changed", null);
   },
 
   /**

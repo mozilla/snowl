@@ -242,8 +242,6 @@ this._log.info("source: " + source.id + " is stale");
       // FIXME: implement the approach described above.
       source.lastRefreshed = new Date();
     }
-
-    this._obsSvc.notifyObservers(null, "messages:changed", null);
   },
 
   /**
