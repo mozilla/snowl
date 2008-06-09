@@ -236,7 +236,7 @@ SnowlCollection.prototype = {
       return 0;
     };
 
-    this._messages.sort(compare);
+    this.messages.sort(compare);
   }
 }
 

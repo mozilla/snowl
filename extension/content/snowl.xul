@@ -60,7 +60,6 @@
           <treecol id="snowlTimestampCol" label="Date" flex="1"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
-                   sortDirection="ascending"
                    onclick="SnowlView.onClickColumnHeader(event)"/>
         </treecols>
 
