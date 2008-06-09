@@ -50,6 +50,17 @@ let SnowlView = {
     return this._tree = document.getElementById("snowlView");
   },
 
+  get _currentButton() {
+    delete this._currentButton;
+    return this._currentButton = document.getElementById("snowlCurrentButton");
+  },
+
+  get _unreadButton() {
+    delete this._unreadButton;
+    return this._unreadButton = document.getElementById("snowlUnreadButton");
+  },
+
+  // Maps XUL tree column IDs to collection properties.
   _columnProperties: {
     "snowlAuthorCol": "author",
     "snowlSubjectCol": "subject",
@@ -121,7 +132,7 @@ let SnowlView = {
 
     this._collection = new SnowlCollection();
     this._sort();
-    this._tree.view = this;
+    this._rebuildView();
   },
 
   destroy: function() {
@@ -160,31 +171,36 @@ let SnowlView = {
     // itself, then rebuild the view in a timeout to give the collection time
     // to do so.
     this._collection.invalidate();
-
-    // Rebuild the view to reflect the new collection of messages.
-    // Since the number of rows might have changed, we do this by reinitializing
-    // the view instead of merely invalidating the box object (which doesn't
-    // expect changes to the number of rows).
-    this._tree.view = this;
+    this._rebuildView();
   },
 
   onFilter: function() {
     this._collection.filter = this._filter.value;
+    this._rebuildView();
+  },
 
-    // Rebuild the view to reflect the new collection of messages.
-    // Since the number of rows might have changed, we do this by reinitializing
-    // the view instead of merely invalidating the box object (which doesn't
-    // expect changes to the number of rows).
-    this._tree.view = this;
+  onCommandCurrentButton: function(aEvent) {
+    this._collection.current = this._currentButton.checked ? true : undefined;
+    this._rebuildView();
+  },
+
+  onCommandUnreadButton: function(aEvent) {
+    // FIXME: instead of rebuilding from scratch each time, when going from
+    // all to unread, simply hide the ones that are read (f.e. by setting a CSS
+    // class on read items and then using a CSS rule to hide them).
+    this._collection.read = this._unreadButton.checked ? false : undefined;
+    this._rebuildView();
   },
 
   setSource: function(aSourceID) {
     this._collection.sourceID = aSourceID;
+    this._rebuildView();
+  },
 
-    // Rebuild the view to reflect the new collection of messages.
-    // Since the number of rows might have changed, we do this by reinitializing
-    // the view instead of merely invalidating the box object (which doesn't
-    // expect changes to the number of rows).
+  _rebuildView: function() {
+    // Since the number of rows might have changed, we rebuild the view
+    // by reinitializing it instead of merely invalidating the box object
+    // (which wouldn't accommodate changes to the number of rows).
     this._tree.view = this;
   },
 
