@@ -1,0 +1,19 @@
+#head {
+  border-bottom: 1px solid black;
+}
+
+.labelBox {
+  -moz-box-pack: end;
+}
+
+.label {
+  font-weight: bold;
+}
+
+#body {
+  -moz-box-flex: 1;
+  overflow: auto;
+  padding: 10px;
+  background-color: white;
+  color: black;
+}

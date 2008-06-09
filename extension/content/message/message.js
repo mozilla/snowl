@@ -25,16 +25,23 @@ for each (let param in query.split("&")) {
 
 let message = SnowlMessage.get(parseInt(params.id));
 
-let body = document.createElementNS(HTML_NS, "div");
-body.className = "body";
-document.documentElement.appendChild(body);
+let body = document.getElementById("body");
 
-let summary = message.content || message.summary;
-if (summary) {
-  if (summary.base)
-    body.setAttributeNS(XML_NS, "base", summary.base.spec);
+let content = message.content || message.summary;
+if (content) {
+  if (content.base)
+    body.setAttributeNS(XML_NS, "base", content.base.spec);
 
-  let docFragment = summary.createDocumentFragment(body);
+  let docFragment = content.createDocumentFragment(body);
   if (docFragment)
     body.appendChild(docFragment);
 }
+
+document.getElementById("author").value = message.author;
+document.getElementById("subject").value = message.subject;
+document.getElementById("timestamp").value = message.timestamp;
+
+let link = document.createElementNS(HTML_NS, "a");
+link.setAttribute("href", message.link);
+link.appendChild(document.createTextNode(message.link));
+document.getElementById("link").appendChild(link);

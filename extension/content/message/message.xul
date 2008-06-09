@@ -37,8 +37,46 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/message/message.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <vbox id="head">
+    <grid>
+      <columns>
+        <column id="labelColumn"/>
+        <column id="valueColumn"/>
+      </columns>
+      <rows>
+        <row id="authorRow">
+          <hbox class="labelBox">
+            <label class="label" value="Author:"/>
+          </hbox>
+          <label id="author"/>
+        </row>
+        <row id="subjectRow">
+          <hbox class="labelBox">
+            <label class="label" value="Subject:"/>
+          </hbox>
+          <label id="subject"/>
+        </row>
+        <row id="timestampRow">
+          <hbox class="labelBox">
+            <label class="label" value="Date:"/>
+          </hbox>
+          <label id="timestamp"/>
+        </row>
+        <row id="linkRow">
+          <hbox class="labelBox">
+            <label class="label" value="Link:"/>
+          </hbox>
+          <label id="link"/>
+        </row>
+      </rows>
+    </grid>
+  </vbox>
+
+  <vbox id="body"/>
 
   <script type="application/x-javascript" src="chrome://snowl/content/message/message.js"/>
 
