@@ -205,6 +205,7 @@ let SnowlView = {
   },
 
   // From toolkit/mozapps/update/content/history.js
+  // XXX Really? ^
 
   /**
    * Formats a timestamp for human consumption using the date formatting service

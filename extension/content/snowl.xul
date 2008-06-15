@@ -33,7 +33,7 @@
 
   <vbox id="appcontent">
     <vbox id="snowlViewContainer" insertbefore="content" placement="top"
-          persist="hidden placement">
+          persist="hidden placement height width">
       <toolbar id="snowlViewToolbar" pack="end">
         <toolbarbutton id="snowlCurrentButton" class="snowlToolbarButton"
                        type="checkbox"
@@ -54,10 +54,9 @@
         <textbox id="snowlFilter" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
       </toolbar>
 
-      <tree id="snowlView" flex="1" rows="10" enableColumnDrag="true"
-            persist="sortResource sortDirection"
+      <tree id="snowlView" flex="1" persist="sortResource sortDirection"
             sortResource="snowlTimestampCol" sortDirection="ascending"
-            disableKeyNavigation="true"
+            enableColumnDrag="true" disableKeyNavigation="true"
             onselect="SnowlView.onSelect(event)"
             onkeypress="SnowlView.onKeyPress(event)">
         <treecols>
