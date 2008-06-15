@@ -123,7 +123,7 @@ SnowlFeed.prototype = {
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(entry, externalID);
+        internalID = this._addMessage(feed, entry, externalID);
         currentMessageIDs.push(internalID);
       }
 
@@ -146,24 +146,29 @@ SnowlFeed.prototype = {
   /**
    * Add a message to the datastore for the given feed entry.
    *
-   * @param aEntry        {nsIFeedEntry}  the feed entry
-   * @param aExternalID   {string}        the external ID of the feed entry
+   * @param aFeed         {nsIFeed}       the feed
+   * @param aEntry        {nsIFeedEntry}  the entry
+   * @param aExternalID   {string}        the external ID of the entry
    */
-  _addMessage: function(aEntry, aExternalID) {
-    // Combine the first author's name and email address into a single string
-    // that we'll use as the author of the message.
+  _addMessage: function(aFeed, aEntry, aExternalID) {
+    // Determine the author.
     let author = null;
     if (aEntry.authors.length > 0) {
       let firstAuthor = aEntry.authors.queryElementAt(0, Ci.nsIFeedPerson);
-      let name = firstAuthor.name;
-      let email = firstAuthor.email;
-      if (name) {
-        author = name;
-        if (email)
-          author += " <" + email + ">";
-      }
-      else if (email)
-        author = email;
+      if (firstAuthor.name)
+        author = firstAuthor.name;
+      else if (firstAuthor.email)
+        author = firstAuthor.email;
+    }
+    if (!author && aFeed.authors.length > 0) {
+      let firstAuthor = aFeed.authors.queryElementAt(0, Ci.nsIFeedPerson);
+      if (firstAuthor.name)
+        author = firstAuthor.name;
+      else if (firstAuthor.email)
+        author = firstAuthor.email;
+    }
+    if (!author && aFeed.title) {
+      author = aFeed.title.plainText();
     }
 
     // Pick a timestamp, which is one of (by priority, high to low):
