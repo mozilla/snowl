@@ -12,6 +12,8 @@
 
 #body {
   -moz-box-flex: 1;
+  -moz-user-focus: normal;
+  -moz-user-select: text;
   overflow: auto;
   padding: 10px;
   background-color: white;
