@@ -45,32 +45,32 @@
     <grid>
       <columns>
         <column id="labelColumn"/>
-        <column id="valueColumn"/>
+        <column id="valueColumn" flex="1"/>
       </columns>
       <rows>
         <row id="authorRow">
           <hbox class="labelBox">
             <label class="label" value="Author:"/>
           </hbox>
-          <label id="author"/>
+          <label id="author" crop="end"/>
         </row>
         <row id="subjectRow">
           <hbox class="labelBox">
             <label class="label" value="Subject:"/>
           </hbox>
-          <label id="subject"/>
+          <label id="subject" crop="end"/>
         </row>
         <row id="timestampRow">
           <hbox class="labelBox">
             <label class="label" value="Date:"/>
           </hbox>
-          <label id="timestamp"/>
+          <label id="timestamp" crop="end"/>
         </row>
         <row id="linkRow">
           <hbox class="labelBox">
             <label class="label" value="Link:"/>
           </hbox>
-          <label id="link"/>
+          <label id="link" class="text-link" crop="end"/>
         </row>
       </rows>
     </grid>

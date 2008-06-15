@@ -41,11 +41,8 @@ document.getElementById("author").value = message.author;
 document.getElementById("subject").value = message.subject;
 document.documentElement.setAttribute("title", message.subject);
 document.getElementById("timestamp").value = formatTimestamp(new Date(message.timestamp));
-
-let link = document.createElementNS(HTML_NS, "a");
-link.setAttribute("href", message.link);
-link.appendChild(document.createTextNode(message.link));
-document.getElementById("link").appendChild(link);
+document.getElementById("link").href = message.link;
+document.getElementById("link").value = message.link;
 
 // FIXME: put this into a SnowlUtils module.
 
