@@ -5,6 +5,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
+
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -164,8 +166,16 @@ SnowlFeed.prototype = {
         author = email;
     }
 
-    // Convert the publication date/time string into a JavaScript Date object.
-    let timestamp = aEntry.published ? new Date(aEntry.published) : null;
+    // Pick a timestamp, which is one of (by priority, high to low):
+    // 1. when the entry was last updated;
+    // 2. when the entry was published;
+    // 3. the Dublin Core timestamp associated with the entry;
+    // XXX Should we separately record when we added the entry so that the user
+    // can sort in the "order received" and view "when received" separately from
+    // "when published/updated"?
+    let timestamp = aEntry.updated ? new Date(aEntry.updated) :
+                    aEntry.published ? new Date(aEntry.published) :
+                    ISO8601DateUtils.parse(aEntry.get("dc:date"));
 
     // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
