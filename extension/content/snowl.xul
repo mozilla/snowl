@@ -34,7 +34,7 @@
   <vbox id="appcontent">
     <vbox id="snowlViewContainer" insertbefore="content" placement="top"
           persist="hidden placement height width">
-      <toolbar id="snowlViewToolbar" pack="end">
+      <toolbar id="snowlViewToolbar" pack="end" align="center">
         <toolbarbutton id="snowlPlacementButton" class="snowlToolbarButton"
                        oncommand="SnowlView.switchPlacement()"
                        tooltiptext="Switch placement."/>
@@ -53,7 +53,11 @@
                        oncommand="SnowlView.onCommandUnreadButton(event)"
                        tooltiptext="Only show unread messages."/>
 
-        <textbox id="snowlFilter" type="timed" timeout="200" oncommand="SnowlView.onFilter()"/>
+        <textbox id="snowlFilter" type="timed" timeout="200"
+                 oncommand="SnowlView.onFilter()"/>
+
+        <toolbarbutton class="tabs-closebutton" tooltiptext="Close Messages"
+                       oncommand="SnowlView.toggle()"/>
       </toolbar>
 
       <tree id="snowlView" flex="1" persist="sortResource sortDirection"
