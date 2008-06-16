@@ -12,8 +12,9 @@
 
   <menupopup id="menu_viewPopup">
     <menuitem id="viewMessagesMenuitem" insertafter="viewSidebarMenuMenu"
-              label="Messages" type="checkbox" checked="true" accesskey="M"
-              persist="checked" oncommand="SnowlView.toggle()"/>
+              label="Messages" accesskey="M"
+              type="checkbox" checked="true" autocheck="false" persist="checked"
+              oncommand="SnowlView.toggle()"/>
   </menupopup>
 
   <menupopup id="viewSidebarMenu">
