@@ -99,6 +99,11 @@ SourcesView = {
     this._subscribePanel.hidePopup();
   },
 
+  onCommandSubscribeButton: function() {
+    let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
+    new SnowlFeed(null, null, uri).subscribe();
+    this._subscribePanel.hidePopup();
+  },
 
   //**************************************************************************//
   // OPML Import
