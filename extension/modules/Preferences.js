@@ -18,6 +18,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Daniel Aquino <mr.danielaquino@gmail.com>
  *   Myk Melez <myk@mozilla.org>
  *
  * Alternatively, the contents of this file may be used under the terms of
@@ -34,7 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["Preferences"];
+let EXPORTED_SYMBOLS = ["Preferences"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;

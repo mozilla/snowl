@@ -49,31 +49,29 @@
     <hbox align="center">
       <label control="snowlLocationTextbox" value="Location:"/>
       <textbox id="snowlLocationTextbox" flex="1"/>
-      <button label="Subscribe" default="true"
-              oncommand="SourcesView.onCommandSubscribeButton(event)"/>
+      <button label="Subscribe" default="true" oncommand="SourcesView.doSubscribe(event)"/>
     </hbox>
     <hbox align="center">
+      <label control="importOPMLButton" value="Or import an OPML list of feeds:"/>
       <spacer flex="1"/>
-      <button label="Import OPML..."
-              oncommand="SourcesView.onCommandImportOPMLButton(event)"/>
+      <button id="importOPMLButton" label="Import..." oncommand="SourcesView.doImportOPML(event)"/>
     </hbox>
     <vbox>
-      <hbox id="retrievingFeedBox" class="statusBox" align="center">
-        <image id="retrievingFeedIcon" class="statusIcon"/>
-        <label value="Retrieving feed" disabled="true"/>
+      <hbox id="connectingBox" class="statusBox" align="center">
+        <image id="connectingIcon" class="statusIcon"/>
+        <label value="Connecting to feed" disabled="true"/>
       </hbox>
-      <hbox id="authenticatingBox" class="statusBox" align="center" status="underway">
+      <hbox id="authenticatingBox" class="statusBox" align="center">
         <image id="authenticatingIcon" class="statusIcon"/>
         <label value="Authenticating (if necessary)" disabled="true"/>
       </hbox>
-      <hbox id="addingStoriesBox" class="statusBox" align="center" status="complete">
-        <image id="addingStoriesIcon" class="statusIcon"/>
-        <label value="Adding stories" disabled="true"/>
+      <hbox id="gettingMessagesBox" class="statusBox" align="center">
+        <image id="gettingMessagesIcon" class="statusIcon"/>
+        <label value="Getting stories" disabled="true"/>
       </hbox>
     </vbox>
     <hbox>
-      <button label="Cancel"
-              oncommand="SourcesView.onCommandCancelButton(event)"/>
+      <button label="Cancel" oncommand="SourcesView.doCancel(event)"/>
       <spacer flex="1"/>
     </hbox>
   </panel>

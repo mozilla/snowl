@@ -11,7 +11,7 @@ toolbarbutton {
   list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
 }
 
-.statusBox[status="underway"] > .statusIcon {
+.statusBox[status="active"] > .statusIcon {
   list-style-image: url("chrome://global/skin/icons/loading_16.png");
 }
 

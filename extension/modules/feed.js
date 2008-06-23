@@ -11,6 +11,7 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/Observers.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -89,6 +90,8 @@ SnowlFeed.prototype = {
   },
 
   onRefreshResult: function(aResult) {
+    Observers.notify(this, "snowl:subscribe:get:start", null);
+
     // Now that we know we successfully downloaded the feed and obtained
     // a result from it, update the "last refreshed" timestamp.
     this.lastRefreshed = new Date();
@@ -141,6 +144,8 @@ SnowlFeed.prototype = {
 
     if (messagesChanged)
       this._obsSvc.notifyObservers(null, "messages:changed", null);
+
+    Observers.notify(this, "snowl:subscribe:get:end", null);
   },
 
   /**
@@ -349,9 +354,9 @@ SnowlFeed.prototype = {
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   },
 
-  // FIXME: make this accept a callback to which it reports on its progress
-  // so we can provide feedback to the user in subscription interfaces.
   subscribe: function() {
+    Observers.notify(this, "snowl:subscribe:connect:start", null);
+
     this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
@@ -373,11 +378,16 @@ SnowlFeed.prototype = {
   },
 
   onSubscribeLoad: function(aEvent) {
+    Observers.notify(this, "snowl:subscribe:connect:end", null);
+
     let request = aEvent.target;
 
     // XXX What's the right way to handle this?
     if (request.responseText.length == 0)
       throw("feed contains no data");
+
+    Observers.notify(this, "snowl:subscribe:authenticate:start", null);
+    Observers.notify(this, "snowl:subscribe:authenticate:end", null);
 
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);

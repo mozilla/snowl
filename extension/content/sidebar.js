@@ -9,6 +9,7 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/Observers.js");
 
 var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
@@ -70,7 +71,20 @@ SourcesView = {
   //**************************************************************************//
   // Event Handlers
 
-  onCommandImportOPMLButton: function() {
+  doSubscribe: function() {
+    let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
+    let feed = new SnowlFeed(null, null, uri);
+    Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
+    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:end");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
+    feed.subscribe();
+  },
+
+  doImportOPML: function() {
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     fp.init(window, "Import OPML", Ci.nsIFilePicker.modeOpen);
     fp.appendFilter("OPML Files", "*.opml");
@@ -95,15 +109,10 @@ SourcesView = {
     this._importOutline(outline);
   },
 
-  onCommandCancelButton: function() {
+  doCancel: function() {
     this._subscribePanel.hidePopup();
   },
 
-  onCommandSubscribeButton: function() {
-    let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
-    new SnowlFeed(null, null, uri).subscribe();
-    this._subscribePanel.hidePopup();
-  },
 
   //**************************************************************************//
   // OPML Import
@@ -260,5 +269,38 @@ this._log.info(row.value + " is not selected");
   }
 
 };
+
+function SubscriptionListener(subject, topic, data) {
+  dump("SubscriptionListener: topic = " + topic + "\n");
+  switch(topic) {
+    case "snowl:subscribe:connect:start":
+      document.getElementById("connectingBox").setAttribute("status", "active");
+      break;
+    case "snowl:subscribe:connect:end":
+      document.getElementById("connectingBox").setAttribute("status", "complete");
+      break;
+    case "snowl:subscribe:authenticate:start":
+      document.getElementById("authenticatingBox").setAttribute("status", "active");
+      break;
+    case "snowl:subscribe:authenticate:end":
+      document.getElementById("authenticatingBox").setAttribute("status", "complete");
+      break;
+    case "snowl:subscribe:get:start":
+      document.getElementById("gettingMessagesBox").setAttribute("status", "active");
+      break;
+    case "snowl:subscribe:get:progress":
+      break;
+    case "snowl:subscribe:get:end":
+      document.getElementById("gettingMessagesBox").setAttribute("status", "complete");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:connect:start");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:connect:end");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:start");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:end");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:get:start");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:get:progress");
+      Observers.remove(SubscriptionListener, "snowl:subscribe:get:end");
+      break;
+  }
+}
 
 window.addEventListener("load", function() { SourcesView.init() }, false);
