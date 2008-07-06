@@ -9,7 +9,6 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/URI.js");
-Cu.import("resource://snowl/modules/Observers.js");
 
 var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
@@ -44,13 +43,6 @@ SourcesView = {
     return this._children;
   },
 
-  get _subscribePanel() {
-    let subscribePanel = document.getElementById("snowlSubscribePanel");
-    delete this._subscribePanel;
-    this._subscribePanel = subscribePanel;
-    return this._subscribePanel;
-  },
-
 
   //**************************************************************************//
   // Initialization & Destruction
@@ -65,80 +57,6 @@ SourcesView = {
     // clicked on a row that is already selected (in which case we let them edit
     // the source name).
     this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
-  },
-
-
-  //**************************************************************************//
-  // Event Handlers
-
-  doSubscribe: function() {
-    let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
-    let feed = new SnowlFeed(null, null, uri);
-    Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
-    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:end");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
-    feed.subscribe();
-  },
-
-  doImportOPML: function() {
-    let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
-    fp.init(window, "Import OPML", Ci.nsIFilePicker.modeOpen);
-    fp.appendFilter("OPML Files", "*.opml");
-    fp.appendFilters(Ci.nsIFilePicker.filterXML);
-    fp.appendFilters(Ci.nsIFilePicker.filterAll);
-
-    let rv = fp.show();
-    if (rv != Ci.nsIFilePicker.returnOK)
-      return;
-
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].
-                  createInstance(Ci.nsIXMLHttpRequest);
-    request.open("GET", fp.fileURL.spec, false);
-    // Since the file probably ends in .opml, we have to force XHR to treat it
-    // as XML by overriding the MIME type it would otherwise select.
-    request.overrideMimeType("text/xml");
-    request.send(null);
-    let xmlDocument = request.responseXML;
-
-    let outline = xmlDocument.getElementsByTagName("body")[0];
-
-    this._importOutline(outline);
-  },
-
-  doCancel: function() {
-    this._subscribePanel.hidePopup();
-  },
-
-
-  //**************************************************************************//
-  // OPML Import
-
-  _importOutline: function(aOutline) {
-    // If this outline represents a feed, subscribe the user to the feed.
-    let uri = URI.get(aOutline.getAttribute("xmlUrl"));
-    if (uri) {
-      // FIXME: make sure the user isn't already subscribed to the feed
-      // before subscribing her to it.
-      let name = aOutline.getAttribute("title") || aOutline.getAttribute("text") || "untitled";
-      new SnowlFeed(null, name, uri).subscribe();
-    }
-
-    if (aOutline.hasChildNodes()) {
-      let children = aOutline.childNodes;
-      for (let i = 0; i < children.length; i++) {
-        let child = children[i];
-
-        // Only deal with "outline" elements; ignore text, etc. nodes.
-        if (child.nodeName != "outline")
-          continue;
-
-        this._importOutline(child);
-      }
-    }
   },
 
 
@@ -248,7 +166,12 @@ else
 this._log.info(row.value + " is not selected");
   },
 
-  onUnsubscribe: function(aEvent) {
+  subscribe: function(event) {
+    gBrowserWindow.gBrowser.selectedTab =
+      gBrowserWindow.gBrowser.addTab("chrome://snowl/content/subscribe.xul");
+  },
+
+  unsubscribe: function(aEvent) {
     let sourceID = this._model[this._tree.currentIndex].id;
 
     SnowlDatastore.dbConnection.beginTransaction();
@@ -269,38 +192,5 @@ this._log.info(row.value + " is not selected");
   }
 
 };
-
-function SubscriptionListener(subject, topic, data) {
-  dump("SubscriptionListener: topic = " + topic + "\n");
-  switch(topic) {
-    case "snowl:subscribe:connect:start":
-      document.getElementById("connectingBox").setAttribute("status", "active");
-      break;
-    case "snowl:subscribe:connect:end":
-      document.getElementById("connectingBox").setAttribute("status", "complete");
-      break;
-    case "snowl:subscribe:authenticate:start":
-      document.getElementById("authenticatingBox").setAttribute("status", "active");
-      break;
-    case "snowl:subscribe:authenticate:end":
-      document.getElementById("authenticatingBox").setAttribute("status", "complete");
-      break;
-    case "snowl:subscribe:get:start":
-      document.getElementById("gettingMessagesBox").setAttribute("status", "active");
-      break;
-    case "snowl:subscribe:get:progress":
-      break;
-    case "snowl:subscribe:get:end":
-      document.getElementById("gettingMessagesBox").setAttribute("status", "complete");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:connect:start");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:connect:end");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:start");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:end");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:get:start");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:get:progress");
-      Observers.remove(SubscriptionListener, "snowl:subscribe:get:end");
-      break;
-  }
-}
 
 window.addEventListener("load", function() { SourcesView.init() }, false);

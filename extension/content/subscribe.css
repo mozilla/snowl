@@ -13,3 +13,28 @@
   border-bottom: 1px solid threedlightshadow;
 }
 
+
+toolbarbutton {
+  -moz-appearance: none;
+}
+
+.toolbarbutton-icon {
+  -moz-margin-end: 0;
+}
+
+.statusBox {
+  /* Give the status boxes the same margin as the Location label above them. */
+  margin-left: 6px;
+}
+
+.statusBox > .statusIcon {
+  list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
+}
+
+.statusBox[status="active"] > .statusIcon {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
+
+.statusBox[status="complete"] > .statusIcon {
+  list-style-image: url("chrome://snowl/content/icons/tick.png");
+}

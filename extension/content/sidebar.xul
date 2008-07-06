@@ -43,46 +43,13 @@
 
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 
-  <panel id="snowlSubscribePanel">
-    <label flex="1" value="Subscribe to Feed" class="header"/>
-    <separator class="groove-thin"/>
-    <hbox align="center">
-      <label control="snowlLocationTextbox" value="Location:"/>
-      <textbox id="snowlLocationTextbox" flex="1"/>
-      <button label="Subscribe" default="true" oncommand="SourcesView.doSubscribe(event)"/>
-    </hbox>
-    <hbox align="center">
-      <label control="importOPMLButton" value="Or import an OPML list of feeds:"/>
-      <spacer flex="1"/>
-      <button id="importOPMLButton" label="Import..." oncommand="SourcesView.doImportOPML(event)"/>
-    </hbox>
-    <vbox>
-      <hbox id="connectingBox" class="statusBox" align="center">
-        <image id="connectingIcon" class="statusIcon"/>
-        <label value="Connecting to feed" disabled="true"/>
-      </hbox>
-      <hbox id="authenticatingBox" class="statusBox" align="center">
-        <image id="authenticatingIcon" class="statusIcon"/>
-        <label value="Authenticating (if necessary)" disabled="true"/>
-      </hbox>
-      <hbox id="gettingMessagesBox" class="statusBox" align="center">
-        <image id="gettingMessagesIcon" class="statusIcon"/>
-        <label value="Getting stories" disabled="true"/>
-      </hbox>
-    </vbox>
-    <hbox>
-      <button label="Cancel" oncommand="SourcesView.doCancel(event)"/>
-      <spacer flex="1"/>
-    </hbox>
-  </panel>
-
   <toolbar>
     <toolbarbutton id="snowlSubscribeButton"
                    image="chrome://snowl/content/icons/add.png"
-                   popup="snowlSubscribePanel"/>
+                   oncommand="SourcesView.subscribe()"/>
     <toolbarbutton id="snowlUnsubscribeButton"
                    image="chrome://snowl/content/icons/delete.png"
-                   oncommand="SourcesView.onCommandUnsubscribeButton()"/>
+                   oncommand="SourcesView.unsubscribe()"/>
     <toolbarbutton id="snowlRefreshButton"
                    image="chrome://snowl/content/icons/arrow_refresh_small.png"
                    oncommand="SnowlService.refreshAllSources()"/>
@@ -98,6 +65,6 @@
   </tree>
 
   <menupopup id="sourcesContextMenu">
-    <menuitem label="Unsubscribe" oncommand="SourcesView.onUnsubscribe(event)"/>
+    <menuitem label="Unsubscribe" oncommand="SourcesView.unsubscribe(event)"/>
   </menupopup>
 </page>

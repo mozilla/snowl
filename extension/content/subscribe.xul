@@ -8,14 +8,47 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       pack="center" align="center">
 
+  <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
 
   <vbox id="content">
-    <description id="title" value="Subscribe to Feed"/>
-    <vbox id="messages"/>
-    <hbox style="margin-top: 2em">
+    <label flex="1" value="Subscribe to Feed" class="header"/>
+    <separator class="groove-thin"/>
+    <separator orient="horizontal"/>
+    <hbox align="center">
+      <label control="snowlLocationTextbox" value="Location:"/>
+      <textbox id="snowlLocationTextbox" flex="1"/>
+      <button label="Subscribe" default="true" oncommand="Subscriber.doSubscribe(event)"/>
+    </hbox>
+
+    <separator orient="horizontal"/>
+
+    <vbox>
+      <label id="sourceTitle"/>
+      <hbox id="connectingBox" class="statusBox" align="center">
+        <image id="connectingIcon" class="statusIcon"/>
+        <label value="Connecting to feed" disabled="true"/>
+      </hbox>
+      <hbox id="authenticatingBox" class="statusBox" align="center">
+        <image id="authenticatingIcon" class="statusIcon"/>
+        <label value="Authenticating (if necessary)" disabled="true"/>
+      </hbox>
+      <hbox id="gettingMessagesBox" class="statusBox" align="center">
+        <image id="gettingMessagesIcon" class="statusIcon"/>
+        <label value="Getting stories" disabled="true"/>
+      </hbox>
+      <hbox id="doneBox" class="statusBox" align="center">
+        <image id="doneIcon" class="statusIcon"/>
+        <label value="Done" disabled="true"/>
+      </hbox>
+    </vbox>
+
+    <separator orient="horizontal"/>
+
+    <hbox>
+      <button id="importOPMLButton" label="Import OPML..." oncommand="Subscriber.doImportOPML(event)"/>
       <spacer flex="1"/>
-      <button label="Close" oncommand="Subscriber.onClose()"/>
+      <button label="Close" oncommand="Subscriber.doClose(event)"/>
     </hbox>
   </vbox>
 </page>

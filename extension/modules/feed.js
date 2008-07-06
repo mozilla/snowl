@@ -354,8 +354,10 @@ SnowlFeed.prototype = {
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   },
 
-  subscribe: function() {
+  subscribe: function(callback) {
     Observers.notify(this, "snowl:subscribe:connect:start", null);
+
+    this._subscribeCallback = callback;
 
     this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
 
@@ -401,35 +403,44 @@ SnowlFeed.prototype = {
   },
 
   onSubscribeResult: function(aResult) {
-    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
-
-    // Extract the name (if we don't already have one) and human URI from the feed.
-    if (!this.name)
-      this.name = feed.title.plainText();
-    this.humanURI = feed.link;
-
-    // Add the source to the database.
-    let statement =
-      SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
-                                     "VALUES (:name, :machineURI, :humanURI)");
     try {
-      statement.params.name = this.name;
-      statement.params.machineURI = this.machineURI.spec;
-      statement.params.humanURI = this.humanURI.spec;
-      statement.step();
+      let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+
+      // Extract the name (if we don't already have one) and human URI from the feed.
+      if (!this.name)
+        this.name = feed.title.plainText();
+      this.humanURI = feed.link;
+  
+      // Add the source to the database.
+      let statement =
+        SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
+                                       "VALUES (:name, :machineURI, :humanURI)");
+      try {
+        statement.params.name = this.name;
+        statement.params.machineURI = this.machineURI.spec;
+        statement.params.humanURI = this.humanURI.spec;
+        statement.step();
+      }
+      finally {
+        statement.reset();
+      }
+  
+      // Extract the ID of the source from the newly-created database record.
+      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+  
+      // Let observers know about the new source.
+      this._obsSvc.notifyObservers(null, "sources:changed", null);
+  
+      // Refresh the feed to import all its items.
+      this.onRefreshResult(aResult);
+    }
+    catch(ex) {
+      dump("error on subscribe result: " + ex + "\n");
     }
     finally {
-      statement.reset();
+      if (this._subscribeCallback)
+        this._subscribeCallback();
     }
-
-    // Extract the ID of the source from the newly-created database record.
-    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-
-    // Let observers know about the new source.
-    this._obsSvc.notifyObservers(null, "sources:changed", null);
-
-    // Refresh the feed to import all its items.
-    this.onRefreshResult(aResult);
   }
 
 };

@@ -3,151 +3,165 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// Generic modules
+Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/log4moz.js");
+
+// Snowl modules
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
 
+window.addEventListener("load", function() { Subscriber.init() }, false);
+
+function SubscriptionListener(subject, topic, data) {
+  switch(topic) {
+    case "snowl:subscribe:connect:start":
+      document.getElementById("connectingBox").disabled = false;
+      document.getElementById("connectingBox").setAttribute("status", "active");
+      document.getElementById("authenticatingBox").disabled = true;
+      document.getElementById("authenticatingBox").removeAttribute("status");
+      document.getElementById("gettingMessagesBox").disabled = true;
+      document.getElementById("gettingMessagesBox").removeAttribute("status");
+      document.getElementById("doneBox").disabled = true;
+      document.getElementById("doneBox").removeAttribute("status");
+      break;
+    case "snowl:subscribe:connect:end":
+      document.getElementById("connectingBox").setAttribute("status", "complete");
+      break;
+    case "snowl:subscribe:authenticate:start":
+      document.getElementById("authenticatingBox").disabled = false;
+      document.getElementById("authenticatingBox").setAttribute("status", "active");
+      break;
+    case "snowl:subscribe:authenticate:end":
+      document.getElementById("authenticatingBox").setAttribute("status", "complete");
+      break;
+    case "snowl:subscribe:get:start":
+      document.getElementById("gettingMessagesBox").disabled = false;
+      document.getElementById("gettingMessagesBox").setAttribute("status", "active");
+      break;
+    case "snowl:subscribe:get:progress":
+      break;
+    case "snowl:subscribe:get:end":
+      document.getElementById("gettingMessagesBox").setAttribute("status", "complete");
+      document.getElementById("doneBox").disabled = false;
+      document.getElementById("doneBox").setAttribute("status", "complete");
+      break;
+  }
+}
+
 let Subscriber = {
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    delete this._obsSvc;
-    this._obsSvc = obsSvc;
-    return this._obsSvc;
-  },
+  _log: Log4Moz.Service.getLogger("Snowl.Subscriber"),
 
-  _log: null,
-  _feedURL: null,
 
-  QueryInterface: function(aIID) {
-    if (aIID.equals(Ci.nsIFeedResultListener) ||
-        aIID.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  },
+  //**************************************************************************//
+  // Initialization & Destruction
 
   init: function() {
-    this._log = Log4Moz.Service.getLogger("Snowl.Subscriber");
+    Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
+    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:end");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
 
     // Parse URL parameters
     let paramString = window.location.search.substr(1);
     let params = {};
     for each (let param in paramString.split("&")) {
       let [name, value] = param.split("=");
-      params[name] = decodeURIComponent(value);
+      if (value)
+        params[name] = decodeURIComponent(value);
+      else
+        params[name] = value;
     }
-    this._feedURL = params.feed;
 
-    let subscription = this.getSubscription(this._feedURL);
-    if (subscription) {
-      this._appendMessage("You are already subscribed to '" + subscription.title + "'.");
-    }
-    else {
-      this._appendMessage("Retrieving feed...", "retrievingFeedMessage");
-
-      let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-      request = request.QueryInterface(Ci.nsIDOMEventTarget);
-      request.addEventListener("load", this, false);
-      request.addEventListener("error", this, false);
-
-      request = request.QueryInterface(Ci.nsIXMLHttpRequest);
-      request.open("GET", params.feed, true);
-      request.send(null);
+    if (params.feed) {
+      document.getElementById("snowlLocationTextbox").value = params.feed;
+      this.doSubscribe();
     }
   },
 
-  _appendMessage: function(aMessage, aID) {
-    let description = document.createElement("description");
-    if (aID)
-      description.setAttribute("id", aID);
-    let textNode = document.createTextNode(aMessage);
-    description.appendChild(textNode);
-    document.getElementById("messages").appendChild(description);
+  destroy: function() {
+    Observers.remove(SubscriptionListener, "snowl:subscribe:connect:start");
+    Observers.remove(SubscriptionListener, "snowl:subscribe:connect:end");
+    Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:start");
+    Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:end");
+    Observers.remove(SubscriptionListener, "snowl:subscribe:get:start");
+    Observers.remove(SubscriptionListener, "snowl:subscribe:get:progress");
+    Observers.remove(SubscriptionListener, "snowl:subscribe:get:end");
   },
 
-  getSubscription: function(aURL) {
-    let statement = SnowlDatastore.createStatement("SELECT id, title FROM sources WHERE url = :url");
-    statement.params.url = aURL;
 
-    try {
-      if (statement.step())
-        return { id: statement.row.id, title: statement.row.title };
-    }
-    finally {
-      statement.reset();
-    }
+  //**************************************************************************//
+  // Event Handlers
 
-    return null;
+  doSubscribe: function() {
+    let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
+    let feed = new SnowlFeed(null, null, uri);
+    feed.subscribe();
   },
 
-  handleEvent: function(aEvent) {
-    switch(aEvent.type) {
-      case "load":
-        this.onLoad(aEvent);
-        break;
-      case "error":
-        this.onError(aEvent);
-        break;
-    }
+  doImportOPML: function() {
+    let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+    fp.init(window, "Import OPML", Ci.nsIFilePicker.modeOpen);
+    fp.appendFilter("OPML Files", "*.opml");
+    fp.appendFilters(Ci.nsIFilePicker.filterXML);
+    fp.appendFilters(Ci.nsIFilePicker.filterAll);
+
+    let rv = fp.show();
+    if (rv != Ci.nsIFilePicker.returnOK)
+      return;
+
+    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].
+                  createInstance(Ci.nsIXMLHttpRequest);
+    request.open("GET", fp.fileURL.spec, false);
+    // Since the file probably ends in .opml, we have to force XHR to treat it
+    // as XML by overriding the MIME type it would otherwise select.
+    request.overrideMimeType("text/xml");
+    request.send(null);
+    let xmlDocument = request.responseXML;
+
+    let outline = xmlDocument.getElementsByTagName("body")[0];
+
+    this._importOutline(outline);
   },
 
-  onLoad: function(aEvent) {
-    let request = aEvent.target;
-
-    // FIXME: notify the user about the problem.
-    if (request.responseText.length == 0)
-      throw("feed contains no data");
-
-    let message = document.createTextNode(" done.");
-    document.getElementById("retrievingFeedMessage").appendChild(message);
-
-    let parser = Cc["@mozilla.org/feed-processor;1"].
-                 createInstance(Ci.nsIFeedProcessor);
-    //parser.listener = new SnowlFeed(request.channel.originalURI);
-    parser.listener = this;
-    parser.parseFromString(request.responseText, request.channel.URI);
-  },
-
-  // nsIFeedResultListener
-
-  handleResult: function(aResult) {
-    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
-
-    // Subscribe to the feed.
-    this._log.info("subscribing to " + this._feedURL);
-    let statement = SnowlDatastore.createStatement("INSERT INTO sources (url, title) VALUES (:url, :title)");
-    statement.params.url = this._feedURL;
-    statement.params.title = feed.title.plainText();
-    statement.step();
-
-    let sourceID = SnowlDatastore.dbConnection.lastInsertRowID;
-
-    // Now refresh the feed to import all its items.
-    this._log.info("refreshing " + this._feedURL);
-    let feed2 = new SnowlFeed(sourceID, this._feedURL);
-try {
-    this._appendMessage("Downloading entries...", "downloadingEntriesMessage");
-    feed2.handleResult(aResult);
-    let message = document.createTextNode(" done.");
-    document.getElementById("downloadingEntriesMessage").appendChild(message);
-}
-catch(ex) {
-  Components.utils.reportError(ex);
-}
-
-    this._appendMessage("You have been subscribed to '" + feed.title.plainText() + "'.");
-    this._obsSvc.notifyObservers(null, "sources:changed", null);
-    this._obsSvc.notifyObservers(null, "messages:changed", null);
-  },
-
-  onClose: function() {
+  doClose: function() {
     window.close();
-  }
+  },
+
+
+  //**************************************************************************//
+  // OPML Import
+
+  _importOutline: strand(function(aOutline) {
+    // If this outline represents a feed, subscribe the user to the feed.
+    let uri = URI.get(aOutline.getAttribute("xmlUrl"));
+    if (uri) {
+      // FIXME: make sure the user isn't already subscribed to the feed
+      // before subscribing her to it.
+      let name = aOutline.getAttribute("title") || aOutline.getAttribute("text");
+      document.getElementById("sourceTitle").value = "Subscribing to " + (name || uri.spec);
+      var future = new Future();
+      new SnowlFeed(null, name || "untitled", uri).subscribe(future.fulfill);
+      yield future.result();
+    }
+
+    if (aOutline.hasChildNodes()) {
+      let children = aOutline.childNodes;
+      for (let i = 0; i < children.length; i++) {
+        let child = children[i];
+
+        // Only deal with "outline" elements; ignore text, etc. nodes.
+        if (child.nodeName != "outline")
+          continue;
+
+        yield this._importOutline(child);
+      }
+    }
+  })
 
 };
-
-window.addEventListener("load", function() { Subscriber.init() }, false);
