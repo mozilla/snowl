@@ -5,13 +5,18 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that come with Firefox
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
+// modules that should come with Firefox
 Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/URI.js");
-Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/URI.js");
+
+// Snowl-specific modules
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/source.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -45,12 +50,84 @@ SnowlFeed.prototype = {
 
   _log: Log4Moz.Service.getLogger("Snowl.Feed"),
 
+  // If we prompt the user to authenticate, and the user asks us to remember
+  // their password, we store the nsIAuthInformation in this property until
+  // the request succeeds, at which point we store it with the login manager.
+  _authInfo: null,
+
   // Observer Service
   get _obsSvc() {
     let obsSvc = Cc["@mozilla.org/observer-service;1"].
                  getService(Ci.nsIObserverService);
     this.__defineGetter__("_obsSvc", function() { return obsSvc });
     return this._obsSvc;
+  },
+
+  // nsISupports
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIAuthPrompt2]),
+
+  // nsIInterfaceRequestor
+
+  getInterface: function(iid) {
+    return this.QueryInterface(iid);
+  },
+
+  // nsIAuthPrompt2
+
+  _logins: null,
+  _loginIndex: 0,
+
+  promptAuth: function(channel, level, authInfo) {
+    // Check saved logins before prompting the user.  We get them
+    // from the login manager and try each in turn until one of them works
+    // or we run out of them.
+    if (!this._logins) {
+      let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
+      // XXX Should we be using channel.URI.prePath in case the old URI
+      // redirects us to a new one at a different hostname?
+      this._logins = lm.findLogins({}, this.machineURI.prePath, null, authInfo.realm);
+    }
+
+    let login = this._logins[this._loginIndex];
+    if (login) {
+      authInfo.username = login.username;
+      authInfo.password = login.password;
+      ++this._loginIndex;
+      return true;
+    }
+
+    // If we've made it this far, none of the saved logins worked, so we prompt
+    // the user to provide one.
+    let args = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    args.AppendElement({ wrappedJSObject: this });
+    args.AppendElement(authInfo);
+
+    // |result| is how the dialog passes information back to us.  It sets two
+    // properties on the object: |proceed|, which we return from this function,
+    // and which determines whether or not authentication can proceed using
+    // the values entered by the user; and |remember|, which determines whether
+    // or not we save the user's login with the login manager once the request
+    // succeeds.
+    let result = {};
+    args.AppendElement({ wrappedJSObject: result });
+
+    let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
+    ww.openWindow(null,
+                  // XXX Should we use commonDialog.xul?
+                  "chrome://snowl/content/login.xul",
+                  null,
+                  "chrome,centerscreen,dialog,modal",
+                  args);
+
+    if (result.remember)
+      this._authInfo = authInfo;
+
+    return result.proceed;
+  },
+
+  asyncPromptAuth: function() {
+    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
 
   refresh: function() {
@@ -68,15 +145,34 @@ SnowlFeed.prototype = {
     request.overrideMimeType("text/plain");
 
     request.open("GET", this.machineURI.spec, true);
+
+    // Register a listener for notification callbacks so we handle authentication.
+    request.channel.notificationCallbacks = this;
+
     request.send(null);
   },
 
   onRefreshLoad: function(aEvent) {
     let request = aEvent.target;
 
+    // If the request failed, let the error handler handle it.
+    // XXX Do we need this?  Don't such failures call the error handler directly?
+    if (request.status < 200 || request.status > 299) {
+      this.onRefreshError(aEvent);
+      return;
+    }
+
     // XXX What's the right way to handle this?
-    if (request.responseText.length == 0)
-      throw("feed contains no data");
+    if (request.responseText.length == 0) {
+      this.onRefreshError(aEvent);
+      return;
+    }
+
+    // _authInfo only gets set if we prompted the user to authenticate
+    // and the user checked the "remember password" box.  Since we're here,
+    // it means the request succeeded, so we save the login.
+    if (this._authInfo)
+      this._saveLogin();
 
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);
@@ -85,8 +181,8 @@ SnowlFeed.prototype = {
   },
 
   onRefreshError: function(aEvent) {
-    this._log.error("onRefreshError: " + aEvent.target.status + " " +
-                    aEvent.target.statusText + " " + aEvent.target.responseText.length);
+    let request = aEvent.target;
+    this._log.error("onRefreshError: " + request.status + " (" + request.statusText + ")");
   },
 
   onRefreshResult: function(aResult) {
@@ -376,20 +472,36 @@ SnowlFeed.prototype = {
     request.overrideMimeType("text/plain");
 
     request.open("GET", this.machineURI.spec, true);
+
+    // Register a listener for notification callbacks so we handle authentication.
+    request.channel.notificationCallbacks = this;
+
     request.send(null);
   },
 
   onSubscribeLoad: function(aEvent) {
-    Observers.notify(this, "snowl:subscribe:connect:end", null);
-
     let request = aEvent.target;
 
-    // XXX What's the right way to handle this?
-    if (request.responseText.length == 0)
-      throw("feed contains no data");
+    // If the request failed, let the error handler handle it.
+    // XXX Do we need this?  Don't such failures call the error handler directly?
+    if (request.status < 200 || request.status > 299) {
+      this.onSubscribeError(aEvent);
+      return;
+    }
 
-    Observers.notify(this, "snowl:subscribe:authenticate:start", null);
-    Observers.notify(this, "snowl:subscribe:authenticate:end", null);
+    // XXX What's the right way to handle this?
+    if (request.responseText.length == 0) {
+      this.onRefreshError(aEvent);
+      return;
+    }
+
+    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+
+    // _authInfo only gets set if we prompted the user to authenticate
+    // and the user checked the "remember password" box.  Since we're here,
+    // it means the request succeeded, so we save the login.
+    if (this._authInfo)
+      this._saveLogin();
 
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);
@@ -398,8 +510,11 @@ SnowlFeed.prototype = {
   },
 
   onSubscribeError: function(aEvent) {
-    this._log.error("onSubscribeError: " + aEvent.target.status + " " +
-                    aEvent.target.statusText + " " + aEvent.target.responseText.length);
+    let request = aEvent.target;
+    this._log.error("onSubscribeError: " + request.status + " (" + request.statusText + ")");
+    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+    if (this._subscribeCallback)
+      this._subscribeCallback();
   },
 
   onSubscribeResult: function(aResult) {
@@ -441,6 +556,45 @@ SnowlFeed.prototype = {
       if (this._subscribeCallback)
         this._subscribeCallback();
     }
+  },
+
+  _saveLogin: function() {
+    let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
+
+    // Create a new login with the auth information we obtained from the user.
+    let LoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1",
+                                               Ci.nsILoginInfo,
+                                               "init");
+    // XXX Should we be using channel.URI.prePath in case the old URI
+    // redirects us to a new one at a different hostname?
+    let newLogin = new LoginInfo(this.machineURI.prePath,
+                                 null,
+                                 this._authInfo.realm,
+                                 this._authInfo.username,
+                                 this._authInfo.password,
+                                 "",
+                                 "");
+
+    // Get existing logins that have the same hostname and realm.
+    let logins = lm.findLogins({}, this.machineURI.prePath, null, this._authInfo.realm);
+
+    // Try to figure out if we should replace one of the existing logins.
+    // If there's only one existing login, we replace it.  Otherwise, if
+    // there's a login with the same username, we replace that.  Otherwise,
+    // we add the new login instead of replacing an existing one.
+    let oldLogin;
+    if (logins.length == 1)
+      oldLogin = logins[0];
+    else if (logins.length > 1)
+      oldLogin = logins.filter(function(v) v.username == this._authInfo.username)[0];
+
+    if (oldLogin)
+      lm.modifyLogin(oldLogin, newLogin);
+    else
+      lm.addLogin(newLogin);
+
+    // Now that we've saved the login, we don't need the auth info anymore.
+    this._authInfo = null;
   }
 
 };

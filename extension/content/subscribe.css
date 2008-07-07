@@ -38,3 +38,7 @@ toolbarbutton {
 .statusBox[status="complete"] > .statusIcon {
   list-style-image: url("chrome://snowl/content/icons/tick.png");
 }
+
+.statusBox[status="error"] > .statusIcon {
+  list-style-image: url("chrome://global/skin/icons/error-16.png");
+}

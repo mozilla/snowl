@@ -3,12 +3,15 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-// Generic modules
+// modules that come with Firefox
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// modules that should come with Firefox
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 
-// Snowl modules
+// Snowl-specific modules
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
@@ -16,26 +19,23 @@ Cu.import("resource://snowl/modules/feed.js");
 window.addEventListener("load", function() { Subscriber.init() }, false);
 
 function SubscriptionListener(subject, topic, data) {
+  if (subject != Subscriber.feed)
+    return;
+
   switch(topic) {
     case "snowl:subscribe:connect:start":
       document.getElementById("connectingBox").disabled = false;
       document.getElementById("connectingBox").setAttribute("status", "active");
-      document.getElementById("authenticatingBox").disabled = true;
-      document.getElementById("authenticatingBox").removeAttribute("status");
       document.getElementById("gettingMessagesBox").disabled = true;
       document.getElementById("gettingMessagesBox").removeAttribute("status");
       document.getElementById("doneBox").disabled = true;
       document.getElementById("doneBox").removeAttribute("status");
       break;
     case "snowl:subscribe:connect:end":
-      document.getElementById("connectingBox").setAttribute("status", "complete");
-      break;
-    case "snowl:subscribe:authenticate:start":
-      document.getElementById("authenticatingBox").disabled = false;
-      document.getElementById("authenticatingBox").setAttribute("status", "active");
-      break;
-    case "snowl:subscribe:authenticate:end":
-      document.getElementById("authenticatingBox").setAttribute("status", "complete");
+      if (data < 200 || data > 299)
+        document.getElementById("connectingBox").setAttribute("status", "error");
+      else
+        document.getElementById("connectingBox").setAttribute("status", "complete");
       break;
     case "snowl:subscribe:get:start":
       document.getElementById("gettingMessagesBox").disabled = false;
@@ -61,8 +61,6 @@ let Subscriber = {
   init: function() {
     Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
     Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
-    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:authenticate:end");
     Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
     Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
     Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
@@ -87,8 +85,6 @@ let Subscriber = {
   destroy: function() {
     Observers.remove(SubscriptionListener, "snowl:subscribe:connect:start");
     Observers.remove(SubscriptionListener, "snowl:subscribe:connect:end");
-    Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:start");
-    Observers.remove(SubscriptionListener, "snowl:subscribe:authenticate:end");
     Observers.remove(SubscriptionListener, "snowl:subscribe:get:start");
     Observers.remove(SubscriptionListener, "snowl:subscribe:get:progress");
     Observers.remove(SubscriptionListener, "snowl:subscribe:get:end");
@@ -101,7 +97,7 @@ let Subscriber = {
   doSubscribe: function() {
     let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
     let feed = new SnowlFeed(null, null, uri);
-    feed.subscribe();
+    this._subscribe(feed);
   },
 
   doImportOPML: function() {
@@ -115,6 +111,7 @@ let Subscriber = {
     if (rv != Ci.nsIFilePicker.returnOK)
       return;
 
+    // FIXME: use a file utility to open the file instead of XMLHttpRequest.
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].
                   createInstance(Ci.nsIXMLHttpRequest);
     request.open("GET", fp.fileURL.spec, false);
@@ -141,12 +138,14 @@ let Subscriber = {
     // If this outline represents a feed, subscribe the user to the feed.
     let uri = URI.get(aOutline.getAttribute("xmlUrl"));
     if (uri) {
-      // FIXME: make sure the user isn't already subscribed to the feed
-      // before subscribing her to it.
       let name = aOutline.getAttribute("title") || aOutline.getAttribute("text");
+      let feed = new SnowlFeed(null, name || "untitled", uri);
+
+      // XXX Should the next line be refactored into _subscribe?
       document.getElementById("sourceTitle").value = "Subscribing to " + (name || uri.spec);
-      var future = new Future();
-      new SnowlFeed(null, name || "untitled", uri).subscribe(future.fulfill);
+
+      let future = new Future();
+      this._subscribe(feed, future.fulfill);
       yield future.result();
     }
 
@@ -162,6 +161,24 @@ let Subscriber = {
         yield this._importOutline(child);
       }
     }
+  }),
+
+  _subscribe: strand(function(feed, callback) {
+    // FIXME: make sure the user isn't already subscribed to the feed
+    // before subscribing them to it.
+
+    // Store a reference to the feed to which we are currently subscribing
+    // so the progress listener can filter out events for some other feed.
+    this.feed = feed;
+
+    let future = new Future();
+    feed.subscribe(future.fulfill);
+    yield future.result();
+
+    this.feed = null;
+
+    if (callback)
+      callback();
   })
 
 };
