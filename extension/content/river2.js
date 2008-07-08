@@ -148,7 +148,7 @@ var RiverView = {
   _collection: null,
   
   init: function SH_init() {
-    this._resizeContentBox();
+    this.resizeContentBox();
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
@@ -170,7 +170,7 @@ var RiverView = {
    * Resize the inner content box to the height of the viewport.  We have to
    * do this because of bug 434683.
    */
-  _resizeContentBox: function resizeContentBox() {
+  resizeContentBox: function() {
     let inner = document.getElementById("innerContentBox");
     // We have to subtract 16 from the height to hackily account for
     // the horizontal scrollbar, which window.innerHeight doesn't take into
