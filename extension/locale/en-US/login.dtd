@@ -1,0 +1,6 @@
+<!ENTITY dialog.title                 "Authentication Requested">
+<!ENTITY realm.label                  "The feed says:">
+<!ENTITY username.label               "Username:">
+<!ENTITY password.label               "Password:">
+<!ENTITY showPassword.label           "Show password">
+<!ENTITY rememberPassword.label       "Remember this password if it is correct">
