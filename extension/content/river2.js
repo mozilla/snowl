@@ -950,8 +950,16 @@ let splitterDragObserver = {
     document.documentElement.removeEventListener("mousemove", this, false);
   },
 
+  // Note: because this function gets passed directly to setTimeout,
+  // |this| doesn't reference splitterDragObserver inside the function.
+  callback: function(width) {
+    document.getElementById("innerContentBox").style.MozColumnWidth = width + "px";
+  },
+
   handleEvent: function(event) {
+    if (this._timeout)
+      this._timeout = window.clearTimeout(this._timeout);
     document.getElementById("columnResizeSplitter").left = event.clientX;
-    document.getElementById("innerContentBox").style.MozColumnWidth = event.clientX + "px";
+    this._timeout = window.setTimeout(this.callback, 500, event.clientX);
   }
 }
