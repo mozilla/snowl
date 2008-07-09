@@ -843,9 +843,9 @@ gBrowserWindow.gBrowser.getBrowserForDocument(document).docShell.contentViewer.s
   },
 
   rebuildView: function() {
-    let messages = this._document.getElementById("messages");
-    while (messages.hasChildNodes())
-      messages.removeChild(messages.lastChild);
+    let innerContentBox = this._document.getElementById("innerContentBox");
+    while (innerContentBox.hasChildNodes())
+      innerContentBox.removeChild(innerContentBox.lastChild);
 
     this.writeContent();
   },
