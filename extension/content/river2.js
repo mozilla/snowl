@@ -347,18 +347,20 @@ gBrowserWindow.gBrowser.getBrowserForDocument(document).docShell.contentViewer.s
     if (this._collection.sortOrder == -1)
       params.push("order=descending");
 
-    let query = params.length > 0 ? "?" + params.join("&") : "";
-    let spec = "chrome://snowl/content/river.xhtml" + query;
-    let uri = Cc["@mozilla.org/network/io-service;1"].
-              getService(Ci.nsIIOService).
-              newURI(spec, null, null);
-
     let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIWebNavigation).
                          QueryInterface(Ci.nsIDocShellTreeItem).
                          rootTreeItem.
                          QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIDOMWindow);
+
+    let currentURI = gBrowserWindow.gBrowser.docShell.currentURI.QueryInterface(Ci.nsIURL);
+
+    let query = params.length > 0 ? "?" + params.join("&") : "";
+    let spec = currentURI.prePath + currentURI.filePath + query;
+    let uri = Cc["@mozilla.org/network/io-service;1"].
+              getService(Ci.nsIIOService).
+              newURI(spec, null, null);
 
     // Update the docshell with the new URI.  This updates the location bar
     // and gets used by the bookmarks service when the user bookmarks the page.
