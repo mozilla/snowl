@@ -42,7 +42,7 @@
                  oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
   </toolbar>
 
-  <stack>
+  <stack flex="1">
     <vbox id="outerContentBox" flex="1">
       <html:div id="innerContentBox"/>
     </vbox>
