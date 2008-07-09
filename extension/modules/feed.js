@@ -182,7 +182,15 @@ SnowlFeed.prototype = {
 
   onRefreshError: function(aEvent) {
     let request = aEvent.target;
-    this._log.error("onRefreshError: " + request.status + " (" + request.statusText + ")");
+
+    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE
+    let statusText = "";
+    try {
+      statusText = request.statusText;
+    }
+    catch(ex) {}
+    
+    this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
 
   onRefreshResult: function(aResult) {
