@@ -41,11 +41,14 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+Cu.import("resource://snowl/modules/DebugUtils.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
+
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/collection.js");
 
 let log = Log4Moz.Service.getLogger("Snowl.River");
 
@@ -149,6 +152,7 @@ var RiverView = {
   
   init: function SH_init() {
     this.resizeContentBox();
+    document.getElementById("columnResizeSplitter").style.height = document.getElementById("innerContentBox").style.height;
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
@@ -936,3 +940,18 @@ gBrowserWindow.gBrowser.getBrowserForDocument(document).docShell.contentViewer.s
 };
 
 window.addEventListener("scroll", function(evt) RiverView.onScroll(evt), false);
+
+let splitterDragObserver = {
+  onMouseDown: function(event) {
+    document.documentElement.addEventListener("mousemove", this, false);
+  },
+
+  onMouseUp: function(event) {
+    document.documentElement.removeEventListener("mousemove", this, false);
+  },
+
+  handleEvent: function(event) {
+    document.getElementById("columnResizeSplitter").left = event.clientX;
+    document.getElementById("innerContentBox").style.MozColumnWidth = event.clientX + "px";
+  }
+}

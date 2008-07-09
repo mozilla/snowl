@@ -42,8 +42,13 @@
                  oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
   </toolbar>
 
-  <vbox id="outerContentBox" flex="1">
-    <html:div id="innerContentBox"/>
-  </vbox>
+  <stack>
+    <vbox id="outerContentBox" flex="1">
+      <html:div id="innerContentBox"/>
+    </vbox>
+    <splitter id="columnResizeSplitter" left="410"
+              onmousedown="splitterDragObserver.onMouseDown(event)"
+              onmouseup="splitterDragObserver.onMouseUp(event)"/>
+  </stack>
 
 </window>
