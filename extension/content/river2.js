@@ -167,7 +167,6 @@ var RiverView = {
     this._updateToolbar();
 
     this.writeContent();
-    //this._setPageMode();
   },
 
   /**
@@ -183,36 +182,6 @@ var RiverView = {
     // bug 111034.
     let toolbarHeight = document.getElementById("toolbar").boxObject.height;
     inner.style.height = (window.innerHeight - toolbarHeight - 16) + "px";
-  },
-
-  _setPageMode: function() {
-    var PSSVC = Components.classes["@mozilla.org/gfx/printsettings-service;1"]
-            .getService(Components.interfaces.nsIPrintSettingsService);
-    var ps = PSSVC.newPrintSettings;
-    ps.paperWidth = 5;
-    ps.paperHeight = 3;
-
-    // Override any os-specific unwriteable margins
-    ps.unwriteableMarginTop = 0;
-    ps.unwriteableMarginLeft = 0;
-    ps.unwriteableMarginBottom = 0;
-    ps.unwriteableMarginRight = 0;
-
-    ps.headerStrLeft = "";
-    ps.headerStrCenter = "";
-    ps.headerStrRight = "";
-    ps.footerStrLeft = "";
-    ps.footerStrCenter = "";
-    ps.footerStrRight = "";
-
-var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
-
-gBrowserWindow.gBrowser.getBrowserForDocument(document).docShell.contentViewer.setPageMode(true, ps);
   },
 
   _updateToolbar: function() {
