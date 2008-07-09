@@ -27,7 +27,9 @@ body {
 #innerContentBox {
   -moz-column-width: 400px;
   -moz-column-gap: 2em;
-  height: 10px;
+
+  /* This gets set programmatically on load, since setting it in CSS doesn't work. */
+  height: 0;
 }
 
 
