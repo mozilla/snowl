@@ -597,6 +597,7 @@ let RiverView = {
   }),
 
   writeContent: strand(function() {
+let begin = new Date();
     // Interrupt a strand currently writing messages so we don't both try
     // to write messages at the same time.
     // FIXME: figure out how to suppress the exception this throws to the error
@@ -630,16 +631,16 @@ let RiverView = {
       messageBox.appendChild(bylineBox);
 
       // Source
-      let source = this._document.createElementNS(HTML_NS, "a");
-      source.className = "source";
-      let sourceIcon = document.createElementNS(HTML_NS, "img");
-      let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
-      sourceIcon.src = this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec;
-      source.appendChild(sourceIcon);
-      source.appendChild(this._document.createTextNode(message.source.name));
-      if (message.source.humanURI)
-        this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
-      bylineBox.appendChild(source);
+      //let source = this._document.createElementNS(HTML_NS, "a");
+      //source.className = "source";
+      //let sourceIcon = document.createElementNS(HTML_NS, "img");
+      //let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
+      //sourceIcon.src = this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec;
+      //source.appendChild(sourceIcon);
+      //source.appendChild(this._document.createTextNode(message.source.name));
+      //if (message.source.humanURI)
+      //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
+      //bylineBox.appendChild(source);
 
       // Author
       //if (message.author)
@@ -650,7 +651,7 @@ let RiverView = {
       if (lastUpdated) {
         let timestamp = this._document.createElementNS(HTML_NS, "span");
         timestamp.className = "timestamp";
-        timestamp.appendChild(document.createTextNode(" - " + lastUpdated));
+        timestamp.appendChild(document.createTextNode(lastUpdated));
         bylineBox.appendChild(timestamp);
       }
 
@@ -678,13 +679,16 @@ let RiverView = {
       let codeStr = "messages.appendChild(messageBox)";
       Cu.evalInSandbox(codeStr, this._contentSandbox);
 
-      // Sleep after every message so we don't hork the UI thread and users
+      // Sleep after every tenth message so we don't hork the UI thread and users
       // can immediately start reading messages while we finish writing them.
-      yield this._sleepWriteMessages(0);
+      if (!(i % 10))
+        yield this._sleepWriteMessages(0);
     }
 
     this._contentSandbox.messages = null;
     this._contentSandbox.messageBox = null;
+
+    this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
   }),
 
   // FIXME: this also appears in the mail view; factor it out.
