@@ -138,7 +138,6 @@ let RiverView = {
 
   init: function() {
     this.resizeContentBox();
-    document.getElementById("contentBox").focus();
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we

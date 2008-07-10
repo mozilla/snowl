@@ -2,7 +2,7 @@
 
 <?xml-stylesheet href="chrome://snowl/content/river2.css" type="text/css"?>
 
-<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         title="Snowl: Messages"
         onload="RiverView.init()"
@@ -64,4 +64,4 @@
               onmouseup="splitterDragObserver.onMouseUp(event)"/>
   </stack>
 
-</window>
+</page>

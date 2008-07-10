@@ -1,39 +1,7 @@
-html {
-  color: black;
-  background-color: white;
-}
-
-body {
-  /* Remove the default margin around the body so the toolbar blends in
-   * with the surrounding chrome and appears to be part of it (rather than
-   * having white space all around it, which looks odd). */
-  margin: 0;
-}
-
 #toolbar {
   font: message-box;
   -moz-box-align: center;
   width: 100%;
-}
-
-#messages {
-  margin: 10px;
-}
-
-#contentBox {
-  padding: 7px;
-
-  -moz-column-width: 400px;
-  -moz-column-gap: 2em;
-
-  /* This gets set programmatically on load, since setting it in CSS doesn't work. */
-  height: 0;
-}
-
-
-/* Show icons in the sources menulist. */
-#sourceMenu > menupopup > menuitem > .menu-iconic-left {
-  display: block;
 }
 
 /* Don't style the buttons natively because they look ugly on Linux.
@@ -51,6 +19,24 @@ toolbarbutton {
   display: none;
 }
 
+/* Show icons in the sources menulist. */
+#sourceMenu > menupopup > menuitem > .menu-iconic-left {
+  display: block;
+}
+
+#contentBox {
+  padding: 7px;
+
+  -moz-column-width: 400px;
+  -moz-column-gap: 2em;
+
+  -moz-user-focus: normal;
+  -moz-user-select: -moz-all;
+
+  /* This gets set programmatically on load, since setting it in CSS doesn't work. */
+  height: 0;
+}
+
 /* Make the title and source links look less like links to differentiate
  * between the links in the content and these links in the chrome. */
 .source > a, .title > a {
@@ -60,12 +46,6 @@ toolbarbutton {
 }
 .source > a:visited, .title > a:visited {
   color: #555;
-}
-
-.message {
-  -moz-user-focus: normal;
-  -moz-user-select: -moz-all;
-  -moz-box-align: baseline;
 }
 
 h2 {
@@ -91,17 +71,4 @@ h2 {
 a > img {
   border: 0;
   -moz-padding-end: 1px;
-}
-
-.subject {
-  margin-top: 0;
-}
-
-.subject > a {
-  font-size: 150%;
-  font-weight: bold;
-}
-
-label {
-  -moz-margin-start: 0;
 }
