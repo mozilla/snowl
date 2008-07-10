@@ -196,6 +196,20 @@ var RiverView = {
     scrollBoxObject.scrollBy(pixels, 0);
   },
 
+  onHome: function() {
+    let scrollBoxObject = document.getElementById('scrollBox').boxObject.
+                          QueryInterface(Ci.nsIScrollBoxObject);
+    scrollBoxObject.scrollTo(0, 0);
+  },
+
+  onEnd: function() {
+    let scrollBoxObject = document.getElementById('scrollBox').boxObject.
+                          QueryInterface(Ci.nsIScrollBoxObject);
+    let width = {};
+    scrollBoxObject.getScrolledSize(width, {});
+    scrollBoxObject.scrollTo(width.value, 0);
+  },
+
   // whether or not the content area has scrollbars
   _hasHorizontalScrollbar: false,
   _hasVerticalScrollbar: false,

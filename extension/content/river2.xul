@@ -16,6 +16,8 @@
     <key keycode="VK_PAGE_DOWN" oncommand="RiverView.doPageMove(1)"/>
     <key keycode="VK_PAGE_UP" modifiers="shift" oncommand="RiverView.doColumnMove(-1)"/>
     <key keycode="VK_PAGE_DOWN" modifiers="shift" oncommand="RiverView.doColumnMove(1)"/>
+    <key keycode="VK_HOME" oncommand="RiverView.onHome()"/>
+    <key keycode="VK_END" oncommand="RiverView.onEnd()"/>
   </keyset>
 
   <toolbar id="toolbar">
