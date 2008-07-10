@@ -2,13 +2,23 @@
 
 <?xml-stylesheet href="chrome://snowl/content/river2.css" type="text/css"?>
 
-<window xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         title="Snowl: Messages"
-        onload="RiverView.init()">
+        onload="RiverView.init()"
+        onresize="RiverView.resizeContentBox()">
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river2.js"/>
+
+  <keyset>
+    <key keycode="VK_PAGE_UP" oncommand="RiverView.doPageMove(-1)"/>
+    <key keycode="VK_PAGE_DOWN" oncommand="RiverView.doPageMove(1)"/>
+    <key keycode="VK_PAGE_UP" modifiers="shift" oncommand="RiverView.doColumnMove(-1)"/>
+    <key keycode="VK_PAGE_DOWN" modifiers="shift" oncommand="RiverView.doColumnMove(1)"/>
+    <key keycode="VK_HOME" oncommand="RiverView.onHome()"/>
+    <key keycode="VK_END" oncommand="RiverView.onEnd()"/>
+  </keyset>
 
   <toolbar id="toolbar">
     <menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)">
@@ -41,6 +51,17 @@
                  oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
   </toolbar>
 
-  <vbox id="messages"/>
+  <stack flex="1">
+    <scrollbox id="scrollBox"
+               style="overflow: auto;"
+               onoverflow="RiverView.onFlowChange(event)"
+               onunderflow="RiverView.onFlowChange(event)"
+               flex="1">
+        <html:div id="contentBox"/>
+    </scrollbox>
+    <splitter id="columnResizeSplitter" left="410"
+              onmousedown="splitterDragObserver.onMouseDown(event)"
+              onmouseup="splitterDragObserver.onMouseUp(event)"/>
+  </stack>
 
-</window>
+</page>

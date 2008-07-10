@@ -1,28 +1,7 @@
-html {
-  color: black;
-  background-color: white;
-}
-
-body {
-  /* Remove the default margin around the body so the toolbar blends in
-   * with the surrounding chrome and appears to be part of it (rather than
-   * having white space all around it, which looks odd). */
-  margin: 0;
-}
-
 #toolbar {
   font: message-box;
   -moz-box-align: center;
   width: 100%;
-}
-
-#messages {
-  margin: 10px;
-}
-
-/* Show icons in the sources menulist. */
-#sourceMenu > menupopup > menuitem > .menu-iconic-left {
-  display: block;
 }
 
 /* Don't style the buttons natively because they look ugly on Linux.
@@ -40,32 +19,43 @@ toolbarbutton {
   display: none;
 }
 
-/* Make the source and subject links look less like links to differentiate
+/* Show icons in the sources menulist. */
+#sourceMenu > menupopup > menuitem > .menu-iconic-left {
+  display: block;
+}
+
+#contentBox {
+  padding: 7px;
+
+  -moz-column-width: 400px;
+  -moz-column-gap: 2em;
+
+  -moz-user-focus: normal;
+  -moz-user-select: -moz-all;
+
+  /* This gets set programmatically on load, since setting it in CSS doesn't work. */
+  height: 0;
+}
+
+/* Make the title and source links look less like links to differentiate
  * between the links in the content and these links in the chrome. */
-.source > a, .subject > a {
-  font: message-box;
+.source > a, .title > a {
+  font-family: sans-serif;
   text-decoration: none;
   color: black;
 }
-.source > a:visited, .subject > a:visited {
+.source > a:visited, .title > a:visited {
   color: #555;
 }
 
-.message {
-  -moz-user-focus: normal;
-  -moz-user-select: -moz-all;
-  -moz-box-align: baseline;
+h2 {
+  font-size: larger;
+  margin-bottom: 0;
 }
 
-.content {
-  float: left;
-  clear: both;
-  width: 75%;
-
-  padding-bottom: 1em;
-  border-bottom: 3px dotted #ccc;
-  margin-bottom: 1em;
-  margin-right: 2em;
+.byline {
+  font-size: smaller;
+  font-family: sans-serif;
 }
 
 .metadata {
@@ -76,33 +66,9 @@ toolbarbutton {
   font-size: smaller;
 }
 
-.body {
-  /* Set wide to accommodate wide images, which seem to often appear in blog
-   * posts.  Even so, it's not wide enough for some images, which intrude upon
-   * the column to their right.  The CSS3 module on columns
-   * <http://www.w3.org/TR/css3-multicol/> says they should be clipped,
-   * but that isn't happening. */
-
-  -moz-column-width: 500px;
-  -moz-column-gap: 1em;
-}
-
 /* Don't draw borders around hyperlinked favicons, but do pad them a bit
  * between the end of the favicon and the start of the source name. */
 a > img {
   border: 0;
   -moz-padding-end: 1px;
-}
-
-.subject {
-  margin-top: 0;
-}
-
-.subject > a {
-  font-size: 150%;
-  font-weight: bold;
-}
-
-label {
-  -moz-margin-start: 0;
 }
