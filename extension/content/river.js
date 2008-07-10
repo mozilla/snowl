@@ -596,7 +596,8 @@ let RiverView = {
   }),
 
   writeContent: strand(function() {
-let begin = new Date();
+    let begin = new Date();
+
     // Interrupt a strand currently writing messages so we don't both try
     // to write messages at the same time.
     // FIXME: figure out how to suppress the exception this throws to the error
