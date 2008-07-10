@@ -138,6 +138,7 @@ var RiverView = {
 
   init: function() {
     this.resizeContentBox();
+    document.getElementById("contentBox").focus();
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
@@ -674,7 +675,7 @@ var RiverView = {
 
       this._contentSandbox.messageBox = messageBox;
 
-      var codeStr = "messages.appendChild(messageBox)";
+      let codeStr = "messages.appendChild(messageBox)";
       Cu.evalInSandbox(codeStr, this._contentSandbox);
 
       // Sleep after every message so we don't hork the UI thread and users
