@@ -21,6 +21,8 @@ body {
 }
 
 #contentBox {
+  padding: 7px;
+
   -moz-column-width: 400px;
   -moz-column-gap: 2em;
 
@@ -68,6 +70,7 @@ toolbarbutton {
 
 h2 {
   font-size: larger;
+  margin-bottom: 0;
 }
 
 .byline {
