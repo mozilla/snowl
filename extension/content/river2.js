@@ -174,9 +174,14 @@ var RiverView = {
    * because of bug 434683.
    */
   resizeContentBox: function() {
-    let contentBox = document.getElementById("contentBox");
     let toolbarHeight = document.getElementById("toolbar").boxObject.height;
-    contentBox.style.height = (this.viewableHeight - toolbarHeight) + "px";
+    // We do this on load, when there isn't yet a horizontal scrollbar,
+    // but we anticipate that there probably will be one, so we include it
+    // in the calculation.  Perhap we should instead wait to resize
+    // the content box until the content actually overflows horizontally.
+    // XXX Why do I have to subtract *double* the width of the scrollbar???
+    document.getElementById("contentBox").style.height =
+      (window.innerHeight - (this.scrollbarWidth*2) - toolbarHeight) + "px";
   },
 
   doPageMove: function(direction) {
@@ -186,7 +191,8 @@ var RiverView = {
   doColumnMove: function(direction) {
     let contentBox = document.getElementById("contentBox");
     let computedStyle = window.getComputedStyle(contentBox, null);
-    let columnWidth = parseInt(computedStyle.MozColumnWidth) + parseInt(computedStyle.MozColumnGap);
+    let columnWidth = parseInt(computedStyle.MozColumnWidth) +
+                      parseInt(computedStyle.MozColumnGap);
     this.doMove(direction * columnWidth);
   },
 
@@ -214,27 +220,21 @@ var RiverView = {
   _hasHorizontalScrollbar: false,
   _hasVerticalScrollbar: false,
 
-  // the girth of the vertical and horizontal scrollbars, if visible; useful
-  // for calculating the viewable size of the viewport, since window.innerWidth
-  // and .innerHeight include the area taken up by the scrollbars
-  // XXX Are these values correct, and do they vary by platform?
+  // the width (narrower dimension) of the vertical and horizontal scrollbars;
+  // useful for calculating the viewable size of the viewport, since window.
+  // innerWidth and innerHeight include the area taken up by the scrollbars
+  // XXX Is this value correct, and does it vary by platform?
+  scrollbarWidth: 15,
 
-  get scrollbarWidth() {
-    // The width of the vertical scrollbar.
-    return this._hasVerticalScrollbar ? 16 : 0;
-  },
-
-  get scrollbarHeight() {
-    // The height of the horizontal scrollbar.
-    return this._hasHorizontalScrollbar ? 16 : 0;
-  },
-
-  // the viewable size of the viewport (minus the space taken up by scrollbars)
+  // the viewable size of the viewport (i.e. the inner size minus the space
+  // taken up by scrollbars, if any)
   get viewableWidth() {
-    return window.innerWidth - this.scrollbarWidth;
+    return window.innerWidth -
+           (this._hasVerticalScrollbar ? this.scrollbarWidth : 0);
   },
   get viewableHeight() {
-    return window.innerHeight - this.scrollbarHeight;
+    return window.innerHeight -
+           (this._hasHorizontalScrollbar ? this.scrollbarWidth : 0);
   },
 
   /**
