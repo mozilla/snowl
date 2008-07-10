@@ -53,7 +53,7 @@ const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
-var RiverView = {
+let RiverView = {
   get _log() {
     delete this._log;
     return this._log = Log4Moz.Service.getLogger("Snowl.River");
@@ -510,7 +510,7 @@ var RiverView = {
   _setContentText: function FW__setContentText(id, text) {
     this._contentSandbox.element = this._document.getElementById(id);
     this._contentSandbox.textNode = this._document.createTextNode(text);
-    var codeStr =
+    let codeStr =
       "while (element.hasChildNodes()) " +
       "  element.removeChild(element.firstChild);" +
       "element.appendChild(textNode);";
@@ -543,7 +543,7 @@ var RiverView = {
   _unsafeSetURIAttribute: 
   function FW__unsafeSetURIAttribute(element, attribute, uri) {
 /*
-    var secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
+    let secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
                  getService(Ci.nsIScriptSecurityManager);    
     const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
     try {
@@ -560,7 +560,7 @@ var RiverView = {
 
     this._contentSandbox.element = element;
     this._contentSandbox.uri = uri;
-    var codeStr = "element.setAttribute('" + attribute + "', uri);";
+    let codeStr = "element.setAttribute('" + attribute + "', uri);";
     Cu.evalInSandbox(codeStr, this._contentSandbox);
   },
 
