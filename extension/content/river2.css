@@ -20,11 +20,7 @@ body {
   margin: 10px;
 }
 
-#outerContentBox {
-  overflow: auto;
-}
-
-#innerContentBox {
+#contentBox {
   -moz-column-width: 400px;
   -moz-column-gap: 2em;
 

@@ -152,7 +152,7 @@ var RiverView = {
   
   init: function SH_init() {
     this.resizeContentBox();
-    document.getElementById("columnResizeSplitter").style.height = document.getElementById("innerContentBox").style.height;
+    document.getElementById("columnResizeSplitter").style.height = document.getElementById("contentBox").style.height;
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
@@ -170,18 +170,78 @@ var RiverView = {
   },
 
   /**
-   * Resize the inner content box to the height of the viewport.  We have to
-   * do this because of bug 434683.
+   * Resize the content box to the height of the viewport.  We have to do this
+   * because of bug 434683.
    */
   resizeContentBox: function() {
-    let inner = document.getElementById("innerContentBox");
-    // We have to subtract 16 from the height to hackily account for
-    // the horizontal scrollbar, which window.innerHeight doesn't take into
-    // account because of bug 48634.  We should be able to use
-    // document.documentElement.clientHeight, but we can't because of
-    // bug 111034.
+    let contentBox = document.getElementById("contentBox");
     let toolbarHeight = document.getElementById("toolbar").boxObject.height;
-    inner.style.height = (window.innerHeight - toolbarHeight - 16) + "px";
+    contentBox.style.height = (this.viewableHeight - toolbarHeight) + "px";
+  },
+
+  doPageMove: function(direction) {
+    this.doMove(direction * this.viewableWidth);
+  },
+
+  doColumnMove: function(direction) {
+    let contentBox = document.getElementById("contentBox");
+    let computedStyle = window.getComputedStyle(contentBox, null);
+    let columnWidth = parseInt(computedStyle.MozColumnWidth) + parseInt(computedStyle.MozColumnGap);
+    this.doMove(direction * columnWidth);
+  },
+
+  doMove: function(pixels) {
+    let scrollBoxObject = document.getElementById('scrollBox').boxObject.
+                          QueryInterface(Ci.nsIScrollBoxObject);
+    scrollBoxObject.scrollBy(pixels, 0);
+  },
+
+  // whether or not the content area has scrollbars
+  _hasHorizontalScrollbar: false,
+  _hasVerticalScrollbar: false,
+
+  // the girth of the vertical and horizontal scrollbars, if visible; useful
+  // for calculating the viewable size of the viewport, since window.innerWidth
+  // and .innerHeight include the area taken up by the scrollbars
+  // XXX Are these values correct, and do they vary by platform?
+
+  get scrollbarWidth() {
+    // The width of the vertical scrollbar.
+    return this._hasVerticalScrollbar ? 16 : 0;
+  },
+
+  get scrollbarHeight() {
+    // The height of the horizontal scrollbar.
+    return this._hasHorizontalScrollbar ? 16 : 0;
+  },
+
+  // the viewable size of the viewport (minus the space taken up by scrollbars)
+  get viewableWidth() {
+    return window.innerWidth - this.scrollbarWidth;
+  },
+  get viewableHeight() {
+    return window.innerHeight - this.scrollbarHeight;
+  },
+
+  /**
+   * Handle overflow and underflow events. |event.detail| is 0 if vertical flow
+   * changed, 1 if horizontal flow changed, and 2 if both changed.
+   */
+  onFlowChange: function(event) {
+    let val = event.type == "overflow" ? true : false;
+
+    switch(event.detail) {
+      case 0:
+        this._hasVerticalScrollbar = val;
+        break;
+      case 1:
+        this._hasHorizontalScrollbar = val;
+        break;
+      case 2:
+        this._hasVerticalScrollbar = val;
+        this._hasHorizontalScrollbar = val;
+        break;
+    }
   },
 
   _updateToolbar: function() {
@@ -608,7 +668,7 @@ var RiverView = {
       this._futureWriteMessages.interrupt();
 
     this._contentSandbox.messages =
-      this._document.getElementById("innerContentBox");
+      this._document.getElementById("contentBox");
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
@@ -814,9 +874,9 @@ var RiverView = {
   },
 
   rebuildView: function() {
-    let innerContentBox = this._document.getElementById("innerContentBox");
-    while (innerContentBox.hasChildNodes())
-      innerContentBox.removeChild(innerContentBox.lastChild);
+    let contentBox = this._document.getElementById("contentBox");
+    while (contentBox.hasChildNodes())
+      contentBox.removeChild(contentBox.lastChild);
 
     this.writeContent();
   },
@@ -924,7 +984,7 @@ let splitterDragObserver = {
   // Note: because this function gets passed directly to setTimeout,
   // |this| doesn't reference splitterDragObserver inside the function.
   callback: function(width) {
-    document.getElementById("innerContentBox").style.MozColumnWidth = width + "px";
+    document.getElementById("contentBox").style.MozColumnWidth = width + "px";
   },
 
   handleEvent: function(event) {

@@ -11,6 +11,13 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river2.js"/>
 
+  <keyset>
+    <key keycode="VK_PAGE_UP" oncommand="RiverView.doPageMove(-1)"/>
+    <key keycode="VK_PAGE_DOWN" oncommand="RiverView.doPageMove(1)"/>
+    <key keycode="VK_PAGE_UP" modifiers="shift" oncommand="RiverView.doColumnMove(-1)"/>
+    <key keycode="VK_PAGE_DOWN" modifiers="shift" oncommand="RiverView.doColumnMove(1)"/>
+  </keyset>
+
   <toolbar id="toolbar">
     <menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)">
       <menupopup id="sourcePopup"/>
@@ -43,9 +50,13 @@
   </toolbar>
 
   <stack flex="1">
-    <vbox id="outerContentBox" flex="1">
-      <html:div id="innerContentBox"/>
-    </vbox>
+    <scrollbox id="scrollBox"
+               style="overflow: auto;"
+               onoverflow="RiverView.onFlowChange(event)"
+               onunderflow="RiverView.onFlowChange(event)"
+               flex="1">
+        <html:div id="contentBox"/>
+    </scrollbox>
     <splitter id="columnResizeSplitter" left="410"
               onmousedown="splitterDragObserver.onMouseDown(event)"
               onmouseup="splitterDragObserver.onMouseUp(event)"/>
