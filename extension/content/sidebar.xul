@@ -43,6 +43,12 @@
 
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 
+  <menulist oncommand="SourcesView.onSelectGroup(event)">
+    <menupopup>
+      <menuitem value="source" label="Sources"/>
+      <menuitem value="person" label="People"/>
+    </menupopup>
+  </menulist>
   <toolbar>
     <toolbarbutton id="snowlSubscribeButton"
                    image="chrome://snowl/content/icons/add.png"

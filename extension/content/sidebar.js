@@ -9,6 +9,7 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/identity.js");
 
 var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
@@ -135,22 +136,37 @@ SourcesView = {
     }
   },
 
+  _group: "source",
+  onSelectGroup: function(event) {
+    this._group = event.target.value;
+    gBrowserWindow.SnowlView.setGroup(this._group);
+    this._rebuildModel();
+
+    // Rebuild the view to reflect the new collection of messages.
+    // Since the number of rows might have changed, we do this by reinitializing
+    // the view instead of merely invalidating the box object (which doesn't
+    // expect changes to the number of rows).
+    this._tree.view = this;
+  },
+
   _model: null,
   _rebuildModel: function() {
-    this._model = SnowlSource.getAll();
+    if (this._group == "source")
+      this._model = SnowlSource.getAll();
+    else if (this._group == "person")
+      this._model = SnowlPerson.getAll();
+
     this._model.unshift({ id: null,
                           name: "All",
                           faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
   },
 
   onSelect: function(aEvent) {
-this._log.info("on select");
-//this._log.info(Log4Moz.enumerateProperties(aEvent).join("\n"));
     if (this._tree.currentIndex == -1)
       return;
     
-    let sourceID = this._model[this._tree.currentIndex].id;
-    gBrowserWindow.SnowlView.setSource(sourceID);
+    let id = this._model[this._tree.currentIndex].id;
+    gBrowserWindow.SnowlView.setGroupID(id);
   },
 
   onClick: function(aEvent) {

@@ -192,8 +192,21 @@ let SnowlView = {
     this._rebuildView();
   },
 
-  setSource: function(aSourceID) {
-    this._collection.sourceID = aSourceID;
+  _group: "source",
+  setGroup: function(group) {
+    this._group = group;
+  },
+
+  setGroupID: function(aGroupID) {
+    if (this._group == "source") {
+      this._collection.sourceID = aGroupID;
+      this._collection.authorID = null;
+    }
+    else if (this._group == "person") {
+      this._collection.authorID = aGroupID;
+      this._collection.sourceID = null;
+    }
+
     this._rebuildView();
   },
 

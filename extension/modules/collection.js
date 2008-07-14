@@ -26,8 +26,9 @@ Cu.import("resource://snowl/modules/URI.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(aSourceID, aFilter, aCurrent, aRead) {
+function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID) {
   this._sourceID = aSourceID;
+  this._authorID = aAuthorID;
   this._filter = aFilter;
   this._current = aCurrent;
   this._read = aRead;
@@ -51,6 +52,20 @@ SnowlCollection.prototype = {
       return;
 
     this._sourceID = newVal;
+    this.invalidate();
+  },
+
+  _authorID: null,
+
+  get authorID() {
+    return this._authorID;
+  },
+
+  set authorID(newVal) {
+    if (this._authorID == newVal)
+      return;
+
+    this._authorID = newVal;
     this.invalidate();
   },
 
@@ -184,6 +199,9 @@ SnowlCollection.prototype = {
     if (this.sourceID)
       conditions.push("messages.sourceID = :sourceID");
 
+    if (this.authorID)
+      conditions.push("messages.authorID = :authorID");
+
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (this.filter)
@@ -204,6 +222,9 @@ SnowlCollection.prototype = {
 
     if (this.sourceID)
       statement.params.sourceID = this.sourceID;
+
+    if (this.authorID)
+      statement.params.authorID = this.authorID;
 
     if (this.filter)
       statement.params.filter = this.filter;
