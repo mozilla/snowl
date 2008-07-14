@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<?xml-stylesheet href="chrome://snowl/content/river2.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/river.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
@@ -9,7 +9,7 @@
         onresize="RiverView.resizeContentBox()">
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
-  <script type="application/javascript" src="chrome://snowl/content/river2.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/river.js"/>
 
   <keyset>
     <key keycode="VK_PAGE_UP" oncommand="RiverView.doPageMove(-1)"/>
