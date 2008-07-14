@@ -35,7 +35,9 @@ SnowlMessage.get = function(aID) {
   let message;
 
   let statement = SnowlDatastore.createStatement(
-    "SELECT subject, author, link, timestamp, read FROM messages WHERE id = :id"
+    "SELECT subject, authors.name AS author, link, timestamp, read " +
+    "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
+    "WHERE messages.id = :id"
   );
 
   try {

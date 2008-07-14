@@ -17,6 +17,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // Snowl-specific modules
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/identity.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -260,24 +261,24 @@ SnowlFeed.prototype = {
    * @param aExternalID   {string}        the external ID of the entry
    */
   _addMessage: function(aFeed, aEntry, aExternalID) {
-    // Determine the author.
-    let author = null;
-    if (aEntry.authors.length > 0) {
-      let firstAuthor = aEntry.authors.queryElementAt(0, Ci.nsIFeedPerson);
-      if (firstAuthor.name)
-        author = firstAuthor.name;
-      else if (firstAuthor.email)
-        author = firstAuthor.email;
-    }
-    if (!author && aFeed.authors.length > 0) {
-      let firstAuthor = aFeed.authors.queryElementAt(0, Ci.nsIFeedPerson);
-      if (firstAuthor.name)
-        author = firstAuthor.name;
-      else if (firstAuthor.email)
-        author = firstAuthor.email;
-    }
-    if (!author && aFeed.title) {
-      author = aFeed.title.plainText();
+    let authorID = null;
+    let authors = (aEntry.authors.length > 0) ? aEntry.authors
+                  : (aFeed.authors.length > 0) ? aFeed.authors
+                  : null;
+    if (authors && authors.length > 0) {
+      let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
+      // The external ID for an author is her email address, if provided
+      // (many feeds don't); otherwise it's her name.  For the name, on the
+      // other hand, we use the name, if provided, but fall back to the
+      // email address if a name is not provided (which it probably was).
+      let externalID = author.email || author.name;
+      let name = author.name || author.email;
+
+      // Get an existing identity or create a new one.  Creating an identity
+      // automatically creates a person record with the provided name.
+      identity = SnowlIdentity.get(this.id, externalID) ||
+                 SnowlIdentity.create(this.id, externalID, name);
+      authorID = identity.personID;
     }
 
     // Pick a timestamp, which is one of (by priority, high to low):
@@ -293,7 +294,7 @@ SnowlFeed.prototype = {
 
     // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
-                                          aEntry.title.text, author,
+                                          aEntry.title.text, authorID,
                                           timestamp, aEntry.link);
 
     // Add parts
@@ -315,6 +316,7 @@ SnowlFeed.prototype = {
     while (fields.hasMoreElements()) {
       let field = fields.getNext().QueryInterface(Ci.nsIProperty);
 
+      // FIXME: create people records for these.
       if (field.name == "authors") {
         let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
         while (values.hasMoreElements()) {
@@ -352,6 +354,7 @@ SnowlFeed.prototype = {
         else if (field.value instanceof Ci.nsIArray) {
           let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
           while (values.hasMoreElements()) {
+            // FIXME: values might not always have this interface.
             let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
             this._addMetadatum(messageID, field.name, value.get(field.name));
           }
@@ -405,14 +408,14 @@ SnowlFeed.prototype = {
    * @param aSourceID    {integer} the record ID of the message source
    * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
-   * @param aAuthor      {string}  the author of the message
+   * @param aAuthorID    {string}  the author of the message
    * @param aTimestamp   {Date}    the date/time at which the message was sent
    * @param aLink        {nsIURI}  a link to the content of the message,
    *                               if the content is hosted on a server
    *
    * @returns {integer} the internal ID of the newly-created message
    */
-  addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthor,
+  addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
                              aTimestamp, aLink) {
     // Convert the timestamp to milliseconds-since-epoch, which is how we store
     // it in the datastore.
@@ -423,7 +426,7 @@ SnowlFeed.prototype = {
     let link = aLink ? aLink.spec : null;
 
     let messageID =
-      SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthor,
+      SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthorID,
                                    timestamp, link);
 
     return messageID;

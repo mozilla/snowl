@@ -57,7 +57,7 @@ let SnowlDatastore = {
           "sourceID INTEGER NOT NULL REFERENCES sources(id)",
           "externalID TEXT",
           "subject TEXT",
-          "author TEXT",
+          "authorID INTEGER REFERENCES people(id)",
           "timestamp INTEGER",
           "link TEXT",
           "current BOOLEAN DEFAULT 1",
@@ -93,6 +93,34 @@ let SnowlDatastore = {
           "attributeID INTEGER NOT NULL REFERENCES attributes(id)",
           "contentType TEXT NOT NULL",
           "value BLOB"
+        ]
+      },
+
+      people: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "name TEXT NOT NULL"
+        ]
+      },
+
+      personMetadata: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "personID INTEGER NOT NULL REFERENCES people(id)",
+          "attributeID INTEGER NOT NULL REFERENCES attributes(id)",
+          "value BLOB"
+        ]
+      },
+
+      identities: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "sourceID INTEGER NOT NULL REFERENCES sources(id)",
+          "externalID TEXT NOT NULL",
+          "personID INTEGER NOT NULL REFERENCES people(id)",
+          "UNIQUE(externalID, sourceID)"
         ]
       }
 
@@ -304,8 +332,8 @@ let SnowlDatastore = {
 
   get _insertMessageStatement() {
     let statement = this.createStatement(
-      "INSERT INTO messages(sourceID, externalID, subject, author, timestamp, link) \
-       VALUES (:sourceID, :externalID, :subject, :author, :timestamp, :link)"
+      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, link) \
+       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :link)"
     );
     this.__defineGetter__("_insertMessageStatement", function() { return statement });
     return this._insertMessageStatement;
@@ -317,21 +345,22 @@ let SnowlDatastore = {
    * @param aSourceID    {integer} the record ID of the message source
    * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
-   * @param aAuthor      {string}  the author of the message
+   * @param aAuthorID    {string}  the author of the message
    * @param aTimestamp   {Date}    the date/time at which the message was sent
    * @param aLink        {nsIURI}  a link to the content of the message,
    *                               if the content is hosted on a server
    *
    * @returns {integer} the ID of the newly-created record
    */
-  insertMessage: function(aSourceID, aExternalID, aSubject, aAuthor, aTimestamp, aLink) {
+  insertMessage: function(aSourceID, aExternalID, aSubject, aAuthorID, aTimestamp, aLink) {
     this._insertMessageStatement.params.sourceID = aSourceID;
     this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
-    this._insertMessageStatement.params.author = aAuthor;
+    this._insertMessageStatement.params.authorID = aAuthorID;
     this._insertMessageStatement.params.timestamp = aTimestamp;
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
+
     return this.dbConnection.lastInsertRowID;
   },
 

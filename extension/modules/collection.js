@@ -175,8 +175,9 @@ SnowlCollection.prototype = {
       //"SELECT subject, author, link, timestamp, content \
       // FROM sources JOIN messages ON sources.id = messages.sourceID \
       // LEFT JOIN parts on messages.id = parts.messageID";
-      "SELECT messages.id, subject, author, link, timestamp, read " +
-      "FROM sources JOIN messages ON sources.id = messages.sourceID";
+      "SELECT messages.id, subject, authors.name AS author, link, timestamp, read " +
+      "FROM sources JOIN messages ON sources.id = messages.sourceID " +
+      "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
     let conditions = [];
 
