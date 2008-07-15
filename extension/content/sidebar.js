@@ -205,6 +205,116 @@ this._log.info(row.value + " is not selected");
 
     this._obsSvc.notifyObservers(null, "sources:changed", null);
     this._obsSvc.notifyObservers(null, "messages:changed", null);
+  },
+
+
+  //**************************************************************************//
+  // OPML Export
+  // Based on code in Thunderbird's feed-subscriptions.js
+
+  exportOPML: function() {
+    let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
+    fp.init(window, "Export feeds as an OPML file", Ci.nsIFilePicker.modeSave);
+    fp.appendFilter("OPML Files", "*.opml");
+    fp.appendFilters(Ci.nsIFilePicker.filterXML | Ci.nsIFilePicker.filterAll);
+    fp.defaultString = "feeds.opml";
+    fp.defaultExtension = "opml";
+
+    let rv = fp.show();
+
+    if (rv == Ci.nsIFilePicker.returnCancel)
+      return;
+
+    let doc = this._createOPMLDocument();
+
+    // Format the document with newlines and indentation so it's easier
+    // for humans to read.
+    this._prettifyNode(doc.documentElement, 0);
+
+    let serializer = new XMLSerializer();
+    let foStream = Cc["@mozilla.org/network/file-output-stream;1"].
+                   createInstance(Ci.nsIFileOutputStream);
+    // default mode:  write | create | truncate
+    let mode = 0x02 | 0x08 | 0x20;
+    foStream.init(fp.file, mode, 0666, 0);
+    serializer.serializeToStream(doc, foStream, "utf-8");
+  },
+
+  _createOPMLDocument: function() {
+    let doc = document.implementation.createDocument("", "opml", null);
+    let root = doc.documentElement;
+    root.setAttribute("version", "1.0");
+
+    // Create the <head> element.
+    let head = doc.createElement("head");
+    root.appendChild(head);
+
+    let title = doc.createElement("title");
+    head.appendChild(title);
+    title.appendChild(doc.createTextNode("Snowl OPML Export"));
+
+    let dt = doc.createElement("dateCreated");
+    head.appendChild(dt);
+    dt.appendChild(doc.createTextNode((new Date()).toGMTString()));
+
+    // Create the <body> element.
+    let body = doc.createElement("body");
+    root.appendChild(body);
+
+    // Populate the <body> element with <outline> elements.
+    let sources = SnowlSource.getAll();
+    for each (let source in sources) {
+      let outline = doc.createElement("outline");
+      // XXX Should we specify the |type| attribute, and should we specify
+      // type="atom" for Atom feeds or just type="rss" for all feeds?
+      // This document says the latter but is three years old:
+      // http://www.therssweblog.com/?guid=20051003145153
+      //outline.setAttribute("type", "rss");
+      outline.setAttribute("text", source.name);
+      outline.setAttribute("url", source.humanURI.spec);
+      outline.setAttribute("xmlUrl", source.machineURI.spec);
+      body.appendChild(outline);
+    }
+
+    return doc;
+  },
+
+  _prettifyNode: function(node, level) {
+    let doc = node.ownerDocument;
+
+    // Create a string containing two spaces for every level deep we are.
+    let indentString = new Array(level + 1).join("  ");
+
+    // Indent the tag.
+    if (level > 0)
+      node.parentNode.insertBefore(doc.createTextNode(indentString), node);
+
+    // Grab the list of nodes to format.  We can't just use node.childNodes
+    // because it'd change under us as we insert formatting nodes.
+    let childNodesToFormat = [];
+    for (let i = 0; i < node.childNodes.length; i++)
+      if (node.childNodes[i].nodeType == node.ELEMENT_NODE)
+        childNodesToFormat.push(node.childNodes[i]);
+
+    if (childNodesToFormat.length > 0) {
+      for each (let childNode in childNodesToFormat)
+        this._prettifyNode(childNode, level + 1);
+
+      // Insert a newline after the opening tag.
+      node.insertBefore(doc.createTextNode("\n"), node.firstChild);
+  
+      // Indent the closing tag.
+      node.appendChild(doc.createTextNode(indentString));
+    }
+
+    // Insert a newline after the tag.
+    if (level > 0) {
+      if (node.nextSibling)
+        node.parentNode.insertBefore(doc.createTextNode("\n"),
+                                     node.nextSibling);
+      else
+        node.parentNode.appendChild(doc.createTextNode("\n"));
+    }
   }
 
 };

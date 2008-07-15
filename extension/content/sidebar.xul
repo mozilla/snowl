@@ -50,6 +50,9 @@
     </menupopup>
   </menulist>
   <toolbar>
+    <!-- FIXME: Note in credits that silk icons licensed
+       - from http://www.famfamfam.com/lab/icons/silk/
+       - under http://creativecommons.org/licenses/by/2.5/ -->
     <toolbarbutton id="snowlSubscribeButton"
                    image="chrome://snowl/content/icons/add.png"
                    oncommand="SourcesView.subscribe()"/>
@@ -59,6 +62,11 @@
     <toolbarbutton id="snowlRefreshButton"
                    image="chrome://snowl/content/icons/arrow_refresh_small.png"
                    oncommand="SnowlService.refreshAllSources()"/>
+    <!-- FIXME: Note in credits that OPML icon licensed from opmlicons.com
+       - under http://creativecommons.org/licenses/by-sa/2.5/ -->
+    <toolbarbutton id="snowlExportOPMLButton"
+                   image="chrome://snowl/content/icons/opml-icon-16x16.png"
+                   oncommand="SourcesView.exportOPML()"/>
   </toolbar>
 
   <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
