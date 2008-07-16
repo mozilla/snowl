@@ -119,7 +119,8 @@ SnowlCollection.prototype = {
   //**************************************************************************//
   // Grouping
 
-  groupFields: null,
+  nameGroupField: null,
+  uriGroupField: null,
 
   _groups: null,
   get groups() {
@@ -144,8 +145,8 @@ SnowlCollection.prototype = {
 
   _generateGetGroupsStatement: function() {
     let query = 
-      "SELECT DISTINCT(" + this.groupFields["name"] + ") AS name, " +
-      this.groupFields["uri"] + " AS uri " +
+      "SELECT DISTINCT(" + this.nameGroupField + ") AS name, " +
+      this.uriGroupField + " AS uri " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
@@ -171,7 +172,7 @@ SnowlCollection.prototype = {
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
 
-    query += " ORDER BY " + this.groupFields["name"];
+    query += " ORDER BY " + this.nameGroupField;
 
     this._log.info("groups query: " + query);
 

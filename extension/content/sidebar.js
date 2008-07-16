@@ -159,7 +159,8 @@ SourcesView = {
       this._model = SnowlPerson.getAll();
 */
     let foo = new SnowlCollection();
-    foo.groupFields = { name: "sources.name", uri: "sources.humanURI" };
+    foo.nameGroupField = "sources.name";
+    foo.uriGroupField = "sources.humanURI";
     this._model = foo.groups;
 
 /*
