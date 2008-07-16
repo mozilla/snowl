@@ -10,6 +10,7 @@ Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/identity.js");
+Cu.import("resource://snowl/modules/collection.js");
 
 var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
@@ -151,14 +152,20 @@ SourcesView = {
 
   _model: null,
   _rebuildModel: function() {
+/*
     if (this._group == "source")
       this._model = SnowlSource.getAll();
     else if (this._group == "person")
       this._model = SnowlPerson.getAll();
+*/
+    let foo = new SnowlCollection();
+    foo.groupFields = { name: "sources.name", uri: "sources.humanURI" };
+    this._model = foo.groups;
 
-    this._model.unshift({ id: null,
-                          name: "All",
+/*
+    this._model.unshift({ name: "All",
                           faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
+*/
   },
 
   onSelect: function(aEvent) {

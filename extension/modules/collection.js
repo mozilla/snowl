@@ -115,6 +115,84 @@ SnowlCollection.prototype = {
     this._messages = null;
   },
 
+
+  //**************************************************************************//
+  // Grouping
+
+  groupFields: null,
+
+  _groups: null,
+  get groups() {
+    if (this._groups)
+      return this._groups;
+
+    let groups = [];
+
+    let statement = this._generateGetGroupsStatement();
+    try {
+      while (statement.step())
+        groups.push(new Group(statement.row.name, URI.get(statement.row.uri)));
+    }
+    finally {
+      statement.reset();
+    }
+
+    this._log.info("got " + groups.length + " groups");
+
+    return this._groups = groups;
+  },
+
+  _generateGetGroupsStatement: function() {
+    let query = 
+      "SELECT DISTINCT(" + this.groupFields["name"] + ") AS name, " +
+      this.groupFields["uri"] + " AS uri " +
+      "FROM sources JOIN messages ON sources.id = messages.sourceID " +
+      "LEFT JOIN people AS authors ON messages.authorID = authors.id";
+
+    let conditions = [];
+
+    if (this.sourceID)
+      conditions.push("messages.sourceID = :sourceID");
+
+    if (this.authorID)
+      conditions.push("messages.authorID = :authorID");
+
+    // FIXME: use a left join here once the SQLite bug breaking left joins to
+    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+    if (this.filter)
+      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
+
+    if (typeof this.current != "undefined")
+      conditions.push("current = " + (this.current ? "1" : "0"));
+
+    if (typeof this.read != "undefined")
+      conditions.push("read = " + (this.read ? "1" : "0"));
+
+    if (conditions.length > 0)
+      query += " WHERE " + conditions.join(" AND ");
+
+    query += " ORDER BY " + this.groupFields["name"];
+
+    this._log.info("groups query: " + query);
+
+    let statement = SnowlDatastore.createStatement(query);
+
+    if (this.sourceID)
+      statement.params.sourceID = this.sourceID;
+
+    if (this.authorID)
+      statement.params.authorID = this.authorID;
+
+    if (this.filter)
+      statement.params.filter = this.filter;
+
+    return statement;
+  },
+
+
+  //**************************************************************************//
+  // Retrieval
+
   sortProperty: "timestamp",
   sortOrder: 1,
 
@@ -272,4 +350,33 @@ function prepareObjectForComparison(aObject) {
     return "";
 
   return aObject;
+}
+
+function Group(name, uri) {
+  this.name = name;
+  this.uri = uri;
+}
+
+Group.prototype = {
+    // Favicon Service
+  get _faviconSvc() {
+    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                     getService(Ci.nsIFaviconService);
+    delete this.__proto__._faviconSvc;
+    this.__proto__._faviconSvc = faviconSvc;
+    return this._faviconSvc;
+  },
+
+  get faviconURI() {
+    if (this.uri) {
+      try {
+        return this._faviconSvc.getFaviconForPage(this.uri);
+      }
+      catch(ex) { /* no known favicon; use the default */ }
+    }
+
+    // The default favicon for feed sources.
+    // FIXME: make this group-specific.
+    return URI.get("chrome://browser/skin/feeds/feedIcon16.png");
+  }
 }
