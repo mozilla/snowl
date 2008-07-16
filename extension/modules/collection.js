@@ -32,6 +32,7 @@ function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID) {
   this._filter = aFilter;
   this._current = aCurrent;
   this._read = aRead;
+  this.conditions = [];
 }
 
 SnowlCollection.prototype = {
@@ -143,6 +144,12 @@ SnowlCollection.prototype = {
     return this._groups = groups;
   },
 
+  getGroup: function(name) {
+    let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID);
+    group.conditions.push({ column: this.nameGroupField, value: name });
+    return group;
+  },
+
   _generateGetGroupsStatement: function() {
     let query = 
       "SELECT DISTINCT(" + this.nameGroupField + ") AS name, " +
@@ -150,25 +157,7 @@ SnowlCollection.prototype = {
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
-    let conditions = [];
-
-    if (this.sourceID)
-      conditions.push("messages.sourceID = :sourceID");
-
-    if (this.authorID)
-      conditions.push("messages.authorID = :authorID");
-
-    // FIXME: use a left join here once the SQLite bug breaking left joins to
-    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    if (this.filter)
-      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
-
-    if (typeof this.current != "undefined")
-      conditions.push("current = " + (this.current ? "1" : "0"));
-
-    if (typeof this.read != "undefined")
-      conditions.push("read = " + (this.read ? "1" : "0"));
-
+    let conditions = this._generateConditions();
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
 
@@ -188,6 +177,29 @@ SnowlCollection.prototype = {
       statement.params.filter = this.filter;
 
     return statement;
+  },
+
+  _generateConditions: function() {
+    let conditions = [];
+
+    if (this.sourceID)
+      conditions.push("messages.sourceID = :sourceID");
+
+    if (this.authorID)
+      conditions.push("messages.authorID = :authorID");
+
+    // FIXME: use a left join here once the SQLite bug breaking left joins to
+    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+    if (this.filter)
+      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
+
+    if (typeof this.current != "undefined")
+      conditions.push("current = " + (this.current ? "1" : "0"));
+
+    if (typeof this.read != "undefined")
+      conditions.push("read = " + (this.read ? "1" : "0"));
+
+    return conditions;
   },
 
 
@@ -291,6 +303,12 @@ SnowlCollection.prototype = {
 
     if (typeof this.read != "undefined")
       conditions.push("read = " + (this.read ? "1" : "0"));
+
+    // FIXME: allow specification of the operator as well.
+    // FIXME: use parameter binding.
+    if (this.conditions)
+      for each (let condition in this.conditions)
+        conditions.push(condition.column + " = '" + condition.value + "'");
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");

@@ -158,10 +158,10 @@ SourcesView = {
     else if (this._group == "person")
       this._model = SnowlPerson.getAll();
 */
-    let foo = new SnowlCollection();
-    foo.nameGroupField = "sources.name";
-    foo.uriGroupField = "sources.humanURI";
-    this._model = foo.groups;
+    this._collection = new SnowlCollection();
+    this._collection.nameGroupField = "sources.name";
+    this._collection.uriGroupField = "sources.humanURI";
+    this._model = this._collection.groups;
 
 /*
     this._model.unshift({ name: "All",
@@ -173,8 +173,8 @@ SourcesView = {
     if (this._tree.currentIndex == -1)
       return;
     
-    let id = this._model[this._tree.currentIndex].id;
-    gBrowserWindow.SnowlView.setGroupID(id);
+    let name = this._model[this._tree.currentIndex].name;
+    gBrowserWindow.SnowlView.setCollection(this._collection.getGroup(name));
   },
 
   onClick: function(aEvent) {

@@ -210,6 +210,11 @@ let SnowlView = {
     this._rebuildView();
   },
 
+  setCollection: function(collection) {
+    this._collection = collection;
+    this._rebuildView();
+  },
+
   _rebuildView: function() {
     // Since the number of rows might have changed, we rebuild the view
     // by reinitializing it instead of merely invalidating the box object
