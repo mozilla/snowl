@@ -137,8 +137,13 @@ SnowlCollection.prototype = {
 
     let statement = this._generateGetGroupsStatement();
     try {
-      while (statement.step())
-        groups.push(new Group(statement.row.name, URI.get(statement.row.uri)));
+      while (statement.step()) {
+        let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID);
+        group.name = statement.row.name;
+        group.uri = URI.get(statement.row.uri);
+        group.conditions.push({ column: this.nameGroupField, value: group.name });
+        groups.push(group);
+      }
     }
     finally {
       statement.reset();

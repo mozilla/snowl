@@ -12,6 +12,9 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 
+// FIXME: call this SnowlViewWindow to facilitate reuse of this sidebar code
+// in the river view, where the window it will reference will not be a browser
+// window.
 var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
                      QueryInterface(Ci.nsIDocShellTreeItem).
@@ -259,9 +262,9 @@ this._log.info("toggleOpenState: " + idx);
   onSelect: function(aEvent) {
     if (this._tree.currentIndex == -1)
       return;
-    
-    let name = this._collections[this._tree.currentIndex].name;
-    gBrowserWindow.SnowlView.setCollection(this._collection.getGroup(name));
+
+    let collection = this._rows[this._tree.currentIndex];
+    gBrowserWindow.SnowlView.setCollection(collection);
   },
 
   onClick: function(aEvent) {

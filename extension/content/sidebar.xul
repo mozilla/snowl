@@ -39,8 +39,7 @@
 <?xml-stylesheet href="chrome://snowl/content/sidebar.css" type"text/css"?>
 
 <page id="snowlSidebar" title="Subscriptions"
-      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      onload="init()">
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 

@@ -72,7 +72,7 @@ let SnowlView = {
   // nsITreeView
 
   get rowCount() {
-    this._log.info("get rowCount: " + this._collection.messages.length);
+this._log.info("get rowCount: " + this._collection.messages.length);
     return this._collection.messages.length;
   },
 
