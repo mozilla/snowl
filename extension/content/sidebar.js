@@ -232,9 +232,11 @@ this._log.info("toggleOpenState: " + idx);
     //this._collections.unshift({ name: "All",
     //                      faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
 
-    let collection = new SnowlCollection();
-    collection.nameGroupField = "sources.name";
-    collection.uriGroupField = "sources.humanURI";
+    let grouping = {
+      nameColumn: "sources.name",
+      uriColumn: "sources.humanURI"
+    }
+    let collection = new SnowlCollection(null, null, null, null, null, null, grouping);
     collection.name = "Sources";
     collection.faviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");
     this._collections = [collection];

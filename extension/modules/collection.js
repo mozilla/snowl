@@ -26,13 +26,14 @@ Cu.import("resource://snowl/modules/URI.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID, conditions) {
+function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID, conditions, grouping) {
   this._sourceID = aSourceID;
   this._authorID = aAuthorID;
   this._filter = aFilter;
   this._current = aCurrent;
   this._read = aRead;
   this.conditions = conditions || [];
+  this.grouping = grouping;
 }
 
 SnowlCollection.prototype = {
@@ -120,14 +121,11 @@ SnowlCollection.prototype = {
   //**************************************************************************//
   // Grouping
 
-  nameGroupField: null,
-  uriGroupField: null,
-
   isOpen: false,
 
   _groups: null,
   get groups() {
-    if (!this.nameGroupField)
+    if (!this.grouping)
       return null;
 
     if (this._groups)
@@ -138,7 +136,8 @@ SnowlCollection.prototype = {
     let statement = this._generateGetGroupsStatement();
     try {
       while (statement.step()) {
-        let conditions = [ { expression: this.nameGroupField + " = :groupValue",
+        // FIXME: base this on the current collection's conditions array.
+        let conditions = [ { expression: this.grouping.nameColumn + " = :groupValue",
                              parameters: { groupValue: statement.row.name } } ];
         let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID, conditions);
         group.name = statement.row.name;
@@ -157,8 +156,8 @@ SnowlCollection.prototype = {
 
   _generateGetGroupsStatement: function() {
     let query = 
-      "SELECT DISTINCT(" + this.nameGroupField + ") AS name, " +
-      this.uriGroupField + " AS uri " +
+      "SELECT DISTINCT(" + this.grouping.nameColumn + ") AS name, " +
+      this.grouping.uriColumn + " AS uri " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
@@ -166,7 +165,7 @@ SnowlCollection.prototype = {
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
 
-    query += " ORDER BY " + this.nameGroupField;
+    query += " ORDER BY " + this.grouping.nameColumn;
 
     this._log.info("groups query: " + query);
 
