@@ -26,13 +26,13 @@ Cu.import("resource://snowl/modules/URI.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID) {
+function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID, conditions) {
   this._sourceID = aSourceID;
   this._authorID = aAuthorID;
   this._filter = aFilter;
   this._current = aCurrent;
   this._read = aRead;
-  this.conditions = [];
+  this.conditions = conditions || [];
 }
 
 SnowlCollection.prototype = {
@@ -138,10 +138,11 @@ SnowlCollection.prototype = {
     let statement = this._generateGetGroupsStatement();
     try {
       while (statement.step()) {
-        let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID);
+        let conditions = [ { expression: this.nameGroupField + " = :groupValue",
+                             parameters: { groupValue: statement.row.name } } ];
+        let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID, conditions);
         group.name = statement.row.name;
         group.uri = URI.get(statement.row.uri);
-        group.conditions.push({ column: this.nameGroupField, value: group.name });
         groups.push(group);
       }
     }
@@ -152,12 +153,6 @@ SnowlCollection.prototype = {
     this._log.info("got " + groups.length + " groups");
 
     return this._groups = groups;
-  },
-
-  getGroup: function(name) {
-    let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID);
-    group.conditions.push({ column: this.nameGroupField, value: name });
-    return group;
   },
 
   _generateGetGroupsStatement: function() {
@@ -314,11 +309,8 @@ SnowlCollection.prototype = {
     if (typeof this.read != "undefined")
       conditions.push("read = " + (this.read ? "1" : "0"));
 
-    // FIXME: allow specification of the operator as well.
-    // FIXME: use parameter binding.
-    if (this.conditions)
-      for each (let condition in this.conditions)
-        conditions.push(condition.column + " = '" + condition.value + "'");
+    for each (let condition in this.conditions)
+      conditions.push(condition.expression);
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
@@ -335,6 +327,10 @@ SnowlCollection.prototype = {
 
     if (this.filter)
       statement.params.filter = this.filter;
+
+    for each (let condition in this.conditions)
+      for (let [name, value] in Iterator(condition.parameters))
+        statement.params[name] = value;
 
     return statement;
   },

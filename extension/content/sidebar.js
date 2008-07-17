@@ -226,19 +226,6 @@ this._log.info("toggleOpenState: " + idx);
     }
   },
 
-  _group: "source",
-  onSelectGroup: function(event) {
-    this._group = event.target.value;
-    gBrowserWindow.SnowlView.setGroup(this._group);
-    this._getCollections();
-
-    // Rebuild the view to reflect the new collection of messages.
-    // Since the number of rows might have changed, we do this by reinitializing
-    // the view instead of merely invalidating the box object (which doesn't
-    // expect changes to the number of rows).
-    this._tree.view = this;
-  },
-
   _collections: null,
   _getCollections: function() {
     // FIXME: reimplement the "All" collection.
