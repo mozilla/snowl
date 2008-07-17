@@ -32,17 +32,13 @@ SourcesView = {
   },
 
   get _tree() {
-    let tree = document.getElementById("sourcesView");
     delete this._tree;
-    this._tree = tree;
-    return this._tree;
+    return this._tree = document.getElementById("sourcesView");
   },
 
   get _children() {
-    let children = this._tree.getElementsByTagName("treechildren")[0];
     delete this._children;
-    this._children = children;
-    return this._children;
+    return this._children = this._tree.getElementsByTagName("treechildren")[0];
   },
 
 
@@ -52,12 +48,13 @@ SourcesView = {
   init: function() {
     this._log = Log4Moz.Service.getLogger("Snowl.Sidebar");
     this._obsSvc.addObserver(this, "sources:changed", true);
-    this._rebuildModel();
+    this._getCollections();
     this._tree.view = this;
 
     // Add a capturing click listener to the tree so we can find out if the user
     // clicked on a row that is already selected (in which case we let them edit
-    // the source name).
+    // the collection name).
+    // FIXME: disable this for names that can't be changed.
     this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
   },
 
@@ -65,41 +62,130 @@ SourcesView = {
   //**************************************************************************//
   // nsITreeView
 
+  selection: null,
+
   get rowCount() {
-    return this._model.length;
+    return this._rows.length;
   },
 
-  getCellText : function(aRow, aColumn) {
-    if (aColumn.id == "nameCol")
-      return this._model[aRow].name;
-    return null;
-  },
-
+  // FIXME: consolidate these two references.
   _treebox: null,
-  setTree: function(treebox){ this._treebox = treebox; },
+  setTree: function(treeBox) {
+    this._treeBox = treeBox;
+  },
 
-  isContainer: function(aRow) { return false },
-  isSeparator: function(aRow) { return false },
-  isSorted: function() { return false },
-  getLevel: function(aRow) { return 0 },
+  getCellText : function(row, column) {
+    return this._rows[row].name;
+  },
 
-  getImageSrc: function(aRow, aColumn) {
-    if (aColumn.id == "nameCol")
-      return this._model[aRow].faviconURI.spec;
+  isContainer: function(row) {
+this._log.info("isContainer: " + (this._rows[row].groups ? true : false));
+    return (this._rows[row].groups ? true : false);
+  },
+  isContainerOpen: function(row) {
+this._log.info("isContainerOpen: " + this._rows[row].isOpen);
+    return this._rows[row].isOpen;
+  },
+  isContainerEmpty: function(row) {
+this._log.info("isContainerEmpty: " + row + " " + this._rows[row].groups.length + " " + (this._rows[row].groups.length == 0));
+    return (this._rows[row].groups.length == 0);
+  },
+
+  isSeparator: function(row)         { return false },
+  isSorted: function()               { return false },
+
+  // FIXME: make this return true for collection names that are editable,
+  // and then implement name editing on the new architecture.
+  isEditable: function(row, column)  { return false },
+
+  getParentIndex: function(row) {
+this._log.info("getParentIndex: " + row);
+    // XXX Assumes only one level of hierarchy (so anything that is a container
+    // is at the top level).
+    // FIXME: stop assuming that by giving collections a reference to their
+    // parent collection.
+    if (this.isContainer(row))
+      return -1;
+    for (let t = row - 1; t >= 0; t--)
+      if (this.isContainer(t))
+        return t;
+
+    throw "getParentIndex: couldn't figure out parent index for row " + row;
+  },
+
+  getLevel: function(row) {
+this._log.info("getLevel: " + row);
+    // XXX Assumes only one level of hierarchy (so anything that is a container
+    // is at the top level).
+    // FIXME: stop assuming that by giving collections a reference to their
+    // parent collection, then counting the number of parents to determine the level.
+    if (this.isContainer(row))
+      return 0;
+    return 1;
+  },
+
+  hasNextSibling: function(idx, after) {
+this._log.info("hasNextSibling: " + idx + " " + after);
+    let thisLevel = this.getLevel(idx);
+    for (let t = idx + 1; t < this._rows.length; t++) {
+      let nextLevel = this.getLevel(t);
+      if (nextLevel == thisLevel)
+        return true;
+      if (nextLevel < thisLevel)
+        return false;
+    }
+
+    return false;
+  },
+
+  getImageSrc: function(row, column) {
+// FIXME: make this work again on the new architecture.
+return null;
+    if (column.id == "nameCol")
+      return this._rows[row].faviconURI.spec;
     return null;
+  },
+
+  toggleOpenState: function(idx) {
+this._log.info("toggleOpenState: " + idx);
+    let item = this._rows[idx];
+    if (!item.groups)
+      return;
+
+    if (item.isOpen) {
+      item.isOpen = false;
+
+      let thisLevel = this.getLevel(idx);
+      let numToDelete = 0;
+      for (let t = idx + 1; t < this._rows.length; t++) {
+        if (this.getLevel(t) > thisLevel)
+          numToDelete++;
+        else
+          break;
+      }
+      if (numToDelete) {
+        this._rows.splice(idx + 1, numToDelete);
+        this._treeBox.rowCountChanged(idx + 1, -numToDelete);
+      }
+    }
+    else {
+      item.isOpen = true;
+
+      let groups = this._rows[idx].groups;
+      for (let i = 0; i < groups.length; i++)
+        this._rows.splice(idx + 1 + i, 0, groups[i]);
+      this._treeBox.rowCountChanged(idx + 1, groups.length);
+    }
   },
 
   getRowProperties: function (aRow, aProperties) {},
   getCellProperties: function (aRow, aColumn, aProperties) {},
   getColumnProperties: function(aColumnID, aColumn, aProperties) {},
-  isEditable: function() {
-    return true;
-  },
 
   setCellText: function(aRow, aCol, aValue) {
     let statement = SnowlDatastore.createStatement("UPDATE sources SET name = :name WHERE id = :id");
-    statement.params.name = this._model[aRow].name = aValue;
-    statement.params.id = this._model[aRow].id;
+    statement.params.name = this._rows[aRow].name = aValue;
+    statement.params.id = this._rows[aRow].id;
 
     try {
       statement.execute();
@@ -127,7 +213,7 @@ SourcesView = {
   observe: function(subject, topic, data) {
     switch (topic) {
       case "sources:changed":
-        this._rebuildModel();
+        this._getCollections();
         // Rebuild the view to reflect the new collection of messages.
         // Since the number of rows might have changed, we do this by reinitializing
         // the view instead of merely invalidating the box object (which doesn't
@@ -141,7 +227,7 @@ SourcesView = {
   onSelectGroup: function(event) {
     this._group = event.target.value;
     gBrowserWindow.SnowlView.setGroup(this._group);
-    this._rebuildModel();
+    this._getCollections();
 
     // Rebuild the view to reflect the new collection of messages.
     // Since the number of rows might have changed, we do this by reinitializing
@@ -150,30 +236,31 @@ SourcesView = {
     this._tree.view = this;
   },
 
-  _model: null,
-  _rebuildModel: function() {
-/*
-    if (this._group == "source")
-      this._model = SnowlSource.getAll();
-    else if (this._group == "person")
-      this._model = SnowlPerson.getAll();
-*/
-    this._collection = new SnowlCollection();
-    this._collection.nameGroupField = "sources.name";
-    this._collection.uriGroupField = "sources.humanURI";
-    this._model = this._collection.groups;
+  _collections: null,
+  _getCollections: function() {
+    // FIXME: reimplement the "All" collection.
+    //this._collections.unshift({ name: "All",
+    //                      faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
 
-/*
-    this._model.unshift({ name: "All",
-                          faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
-*/
+    let collection = new SnowlCollection();
+    collection.nameGroupField = "sources.name";
+    collection.uriGroupField = "sources.humanURI";
+    collection.name = "Sources";
+    collection.faviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");
+    this._collections = [collection];
+
+    // Build the list of rows in the tree.  By default, all containers
+    // are closed, so this is the same as the list of collections, although
+    // in the future we might persist and restore the open state.
+    // XXX Should this work be in a separate function?
+    this._rows = [collection for each (collection in this._collections)];
   },
 
   onSelect: function(aEvent) {
     if (this._tree.currentIndex == -1)
       return;
     
-    let name = this._model[this._tree.currentIndex].name;
+    let name = this._collections[this._tree.currentIndex].name;
     gBrowserWindow.SnowlView.setCollection(this._collection.getGroup(name));
   },
 
@@ -196,7 +283,7 @@ this._log.info(row.value + " is not selected");
   },
 
   unsubscribe: function(aEvent) {
-    let sourceID = this._model[this._tree.currentIndex].id;
+    let sourceID = this._collections[this._tree.currentIndex].id;
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {

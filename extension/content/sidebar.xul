@@ -39,7 +39,8 @@
 <?xml-stylesheet href="chrome://snowl/content/sidebar.css" type"text/css"?>
 
 <page id="snowlSidebar" title="Subscriptions"
-      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      onload="init()">
 
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 
@@ -72,7 +73,7 @@
   <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
         onselect="SourcesView.onSelect(event)">
     <treecols>
-      <treecol id="nameCol" label="Name" flex="1"/>
+      <treecol id="nameCol" label="Name" primary="true" flex="1"/>
     </treecols>
 
     <treechildren flex="1"/>
@@ -81,4 +82,5 @@
   <menupopup id="sourcesContextMenu">
     <menuitem label="Unsubscribe" oncommand="SourcesView.unsubscribe(event)"/>
   </menupopup>
+
 </page>

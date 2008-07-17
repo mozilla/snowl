@@ -123,8 +123,13 @@ SnowlCollection.prototype = {
   nameGroupField: null,
   uriGroupField: null,
 
+  isOpen: false,
+
   _groups: null,
   get groups() {
+    if (!this.nameGroupField)
+      return null;
+
     if (this._groups)
       return this._groups;
 
