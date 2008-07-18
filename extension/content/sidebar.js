@@ -82,15 +82,15 @@ SourcesView = {
   },
 
   isContainer: function(row) {
-this._log.info("isContainer: " + (this._rows[row].groups ? true : false));
+    //this._log.info("isContainer: " + (this._rows[row].groups ? true : false));
     return (this._rows[row].groups ? true : false);
   },
   isContainerOpen: function(row) {
-this._log.info("isContainerOpen: " + this._rows[row].isOpen);
+    //this._log.info("isContainerOpen: " + this._rows[row].isOpen);
     return this._rows[row].isOpen;
   },
   isContainerEmpty: function(row) {
-this._log.info("isContainerEmpty: " + row + " " + this._rows[row].groups.length + " " + (this._rows[row].groups.length == 0));
+    //this._log.info("isContainerEmpty: " + row + " " + this._rows[row].groups.length + " " + (this._rows[row].groups.length == 0));
     return (this._rows[row].groups.length == 0);
   },
 
@@ -102,7 +102,8 @@ this._log.info("isContainerEmpty: " + row + " " + this._rows[row].groups.length 
   isEditable: function(row, column)  { return false },
 
   getParentIndex: function(row) {
-this._log.info("getParentIndex: " + row);
+    //this._log.info("getParentIndex: " + row);
+
     // XXX Assumes only one level of hierarchy (so anything that is a container
     // is at the top level).
     // FIXME: stop assuming that by giving collections a reference to their
@@ -117,7 +118,8 @@ this._log.info("getParentIndex: " + row);
   },
 
   getLevel: function(row) {
-this._log.info("getLevel: " + row);
+    //this._log.info("getLevel: " + row);
+
     // XXX Assumes only one level of hierarchy (so anything that is a container
     // is at the top level).
     // FIXME: stop assuming that by giving collections a reference to their
@@ -128,7 +130,8 @@ this._log.info("getLevel: " + row);
   },
 
   hasNextSibling: function(idx, after) {
-this._log.info("hasNextSibling: " + idx + " " + after);
+    //this._log.info("hasNextSibling: " + idx + " " + after);
+
     let thisLevel = this.getLevel(idx);
     for (let t = idx + 1; t < this._rows.length; t++) {
       let nextLevel = this.getLevel(t);
@@ -142,15 +145,18 @@ this._log.info("hasNextSibling: " + idx + " " + after);
   },
 
   getImageSrc: function(row, column) {
-// FIXME: make this work again on the new architecture.
-return null;
-    if (column.id == "nameCol")
-      return this._rows[row].faviconURI.spec;
+    if (column.id == "nameCol") {
+      let faviconURI = this._rows[row].faviconURI;
+      if (faviconURI)
+        return faviconURI.spec;
+    }
+
     return null;
   },
 
   toggleOpenState: function(idx) {
-this._log.info("toggleOpenState: " + idx);
+    //this._log.info("toggleOpenState: " + idx);
+
     let item = this._rows[idx];
     if (!item.groups)
       return;
@@ -234,11 +240,13 @@ this._log.info("toggleOpenState: " + idx);
 
     let grouping = {
       nameColumn: "sources.name",
-      uriColumn: "sources.humanURI"
+      uriColumn: "sources.humanURI",
+      // the default favicon for sources
+      // FIXME: use a source type-specific favicon.
+      defaultFaviconURI: URI.get("chrome://browser/skin/feeds/feedIcon16.png")
     }
     let collection = new SnowlCollection(null, null, grouping);
     collection.name = "Sources";
-    collection.faviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");
     this._collections = [collection];
 
     // Build the list of rows in the tree.  By default, all containers

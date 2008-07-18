@@ -54,6 +54,10 @@ SnowlCollection.prototype = {
   //**************************************************************************//
   // Grouping
 
+  // XXX This stuff only matters when the collection is being displayed
+  // in the sidebar.  Should we split it out to another class that subclasses
+  // Collection or composes a new class with it?
+
   isOpen: false,
 
   _groups: null,
@@ -76,6 +80,7 @@ SnowlCollection.prototype = {
         let group = new SnowlCollection(constraints);
         group.name = statement.row.name;
         group.uri = URI.get(statement.row.uri);
+        group.defaultFaviconURI = this.grouping.defaultFaviconURI;
         groups.push(group);
       }
     }
@@ -114,6 +119,29 @@ SnowlCollection.prototype = {
         statement.params[name] = value;
 
     return statement;
+  },
+
+  // Favicon Service
+  get _faviconSvc() {
+    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                     getService(Ci.nsIFaviconService);
+    delete this.__proto__._faviconSvc;
+    this.__proto__._faviconSvc = faviconSvc;
+    return this._faviconSvc;
+  },
+
+  get faviconURI() {
+    if (this.uri) {
+      try {
+        return this._faviconSvc.getFaviconForPage(this.uri);
+      }
+      catch(ex) { /* no known favicon; use the default */ }
+    }
+
+    if (this.defaultFaviconURI)
+      return this.defaultFaviconURI;
+
+    return null;
   },
 
 
@@ -253,6 +281,7 @@ SnowlCollection.prototype = {
 
     this.messages.sort(compare);
   }
+
 }
 
 function prepareObjectForComparison(aObject) {
@@ -265,33 +294,4 @@ function prepareObjectForComparison(aObject) {
     return "";
 
   return aObject;
-}
-
-function Group(name, uri) {
-  this.name = name;
-  this.uri = uri;
-}
-
-Group.prototype = {
-    // Favicon Service
-  get _faviconSvc() {
-    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
-                     getService(Ci.nsIFaviconService);
-    delete this.__proto__._faviconSvc;
-    this.__proto__._faviconSvc = faviconSvc;
-    return this._faviconSvc;
-  },
-
-  get faviconURI() {
-    if (this.uri) {
-      try {
-        return this._faviconSvc.getFaviconForPage(this.uri);
-      }
-      catch(ex) { /* no known favicon; use the default */ }
-    }
-
-    // The default favicon for feed sources.
-    // FIXME: make this group-specific.
-    return URI.get("chrome://browser/skin/feeds/feedIcon16.png");
-  }
 }
