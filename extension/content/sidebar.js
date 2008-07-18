@@ -234,9 +234,13 @@ SourcesView = {
 
   _collections: null,
   _getCollections: function() {
-    // FIXME: reimplement the "All" collection.
-    //this._collections.unshift({ name: "All",
-    //                      faviconURI: URI.get("chrome://snowl/content/icons/rainbow.png") });
+    this._collections = [];
+
+    // FIXME: figure out why this gets indented.
+    let all = new SnowlCollection();
+    all.name = "All";
+    all.defaultFaviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");
+    this._collections.push(all);
 
     let grouping = {
       nameColumn: "sources.name",
@@ -247,7 +251,7 @@ SourcesView = {
     }
     let collection = new SnowlCollection(null, null, grouping);
     collection.name = "Sources";
-    this._collections = [collection];
+    this._collections.push(collection);
 
     // Build the list of rows in the tree.  By default, all containers
     // are closed, so this is the same as the list of collections, although
