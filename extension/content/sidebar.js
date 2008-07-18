@@ -104,14 +104,12 @@ SourcesView = {
   getParentIndex: function(row) {
     //this._log.info("getParentIndex: " + row);
 
-    // XXX Assumes only one level of hierarchy (so anything that is a container
-    // is at the top level).
-    // FIXME: stop assuming that by giving collections a reference to their
-    // parent collection.
-    if (this.isContainer(row))
+    let thisLevel = this.getLevel(row);
+
+    if (this._rows[row].level == 0)
       return -1;
     for (let t = row - 1; t >= 0; t--)
-      if (this.isContainer(t))
+      if (this.getLevel(t) < thisLevel)
         return t;
 
     throw "getParentIndex: couldn't figure out parent index for row " + row;
@@ -120,13 +118,7 @@ SourcesView = {
   getLevel: function(row) {
     //this._log.info("getLevel: " + row);
 
-    // XXX Assumes only one level of hierarchy (so anything that is a container
-    // is at the top level).
-    // FIXME: stop assuming that by giving collections a reference to their
-    // parent collection, then counting the number of parents to determine the level.
-    if (this.isContainer(row))
-      return 0;
-    return 1;
+    return this._rows[row].level;
   },
 
   hasNextSibling: function(idx, after) {
@@ -236,7 +228,6 @@ SourcesView = {
   _getCollections: function() {
     this._collections = [];
 
-    // FIXME: figure out why this gets indented.
     let all = new SnowlCollection();
     all.name = "All";
     all.defaultFaviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");

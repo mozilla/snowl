@@ -59,6 +59,7 @@ SnowlCollection.prototype = {
   // Collection or composes a new class with it?
 
   isOpen: false,
+  level: 0,
 
   _groups: null,
   get groups() {
@@ -81,6 +82,7 @@ SnowlCollection.prototype = {
         group.name = statement.row.name;
         group.uri = URI.get(statement.row.uri);
         group.defaultFaviconURI = this.grouping.defaultFaviconURI;
+        group.level = this.level + 1;
         groups.push(group);
       }
     }
