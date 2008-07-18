@@ -244,6 +244,16 @@ SourcesView = {
     collection.name = "Sources";
     this._collections.push(collection);
 
+    {
+      let grouping = {
+        nameColumn: "authors.name"
+        // FIXME: get a favicon for people
+      }
+      let collection = new SnowlCollection(null, null, grouping);
+      collection.name = "People";
+      this._collections.push(collection);
+    }
+
     // Build the list of rows in the tree.  By default, all containers
     // are closed, so this is the same as the list of collections, although
     // in the future we might persist and restore the open state.

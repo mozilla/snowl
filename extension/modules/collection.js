@@ -80,7 +80,10 @@ SnowlCollection.prototype = {
                            parameters: { groupValue: statement.row.name } });
         let group = new SnowlCollection(constraints);
         group.name = statement.row.name;
-        group.uri = URI.get(statement.row.uri);
+
+        if (statement.row.uri)
+          group.uri = URI.get(statement.row.uri);
+
         group.defaultFaviconURI = this.grouping.defaultFaviconURI;
         group.level = this.level + 1;
         groups.push(group);
@@ -96,9 +99,22 @@ SnowlCollection.prototype = {
   },
 
   _generateGetGroupsStatement: function() {
+    let columns = [];
+
+    if (this.grouping.nameColumn)
+      columns.push("DISTINCT(" + this.grouping.nameColumn + ") AS name");
+
+    // For some reason, trying to access statement.row.uri dies without throwing
+    // an exception if uri isn't defined as a column in the query, so we have to
+    // define it here even if we don't have a URI column.
+    // FIXME: file a bug on this bizarre behavior.
+    if (this.grouping.uriColumn)
+      columns.push(this.grouping.uriColumn + " AS uri");
+    else
+      columns.push("NULL AS uri");
+
     let query = 
-      "SELECT DISTINCT(" + this.grouping.nameColumn + ") AS name, " +
-      this.grouping.uriColumn + " AS uri " +
+      "SELECT " + columns.join(", ") + " " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
