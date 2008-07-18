@@ -175,38 +175,37 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   onFilter: function() {
-    this._collection.filter = this._filter.value;
-    this._rebuildView();
+    this._applyFilters();
   },
 
   onCommandCurrentButton: function(aEvent) {
-    this._collection.current = this._currentButton.checked ? true : undefined;
-    this._rebuildView();
+    this._applyFilters();
   },
 
   onCommandUnreadButton: function(aEvent) {
-    // FIXME: instead of rebuilding from scratch each time, when going from
+    // XXX Instead of rebuilding from scratch each time, when going from
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
-    // class on read items and then using a CSS rule to hide them).
-    this._collection.read = this._unreadButton.checked ? false : undefined;
-    this._rebuildView();
+    // class on read items and then using a CSS rule to hide them)?
+    this._applyFilters();
   },
 
-  _group: "source",
-  setGroup: function(group) {
-    this._group = group;
-  },
+  _applyFilters: function() {
+    let filters = [];
 
-  setGroupID: function(aGroupID) {
-    if (this._group == "source") {
-      this._collection.sourceID = aGroupID;
-      this._collection.authorID = null;
-    }
-    else if (this._group == "person") {
-      this._collection.authorID = aGroupID;
-      this._collection.sourceID = null;
-    }
+    if (this._currentButton.checked)
+      filters.push({ expression: "current = 1", parameters: {} });
 
+    if (this._unreadButton.checked)
+      filters.push({ expression: "read = 0", parameters: {} });
+
+    // FIXME: use a left join here once the SQLite bug breaking left joins to
+    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+    if (this._filter.value)
+      filters.push({ expression: "messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)",
+                     parameters: { filter: this._filter.value } });
+
+    this._collection.filters = filters;
+    this._collection.invalidate();
     this._rebuildView();
   },
 

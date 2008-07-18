@@ -26,13 +26,9 @@ Cu.import("resource://snowl/modules/URI.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(aSourceID, aFilter, aCurrent, aRead, aAuthorID, conditions, grouping) {
-  this._sourceID = aSourceID;
-  this._authorID = aAuthorID;
-  this._filter = aFilter;
-  this._current = aCurrent;
-  this._read = aRead;
-  this.conditions = conditions || [];
+function SnowlCollection(constraints, filters, grouping) {
+  this.constraints = constraints || [];
+  this._filters = filters || [];
   this.grouping = grouping;
 }
 
@@ -43,78 +39,15 @@ SnowlCollection.prototype = {
     return this._log;
   },
 
-  _sourceID: null,
+  _filters: null,
 
-  get sourceID() {
-    return this._sourceID;
+  get filters() {
+    return this._filters;
   },
 
-  set sourceID(newVal) {
-    if (this._sourceID == newVal)
-      return;
-
-    this._sourceID = newVal;
+  set filters(newVal) {
+    this._filters = newVal;
     this.invalidate();
-  },
-
-  _authorID: null,
-
-  get authorID() {
-    return this._authorID;
-  },
-
-  set authorID(newVal) {
-    if (this._authorID == newVal)
-      return;
-
-    this._authorID = newVal;
-    this.invalidate();
-  },
-
-  _filter: null,
-
-  get filter() {
-    return this._filter;
-  },
-
-  set filter(newVal) {
-    if (this._filter == newVal)
-      return;
-
-    this._filter = newVal;
-    this.invalidate();
-  },
-
-  _current: undefined,
-
-  get current() {
-    return this._current;
-  },
-
-  set current(newValue) {
-    if (this._current === newValue)
-      return;
-
-    this._current = (typeof newValue == "undefined") ? undefined : newValue ? true : false;
-
-    // Invalidate the message cache.
-    this._messages = null;
-  },
-
-  _read: undefined,
-
-  get read() {
-    return this._read;
-  },
-
-  set read(newValue) {
-    if (this._read === newValue)
-      return;
-
-    this._read = (typeof newValue == "undefined") ? undefined : newValue ? true : false;
-
-    // Invalidate the message cache.
-    this._messages = null;
   },
 
 
@@ -137,9 +70,10 @@ SnowlCollection.prototype = {
     try {
       while (statement.step()) {
         // FIXME: base this on the current collection's conditions array.
-        let conditions = [ { expression: this.grouping.nameColumn + " = :groupValue",
-                             parameters: { groupValue: statement.row.name } } ];
-        let group = new SnowlCollection(this.sourceID, this.filter, this.current, this.read, this.authorID, conditions);
+        let constraints = [constraint for each (constraint in this.constraints)];
+        constraints.push({ expression: this.grouping.nameColumn + " = :groupValue",
+                           parameters: { groupValue: statement.row.name } });
+        let group = new SnowlCollection(constraints);
         group.name = statement.row.name;
         group.uri = URI.get(statement.row.uri);
         groups.push(group);
@@ -161,7 +95,11 @@ SnowlCollection.prototype = {
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
-    let conditions = this._generateConditions();
+    let conditions = [];
+
+    for each (let condition in this.constraints)
+      conditions.push(condition.expression);
+
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
 
@@ -171,39 +109,11 @@ SnowlCollection.prototype = {
 
     let statement = SnowlDatastore.createStatement(query);
 
-    if (this.sourceID)
-      statement.params.sourceID = this.sourceID;
-
-    if (this.authorID)
-      statement.params.authorID = this.authorID;
-
-    if (this.filter)
-      statement.params.filter = this.filter;
+    for each (let condition in this.constraints)
+      for (let [name, value] in Iterator(condition.parameters))
+        statement.params[name] = value;
 
     return statement;
-  },
-
-  _generateConditions: function() {
-    let conditions = [];
-
-    if (this.sourceID)
-      conditions.push("messages.sourceID = :sourceID");
-
-    if (this.authorID)
-      conditions.push("messages.authorID = :authorID");
-
-    // FIXME: use a left join here once the SQLite bug breaking left joins to
-    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    if (this.filter)
-      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
-
-    if (typeof this.current != "undefined")
-      conditions.push("current = " + (this.current ? "1" : "0"));
-
-    if (typeof this.read != "undefined")
-      conditions.push("read = " + (this.read ? "1" : "0"));
-
-    return conditions;
   },
 
 
@@ -291,24 +201,10 @@ SnowlCollection.prototype = {
 
     let conditions = [];
 
-    if (this.sourceID)
-      conditions.push("messages.sourceID = :sourceID");
+    for each (let condition in this.constraints)
+      conditions.push(condition.expression);
 
-    if (this.authorID)
-      conditions.push("messages.authorID = :authorID");
-
-    // FIXME: use a left join here once the SQLite bug breaking left joins to
-    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    if (this.filter)
-      conditions.push("messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)");
-
-    if (typeof this.current != "undefined")
-      conditions.push("current = " + (this.current ? "1" : "0"));
-
-    if (typeof this.read != "undefined")
-      conditions.push("read = " + (this.read ? "1" : "0"));
-
-    for each (let condition in this.conditions)
+    for each (let condition in this.filters)
       conditions.push(condition.expression);
 
     if (conditions.length > 0)
@@ -318,16 +214,11 @@ SnowlCollection.prototype = {
 
     let statement = SnowlDatastore.createStatement(query);
 
-    if (this.sourceID)
-      statement.params.sourceID = this.sourceID;
+    for each (let condition in this.constraints)
+      for (let [name, value] in Iterator(condition.parameters))
+        statement.params[name] = value;
 
-    if (this.authorID)
-      statement.params.authorID = this.authorID;
-
-    if (this.filter)
-      statement.params.filter = this.filter;
-
-    for each (let condition in this.conditions)
+    for each (let condition in this.filters)
       for (let [name, value] in Iterator(condition.parameters))
         statement.params[name] = value;
 

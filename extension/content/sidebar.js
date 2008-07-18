@@ -236,7 +236,7 @@ this._log.info("toggleOpenState: " + idx);
       nameColumn: "sources.name",
       uriColumn: "sources.humanURI"
     }
-    let collection = new SnowlCollection(null, null, null, null, null, null, grouping);
+    let collection = new SnowlCollection(null, null, grouping);
     collection.name = "Sources";
     collection.faviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");
     this._collections = [collection];
