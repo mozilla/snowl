@@ -189,7 +189,6 @@ let SnowlMessageView = {
     this._document = this._window.document;
 
     this._collection = new SnowlCollection();
-    this._rebuildSourceMenu();
     this._updateToolbar();
     this.writeContent();
   },
@@ -246,56 +245,11 @@ let SnowlMessageView = {
       document.getElementById("filterTextbox").value = this._params.filter;
     }
 
-    if ("sourceID" in this._params) {
-      this._collection.sourceID = this._params.sourceID;
-      let menu = document.getElementById("sourceMenu");
-      let item;
-      for (let i = 0; item = menu.getItemAtIndex(i); i++) {
-        if (item.value == this._params.sourceID) {
-          menu.selectedItem = item;
-          break;
-        }
-      }
-    }
-
     if ("order" in this._params && this._params.order == "descending") {
       this._orderButton.checked = true;
       this._orderButton.image = "chrome://snowl/content/arrow-up.png";
       this._collection.sortOrder = -1;
     }
-  },
-
-  _rebuildSourceMenu: function() {
-    let statementString = "SELECT name, id, humanURI FROM sources ORDER BY name";
-    let statement = SnowlDatastore.createStatement(statementString);
-
-    let sources = [];
-
-    let i = 0;
-    sources[i] = { id: null, name: "All" };
-
-    try {
-      // FIXME: instantiate SnowlSource objects here instead of generic objects.
-      while (statement.step())
-        sources[++i] = { id: statement.row.id,
-                         name: statement.row.name,
-                         humanURI: URI.get(statement.row.humanURI) };
-    }
-    finally {
-      statement.reset();
-    }
-
-    let sourceMenu = document.getElementById("sourceMenu");
-    sourceMenu.removeAllItems();
-    for each (let source in sources) {
-      let item = sourceMenu.appendItem(source.name, source.id);
-      item.className = "menuitem-iconic";
-      let uri = source.humanURI || URI.get("urn:use-default-icon");
-      let favicon = this._faviconSvc.getFaviconImageForPage(uri);
-      item.image = favicon.spec;
-    }
-
-    sourceMenu.selectedIndex = 0;
   },
 
   onFilter: function(aEvent) {
@@ -355,13 +309,6 @@ let SnowlMessageView = {
     // but can we be sure the messages started in the reverse of the new state?
     this._collection.sort(this._collection.sortProperty,
                           this._collection.sortOrder);
-    this.rebuildView();
-    this._updateURI();
-  },
-
-  onCommandSourceMenu: function(aEvent) {
-    let sourceMenu = document.getElementById("sourceMenu");
-    this._collection.sourceID = sourceMenu.selectedItem.value;
     this.rebuildView();
     this._updateURI();
   },

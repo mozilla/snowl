@@ -25,13 +25,9 @@
     <vbox id="collectionsViewBox" style="width: 200px"/>
 
     <splitter/>
-  
+
     <vbox flex="1">
       <toolbar id="toolbar">
-        <menulist id="sourceMenu" oncommand="SnowlMessageView.onCommandSourceMenu(event)">
-          <menupopup id="sourcePopup"/>
-        </menulist>
-    
         <toolbarbutton id="currentButton" type="checkbox"
                     image="chrome://snowl/content/icons/newspaper.png"
                     oncommand="SnowlMessageView.onCommandCurrentButton(event)"
