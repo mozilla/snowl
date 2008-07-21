@@ -105,6 +105,11 @@ let RiverView = {
     return this._orderButton;
   },
 
+  get _filterTextbox() {
+    delete this._filter;
+    return this._filter = document.getElementById("filterTextbox");
+  },
+
   // The set of messages to display in the view.
   _collection: null,
   
@@ -284,28 +289,42 @@ let RiverView = {
     sourceMenu.selectedIndex = 0;
   },
 
-  onCommandCurrentButton: function(aEvent) {
-    if (this._currentButton.checked)
-      this._collection.current = true;
-    else
-      this._collection.current = undefined;
-
-    this.rebuildView();
+  onFilter: function(aEvent) {
     this._updateURI();
+    this._applyFilters();
+  },
+
+  onCommandCurrentButton: function(aEvent) {
+    this._updateURI();
+    this._applyFilters();
   },
 
   onCommandUnreadButton: function(aEvent) {
-    // FIXME: instead of rebuilding from scratch each time, when going from
+    this._updateURI();
+    // XXX Instead of rebuilding from scratch each time, when going from
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
-    // class on read items and then using a CSS rule to hide them).
+    // class on read items and then using a CSS rule to hide them)?
+    this._applyFilters();
+  },
+
+  _applyFilters: function() {
+    let filters = [];
+
+    if (this._currentButton.checked)
+      filters.push({ expression: "current = 1", parameters: {} });
 
     if (this._unreadButton.checked)
-      this._collection.read = false;
-    else
-      this._collection.read = undefined;
+      filters.push({ expression: "read = 0", parameters: {} });
 
+    // FIXME: use a left join here once the SQLite bug breaking left joins to
+    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+    if (this._filterTextbox.value)
+      filters.push({ expression: "messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)",
+                     parameters: { filter: this._filterTextbox.value } });
+
+    this._collection.filters = filters;
+    this._collection.invalidate();
     this.rebuildView();
-    this._updateURI();
   },
 
   onCommandBodyButton: function(aEvent) {
@@ -327,12 +346,6 @@ let RiverView = {
     // but can we be sure the messages started in the reverse of the new state?
     this._collection.sort(this._collection.sortProperty,
                           this._collection.sortOrder);
-    this.rebuildView();
-    this._updateURI();
-  },
-
-  onCommandFilterTextbox: function(aEvent, aFilterTextbox) {
-    this._collection.filter = aFilterTextbox.value;
     this.rebuildView();
     this._updateURI();
   },

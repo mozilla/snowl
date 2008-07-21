@@ -49,7 +49,7 @@
     <spacer flex="1"/>
 
     <textbox id="filterTextbox" type="timed" timeout="200"
-                 oncommand="RiverView.onCommandFilterTextbox(event, this)"/>
+                 oncommand="RiverView.onFilter(event)"/>
   </toolbar>
 
   <stack flex="1">
