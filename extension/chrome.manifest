@@ -1,4 +1,5 @@
 content snowl content/
 locale  snowl en-US locale/en-US/
 overlay chrome://browser/content/browser.xul chrome://snowl/content/snowl.xul
+overlay chrome://snowl/content/sidebar.xul chrome://snowl/content/collections.xul
 resource snowl ./
