@@ -129,6 +129,35 @@ let RiverView = {
            (this._hasHorizontalScrollbar ? this.scrollbarWidth : 0);
   },
 
+  get contentStylesheet() {
+    for (let i = 0; i < document.styleSheets.length; i++)
+      if (document.styleSheets[i].href == "chrome://snowl/content/riverContent.css")
+        return document.styleSheets[i];
+    return null;
+  },
+
+  set columnWidth(newVal) {
+    document.getElementById("contentBox").style.MozColumnWidth = newVal + "px";
+
+    // Set the maximum width for images in the content so they don't stick out
+    // the side of the columns.
+    this.contentStylesheet.deleteRule(0);
+    this.contentStylesheet.insertRule("#contentBox img { max-width: " + newVal + "px }", 0);
+  },
+
+  set contentHeight(newVal) {
+    document.getElementById("contentBox").style.height = newVal + "px";
+
+    // Make the column splitter as tall as the content box.  It doesn't
+    // resize itself, perhaps because it's (absolutely positioned) in a stack.
+    document.getElementById("columnResizeSplitter").style.height = newVal + "px";
+
+    // Set the maximum height for images in the content so they don't make
+    // the columns taller than the height of the content box.
+    this.contentStylesheet.deleteRule(1);
+    this.contentStylesheet.insertRule("#contentBox img { max-height: " + newVal + "px }", 1);
+  },
+
   _window: null,
   _document: null,
 
@@ -157,18 +186,14 @@ let RiverView = {
    */
   resizeContentBox: function() {
     let toolbarHeight = document.getElementById("toolbar").boxObject.height;
+
     // We do this on load, when there isn't yet a horizontal scrollbar,
     // but we anticipate that there probably will be one, so we include it
     // in the calculation.  Perhap we should instead wait to resize
     // the content box until the content actually overflows horizontally.
     // XXX Why do I have to subtract *double* the width of the scrollbar???
-    document.getElementById("contentBox").style.height =
-      (window.innerHeight - (this.scrollbarWidth*2) - toolbarHeight) + "px";
-
-    // Make the column splitter as tall as the content box.  It doesn't
-    // resize itself, perhaps because it's (absolutely positioned) in a stack.
-    document.getElementById("columnResizeSplitter").style.height =
-      document.getElementById("contentBox").style.height;
+    this.contentHeight =
+      window.innerHeight - (this.scrollbarWidth*2) - toolbarHeight;
   },
 
 
@@ -760,7 +785,7 @@ let splitterDragObserver = {
   // Note: because this function gets passed directly to setTimeout,
   // |this| doesn't reference splitterDragObserver inside the function.
   callback: function(width) {
-    document.getElementById("contentBox").style.MozColumnWidth = width + "px";
+    RiverView.columnWidth = width;
   },
 
   handleEvent: function(event) {
