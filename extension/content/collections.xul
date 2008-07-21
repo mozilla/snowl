@@ -62,7 +62,7 @@
                      image="chrome://snowl/content/icons/opml-icon-16x16.png"
                      oncommand="SourcesView.exportOPML()"/>
     </toolbar>
-  
+
     <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
           onselect="SourcesView.onSelect(event)">
       <treecols>

@@ -188,6 +188,12 @@ let SnowlMessageView = {
     this._window = new XPCNativeWrapper(window);
     this._document = this._window.document;
 
+    // We have to load the overlay manually because we modify the query params
+    // of the river view URL to reflect the selected collection and filters,
+    // and chrome.manifest overlay instructions only work on exact matches
+    // of the entire URL.
+    document.loadOverlay("chrome://snowl/content/collections.xul", null);
+
     this._collection = new SnowlCollection();
     this._updateToolbar();
     this.writeContent();
