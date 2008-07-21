@@ -4,7 +4,7 @@ Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
 
-let SnowlView = {
+let SnowlMessageView = {
   _log: null,
 
   // Observer Service
@@ -501,4 +501,4 @@ this._log.info("_toggleRead: all? " + aAll);
   }
 };
 
-window.addEventListener("load", function() { SnowlView.init() }, false);
+window.addEventListener("load", function() { SnowlMessageView.init() }, false);

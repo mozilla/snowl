@@ -42,6 +42,8 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="Snowl Sidebar">
 
+  <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
+
   <vbox id="collectionsViewBox" flex="1"/>
 
 </page>

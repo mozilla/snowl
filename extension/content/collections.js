@@ -1,8 +1,3 @@
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
-
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/log4moz.js");
@@ -11,16 +6,6 @@ Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
-
-// FIXME: call this SnowlViewWindow to facilitate reuse of this sidebar code
-// in the river view, where the window it will reference will not be a browser
-// window.
-var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
 
 SourcesView = {
   _log: null,
@@ -266,7 +251,7 @@ SourcesView = {
       return;
 
     let collection = this._rows[this._tree.currentIndex];
-    gBrowserWindow.SnowlView.setCollection(collection);
+    gMessageViewWindow.SnowlMessageView.setCollection(collection);
   },
 
   onClick: function(aEvent) {

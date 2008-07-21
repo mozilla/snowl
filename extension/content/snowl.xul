@@ -14,7 +14,7 @@
     <menuitem id="viewMessagesMenuitem" insertafter="viewSidebarMenuMenu"
               label="Messages" accesskey="M"
               type="checkbox" checked="true" autocheck="false" persist="checked"
-              oncommand="SnowlView.toggle()"/>
+              oncommand="SnowlMessageView.toggle()"/>
   </menupopup>
 
   <menupopup id="viewSidebarMenu">
@@ -37,7 +37,7 @@
           persist="hidden placement height width">
       <toolbar id="snowlViewToolbar" pack="end" align="center">
         <toolbarbutton id="snowlPlacementButton" class="snowlToolbarButton"
-                       oncommand="SnowlView.switchPlacement()"
+                       oncommand="SnowlMessageView.switchPlacement()"
                        tooltiptext="Switch placement."/>
 
         <toolbarspring/>
@@ -45,42 +45,42 @@
         <toolbarbutton id="snowlCurrentButton" class="snowlToolbarButton"
                        type="checkbox"
                        image="chrome://snowl/content/icons/newspaper.png"
-                       oncommand="SnowlView.onCommandCurrentButton(event)"
+                       oncommand="SnowlMessageView.onCommandCurrentButton(event)"
                        tooltiptext="Only show current messages."/>
 
         <toolbarbutton id="snowlUnreadButton" class="snowlToolbarButton"
                        type="checkbox"
                        image="chrome://snowl/content/icons/new.png"
-                       oncommand="SnowlView.onCommandUnreadButton(event)"
+                       oncommand="SnowlMessageView.onCommandUnreadButton(event)"
                        tooltiptext="Only show unread messages."/>
 
         <textbox id="snowlFilter" type="timed" timeout="200"
-                 oncommand="SnowlView.onFilter()"/>
+                 oncommand="SnowlMessageView.onFilter()"/>
 
         <toolbarbutton class="tabs-closebutton" tooltiptext="Close Messages"
-                       oncommand="SnowlView.toggle()"/>
+                       oncommand="SnowlMessageView.toggle()"/>
       </toolbar>
 
       <tree id="snowlView" flex="1" persist="sortResource sortDirection"
             sortResource="snowlTimestampCol" sortDirection="ascending"
             enableColumnDrag="true" disableKeyNavigation="true"
-            onselect="SnowlView.onSelect(event)"
-            onkeypress="SnowlView.onKeyPress(event)">
+            onselect="SnowlMessageView.onSelect(event)"
+            onkeypress="SnowlMessageView.onKeyPress(event)">
         <treecols>
           <treecol id="snowlAuthorCol" label="Author" flex="1"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
-                   onclick="SnowlView.onClickColumnHeader(event)"/>
+                   onclick="SnowlMessageView.onClickColumnHeader(event)"/>
           <splitter class="tree-splitter"/>
           <treecol id="snowlSubjectCol" label="Subject" flex="5"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
-                   onclick="SnowlView.onClickColumnHeader(event)"/>
+                   onclick="SnowlMessageView.onClickColumnHeader(event)"/>
           <splitter class="tree-splitter"/>
           <treecol id="snowlTimestampCol" label="Date" flex="1"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
-                   onclick="SnowlView.onClickColumnHeader(event)"/>
+                   onclick="SnowlMessageView.onClickColumnHeader(event)"/>
         </treecols>
 
         <treechildren flex="1"/>

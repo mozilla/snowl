@@ -6,63 +6,72 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         title="Snowl: Messages"
-        onload="RiverView.init()"
-        onresize="RiverView.resizeContentBox()">
+        onload="SnowlMessageView.init()"
+        onresize="SnowlMessageView.resizeContentBox()">
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>
 
   <keyset>
-    <key keycode="VK_PAGE_UP" oncommand="RiverView.doPageMove(-1)"/>
-    <key keycode="VK_PAGE_DOWN" oncommand="RiverView.doPageMove(1)"/>
-    <key keycode="VK_PAGE_UP" modifiers="shift" oncommand="RiverView.doColumnMove(-1)"/>
-    <key keycode="VK_PAGE_DOWN" modifiers="shift" oncommand="RiverView.doColumnMove(1)"/>
-    <key keycode="VK_HOME" oncommand="RiverView.onHome()"/>
-    <key keycode="VK_END" oncommand="RiverView.onEnd()"/>
+    <key keycode="VK_PAGE_UP" oncommand="SnowlMessageView.doPageMove(-1)"/>
+    <key keycode="VK_PAGE_DOWN" oncommand="SnowlMessageView.doPageMove(1)"/>
+    <key keycode="VK_PAGE_UP" modifiers="shift" oncommand="SnowlMessageView.doColumnMove(-1)"/>
+    <key keycode="VK_PAGE_DOWN" modifiers="shift" oncommand="SnowlMessageView.doColumnMove(1)"/>
+    <key keycode="VK_HOME" oncommand="SnowlMessageView.onHome()"/>
+    <key keycode="VK_END" oncommand="SnowlMessageView.onEnd()"/>
   </keyset>
 
-  <toolbar id="toolbar">
-    <menulist id="sourceMenu" oncommand="RiverView.onCommandSourceMenu(event)">
-      <menupopup id="sourcePopup"/>
-    </menulist>
+  <hbox flex="1">
+    <vbox id="collectionsViewBox" style="width: 200px"/>
 
-    <toolbarbutton id="currentButton" type="checkbox"
-                image="chrome://snowl/content/icons/newspaper.png"
-                oncommand="RiverView.onCommandCurrentButton(event)"
-                tooltiptext="Only show current messages."/>
+    <splitter/>
+  
+    <vbox flex="1">
+      <toolbar id="toolbar">
+        <menulist id="sourceMenu" oncommand="SnowlMessageView.onCommandSourceMenu(event)">
+          <menupopup id="sourcePopup"/>
+        </menulist>
+    
+        <toolbarbutton id="currentButton" type="checkbox"
+                    image="chrome://snowl/content/icons/newspaper.png"
+                    oncommand="SnowlMessageView.onCommandCurrentButton(event)"
+                    tooltiptext="Only show current messages."/>
+    
+        <toolbarbutton id="unreadButton" type="checkbox"
+                    image="chrome://snowl/content/icons/new.png"
+                    oncommand="SnowlMessageView.onCommandUnreadButton(event)"
+                    tooltiptext="Only show unread messages."/>
+    
+        <toolbarbutton id="bodyButton" type="checkbox"
+                    image="chrome://snowl/content/icons/page_white_text.png"
+                    oncommand="SnowlMessageView.onCommandBodyButton(event)"
+                    tooltiptext="Show message summaries/content."/>
+    
+        <toolbarbutton id="orderButton" type="checkbox"
+                    image="chrome://snowl/content/arrow-down.png"
+                    oncommand="SnowlMessageView.onCommandOrderButton(event)"
+                    tooltiptext="Reverse the order of the messages."/>
+    
+        <spacer flex="1"/>
+    
+        <textbox id="filterTextbox" type="timed" timeout="200"
+                     oncommand="SnowlMessageView.onFilter(event)"/>
+      </toolbar>
+    
+      <stack flex="1">
+        <scrollbox id="scrollBox"
+                   style="overflow: auto;"
+                   onoverflow="SnowlMessageView.onFlowChange(event)"
+                   onunderflow="SnowlMessageView.onFlowChange(event)"
+                   flex="1">
+            <html:div id="contentBox"/>
+        </scrollbox>
+        <splitter id="columnResizeSplitter" left="410"
+                  onmousedown="splitterDragObserver.onMouseDown(event)"
+                  onmouseup="splitterDragObserver.onMouseUp(event)"/>
+      </stack>
+    </vbox>
 
-    <toolbarbutton id="unreadButton" type="checkbox"
-                image="chrome://snowl/content/icons/new.png"
-                oncommand="RiverView.onCommandUnreadButton(event)"
-                tooltiptext="Only show unread messages."/>
-
-    <toolbarbutton id="bodyButton" type="checkbox"
-                image="chrome://snowl/content/icons/page_white_text.png"
-                oncommand="RiverView.onCommandBodyButton(event)"
-                tooltiptext="Show message summaries/content."/>
-
-    <toolbarbutton id="orderButton" type="checkbox"
-                image="chrome://snowl/content/arrow-down.png"
-                oncommand="RiverView.onCommandOrderButton(event)"
-                tooltiptext="Reverse the order of the messages."/>
-
-    <spacer flex="1"/>
-
-    <textbox id="filterTextbox" type="timed" timeout="200"
-                 oncommand="RiverView.onFilter(event)"/>
-  </toolbar>
-
-  <stack flex="1">
-    <scrollbox id="scrollBox"
-               style="overflow: auto;"
-               onoverflow="RiverView.onFlowChange(event)"
-               onunderflow="RiverView.onFlowChange(event)"
-               flex="1">
-        <html:div id="contentBox"/>
-    </scrollbox>
-    <splitter id="columnResizeSplitter" left="410"
-              onmousedown="splitterDragObserver.onMouseDown(event)"
-              onmouseup="splitterDragObserver.onMouseUp(event)"/>
-  </stack>
+  </hbox>
 
 </page>

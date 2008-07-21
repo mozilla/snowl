@@ -53,7 +53,16 @@ const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
-let RiverView = {
+let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIWebNavigation).
+                     QueryInterface(Ci.nsIDocShellTreeItem).
+                     rootTreeItem.
+                     QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIDOMWindow);
+
+let gMessageViewWindow = window;
+
+let SnowlMessageView = {
   get _log() {
     delete this._log;
     return this._log = Log4Moz.Service.getLogger("Snowl.River");
@@ -527,6 +536,13 @@ let RiverView = {
     }
   },
 
+  setCollection: function(collection) {
+    this._collection = collection;
+    this._applyFilters();
+    // No need to rebuild the view here, as _applyFilters will do it for us.
+    // XXX Should we pull the call to rebuildView out of _applyFilters?
+  },
+
 
   //**************************************************************************//
   // Safe DOM Manipulation
@@ -798,7 +814,7 @@ let splitterDragObserver = {
   // Note: because this function gets passed directly to setTimeout,
   // |this| doesn't reference splitterDragObserver inside the function.
   callback: function(width) {
-    RiverView.columnWidth = width;
+    SnowlMessageView.columnWidth = width;
   },
 
   handleEvent: function(event) {
