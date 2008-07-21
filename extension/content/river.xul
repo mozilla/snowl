@@ -33,11 +33,6 @@
                     oncommand="SnowlMessageView.onCommandCurrentButton(event)"
                     tooltiptext="Only show current messages."/>
     
-        <toolbarbutton id="unreadButton" type="checkbox"
-                    image="chrome://snowl/content/icons/new.png"
-                    oncommand="SnowlMessageView.onCommandUnreadButton(event)"
-                    tooltiptext="Only show unread messages."/>
-    
         <toolbarbutton id="bodyButton" type="checkbox"
                     image="chrome://snowl/content/icons/page_white_text.png"
                     oncommand="SnowlMessageView.onCommandBodyButton(event)"

@@ -93,13 +93,6 @@ let SnowlMessageView = {
     return this._currentButton;
   },
 
-  get _unreadButton() {
-    let unreadButton = document.getElementById("unreadButton");
-    delete this._unreadButton;
-    this._unreadButton = unreadButton;
-    return this._unreadButton;
-  },
-
   get _bodyButton() {
     let bodyButton = document.getElementById("bodyButton");
     delete this._bodyButton;
@@ -238,11 +231,6 @@ let SnowlMessageView = {
       this._currentButton.checked = true;
     }
 
-    if ("unread" in this._params) {
-      this._collection.read = false;
-      this._unreadButton.checked = true;
-    }
-
     if ("body" in this._params)
       this._bodyButton.checked = true;
 
@@ -268,22 +256,11 @@ let SnowlMessageView = {
     this._applyFilters();
   },
 
-  onCommandUnreadButton: function(aEvent) {
-    this._updateURI();
-    // XXX Instead of rebuilding from scratch each time, when going from
-    // all to unread, simply hide the ones that are read (f.e. by setting a CSS
-    // class on read items and then using a CSS rule to hide them)?
-    this._applyFilters();
-  },
-
   _applyFilters: function() {
     let filters = [];
 
     if (this._currentButton.checked)
       filters.push({ expression: "current = 1", parameters: {} });
-
-    if (this._unreadButton.checked)
-      filters.push({ expression: "read = 0", parameters: {} });
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
@@ -324,9 +301,6 @@ let SnowlMessageView = {
 
     if (typeof this._collection.current != "undefined" && this._collection.current)
       params.push("current");
-
-    if (typeof this._collection.read != "undefined" && !this._collection.read)
-      params.push("unread");
 
     if (this._bodyButton.checked)
       params.push("body");
@@ -425,66 +399,6 @@ let SnowlMessageView = {
       case 2:
         this._hasVerticalScrollbar = val;
         this._hasHorizontalScrollbar = val;
-        break;
-    }
-  },
-
-  onScroll: function(aEvent) {
-    this._markMessagesRead(aEvent);
-  },
-
-  // FIXME: redo this entirely now that we're using a horizontal row of columns.
-  _markMessagesRead: function(aEvent) {
-    // Since we generate the content dynamically, and it can change with every
-    // reload, the previous scroll position isn't particularly meaningful,
-    // and it could even be dangerous, since it could mean that messages
-    // appearing above it get marked read when they haven't been.
-    
-    // I'm not sure what to do about this, since it's useful to go back
-    // to the previous scroll position when going to another page and then
-    // coming back to this one, and I can't figure out how to turn off scroll
-    // when reloading but leave it enabled when traveling through history.
-
-    // I could reset the scroll on unload, but that would disable the bfcache,
-    // which would cause the page to get reloaded when traveling through
-    // history, which I don't want.  Or I could turn off saving of the scroll
-    // through nsISHEntry::saveLayoutStateFlag, but that turns it off
-    // for both cases.
-    
-    // Maybe the right approach is to only mark messages read when the user
-    // has actually scrolled by them.
-
-    // FIXME: figure out what to do about this.
-
-    // The vertical offset relative to the top of the document of the topmost
-    // and bottommost pixels visible in the viewport.
-    let viewportTopY = window.scrollY;
-    let viewportBottomY = window.scrollY + window.innerHeight - 1;
-
-    let rows = document.getElementById("messages").childNodes;
-    for (let i = 0; i < rows.length; i++) {
-      let row = rows[i];
-
-      // The vertical offset relative to the top of the document of the topmost
-      // and bottommost pixels of the row.
-      let rowTopY = row.boxObject.y;
-      let rowBottomY = row.boxObject.y + row.boxObject.height - 1;
-
-      // If the current row is completely above the bottom of the viewport,
-      // then mark it read.
-      if (rowBottomY < viewportBottomY)
-        this._collection.messages[i].read = true;
-
-      // XXX If there are two messages completely visible in the viewport,
-      // we currently mark both read.  Is that the correct behavior, or should
-      // we only mark the topmost message read?
-
-      // We've run into the first message that is not completely above
-      // the bottom of the viewport.  There's nothing more to do, so we can
-      // break out of the loop.
-      // FIXME: also record the last message marked read so we can start
-      // from that message next time.
-      else
         break;
     }
   },
