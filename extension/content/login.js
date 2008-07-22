@@ -3,7 +3,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-let feed = window.arguments[0].wrappedJSObject;
+let source = window.arguments[0].wrappedJSObject;
 let authInfo = window.arguments[1].QueryInterface(Ci.nsIAuthInformation);
 let result = window.arguments[2].wrappedJSObject;
 
@@ -11,11 +11,11 @@ function doOnLoad() {
   stringBundle = document.getElementById("snowlStringBundle");
 
   let prompt;
-  let feedURL = (feed.humanURI || feed.machineURI).spec;
-  if (feed.name)
-    prompt = stringBundle.getFormattedString("namedFeedPrompt", [feed.name, feedURL]);
+  let sourceURL = (source.humanURI || source.machineURI).spec;
+  if (source.name)
+    prompt = stringBundle.getFormattedString("namedSourcePrompt", [source.name, sourceURL]);
   else
-    prompt = stringBundle.getFormattedString("namelessFeedPrompt", [feedURL]);
+    prompt = stringBundle.getFormattedString("namelessSourcePrompt", [sourceURL]);
   document.getElementById("prompt").appendChild(document.createTextNode(prompt));
 
   document.getElementById("realm").value = authInfo.realm;

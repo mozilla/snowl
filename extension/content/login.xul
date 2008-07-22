@@ -29,19 +29,19 @@
     <rows>
       <row align="center">
         <hbox flex="1" pack="end">
-          <label value="The feed says:"/>
+          <label value="&realm.label;"/>
         </hbox>
         <description id="realm" flex="1" crop="end"/>
       </row>
       <row align="center">
         <hbox flex="1" pack="end">
-          <label value="Username:" control="username"/>
+          <label value="&username.label;" control="username"/>
         </hbox>
         <textbox id="username"/>
       </row>
       <row align="center">
         <hbox flex="1" pack="end">
-          <label value="Password:" control="password"/>
+          <label value="&password.label;" control="password"/>
         </hbox>
         <textbox id="password" type="password"/>
       </row>
