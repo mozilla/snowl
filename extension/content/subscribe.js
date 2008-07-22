@@ -175,9 +175,6 @@ let Subscriber = {
       let name = aOutline.getAttribute("title") || aOutline.getAttribute("text");
       let feed = new SnowlFeed(null, name || "untitled", uri);
 
-      // XXX Should the next line be refactored into _subscribe?
-      document.getElementById("sourceTitle").value = "Subscribing to " + (name || uri.spec);
-
       let future = new Future();
       this._subscribe(feed, future.fulfill);
       yield future.result();
