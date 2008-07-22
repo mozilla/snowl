@@ -4,7 +4,9 @@
 <!-- XXX Don't we need a reference to the browser skin here? -->
 <?xml-stylesheet href="chrome://snowl/content/subscribe.css" type"text/css"?>
 
-<page id="subscribeToFeedPage" title="Subscribe to Feed"
+<!DOCTYPE dialog SYSTEM "chrome://snowl/locale/login.dtd">
+
+<page id="subscribeToFeedPage" title="Subscribe to Messages"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       pack="center" align="center">
 
@@ -12,45 +14,98 @@
   <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
 
   <vbox id="content">
-    <label flex="1" value="Subscribe to Feed" class="header"/>
+    <label flex="1" value="Subscribe to Messages" class="header"/>
     <separator class="groove-thin"/>
-
     <separator class="thin" orient="horizontal"/>
 
-    <hbox align="center">
-      <label control="snowlLocationTextbox" value="Location:"/>
-      <textbox id="snowlLocationTextbox" flex="1"/>
-      <button label="Subscribe" default="true" oncommand="Subscriber.doSubscribe(event)"/>
-    </hbox>
+    <tabbox selectedIndex="1">
+      <tabs>
+        <tab label="Feed"/>
+        <tab label="Twitter"/>
+      </tabs>
+      <tabpanels>
+        <tabpanel orient="vertical">
+          <grid>
+            <columns>
+              <column/>
+              <column flex="1"/>
+            </columns>
+            <rows>
+              <row align="center">
+                <hbox flex="1" pack="end">
+                  <label control="snowlLocationTextbox" value="Location:"/>
+                </hbox>
+                <textbox id="snowlLocationTextbox"/>
+              </row>
+              <row>
+                <box/>
+                <hbox pack="start">
+                  <button label="Subscribe" default="true" oncommand="Subscriber.doSubscribe(event)"/>
+                  <spacer flex="1"/>
+                  <button id="importOPMLButton" label="Import OPML..." oncommand="Subscriber.doImportOPML(event)"/>
+                </hbox>
+              </row>
+            </rows>
+          </grid>
+        </tabpanel>
 
-    <separator class="thin" orient="horizontal"/>
+        <tabpanel orient="vertical">
+          <grid>
+            <columns>
+              <column/>
+              <column flex="1"/>
+            </columns>
+            <rows>
+              <row align="center">
+                <hbox flex="1" pack="end">
+                  <label control="twitterUsername" value="Username:"/>
+                </hbox>
+                <textbox id="twitterUsername"/>
+              </row>
+              <row align="center">
+                <hbox flex="1" pack="end">
+                  <label value="Password:"/>
+                </hbox>
+                <textbox type="password" id="twitterPassword"/>
+              </row>
+              <row align="center">
+                <box/>
+                <checkbox id="showPassword" label="&showPassword.label;"
+                          oncommand="Subscriber.showTwitterPassword()"/>
+              </row>
+              <row align="center">
+                <box/>
+                <checkbox id="rememberPassword" label="&rememberPassword.label;"/>
+              </row>
+              <row>
+                <box/>
+                <hbox pack="start">
+                  <button label="Subscribe" default="true"
+                          oncommand="Subscriber.subscribeTwitter(event)"/>
+                </hbox>
+              </row>
+            </rows>
+          </grid>
+        </tabpanel>
+      </tabpanels>
+    </tabbox>
 
     <vbox>
-      <label id="sourceTitle"/>
-
-      <separator class="thin" orient="horizontal"/>
-
-      <hbox id="connectingBox" class="statusBox" align="center">
-        <image id="connectingIcon" class="statusIcon"/>
-        <label value="Connecting to feed" disabled="true"/>
-      </hbox>
-
-      <hbox id="gettingMessagesBox" class="statusBox" align="center">
-        <image id="gettingMessagesIcon" class="statusIcon"/>
-        <label value="Getting stories" disabled="true"/>
-      </hbox>
-      <hbox id="doneBox" class="statusBox" align="center">
-        <image id="doneIcon" class="statusIcon"/>
-        <label value="Done" disabled="true"/>
+      <hbox id="statusBox" align="center">
+        <image id="statusIcon"/>
+        <!-- Give the status text an initial value to reserve space
+           - in the UI for it (so setting it doesn't resize the UI). -->
+        <label id="statusText" value=" "/>
       </hbox>
     </vbox>
 
     <separator class="thin" orient="horizontal"/>
 
     <hbox>
-      <button id="importOPMLButton" label="Import OPML..." oncommand="Subscriber.doImportOPML(event)"/>
       <spacer flex="1"/>
       <button label="Close" oncommand="Subscriber.doClose(event)"/>
     </hbox>
+
   </vbox>
+
 </page>

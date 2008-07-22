@@ -15,38 +15,52 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/twitter.js");
 
 window.addEventListener("load", function() { Subscriber.init() }, false);
 
 function SubscriptionListener(subject, topic, data) {
-  if (subject != Subscriber.feed)
+  let source = Subscriber.feed;
+
+  // Don't track the status of subscriptions happening in other windows/tabs.
+  if (subject != source)
     return;
+
+  let statusBox = document.getElementById("statusBox");
+  let statusText = document.getElementById("statusText");
+
+  let identity = source.name ||
+                 (source.humanURI ? source.humanURI.spec : null) ||
+                 (source.machineURI ? source.machineURI.spec : null) ||
+                 "unnamed source";
 
   switch(topic) {
     case "snowl:subscribe:connect:start":
-      document.getElementById("connectingBox").disabled = false;
-      document.getElementById("connectingBox").setAttribute("status", "active");
-      document.getElementById("gettingMessagesBox").disabled = true;
-      document.getElementById("gettingMessagesBox").removeAttribute("status");
-      document.getElementById("doneBox").disabled = true;
-      document.getElementById("doneBox").removeAttribute("status");
+      statusBox.setAttribute("status", "active");
+      statusText.value = "Connecting to " + identity;
       break;
     case "snowl:subscribe:connect:end":
-      if (data < 200 || data > 299)
-        document.getElementById("connectingBox").setAttribute("status", "error");
-      else
-        document.getElementById("connectingBox").setAttribute("status", "complete");
+      if (data < 200 || data > 299) {
+        statusBox.setAttribute("status", "error");
+        statusBox.value = "Error connecting to " + identity;
+      }
+      else {
+        // XXX Should we bother setting this when we're going to change it
+        // to "getting messages" an instant later?
+        statusBox.setAttribute("status", "complete");
+        statusBox.value = "Connected to " + identity;
+      }
       break;
     case "snowl:subscribe:get:start":
-      document.getElementById("gettingMessagesBox").disabled = false;
-      document.getElementById("gettingMessagesBox").setAttribute("status", "active");
+      statusBox.setAttribute("status", "active");
+      statusText.value = "Getting messages for " + identity;
       break;
     case "snowl:subscribe:get:progress":
       break;
     case "snowl:subscribe:get:end":
-      document.getElementById("gettingMessagesBox").setAttribute("status", "complete");
-      document.getElementById("doneBox").disabled = false;
-      document.getElementById("doneBox").setAttribute("status", "complete");
+      statusBox.setAttribute("status", "complete");
+      //statusText.value = "Got messages for " + identity;
+      statusText.value = "You have subscribed to " + identity;
       break;
   }
 }
@@ -130,6 +144,26 @@ let Subscriber = {
     window.close();
   },
 
+  showTwitterPassword: function() {
+    if (document.getElementById("showPassword").checked)
+      document.getElementById("twitterPassword").removeAttribute("type");
+    else
+      document.getElementById("twitterPassword").setAttribute("type", "password");
+  },
+
+  subscribeTwitter: function() {
+    let machineURI = URI.get("https://twitter.com");
+    let humanURI = URI.get("http://twitter.com/home");
+    let twitter = new SnowlTwitter(null, "Twitter", machineURI, humanURI);
+
+    let username = document.getElementById("twitterUsername").value;
+    let password = document.getElementById("twitterPassword").value;
+
+    twitter.verify(username, password, function(response) { alert("twitter verify callback: " + response) });
+
+    //{"authorized":true}
+    //Could not authenticate you.
+  },
 
   //**************************************************************************//
   // OPML Import
