@@ -27,7 +27,18 @@ function SubscriptionListener(subject, topic, data) {
     return;
 
   let statusBox = document.getElementById("statusBox");
-  let statusText = document.getElementById("statusText");
+  let statusMessage = document.getElementById("statusMessage");
+
+  function setStatus(code, message) {
+    statusBox.setAttribute("status", code);
+
+    while (statusMessage.hasChildNodes())
+      statusMessage.removeChild(statusMessage.firstChild);
+
+    // Append a child node so it wraps if it's too long to fit on one line.
+    // XXX Is there something we can do so the UI doesn't resize midstream?
+    statusMessage.appendChild(document.createTextNode(message));
+  }
 
   let identity = source.name ||
                  (source.humanURI ? source.humanURI.spec : null) ||
@@ -36,31 +47,37 @@ function SubscriptionListener(subject, topic, data) {
 
   switch(topic) {
     case "snowl:subscribe:connect:start":
-      statusBox.setAttribute("status", "active");
-      statusText.value = "Connecting to " + identity;
+      setStatus("active", "Connecting to " + identity);
       break;
     case "snowl:subscribe:connect:end":
-      if (data < 200 || data > 299) {
-        statusBox.setAttribute("status", "error");
-        statusBox.value = "Error connecting to " + identity;
-      }
-      else {
-        // XXX Should we bother setting this when we're going to change it
-        // to "getting messages" an instant later?
-        statusBox.setAttribute("status", "complete");
-        statusBox.value = "Connected to " + identity;
+      {
+        let code, message;
+
+        if (data < 200 || data > 299) {
+          code = "error";
+          message = "Error connecting to " + identity;
+          if (data == 401) {
+            message += ": your credentials were not accepted.  Please check " +
+                      "your username and password and try again.";
+          }
+        }
+        else {
+          // Under most circumstances, this message will be replaced immediately
+          // by the "getting messages" message.
+          code = "complete";
+          message = "Connected to " + identity;
+        }
+
+        setStatus(code, message);
       }
       break;
     case "snowl:subscribe:get:start":
-      statusBox.setAttribute("status", "active");
-      statusText.value = "Getting messages for " + identity;
+      setStatus("active", "Getting messages for " + identity);
       break;
     case "snowl:subscribe:get:progress":
       break;
     case "snowl:subscribe:get:end":
-      statusBox.setAttribute("status", "complete");
-      //statusText.value = "Got messages for " + identity;
-      statusText.value = "You have subscribed to " + identity;
+      setStatus("complete", "You have subscribed to " + identity);
       break;
   }
 }
@@ -152,17 +169,18 @@ let Subscriber = {
   },
 
   subscribeTwitter: function() {
-    let machineURI = URI.get("https://twitter.com");
-    let humanURI = URI.get("http://twitter.com/home");
-    let twitter = new SnowlTwitter(null, "Twitter", machineURI, humanURI);
+    let credentials = {
+      username: document.getElementById("twitterUsername").value,
+      password: document.getElementById("twitterPassword").value,
+      remember: document.getElementById("twitterRemember").checked
+    };
 
-    let username = document.getElementById("twitterUsername").value;
-    let password = document.getElementById("twitterPassword").value;
+    let twitter = new SnowlTwitter();
 
-    twitter.verify(username, password, function(response) { alert("twitter verify callback: " + response) });
+    // FIXME: call this "source" instead of "feed".
+    this.feed = twitter;
 
-    //{"authorized":true}
-    //Could not authenticate you.
+    twitter.subscribe(credentials);
   },
 
   //**************************************************************************//

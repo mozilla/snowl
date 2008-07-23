@@ -37,11 +37,11 @@ SnowlIdentity.get = function(sourceID, externalID) {
   return identity;
 };
 
-SnowlIdentity.create = function(sourceID, externalID, name) {
+SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
   let identity;
 
   let personStatement = SnowlDatastore.createStatement(
-    "INSERT INTO people (name) VALUES (:name)"
+    "INSERT INTO people (name, homeURL, iconURL) VALUES (:name, :homeURL, :iconURL)"
   );
 
   let identityStatement = SnowlDatastore.createStatement(
@@ -51,6 +51,8 @@ SnowlIdentity.create = function(sourceID, externalID, name) {
 
   try {
     personStatement.params.name = name;
+    personStatement.params.homeURL = homeURL;
+    personStatement.params.iconURL = iconURL;
     personStatement.step();
     let personID = SnowlDatastore.dbConnection.lastInsertRowID;
 

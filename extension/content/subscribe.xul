@@ -75,7 +75,7 @@
               </row>
               <row align="center">
                 <box/>
-                <checkbox id="rememberPassword" label="&rememberPassword.label;"/>
+                <checkbox id="twitterRemember" label="&rememberPassword.label;"/>
               </row>
               <row>
                 <box/>
@@ -90,14 +90,15 @@
       </tabpanels>
     </tabbox>
 
-    <vbox>
-      <hbox id="statusBox" align="center">
-        <image id="statusIcon"/>
-        <!-- Give the status text an initial value to reserve space
-           - in the UI for it (so setting it doesn't resize the UI). -->
-        <label id="statusText" value=" "/>
-      </hbox>
-    </vbox>
+    <!-- Note: the status box should be align="baseline", but that looks ugly.
+       - align="center" looks ugly for multi-line messages, but those are rare,
+       - so this is the best option (for the moment, anyway). -->
+    <hbox id="statusBox" align="center">
+      <image id="statusIcon"/>
+      <!-- FIXME: figure out how to allocate space in the UI for the message
+         - such that setting it later doesn't resize the UI. -->
+      <description id="statusMessage" flex="1"/>
+    </hbox>
 
     <separator class="thin" orient="horizontal"/>
 

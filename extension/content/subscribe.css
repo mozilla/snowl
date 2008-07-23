@@ -4,6 +4,7 @@
   -moz-border-radius: 10px;
   background-color: -moz-field;
   color: -moz-fieldtext;
+  width: 37em;
 }
 
 #title {

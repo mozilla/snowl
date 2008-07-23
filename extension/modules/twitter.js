@@ -19,20 +19,26 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
 
-function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+// FIXME: factor this out into a common file.
+const PART_TYPE_CONTENT = 1;
+const PART_TYPE_SUMMARY = 2;
+
+const NAME = "Twitter";
+const MACHINE_URI = URI.get("https://twitter.com");
+const HUMAN_URI = URI.get("http://twitter.com/home");
+
+function SnowlTwitter(aID, aLastRefreshed, aImportance) {
+  // XXX Should we append the username to the NAME const to enable users
+  // to subscribe to multiple Twitter accounts?
+
   // Call the superclass's constructor to initialize the new instance.
-  SnowlSource.call(this, aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+  SnowlSource.call(this, aID, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
 }
 
 SnowlTwitter.prototype = {
   __proto__: SnowlSource.prototype,
 
   _log: Log4Moz.Service.getLogger("Snowl.Twitter"),
-
-  // If we prompt the user to authenticate, and the user asks us to remember
-  // their password, we store the nsIAuthInformation in this property until
-  // the request succeeds, at which point we store it with the login manager.
-  _authInfo: null,
 
   // Observer Service
   get _obsSvc() {
@@ -41,6 +47,25 @@ SnowlTwitter.prototype = {
     this.__defineGetter__("_obsSvc", function() { return obsSvc });
     return this._obsSvc;
   },
+
+
+  //**************************************************************************//
+  // Notification Callbacks for Authentication
+
+  // FIXME: factor this out with the equivalent code in feed.js.
+
+  // If we prompt the user to authenticate, and the user asks us to remember
+  // their password, we store the nsIAuthInformation in this property until
+  // the request succeeds, at which point we store it with the login manager.
+  _authInfo: null,
+
+  // Logins from the login manager that we try in turn until we run out of them
+  // or one of them works.
+  // XXX Should we only try the username the user entered when they originally
+  // subscribed to the source?  After all, different usernames could result in
+  // different content, and it might not be what the user expects.
+  _logins: null,
+  _loginIndex: 0,
 
   // nsISupports
 
@@ -53,9 +78,6 @@ SnowlTwitter.prototype = {
   },
 
   // nsIAuthPrompt2
-
-  _logins: null,
-  _loginIndex: 0,
 
   promptAuth: function(channel, level, authInfo) {
     // Check saved logins before prompting the user.  We get them
@@ -93,7 +115,6 @@ SnowlTwitter.prototype = {
 
     let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
     ww.openWindow(null,
-                  // XXX Should we use commonDialog.xul?
                   "chrome://snowl/content/login.xul",
                   null,
                   "chrome,centerscreen,dialog,modal",
@@ -109,62 +130,114 @@ SnowlTwitter.prototype = {
     throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
 
-  verify: function(username, password, callback) {
+
+  //**************************************************************************//
+  // Subscription
+
+  subscribe: function(credentials) {
+    Observers.notify(this, "snowl:subscribe:connect:start", null);
+
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-this._log.info("verify callback: " + callback);
 
     request.QueryInterface(Ci.nsIDOMEventTarget);
     let t = this;
-    request.addEventListener("load", function(evt) { t.onVerifyLoad(evt, callback) }, false);
-    request.addEventListener("error", function(evt) { t.onVerifyError(evt, callback) }, false);
+    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
+    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
 
     request.open("GET", this.machineURI.spec + "/account/verify_credentials.json", true);
-    
-    request.setRequestHeader("Authorization", "Basic " + btoa(username + ":" + password));
 
-    // Register a listener for notification callbacks so we handle authentication.
-    request.channel.notificationCallbacks = this;
+    // We could just set the Authorization request header here, but then
+    // we wouldn't get an nsIAuthInformation object through our notification
+    // callbacks, so we'd have to parse the WWW-Authenticate header ourselves
+    // to extract the realm to use when saving the credentials to the login
+    // manager, and WWW-Authenticate header parsing is said to be tricky.
+
+    // So instead we define notification callbacks that fill in (and persist)
+    // an nsIAuthInformation object the first time they are called (subsequent
+    // attempts fail, though, to avoid an infinite loop with a server that keeps
+    // rejecting our credentials along with a Mozilla that keeps prompting
+    // for them).
+    request.channel.notificationCallbacks = {
+      QueryInterface: XPCOMUtils.generateQI([Ci.nsIAuthPrompt2]),
+      getInterface: function(iid) { return this.QueryInterface(iid) },
+      _firstAttempt: true,
+      promptAuth: function(channel, level, authInfo) {
+        if (!this._firstAttempt) {
+          if (credentials.remember)
+            this._authInfo = null;
+          return false;
+        }
+        authInfo.username = credentials.username;
+        authInfo.password = credentials.password;
+        if (credentials.remember)
+          this._authInfo = authInfo;
+        this._firstAttempt = false;
+        return true;
+      },
+      asyncPromptAuth: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED }
+    };
 
     request.send(null);
   },
 
-  onVerifyLoad: function(event, callback) {
-this._log.info("onVerifyLoad callback: " + callback);
+  onSubscribeLoad: function(event) {
     let request = event.target;
+
+    // request.responseText should be: {"authorized":true}
+    this._log.info("onSubscribeLoad: " + request.responseText);
 
     // If the request failed, let the error handler handle it.
     // XXX Do we need this?  Don't such failures call the error handler directly?
     if (request.status < 200 || request.status > 299) {
-      this.onVerifyError(event, callback);
+      this.onSubscribeError(event);
       return;
     }
 
     // XXX What's the right way to handle this?
     if (request.responseText.length == 0) {
-      this.onVerifyError(event, callback);
+      this.onSubscribeError(event);
       return;
     }
 
-    callback(request.status + ": " + request.responseText);
-return;
+    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+
     // _authInfo only gets set if we prompted the user to authenticate
     // and the user checked the "remember password" box.  Since we're here,
     // it means the request succeeded, so we save the login.
     if (this._authInfo)
       this._saveLogin();
 
-    let parser = Cc["@mozilla.org/feed-processor;1"].
-                 createInstance(Ci.nsIFeedProcessor);
-    parser.listener = { t: this, handleResult: function(r) { this.t.onRefreshResult(r) } };
-    parser.parseFromString(request.responseText, request.channel.URI);
+    // Add the source to the database.
+    // FIXME: factor this out with the identical code in feed.js.
+    let statement =
+      SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
+                                     "VALUES (:name, :machineURI, :humanURI)");
+    try {
+      statement.params.name = this.name;
+      statement.params.machineURI = this.machineURI.spec;
+      statement.params.humanURI = this.humanURI.spec;
+      statement.step();
+    }
+    finally {
+      statement.reset();
+    }
+
+    // Extract the ID of the source from the newly-created database record.
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+  
+    // Let observers know about the new source.
+    this._obsSvc.notifyObservers(null, "sources:changed", null);
+  
+    this.refresh();
   },
 
-  onVerifyError: function(event, callback) {
-this._log.info("onVerifyError callback: " + callback);
-
+  onSubscribeError: function(event) {
     let request = event.target;
+
+    // request.responseText should be: Could not authenticate you.
+    this._log.info("onSubscribeError: " + request.responseText);
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
     let statusText = "";
@@ -173,15 +246,18 @@ this._log.info("onVerifyError callback: " + callback);
     }
     catch(ex) {}
     
-    this._log.error("onVerifyError: " + request.status + " (" + statusText + ")");
+    this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
 
-    callback(request.responseText);
+    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
   },
 
 
-
+  //**************************************************************************//
+  // Refreshment
 
   refresh: function() {
+    Observers.notify(this, "snowl:subscribe:get:start", null);
+
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
     request.QueryInterface(Ci.nsIDOMEventTarget);
@@ -191,11 +267,10 @@ this._log.info("onVerifyError callback: " + callback);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
 
-    // The feed processor is going to parse the XML, so override the MIME type
-    // in order to turn off parsing by XMLHttpRequest itself.
-    request.overrideMimeType("text/plain");
-
-    request.open("GET", this.machineURI.spec, true);
+    // FIXME: use the count parameter to retrieve more messages at once.
+    // FIXME: use the since or since_id parameter to retrieve only new messages.
+    // http://groups.google.com/group/twitter-development-talk/web/api-documentation
+    request.open("GET", this.machineURI.spec + "/statuses/friends_timeline.json", true);
 
     // Register a listener for notification callbacks so we handle authentication.
     request.channel.notificationCallbacks = this;
@@ -203,19 +278,19 @@ this._log.info("onVerifyError callback: " + callback);
     request.send(null);
   },
 
-  onRefreshLoad: function(aEvent) {
-    let request = aEvent.target;
+  onRefreshLoad: function(event) {
+    let request = event.target;
 
     // If the request failed, let the error handler handle it.
     // XXX Do we need this?  Don't such failures call the error handler directly?
     if (request.status < 200 || request.status > 299) {
-      this.onRefreshError(aEvent);
+      this.onRefreshError(event);
       return;
     }
 
     // XXX What's the right way to handle this?
     if (request.responseText.length == 0) {
-      this.onRefreshError(aEvent);
+      this.onRefreshError(event);
       return;
     }
 
@@ -225,14 +300,11 @@ this._log.info("onVerifyError callback: " + callback);
     if (this._authInfo)
       this._saveLogin();
 
-    let parser = Cc["@mozilla.org/feed-processor;1"].
-                 createInstance(Ci.nsIFeedProcessor);
-    parser.listener = { t: this, handleResult: function(r) { this.t.onRefreshResult(r) } };
-    parser.parseFromString(request.responseText, request.channel.URI);
+    this._processRefresh(request.responseText);
   },
 
-  onRefreshError: function(aEvent) {
-    let request = aEvent.target;
+  onRefreshError: function(event) {
+    let request = event.target;
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE
     let statusText = "";
@@ -244,51 +316,37 @@ this._log.info("onVerifyError callback: " + callback);
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
 
-  onRefreshResult: function(aResult) {
-    Observers.notify(this, "snowl:subscribe:get:start", null);
-
-    // Now that we know we successfully downloaded the feed and obtained
+  _processRefresh: function(responseText) {
+    // Now that we know we successfully downloaded the source and obtained
     // a result from it, update the "last refreshed" timestamp.
     this.lastRefreshed = new Date();
 
-    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+    var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+    let messages = JSON.decode(responseText);
 
-    let currentMessageIDs = [];
+    let currentMessages = [];
     let messagesChanged = false;
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {
-      for (let i = 0; i < feed.items.length; i++) {
-        let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-        //entry.QueryInterface(Ci.nsIFeedContainer);
-
-        // Figure out the ID for the entry, then check if the entry has already
-        // been retrieved.  If we can't figure out the entry's ID, then we skip
-        // the entry, since its ID is the only way for us to know whether or not
-        // it has already been retrieved.
-        let externalID;
-        try {
-          externalID = entry.id || this._generateID(entry);
-        }
-        catch(ex) {
-          this._log.warn("couldn't retrieve a message: " + ex);
-          continue;
-        }
-
+      for each (let message in messages) {
+        let externalID = message.id;
         let internalID = this._getInternalIDForExternalID(externalID);
-        if (internalID)
+        if (internalID) {
+          currentMessages.push(internalID);
           continue;
+        }
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(feed, entry, externalID);
-        currentMessageIDs.push(internalID);
+        internalID = this._addMessage(message);
+        currentMessages.push(internalID);
       }
 
       // Update the current flag.
       // XXX Should this affect whether or not messages have changed?
       SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 0 WHERE sourceID = " + this.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE id IN (" + currentMessageIDs.join(", ") + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE id IN (" + currentMessages.join(", ") + ")");
 
       SnowlDatastore.dbConnection.commitTransaction();
     }
@@ -303,136 +361,40 @@ this._log.info("onVerifyError callback: " + callback);
     Observers.notify(this, "snowl:subscribe:get:end", null);
   },
 
-  /**
-   * Add a message to the datastore for the given feed entry.
-   *
-   * @param aFeed         {nsIFeed}       the feed
-   * @param aEntry        {nsIFeedEntry}  the entry
-   * @param aExternalID   {string}        the external ID of the entry
-   */
-  _addMessage: function(aFeed, aEntry, aExternalID) {
-    let authorID = null;
-    let authors = (aEntry.authors.length > 0) ? aEntry.authors
-                  : (aFeed.authors.length > 0) ? aFeed.authors
-                  : null;
-    if (authors && authors.length > 0) {
-      let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
-      // The external ID for an author is her email address, if provided
-      // (many feeds don't); otherwise it's her name.  For the name, on the
-      // other hand, we use the name, if provided, but fall back to the
-      // email address if a name is not provided (which it probably was).
-      let externalID = author.email || author.name;
-      let name = author.name || author.email;
+  _addMessage: function(message) {
+    // Get an existing identity or create a new one.  Creating an identity
+    // automatically creates a person record with the provided name.
+    let identity = SnowlIdentity.get(this.id, message.user.id) ||
+                   SnowlIdentity.create(this.id,
+                                        message.user.id,
+                                        message.user.screen_name,
+                                        message.user.url,
+                                        message.user.profile_image_url);
+    // FIXME: update the identity record with the latest info about the person.
+    //identity.updateProperties(this.machineURI, message.user);
+    let authorID = identity.personID;
 
-      // Get an existing identity or create a new one.  Creating an identity
-      // automatically creates a person record with the provided name.
-      identity = SnowlIdentity.get(this.id, externalID) ||
-                 SnowlIdentity.create(this.id, externalID, name);
-      authorID = identity.personID;
-    }
+    let timestamp = new Date(message.created_at);
 
-    // Pick a timestamp, which is one of (by priority, high to low):
-    // 1. when the entry was last updated;
-    // 2. when the entry was published;
-    // 3. the Dublin Core timestamp associated with the entry;
-    // XXX Should we separately record when we added the entry so that the user
-    // can sort in the "order received" and view "when received" separately from
-    // "when published/updated"?
-    let timestamp = aEntry.updated ? new Date(aEntry.updated) :
-                    aEntry.published ? new Date(aEntry.published) :
-                    ISO8601DateUtils.parse(aEntry.get("dc:date"));
+    let messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
+                                          timestamp, null);
 
-    // FIXME: handle titles that contain markup or are missing.
-    let messageID = this.addSimpleMessage(this.id, aExternalID,
-                                          aEntry.title.text, authorID,
-                                          timestamp, aEntry.link);
-
-    // Add parts
-    if (aEntry.content) {
-      this.addPart(messageID, PART_TYPE_CONTENT, aEntry.content.text,
-                   (aEntry.content.base ? aEntry.content.base.spec : null),
-                   aEntry.content.lang, mediaTypes[aEntry.content.type]);
-    }
-
-    if (aEntry.summary) {
-      this.addPart(messageID, PART_TYPE_SUMMARY, aEntry.summary.text,
-                   (aEntry.summary.base ? aEntry.summary.base.spec : null),
-                   aEntry.summary.lang, mediaTypes[aEntry.summary.type]);
-    }
+    this.addPart(messageID, PART_TYPE_CONTENT, message.text, null, null, "text/plain");
 
     // Add metadata.
-    let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
-                 fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
-    while (fields.hasMoreElements()) {
-      let field = fields.getNext().QueryInterface(Ci.nsIProperty);
+    for (let [name, value] in Iterator(message)) {
+      // Ignore properties we have already handled specially.
+      // XXX Should we add them anyway, which is redundant info but lets others
+      // (who don't know about our special treatment) access them?
+      if (["user", "created_at", "text"].indexOf(name) != -1)
+        continue;
 
-      // FIXME: create people records for these.
-      if (field.name == "authors") {
-        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-        while (values.hasMoreElements()) {
-          let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
-          // FIXME: store people records in a separate table with individual
-          // columns for each person attribute (i.e. name, email, url)?
-          this._addMetadatum(messageID,
-                             "atom:author",
-                             value.name && value.email ? value.name + "<" + value.email + ">"
-                                                       : value.name ? value.name : value.email);
-        }
-      }
+      // FIXME: populate a "recipient" field with in_reply_to_user_id.
 
-      else if (field.name == "links") {
-        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-        while (values.hasMoreElements()) {
-          let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-          // FIXME: store link records in a separate table with individual
-          // colums for each link attribute (i.e. href, type, rel, title)?
-          this._addMetadatum(messageID,
-                             "atom:link_" + value.get("rel"),
-                             value.get("href"));
-        }
-      }
-
-      // For some reason, the values of certain simple fields (like RSS2 guid)
-      // are property bags containing the value instead of the value itself.
-      // For those, we need to unwrap the extra layer. This strange behavior
-      // has been filed as bug 427907.
-      else if (typeof field.value == "object") {
-        if (field.value instanceof Ci.nsIPropertyBag2) {
-          let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
-          this._addMetadatum(messageID, field.name, value);
-        }
-        else if (field.value instanceof Ci.nsIArray) {
-          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-          while (values.hasMoreElements()) {
-            // FIXME: values might not always have this interface.
-            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            this._addMetadatum(messageID, field.name, value.get(field.name));
-          }
-        }
-      }
-
-      else
-        this._addMetadatum(messageID, field.name, field.value);
+      this._addMetadatum(messageID, name, value);
     }
 
     return messageID;
-  },
-
-  /**
-   * Given an entry, generate an ID for it based on a hash of its link,
-   * published, and title attributes.  Useful for uniquely identifying entries
-   * that don't provide their own IDs.
-   *
-   * @param entry {nsIFeedEntry} the entry for which to generate an ID
-   * @returns {string} an ID for the entry
-   */
-  _generateID: function(entry) {
-    let hasher = Cc["@mozilla.org/security/hash;1"].
-                 createInstance(Ci.nsICryptoHash);
-    hasher.init(Ci.nsICryptoHash.SHA1);
-    let identity = stringToArray(entry.link.spec + entry.published + entry.title.text);
-    hasher.update(identity, identity.length);
-    return "urn:" + hasher.finish(true);
   },
 
   // FIXME: Make the rest of this stuff be part of a superclass from which
@@ -449,6 +411,9 @@ this._log.info("onVerifyError callback: " + callback);
    *           doesn't exist
    */
   _getInternalIDForExternalID: function(aExternalID) {
+    // FIXME: external IDs may be source-specific, as some sources
+    // (like Twitter) don't use globally-unique IDs (unlike feeds, which
+    // generally do), so handle non-globally unique IDs correctly.
     return SnowlDatastore.selectInternalIDForExternalID(aExternalID);
   },
 
@@ -511,114 +476,7 @@ this._log.info("onVerifyError callback: " + callback);
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   },
 
-  subscribe: function(callback) {
-    Observers.notify(this, "snowl:subscribe:connect:start", null);
-
-    this._subscribeCallback = callback;
-
-    this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
-
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    request = request.QueryInterface(Ci.nsIDOMEventTarget);
-
-    let t = this;
-    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
-
-    request = request.QueryInterface(Ci.nsIXMLHttpRequest);
-
-    // The feed processor is going to parse the XML, so override the MIME type
-    // in order to turn off parsing by XMLHttpRequest itself.
-    request.overrideMimeType("text/plain");
-
-    request.open("GET", this.machineURI.spec, true);
-
-    // Register a listener for notification callbacks so we handle authentication.
-    request.channel.notificationCallbacks = this;
-
-    request.send(null);
-  },
-
-  onSubscribeLoad: function(aEvent) {
-    let request = aEvent.target;
-
-    // If the request failed, let the error handler handle it.
-    // XXX Do we need this?  Don't such failures call the error handler directly?
-    if (request.status < 200 || request.status > 299) {
-      this.onSubscribeError(aEvent);
-      return;
-    }
-
-    // XXX What's the right way to handle this?
-    if (request.responseText.length == 0) {
-      this.onRefreshError(aEvent);
-      return;
-    }
-
-    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
-
-    // _authInfo only gets set if we prompted the user to authenticate
-    // and the user checked the "remember password" box.  Since we're here,
-    // it means the request succeeded, so we save the login.
-    if (this._authInfo)
-      this._saveLogin();
-
-    let parser = Cc["@mozilla.org/feed-processor;1"].
-                 createInstance(Ci.nsIFeedProcessor);
-    parser.listener = { t: this, handleResult: function(r) { this.t.onSubscribeResult(r) } };
-    parser.parseFromString(request.responseText, request.channel.URI);
-  },
-
-  onSubscribeError: function(aEvent) {
-    let request = aEvent.target;
-    this._log.error("onSubscribeError: " + request.status + " (" + request.statusText + ")");
-    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
-    if (this._subscribeCallback)
-      this._subscribeCallback();
-  },
-
-  onSubscribeResult: function(aResult) {
-    try {
-      let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
-
-      // Extract the name (if we don't already have one) and human URI from the feed.
-      if (!this.name)
-        this.name = feed.title.plainText();
-      this.humanURI = feed.link;
-  
-      // Add the source to the database.
-      let statement =
-        SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
-                                       "VALUES (:name, :machineURI, :humanURI)");
-      try {
-        statement.params.name = this.name;
-        statement.params.machineURI = this.machineURI.spec;
-        statement.params.humanURI = this.humanURI.spec;
-        statement.step();
-      }
-      finally {
-        statement.reset();
-      }
-  
-      // Extract the ID of the source from the newly-created database record.
-      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-  
-      // Let observers know about the new source.
-      this._obsSvc.notifyObservers(null, "sources:changed", null);
-  
-      // Refresh the feed to import all its items.
-      this.onRefreshResult(aResult);
-    }
-    catch(ex) {
-      dump("error on subscribe result: " + ex + "\n");
-    }
-    finally {
-      if (this._subscribeCallback)
-        this._subscribeCallback();
-    }
-  },
-
+  // FIXME: factor this out with the identical function in feed.js.
   _saveLogin: function() {
     let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
 

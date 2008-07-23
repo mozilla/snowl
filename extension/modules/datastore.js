@@ -43,6 +43,8 @@ let SnowlDatastore = {
         columns: [
           "id INTEGER PRIMARY KEY",
           "name TEXT NOT NULL",
+          // XXX Call these URL instead of URI, since they are unambiguously
+          // locations, not names (and thus never URNs)?
           "machineURI TEXT NOT NULL",
           "humanURI TEXT",
           "lastRefreshed INTEGER",
@@ -86,6 +88,9 @@ let SnowlDatastore = {
         ]
       },
 
+      // FIXME: call this messageMetadata, since we have one for people, too
+      // (and might get one for sources in the future).
+      // XXX Should we call this "properties"?
       metadata: {
         type: TABLE_TYPE_FULLTEXT,
         columns: [
@@ -100,7 +105,12 @@ let SnowlDatastore = {
         type: TABLE_TYPE_NORMAL,
         columns: [
           "id INTEGER PRIMARY KEY",
-          "name TEXT NOT NULL"
+          // XXX Should we store this info as part of the identity, so that
+          // a person with multiple identities could retain information from
+          // all of them and select from it at display time?
+          "name TEXT NOT NULL",
+          "homeURL TEXT",
+          "iconURL TEXT"
         ]
       },
 
@@ -387,6 +397,7 @@ let SnowlDatastore = {
     return id;
   },
 
+  // FIXME: insert the namespace, too, if available.
   get _insertAttributeStatement() {
     let statement = this.createStatement(
       "INSERT INTO attributes (name) VALUES (:name)"
