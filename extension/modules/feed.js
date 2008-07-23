@@ -226,8 +226,10 @@ SnowlFeed.prototype = {
         }
 
         let internalID = this._getInternalIDForExternalID(externalID);
-        if (internalID)
+        if (internalID) {
+          currentMessageIDs.push(internalID);
           continue;
+        }
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
