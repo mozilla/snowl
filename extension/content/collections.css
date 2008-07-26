@@ -10,3 +10,9 @@ toolbarbutton {
   margin-left: 0;
   margin-right: 0;
 }
+
+/* Make the tree icons be 16x16 in size even if the image files are larger. */
+#sourcesView > treechildren::-moz-tree-image {
+  width: 16px;
+  height: 16px;
+}

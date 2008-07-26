@@ -170,9 +170,9 @@ let SourcesView = {
     }
   },
 
-  getRowProperties: function (aRow, aProperties) {},
-  getCellProperties: function (aRow, aColumn, aProperties) {},
-  getColumnProperties: function(aColumnID, aColumn, aProperties) {},
+  getRowProperties: function (row, properties) {},
+  getCellProperties: function (row, column, properties) {},
+  getColumnProperties: function(columnID, column, properties) {},
 
   setCellText: function(aRow, aCol, aValue) {
     let statement = SnowlDatastore.createStatement("UPDATE sources SET name = :name WHERE id = :id");
@@ -237,11 +237,12 @@ let SourcesView = {
 
     {
       let grouping = {
-        nameColumn: "authors.name"
-        // FIXME: get a favicon for people
+        nameColumn: "authors.name",
+        iconURLColumn: "authors.iconURL"
       }
       let collection = new SnowlCollection(null, null, grouping);
       collection.name = "People";
+      collection.defaultFaviconURI = URI.get("chrome://snowl/content/icons/user.png");
       this._collections.push(collection);
     }
 

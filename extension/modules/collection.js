@@ -84,6 +84,9 @@ SnowlCollection.prototype = {
         if (statement.row.uri)
           group.uri = URI.get(statement.row.uri);
 
+        if (statement.row.iconURL)
+          group.iconURL = URI.get(statement.row.iconURL);
+
         group.defaultFaviconURI = this.grouping.defaultFaviconURI;
         group.level = this.level + 1;
         groups.push(group);
@@ -112,6 +115,15 @@ SnowlCollection.prototype = {
       columns.push(this.grouping.uriColumn + " AS uri");
     else
       columns.push("NULL AS uri");
+
+    // For some reason, trying to access statement.row.uri dies without throwing
+    // an exception if uri isn't defined as a column in the query, so we have to
+    // define it here even if we don't have a URI column.
+    // FIXME: file a bug on this bizarre behavior.
+    if (this.grouping.iconURLColumn)
+      columns.push(this.grouping.iconURLColumn + " AS iconURL");
+    else
+      columns.push("NULL AS iconURL");
 
     let query = 
       "SELECT " + columns.join(", ") + " " +
@@ -149,6 +161,9 @@ SnowlCollection.prototype = {
   },
 
   get faviconURI() {
+    if (this.iconURL)
+      return this.iconURL;
+
     if (this.uri) {
       try {
         return this._faviconSvc.getFaviconForPage(this.uri);
