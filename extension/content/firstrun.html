@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <title>Mozilla Labs / Snowl / First Run</title>
+    <link rel="stylesheet" type="text/css" href="https://services.mozilla.com/weave.css" />
+    <script>
+      const Ci = Components.interfaces;
+      function openSidebar() {
+        var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                             getInterface(Ci.nsIWebNavigation).
+                             QueryInterface(Ci.nsIDocShellTreeItem).
+                             rootTreeItem.
+                             QueryInterface(Ci.nsIInterfaceRequestor).
+                             getInterface(Ci.nsIDOMWindow);
+        gBrowserWindow.toggleSidebar('viewSnowlSidebar');
+      }
+    </script>
+  </head>
+<body>
+  <div id="content">
+    <div id="top">
+
+      <img src="chrome://snowl/content/logo.png" alt="Snowl for Firefox" />
+    </div>
+
+    <div id="bottom">
+      <div><img src="https://services.mozilla.com/images/otherpages-table-top.png" alt="" /></div>
+      <div class="table_middle">
+        <div class="title">Thanks for installing Snowl!</div>
+        <div class="divider"><img src="https://services.mozilla.com/images/otherpages-divider.png" alt="" /></div>
+
+        <div class="details">
+          <p>
+            <b>Getting Started</b>
+          </p>
+          <ol>
+            <li>Subscribe to feeds by selecting Snowl from the list of feed readers on the feed preview page.</li>
+            <li><a href="chrome://snowl/content/subscribe.xul?page=twitter">Subscribe to Twitter</a>.</li>
+            <li>Access your subscriptions from the
+                <a href="javascript:openSidebar()">Snowl sidebar</a> or the
+                <a href="chrome://snowl/content/river.xul">river view</a>.
+            </li>
+
+          </ol>
+          <p>
+            Please join us in the Mozilla Labs
+            <a href="https://labs.mozilla.com/forum/index.php">discussion forum</a>
+            to provide feedback or make suggestions.
+          </p>
+        </div>
+        <div class="divider"><img src="https://services.mozilla.com/images/otherpages-divider.png" alt="" /></div>
+      </div>
+
+    </div>
+    
+    <div id="footer">
+      <div class="legal">
+        &copy; 2008 Mozilla
+      </div>
+    </div>
+  </div>
+    
+</body>
+</html>

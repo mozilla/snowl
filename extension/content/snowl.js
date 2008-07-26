@@ -1,8 +1,43 @@
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
+
+// FIXME: import these into an object to avoid name collisions.
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/Preferences.js");
+
+let Snowl = {
+  get _prefs() {
+    delete this._prefs;
+    return this._prefs = new Preferences("extensions.snowl.");
+  },
+
+  get _version() {
+    let em = Cc["@mozilla.org/extensions/manager;1"].
+             getService(Ci.nsIExtensionManager);
+    let addon = em.getItemForID("snowl@mozilla.org");
+    delete this._version;
+    return this._version = addon.version;
+  },
+
+  init: function() {
+    let lastVersion = this._prefs.get("lastVersion");
+
+    if (!lastVersion) {
+      let url = "chrome://snowl/content/firstrun.html";
+      setTimeout(function() { window.openUILinkIn(url, "tab") }, 500);
+    }
+    else if (lastVersion != this._version) {
+      let url = "chrome://snowl/content/update.html?old=" + lastVersion +
+                "&new=" + this._version;
+      setTimeout(function() { window.openUILinkIn(url, "tab"); }, 500);
+    }
+
+    this._prefs.set("lastVersion", this._version);
+  }
+};
+
 
 let SnowlMessageView = {
   _log: null,
@@ -501,4 +536,5 @@ this._log.info("_toggleRead: all? " + aAll);
   }
 };
 
+window.addEventListener("load", function() { Snowl.init() }, false);
 window.addEventListener("load", function() { SnowlMessageView.init() }, false);
