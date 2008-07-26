@@ -7,6 +7,9 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 
+// FIXME: make this configurable.
+const SNOWL_COLLECTIONS_HIERARCHICAL = false;
+
 let SourcesView = {
   _log: null,
 
@@ -91,7 +94,7 @@ let SourcesView = {
 
     let thisLevel = this.getLevel(row);
 
-    if (this._rows[row].level == 0)
+    if (thisLevel == 0)
       return -1;
     for (let t = row - 1; t >= 0; t--)
       if (this.getLevel(t) < thisLevel)
@@ -102,6 +105,9 @@ let SourcesView = {
 
   getLevel: function(row) {
     //this._log.info("getLevel: " + row);
+
+    if (!SNOWL_COLLECTIONS_HIERARCHICAL)
+      return 0;
 
     return this._rows[row].level;
   },
@@ -243,7 +249,19 @@ let SourcesView = {
     // are closed, so this is the same as the list of collections, although
     // in the future we might persist and restore the open state.
     // XXX Should this work be in a separate function?
-    this._rows = [collection for each (collection in this._collections)];
+    if (SNOWL_COLLECTIONS_HIERARCHICAL) {
+      this._rows = [collection for each (collection in this._collections)];
+    }
+    else {
+      this._rows = [];
+      for each (let collection in this._collections) {
+        if (collection.groups)
+          for each (let group in collection.groups)
+            this._rows.push(group);
+        else
+          this._rows.push(collection);
+      }
+    }
   },
 
   onSelect: function(aEvent) {
