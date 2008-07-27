@@ -51,8 +51,8 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
 
   try {
     personStatement.params.name = name;
-    personStatement.params.homeURL = homeURL;
-    personStatement.params.iconURL = iconURL;
+    personStatement.params.homeURL = homeURL || null;
+    personStatement.params.iconURL = iconURL || null;
     personStatement.step();
     let personID = SnowlDatastore.dbConnection.lastInsertRowID;
 
