@@ -18,8 +18,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Daniel Aquino <mr.danielaquino@gmail.com>
  *   Myk Melez <myk@mozilla.org>
+ *   Daniel Aquino <mr.danielaquino@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,82 +42,109 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-function Preferences(aPrefBranch) {
-  if (aPrefBranch)
-    this._prefBranch = aPrefBranch;
+function Preferences(prefBranch) {
+  if (prefBranch)
+    this._prefBranch = prefBranch;
 }
 
-// Set the prototype to itself so new instances inherit the class's properties.
-Preferences.prototype = Preferences;
+Preferences.prototype = {
+  _prefBranch: "",
 
-Preferences._prefBranch = "";
+  // Preferences Service
 
-// Preference Service
-Preferences.__defineGetter__("_prefSvc",
-  function() {
+  get _prefSvc() {
     let prefSvc = Cc["@mozilla.org/preferences-service;1"].
                   getService(Ci.nsIPrefService).
                   getBranch(this._prefBranch).
                   QueryInterface(Ci.nsIPrefBranch2);
-    delete this._prefSvc;
-    this._prefSvc = prefSvc;
+    this.__defineGetter__("_prefSvc", function() prefSvc);
     return this._prefSvc;
-  }
-);
+  },
 
-/**
-  * Get the value of a pref, if any; otherwise return the default value.
-  *
-  * @param   aPrefName      the name of the pref to get
-  * @param   aDefaultValue  the default value, if any
-  *
-  * @returns the value of the pref, if any; otherwise the default value
-  */
-Preferences.get =
-function(aPrefName, aDefaultValue) {
-  // We can't check for |aPrefName.constructor == Array| here, since we have
-  // a different global object, so we check the constructor name instead.
-  if (typeof aPrefName == "object" && aPrefName.constructor.name == Array.name)
-    return aPrefName.map(function(v) { return this.get(v) }, this);
+  /**
+    * Get the value of a pref, if any; otherwise return the default value.
+    *
+    * @param   prefName      the name of the pref to get
+    * @param   defaultValue  the default value, if any
+    *
+    * @returns the value of the pref, if any; otherwise the default value
+    */
+  get: function(prefName, defaultValue) {
+    // We can't check for |prefName.constructor == Array| here, since we have
+    // a different global object, so we check the constructor name instead.
+    if (typeof prefName == "object" && prefName.constructor.name == Array.name)
+      return prefName.map(function(v) this.get(v), this);
 
-  let prefName = this._prefBranch + aPrefName;
-
-  try {
-    switch (this._prefSvc.getPrefType(prefName)) {
-      case Ci.nsIPrefBranch.PREF_STRING:
-        return this._prefSvc.getCharPref(prefName);
-      case Ci.nsIPrefBranch.PREF_INT:
-        return this._prefSvc.getIntPref(prefName);
-      case Ci.nsIPrefBranch.PREF_BOOL:
-        return this._prefSvc.getBoolPref(prefName);
+    try {
+      switch (this._prefSvc.getPrefType(prefName)) {
+        case Ci.nsIPrefBranch.PREF_STRING:
+          return this._prefSvc.getCharPref(prefName);
+        case Ci.nsIPrefBranch.PREF_INT:
+          return this._prefSvc.getIntPref(prefName);
+        case Ci.nsIPrefBranch.PREF_BOOL:
+          return this._prefSvc.getBoolPref(prefName);
+      }
     }
-  }
-  catch (ex) {}
+    catch (ex) {}
+  
+    return defaultValue;
+  },
 
-  return aDefaultValue;
+  set: function(prefName, prefValue) {
+    // We can't check for |prefName.constructor == Object| here, since we have
+    // a different global object, so we check the constructor name instead.
+    if (typeof prefName == "object" && prefName.constructor.name == Object.name)
+      for (let [name, value] in Iterator(prefName))
+        this.set(name, value);
+    else {
+      switch (typeof prefValue) {
+        case "number":
+          this._prefSvc.setIntPref(prefName, prefValue);
+          break;
+        case "boolean":
+          this._prefSvc.setBoolPref(prefName, prefValue);
+          break;
+        case "string":
+        default:
+          this._prefSvc.setCharPref(prefName, prefValue);
+          break;
+      }
+    }
+  },
+
+  // FIXME: make the methods below accept an array of pref names.
+
+  has: function(prefName) {
+    return (this._prefSvc.getPrefType(prefName) != this._prefSvc.PREF_INVALID);
+  },
+
+  modified: function(prefName) {
+    return (this.has(prefName) && this._prefSvc.prefHasUserValue(prefName));
+  },
+
+  locked: function(prefName) {
+    return this._prefSvc.isLocked(prefName);
+  },
+
+  lock: function(prefName) {
+    this._prefSvc.lockPref(prefName);
+  },
+
+  unlock: function(prefName) {
+    this._prefSvc.unlockPref(prefName);
+  },
+
+  reset: function(prefName) {
+    this._prefSvc.clearUserPref(prefName);
+  },
+
+  resetBranch: function(prefBranch) {
+    this._prefSvc.resetBranch(prefBranch);
+  }
+
 };
 
-Preferences.set =
-function(aPrefName, aPrefValue) {
-  // We can't check for |aPrefName.constructor == Object| here, since we have
-  // a different global object, so we check the constructor name instead.
-  if (typeof aPrefName == "object" && aPrefName.constructor.name == Object.name)
-    for (let [name, value] in Iterator(aPrefName))
-      this.set(name, value);
-  else {
-    let prefName = this._prefBranch + aPrefName;
-
-    switch (typeof aPrefValue) {
-      case "number":
-        this._prefSvc.setIntPref(prefName, aPrefValue);
-        break;
-      case "boolean":
-        this._prefSvc.setBoolPref(prefName, aPrefValue);
-        break;
-      case "string":
-      default:
-        this._prefSvc.setCharPref(prefName, aPrefValue);
-        break;
-    }
-  }
-};
+// Give the constructor the same prototype as its instances, so users can access
+// preferences directly via the constructor without having to create an instance
+// first.
+Preferences.__proto__ = Preferences.prototype;
