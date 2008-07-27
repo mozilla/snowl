@@ -238,11 +238,11 @@ let SourcesView = {
     {
       let grouping = {
         nameColumn: "authors.name",
-        iconURLColumn: "authors.iconURL"
+        iconURLColumn: "authors.iconURL",
+        defaultFaviconURI: URI.get("chrome://snowl/content/icons/user.png")
       }
       let collection = new SnowlCollection(null, null, grouping);
       collection.name = "People";
-      collection.defaultFaviconURI = URI.get("chrome://snowl/content/icons/user.png");
       this._collections.push(collection);
     }
 
