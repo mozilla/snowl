@@ -16,3 +16,18 @@ toolbarbutton {
   width: 16px;
   height: 16px;
 }
+
+#sourcesView treecolpicker {
+  display: none;
+}
+
+/* Hide the column header, which is unuseful while we only have one column. */
+#sourcesView .treecol-text,
+#sourcesView .treecol-sortdirection {
+  display: none;
+}
+#nameCol {
+  -moz-appearance: none;
+  border: 0;
+  padding: 0;
+}
