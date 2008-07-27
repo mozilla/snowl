@@ -43,6 +43,19 @@
   <script type="application/x-javascript" src="chrome://snowl/content/collections.js"/>
 
   <vbox id="collectionsViewBox">
+    <menupopup id="sourcesContextMenu">
+      <menuitem label="Unsubscribe" oncommand="SourcesView.unsubscribe(event)"/>
+    </menupopup>
+
+    <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
+          onselect="SourcesView.onSelect(event)">
+      <treecols>
+        <treecol id="nameCol" label="Name" primary="true" flex="1"/>
+      </treecols>
+
+      <treechildren flex="1"/>
+    </tree>
+
     <toolbar>
       <!-- FIXME: Note in credits that silk icons licensed
          - from http://www.famfamfam.com/lab/icons/silk/
@@ -62,19 +75,6 @@
                      image="chrome://snowl/content/icons/opml-icon-16x16.png"
                      oncommand="SourcesView.exportOPML()"/>
     </toolbar>
-
-    <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
-          onselect="SourcesView.onSelect(event)">
-      <treecols>
-        <treecol id="nameCol" label="Name" primary="true" flex="1"/>
-      </treecols>
-  
-      <treechildren flex="1"/>
-    </tree>
-  
-    <menupopup id="sourcesContextMenu">
-      <menuitem label="Unsubscribe" oncommand="SourcesView.unsubscribe(event)"/>
-    </menupopup>
   </vbox>
 
 </overlay>
