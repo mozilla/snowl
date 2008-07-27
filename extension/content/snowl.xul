@@ -18,17 +18,17 @@
   </menupopup>
 
   <menupopup id="viewSidebarMenu">
-    <menuitem observes="viewSnowlSidebar"/>
+    <menuitem observes="viewSnowlSidebar" accesskey="w"/>
   </menupopup>
 
   <broadcasterset id="mainBroadcasterSet"> 
     <broadcaster id="viewSnowlSidebar"
-                 label="Subscriptions"
+                 label="Snowl"
                  autoCheck="false"
                  type="checkbox"
                  group="sidebar"
                  sidebarurl="chrome://snowl/content/sidebar.xul"
-                 sidebartitle="Subscriptions"
+                 sidebartitle="Snowl"
                  oncommand="toggleSidebar('viewSnowlSidebar');" />
   </broadcasterset>
 
