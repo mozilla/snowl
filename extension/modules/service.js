@@ -9,6 +9,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -173,7 +174,7 @@ let SnowlService = {
 
   get _getSourcesStatement() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT id, name, machineURI, humanURI, lastRefreshed, importance FROM sources"
+      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance FROM sources"
     );
     delete this._getSourcesStatement;
     this._getSourcesStatement = statement;
@@ -186,12 +187,19 @@ let SnowlService = {
     try {
       while (this._getSourcesStatement.step()) {
         let row = this._getSourcesStatement.row;
-        sources.push(new SnowlFeed(row.id,
-                                   row.name,
-                                   URI.get(row.machineURI),
-                                   URI.get(row.humanURI),
-                                   new Date(row.lastRefreshed),
-                                   row.importance));
+
+        let constructor = eval(row.type);
+        if (!constructor) {
+          this._log.error("no constructor for type " + row.type);
+          continue;
+        }
+
+        sources.push(new constructor(row.id,
+                                     row.name,
+                                     URI.get(row.machineURI),
+                                     URI.get(row.humanURI),
+                                     new Date(row.lastRefreshed),
+                                     row.importance));
       }
     }
     finally {

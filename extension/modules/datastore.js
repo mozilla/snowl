@@ -42,6 +42,7 @@ let SnowlDatastore = {
         type: TABLE_TYPE_NORMAL,
         columns: [
           "id INTEGER PRIMARY KEY",
+          "type TEXT NOT NULL",
           "name TEXT NOT NULL",
           // XXX Call these URL instead of URI, since they are unambiguously
           // locations, not names (and thus never URNs)?

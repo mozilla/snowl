@@ -1,4 +1,4 @@
-EXPORTED_SYMBOLS = ["SnowlTwitter"];
+let EXPORTED_SYMBOLS = ["SnowlTwitter"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -36,6 +36,8 @@ function SnowlTwitter(aID, aLastRefreshed, aImportance) {
 }
 
 SnowlTwitter.prototype = {
+  constructor: SnowlTwitter,
+
   __proto__: SnowlSource.prototype,
 
   _log: Log4Moz.Service.getLogger("Snowl.Twitter"),
@@ -209,27 +211,12 @@ SnowlTwitter.prototype = {
     if (this._authInfo)
       this._saveLogin();
 
-    // Add the source to the database.
-    // FIXME: factor this out with the identical code in feed.js.
-    let statement =
-      SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
-                                     "VALUES (:name, :machineURI, :humanURI)");
-    try {
-      statement.params.name = this.name;
-      statement.params.machineURI = this.machineURI.spec;
-      statement.params.humanURI = this.humanURI.spec;
-      statement.step();
-    }
-    finally {
-      statement.reset();
-    }
+    // Save the source to the database.
+    this.persist();
 
-    // Extract the ID of the source from the newly-created database record.
-    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-  
     // Let observers know about the new source.
     this._obsSvc.notifyObservers(null, "sources:changed", null);
-  
+
     this.refresh();
   },
 
@@ -357,6 +344,8 @@ SnowlTwitter.prototype = {
 
     if (messagesChanged)
       this._obsSvc.notifyObservers(null, "messages:changed", null);
+
+    // FIXME: if we added people, refresh the collections view too.
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
   },

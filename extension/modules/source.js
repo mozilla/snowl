@@ -145,5 +145,28 @@ SnowlSource.prototype = {
     // FIXME: once we support other types of sources, override this
     // with a type-specific icon.
     return URI.get("chrome://browser/skin/feeds/feedIcon16.png");
+  },
+
+  persist: function() {
+    let statement =
+      SnowlDatastore.createStatement(
+        "INSERT INTO sources (name, type, machineURI, humanURI) " +
+        "VALUES (:name, :type, :machineURI, :humanURI)"
+      );
+
+    try {
+      statement.params.name = this.name;
+      statement.params.type = this.constructor.name;
+      statement.params.machineURI = this.machineURI.spec;
+      statement.params.humanURI = this.humanURI.spec;
+      statement.step();
+    }
+    finally {
+      statement.reset();
+    }
+
+    // Extract the ID of the source from the newly-created database record.
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
   }
+
 };

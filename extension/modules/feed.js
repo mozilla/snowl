@@ -47,6 +47,8 @@ function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportan
 }
 
 SnowlFeed.prototype = {
+  constructor: SnowlFeed,
+
   __proto__: SnowlSource.prototype,
 
   _log: Log4Moz.Service.getLogger("Snowl.Feed"),
@@ -538,27 +540,12 @@ SnowlFeed.prototype = {
       if (!this.name)
         this.name = feed.title.plainText();
       this.humanURI = feed.link;
-  
-      // Add the source to the database.
-      let statement =
-        SnowlDatastore.createStatement("INSERT INTO sources (name, machineURI, humanURI) " +
-                                       "VALUES (:name, :machineURI, :humanURI)");
-      try {
-        statement.params.name = this.name;
-        statement.params.machineURI = this.machineURI.spec;
-        statement.params.humanURI = this.humanURI.spec;
-        statement.step();
-      }
-      finally {
-        statement.reset();
-      }
-  
-      // Extract the ID of the source from the newly-created database record.
-      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-  
+
+      this.persist();
+
       // Let observers know about the new source.
       this._obsSvc.notifyObservers(null, "sources:changed", null);
-  
+
       // Refresh the feed to import all its items.
       this.onRefreshResult(aResult);
     }
