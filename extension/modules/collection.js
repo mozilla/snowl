@@ -26,18 +26,20 @@ Cu.import("resource://snowl/modules/URI.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(id, name, iconURL, constraints, grouped, groupIDColumn,
-                         groupNameColumn, groupHomeURLColumn, groupIconURLColumn,
-                         filters) {
-  this.id = id; 
-  this.name = name; 
-  this.iconURL = iconURL; 
-  this.grouped = grouped; 
-  this.groupIDColumn = groupIDColumn; 
-  this.groupNameColumn = groupNameColumn; 
-  this.groupHomeURLColumn = groupHomeURLColumn; 
-  this.groupIconURLColumn = groupIconURLColumn;
+function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
+                         groupIDColumn, groupNameColumn, groupHomeURLColumn,
+                         groupIconURLColumn, filters) {
+  this.id = id;
+  this.name = name;
+  this.iconURL = iconURL;
   this.constraints = constraints || [];
+  // XXX Does this create a cycle?
+  this.parent = parent;
+  this.grouped = grouped;
+  this.groupIDColumn = groupIDColumn;
+  this.groupNameColumn = groupNameColumn;
+  this.groupHomeURLColumn = groupHomeURLColumn;
+  this.groupIconURLColumn = groupIconURLColumn;
   this._filters = filters || [];
 }
 
@@ -97,7 +99,7 @@ SnowlCollection.prototype = {
         constraints.push({ expression: this.groupNameColumn + " = :groupValue",
                            parameters: { groupValue: statement.row.name } });
 
-        let group = new SnowlCollection(null, name, iconURL, constraints, false);
+        let group = new SnowlCollection(null, name, iconURL, constraints, this);
 
         group.level = this.level + 1;
         groups.push(group);

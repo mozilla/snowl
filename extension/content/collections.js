@@ -47,6 +47,8 @@ let SourcesView = {
     // the collection name).
     // FIXME: disable this for names that can't be changed.
     this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
+
+    gMessageViewWindow.SnowlMessageView.onCollectionsLoaded();
   },
 
 
@@ -231,6 +233,7 @@ let SourcesView = {
         this._collections.push(new SnowlCollection(statement.row.id,
                                                    statement.row.name,
                                                    URI.get(statement.row.iconURL),
+                                                   null,
                                                    null,
                                                    statement.row.grouped ? true : false,
                                                    statement.row.groupIDColumn,

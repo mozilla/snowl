@@ -189,11 +189,13 @@ let SnowlMessageView = {
     // of the river view URL to reflect the selected collection and filters,
     // and chrome.manifest overlay instructions only work on exact matches
     // of the entire URL.
-    document.loadOverlay("chrome://snowl/content/collections.xul", null);
+    document.loadOverlay("chrome://snowl/content/collections.xul", this);
+  },
 
-    this._collection = new SnowlCollection();
+  onCollectionsLoaded: function() {
+    //this._collection = new SnowlCollection();
     this._updateToolbar();
-    this.writeContent();
+    //this.writeContent();
   },
 
   /**
@@ -248,6 +250,30 @@ let SnowlMessageView = {
       this._orderButton.image = "chrome://snowl/content/arrow-up.png";
       this._collection.sortOrder = -1;
     }
+
+    let selected = false;
+    if ("collection" in this._params) {
+      //dump("this._params.collection: " + this._params.collection + "; this._params.group: " + this._params.group + "\n");
+      for (let i = 0; i < SourcesView._rows.length; i++) {
+        let collection = SourcesView._rows[i];
+        //dump("collection id: " + collection.id + "; parent id: " + (collection.parent ? collection.parent.id : "no parent") + "; collection.name = " + collection.name + "\n");
+        if (collection.id == this._params.collection) {
+          SourcesView._tree.view.selection.select(i);
+          selected = true;
+          break;
+        }
+        else if ("group" in this._params &&
+                 collection.parent &&
+                 collection.parent.id == this._params.collection &&
+                 collection.name == this._params.group) {
+          SourcesView._tree.view.selection.select(i);
+          selected = true;
+          break;
+        }
+      }
+    }
+    if (!selected)
+      SourcesView._tree.view.selection.select(0);
   },
 
   onFilter: function(aEvent) {
@@ -309,11 +335,15 @@ let SnowlMessageView = {
     if (this._bodyButton.checked)
       params.push("body");
 
+    if (this._collection.id)
+      params.push("collection=" + this._collection.id);
+    else if (this._collection.parent) {
+      params.push("collection=" + this._collection.parent.id);
+      params.push("group=" + encodeURIComponent(this._collection.name));
+    }
+
     if (this._collection.filter)
       params.push("filter=" + encodeURIComponent(this._collection.filter));
-
-    if (this._collection.sourceID)
-      params.push("sourceID=" + encodeURIComponent(this._collection.sourceID));
 
     if (this._collection.sortOrder == -1)
       params.push("order=descending");
@@ -409,6 +439,7 @@ let SnowlMessageView = {
 
   setCollection: function(collection) {
     this._collection = collection;
+    this._updateURI();
     this._applyFilters();
     // No need to rebuild the view here, as _applyFilters will do it for us.
     // XXX Should we pull the call to rebuildView out of _applyFilters?
