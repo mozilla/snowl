@@ -232,23 +232,18 @@ let SnowlMessageView = {
       this._params[name] = value;
     }
 
-    if ("current" in this._params) {
-      this._collection.current = true;
+    if ("current" in this._params)
       this._currentButton.checked = true;
-    }
 
     if ("body" in this._params)
       this._bodyButton.checked = true;
 
-    if ("filter" in this._params) {
-      this._collection.filter = this._params.filter;
+    if ("filter" in this._params)
       document.getElementById("filterTextbox").value = this._params.filter;
-    }
 
     if ("order" in this._params && this._params.order == "descending") {
       this._orderButton.checked = true;
       this._orderButton.image = "chrome://snowl/content/arrow-up.png";
-      this._collection.sortOrder = -1;
     }
 
     let selected = false;
@@ -274,6 +269,7 @@ let SnowlMessageView = {
     }
     if (!selected)
       SourcesView._tree.view.selection.select(0);
+
   },
 
   onFilter: function(aEvent) {
@@ -299,6 +295,7 @@ let SnowlMessageView = {
                      parameters: { filter: this._filterTextbox.value } });
 
     this._collection.filters = filters;
+
     this._collection.invalidate();
     this.rebuildView();
   },
@@ -329,7 +326,7 @@ let SnowlMessageView = {
   _updateURI: function() {
     let params = [];
 
-    if (typeof this._collection.current != "undefined" && this._collection.current)
+    if (this._currentButton.checked)
       params.push("current");
 
     if (this._bodyButton.checked)
@@ -342,8 +339,8 @@ let SnowlMessageView = {
       params.push("group=" + encodeURIComponent(this._collection.name));
     }
 
-    if (this._collection.filter)
-      params.push("filter=" + encodeURIComponent(this._collection.filter));
+    if (this._filterTextbox.value)
+      params.push("filter=" + encodeURIComponent(this._filterTextbox.value));
 
     if (this._collection.sortOrder == -1)
       params.push("order=descending");
@@ -439,6 +436,10 @@ let SnowlMessageView = {
 
   setCollection: function(collection) {
     this._collection = collection;
+    if (this._orderButton.checked)
+      this._collection.sortOrder = -1;
+    else
+      this._collection.sortOrder = 1;
     this._updateURI();
     this._applyFilters();
     // No need to rebuild the view here, as _applyFilters will do it for us.
