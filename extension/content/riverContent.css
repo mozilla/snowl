@@ -1,14 +1,30 @@
-/* The order of the rules in this stylesheet is important, as river.js
- * accesses them by position.
+/* These rules manipulate content to fit into columns.  The order of the rules
+ * is important, as some are updated programmatically by position.
  */
+
+/* rules that get updated programmatically */
 
 /* Images should only be as wide as columns, which is 400px by default. */
 #contentBox img {
   max-width: 400px;
 }
 
-/* This gets set programmatically on load, since setting it in CSS doesn't work. */
-/* FIXME: figure out why this doesn't cause images to resize proportionally. */
+/* FIXME: figure out why this doesn't resize images proportionally. */
 #contentBox img {
   max-height: 0;
+}
+
+#contentBox table {
+  max-height: 0;
+}
+
+
+/* rules that don't get updated programmatically */
+
+#contentBox table {
+  overflow-y: auto;
+
+  /* This is necessary to get max-height to apply to the table because of
+   * bug 307866. */
+  display: block;
 }

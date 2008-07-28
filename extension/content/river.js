@@ -148,8 +148,12 @@ let SnowlMessageView = {
 
     // Set the maximum width for images in the content so they don't stick out
     // the side of the columns.
-    this.contentStylesheet.deleteRule(0);
-    this.contentStylesheet.insertRule("#contentBox img { max-width: " + newVal + "px }", 0);
+    this._updateContentRule(0, "#contentBox img { max-width: " + newVal + "px }");
+  },
+
+  _updateContentRule: function(position, newValue) {
+    this.contentStylesheet.deleteRule(position);
+    this.contentStylesheet.insertRule(newValue, position);
   },
 
   set contentHeight(newVal) {
@@ -159,10 +163,10 @@ let SnowlMessageView = {
     // resize itself, perhaps because it's (absolutely positioned) in a stack.
     document.getElementById("columnResizeSplitter").style.height = newVal + "px";
 
-    // Set the maximum height for images in the content so they don't make
-    // the columns taller than the height of the content box.
-    this.contentStylesheet.deleteRule(1);
-    this.contentStylesheet.insertRule("#contentBox img { max-height: " + newVal + "px }", 1);
+    // Set the maximum height for images and tables in the content so they
+    // don't make the columns taller than the height of the content box.
+    this._updateContentRule(1, "#contentBox img { max-height: " + newVal + "px }");
+    this._updateContentRule(2, "#contentBox table { max-height: " + newVal + "px }");
   },
 
   _window: null,
