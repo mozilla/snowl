@@ -351,6 +351,12 @@ SnowlTwitter.prototype = {
   },
 
   _addMessage: function(message) {
+    // We store the message text as both the subject and the content so that
+    // the content shows up in the Subject column of the list view.
+    // FIXME: make the list view automatically display some of the content
+    // if the subject is missing so we don't have to duplicate storage here.
+    let subject = message.text;
+
     // Get an existing identity or create a new one.  Creating an identity
     // automatically creates a person record with the provided name.
     let identity = SnowlIdentity.get(this.id, message.user.id) ||
@@ -365,12 +371,13 @@ SnowlTwitter.prototype = {
 
     let timestamp = new Date(message.created_at);
 
-    let messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
-                                          timestamp, null);
+    // Add the message.
+    let messageID = this.addSimpleMessage(this.id, message.id, subject, authorID, timestamp, null);
 
+    // Add the message's content.
     this.addPart(messageID, PART_TYPE_CONTENT, message.text, null, null, "text/plain");
 
-    // Add metadata.
+    // Add the message's metadata.
     for (let [name, value] in Iterator(message)) {
       // Ignore properties we have already handled specially.
       // XXX Should we add them anyway, which is redundant info but lets others
