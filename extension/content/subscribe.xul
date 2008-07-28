@@ -25,9 +25,11 @@
 
     <tabbox>
       <tabs>
-        <tab label="&feeds.label;"/>
-        <tab label="&twitter.label;"/>
+        <tab label="&feedsTab.label;"/>
+        <tab label="&twitterTab.label;"/>
+        <tab label="&opmlTab.label;"/>
       </tabs>
+
       <tabpanels>
         <tabpanel orient="vertical">
           <grid>
@@ -38,7 +40,7 @@
             <rows>
               <row align="center">
                 <hbox flex="1" pack="end">
-                  <label control="locationTextbox" value="Location:"/>
+                  <label control="locationTextbox" value="&location.label;"/>
                 </hbox>
                 <textbox id="locationTextbox"/>
               </row>
@@ -47,9 +49,6 @@
                 <hbox pack="start">
                   <button label="&subscribeButton.label;" default="true"
                           oncommand="Subscriber.subscribeFeed()"/>
-                  <spacer flex="1"/>
-                  <button id="importOPMLButton" label="&importOPMLButton.label;"
-                          oncommand="Subscriber.importOPML()"/>
                 </hbox>
               </row>
             </rows>
@@ -94,6 +93,12 @@
             </rows>
           </grid>
         </tabpanel>
+
+        <tabpanel orient="vertical" pack="center" align="center">
+          <button id="importOPMLButton" label="&importOPMLButton.label;"
+                  oncommand="Subscriber.importOPML()"/>
+        </tabpanel>
+
       </tabpanels>
     </tabbox>
 

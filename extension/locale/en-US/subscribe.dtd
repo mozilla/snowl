@@ -1,6 +1,11 @@
 <!ENTITY page.title                 "Snowl: Subscribe to Message Sources">
-<!ENTITY feeds.label                "Feeds">
-<!ENTITY twitter.label              "Twitter">
+
+<!ENTITY feedsTab.label             "Feeds">
+<!ENTITY twitterTab.label           "Twitter">
+<!ENTITY opmlTab.label              "OPML">
+
+<!ENTITY location.label             "Location:">
+
 <!ENTITY subscribeButton.label      "Subscribe">
-<!ENTITY importOPMLButton.label     "Import OPML...">
+<!ENTITY importOPMLButton.label     "Import OPML File...">
 <!ENTITY closeButton.label          "Close">
