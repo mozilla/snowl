@@ -25,6 +25,7 @@ const PART_TYPE_SUMMARY = 2;
 
 const NAME = "Twitter";
 const MACHINE_URI = URI.get("https://twitter.com");
+// XXX Should this be simply http://twitter.com ?
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
 function SnowlTwitter(aID, aLastRefreshed, aImportance) {

@@ -133,6 +133,21 @@ let SnowlDatastore = {
           "personID INTEGER NOT NULL REFERENCES people(id)",
           "UNIQUE(externalID, sourceID)"
         ]
+      },
+
+      collections: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "name TEXT NOT NULL",
+          "iconURL TEXT",
+          "orderKey INTEGER NOT NULL DEFAULT 0",
+          "grouped BOOLEAN DEFAULT 0",
+          "groupIDColumn TEXT",
+          "groupNameColumn TEXT",
+          "groupHomeURLColumn TEXT",
+          "groupIconURLColumn TEXT"
+        ]
       }
 
     },
@@ -150,16 +165,41 @@ let SnowlDatastore = {
     indices: {}
   },
 
+  _defaultCollections: [
+    { name:               "All",
+      iconURL:            "chrome://snowl/content/icons/rainbow.png",
+      orderKey:           1,
+      grouped:            false },
+
+    { name: "Sources",
+      iconURL:            "chrome://browser/skin/feeds/feedIcon16.png",
+      orderKey:           2,
+      grouped:            true,
+      groupIDColumn:      "sources.id",
+      groupNameColumn:    "sources.name",
+      groupHomeURLColumn: "sources.humanURI" },
+
+    { name:               "Authors",
+      iconURL:            "chrome://snowl/content/icons/user.png",
+      orderKey:           3,
+      grouped:            true,
+      groupIDColumn:      "authors.id",
+      groupNameColumn:    "authors.name",
+      groupIconURLColumn: "authors.iconURL" }
+  ],
+
   dbConnection: null,
 
-  createStatement: function(aSQLString) {
+  createStatement: function(aSQLString, aDBConnection) {
+    let dbConnection = aDBConnection ? aDBConnection : this.dbConnection;
+
     try {
-      var statement = this.dbConnection.createStatement(aSQLString);
+      var statement = dbConnection.createStatement(aSQLString);
     }
     catch(ex) {
       throw("error creating statement " + aSQLString + " - " +
-            this.dbConnection.lastError + ": " +
-            this.dbConnection.lastErrorString + " - " + ex);
+            dbConnection.lastError + ": " +
+            dbConnection.lastErrorString + " - " + ex);
     }
 
     var wrappedStatement = Cc["@mozilla.org/storage/statement-wrapper;1"].
@@ -226,6 +266,7 @@ let SnowlDatastore = {
     dbConnection.beginTransaction();
     try {
       this._dbCreateTables(dbConnection);
+      this._dbInsertDefaultData(dbConnection);
       dbConnection.commitTransaction();
     }
     catch(ex) {
@@ -258,6 +299,23 @@ let SnowlDatastore = {
       "CREATE VIRTUAL TABLE " + aTableName +
       " USING fts3(" + aColumns.join(", ") + ")"
     );
+  },
+
+  _dbInsertDefaultData: function(aDBConnection) {
+    let params = ["name", "iconURL", "orderKey", "grouped", "groupIDColumn",
+                  "groupNameColumn", "groupHomeURLColumn",
+                  "groupIconURLColumn"];
+
+    let statement = this.createStatement(
+      "INSERT INTO collections (" + params.join(", ") + ") " +
+      "VALUES (" + params.map(function(v) ":" + v).join(", ") + ")",
+      aDBConnection);
+
+    for each (let collection in this._defaultCollections) {
+      for each (let param in params)
+        statement.params[param] = (param in collection) ? collection[param] : null;
+      statement.execute();
+    }
   },
 
   _dbMigrate: function(aDBConnection, aOldVersion, aNewVersion) {

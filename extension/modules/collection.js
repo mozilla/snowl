@@ -26,10 +26,19 @@ Cu.import("resource://snowl/modules/URI.js");
 /**
  * A group of messages.
  */
-function SnowlCollection(constraints, filters, grouping) {
+function SnowlCollection(id, name, iconURL, constraints, grouped, groupIDColumn,
+                         groupNameColumn, groupHomeURLColumn, groupIconURLColumn,
+                         filters) {
+  this.id = id; 
+  this.name = name; 
+  this.iconURL = iconURL; 
+  this.grouped = grouped; 
+  this.groupIDColumn = groupIDColumn; 
+  this.groupNameColumn = groupNameColumn; 
+  this.groupHomeURLColumn = groupHomeURLColumn; 
+  this.groupIconURLColumn = groupIconURLColumn;
   this.constraints = constraints || [];
   this._filters = filters || [];
-  this.grouping = grouping;
 }
 
 SnowlCollection.prototype = {
@@ -63,7 +72,7 @@ SnowlCollection.prototype = {
 
   _groups: null,
   get groups() {
-    if (!this.grouping)
+    if (!this.grouped)
       return null;
 
     if (this._groups)
@@ -74,20 +83,22 @@ SnowlCollection.prototype = {
     let statement = this._generateGetGroupsStatement();
     try {
       while (statement.step()) {
-        // FIXME: base this on the current collection's conditions array.
+        let name = statement.row.name;
+
+        let iconURL =
+          statement.row.iconURL ? URI.get(statement.row.iconURL) :
+          statement.row.homeURL ? this.getFaviconURL(URI.get(statement.row.homeURL))
+                                : null;
+        if (!iconURL && this.iconURL)
+          iconURL = this.iconURL;
+        // FIXME: fall back to a default collection icon.
+
         let constraints = [constraint for each (constraint in this.constraints)];
-        constraints.push({ expression: this.grouping.nameColumn + " = :groupValue",
+        constraints.push({ expression: this.groupNameColumn + " = :groupValue",
                            parameters: { groupValue: statement.row.name } });
-        let group = new SnowlCollection(constraints);
-        group.name = statement.row.name;
 
-        if (statement.row.uri)
-          group.uri = URI.get(statement.row.uri);
+        let group = new SnowlCollection(null, name, iconURL, constraints, false);
 
-        if (statement.row.iconURL)
-          group.iconURL = URI.get(statement.row.iconURL);
-
-        group.defaultFaviconURI = this.grouping.defaultFaviconURI;
         group.level = this.level + 1;
         groups.push(group);
       }
@@ -104,26 +115,24 @@ SnowlCollection.prototype = {
   _generateGetGroupsStatement: function() {
     let columns = [];
 
-    if (this.grouping.nameColumn)
-      columns.push("DISTINCT(" + this.grouping.nameColumn + ") AS name");
+    // FIXME: add groupIDColumn and make groupNameColumn optional.
+    columns.push("DISTINCT(" + this.groupNameColumn + ") AS name");
 
-    // For some reason, trying to access statement.row.uri dies without throwing
-    // an exception if uri isn't defined as a column in the query, so we have to
-    // define it here even if we don't have a URI column.
+    // For some reason, trying to access statement.row.foo dies without throwing
+    // an exception if foo isn't defined as a column in the query, so we have to
+    // define iconURL and homeURL columns even if we don't use them.
     // FIXME: file a bug on this bizarre behavior.
-    if (this.grouping.uriColumn)
-      columns.push(this.grouping.uriColumn + " AS uri");
-    else
-      columns.push("NULL AS uri");
-
-    // For some reason, trying to access statement.row.uri dies without throwing
-    // an exception if uri isn't defined as a column in the query, so we have to
-    // define it here even if we don't have a URI column.
-    // FIXME: file a bug on this bizarre behavior.
-    if (this.grouping.iconURLColumn)
-      columns.push(this.grouping.iconURLColumn + " AS iconURL");
+    if (this.groupIconURLColumn)
+      columns.push(this.groupIconURLColumn + " AS iconURL");
     else
       columns.push("NULL AS iconURL");
+
+    if (this.groupHomeURLColumn)
+      columns.push(this.groupHomeURLColumn + " AS homeURL");
+    else
+      columns.push("NULL AS homeURL");
+
+    // FIXME: allow group queries to make people the primary table.
 
     let query = 
       "SELECT " + columns.join(", ") + " " +
@@ -138,9 +147,9 @@ SnowlCollection.prototype = {
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
 
-    query += " ORDER BY " + this.grouping.nameColumn;
+    query += " ORDER BY " + this.groupNameColumn;
 
-    this._log.info("groups query: " + query);
+    this._log.info(this.name + " group query: " + query);
 
     let statement = SnowlDatastore.createStatement(query);
 
@@ -160,19 +169,11 @@ SnowlCollection.prototype = {
     return this._faviconSvc;
   },
 
-  get faviconURI() {
-    if (this.iconURL)
-      return this.iconURL;
-
-    if (this.uri) {
-      try {
-        return this._faviconSvc.getFaviconForPage(this.uri);
-      }
-      catch(ex) { /* no known favicon; use the default */ }
+  getFaviconURL: function(homeURL) {
+    try {
+      return this._faviconSvc.getFaviconForPage(homeURL);
     }
-
-    if (this.defaultFaviconURI)
-      return this.defaultFaviconURI;
+    catch(ex) { /* no known favicon; use the default */ }
 
     return null;
   },

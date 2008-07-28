@@ -129,9 +129,9 @@ let SourcesView = {
 
   getImageSrc: function(row, column) {
     if (column.id == "nameCol") {
-      let faviconURI = this._rows[row].faviconURI;
-      if (faviconURI)
-        return faviconURI.spec;
+      let iconURL = this._rows[row].iconURL;
+      if (iconURL)
+        return iconURL.spec;
     }
 
     return null;
@@ -219,31 +219,28 @@ let SourcesView = {
   _getCollections: function() {
     this._collections = [];
 
-    let all = new SnowlCollection();
-    all.name = "All";
-    all.defaultFaviconURI = URI.get("chrome://snowl/content/icons/rainbow.png");
-    this._collections.push(all);
+    let statement = SnowlDatastore.createStatement(
+      "SELECT id, name, iconURL, grouped, groupIDColumn, groupNameColumn, " +
+      "groupHomeURLColumn, groupIconURLColumn FROM collections ORDER BY orderKey"
+    );
 
-    let grouping = {
-      nameColumn: "sources.name",
-      uriColumn: "sources.humanURI",
-      // the default favicon for sources
-      // FIXME: use a source type-specific favicon.
-      defaultFaviconURI: URI.get("chrome://browser/skin/feeds/feedIcon16.png")
-    }
-    let collection = new SnowlCollection(null, null, grouping);
-    collection.name = "Sources";
-    this._collections.push(collection);
+    statement.QueryInterface(Ci.mozIStorageStatementWrapper);
 
-    {
-      let grouping = {
-        nameColumn: "authors.name",
-        iconURLColumn: "authors.iconURL",
-        defaultFaviconURI: URI.get("chrome://snowl/content/icons/user.png")
+    try {
+      while (statement.step()) {
+        this._collections.push(new SnowlCollection(statement.row.id,
+                                                   statement.row.name,
+                                                   URI.get(statement.row.iconURL),
+                                                   null,
+                                                   statement.row.grouped ? true : false,
+                                                   statement.row.groupIDColumn,
+                                                   statement.row.groupNameColumn,
+                                                   statement.row.groupHomeURLColumn,
+                                                   statement.row.groupIconURLColumn));
       }
-      let collection = new SnowlCollection(null, null, grouping);
-      collection.name = "People";
-      this._collections.push(collection);
+    }
+    finally {
+      statement.reset();
     }
 
     // Build the list of rows in the tree.  By default, all containers
@@ -256,7 +253,7 @@ let SourcesView = {
     else {
       this._rows = [];
       for each (let collection in this._collections) {
-        if (collection.groups)
+        if (collection.grouped)
           for each (let group in collection.groups)
             this._rows.push(group);
         else
