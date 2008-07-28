@@ -691,7 +691,8 @@ let splitterDragObserver = {
   handleEvent: function(event) {
     if (this._timeout)
       this._timeout = window.clearTimeout(this._timeout);
-    document.getElementById("columnResizeSplitter").left = event.clientX;
-    this._timeout = window.setTimeout(this.callback, 500, event.clientX);
+    let width = event.clientX - document.getElementById("contentBox").offsetLeft;
+    document.getElementById("columnResizeSplitter").left = width;
+    this._timeout = window.setTimeout(this.callback, 500, width);
   }
 }
