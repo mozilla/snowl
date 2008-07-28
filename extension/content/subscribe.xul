@@ -1,27 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
-<!-- XXX Don't we need a reference to the browser skin here? -->
 <?xml-stylesheet href="chrome://snowl/content/subscribe.css" type"text/css"?>
 
-<!DOCTYPE dialog SYSTEM "chrome://snowl/locale/login.dtd">
+<!DOCTYPE page [
+  <!ENTITY % subscribeDTD SYSTEM "chrome://snowl/locale/subscribe.dtd">
+  %subscribeDTD;
+  <!ENTITY % loginDTD SYSTEM "chrome://snowl/locale/login.dtd">
+  %loginDTD;
+]>
 
-<page id="subscribeToFeedPage" title="Subscribe to Messages"
+<page title="&page.title;"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      pack="center" align="center">
+      pack="center"
+      align="center">
 
   <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
 
   <vbox id="content">
-    <label flex="1" value="Subscribe to Messages" class="header"/>
+    <label flex="1" value="&page.title;" class="header"/>
     <separator class="groove-thin"/>
     <separator class="thin" orient="horizontal"/>
 
-    <tabbox selectedIndex="1">
+    <tabbox>
       <tabs>
-        <tab label="Feed"/>
-        <tab label="Twitter"/>
+        <tab label="&feeds.label;"/>
+        <tab label="&twitter.label;"/>
       </tabs>
       <tabpanels>
         <tabpanel orient="vertical">
@@ -33,16 +38,18 @@
             <rows>
               <row align="center">
                 <hbox flex="1" pack="end">
-                  <label control="snowlLocationTextbox" value="Location:"/>
+                  <label control="locationTextbox" value="Location:"/>
                 </hbox>
-                <textbox id="snowlLocationTextbox"/>
+                <textbox id="locationTextbox"/>
               </row>
               <row>
                 <box/>
                 <hbox pack="start">
-                  <button label="Subscribe" default="true" oncommand="Subscriber.doSubscribe(event)"/>
+                  <button label="&subscribeButton.label;" default="true"
+                          oncommand="Subscriber.subscribeFeed()"/>
                   <spacer flex="1"/>
-                  <button id="importOPMLButton" label="Import OPML..." oncommand="Subscriber.doImportOPML(event)"/>
+                  <button id="importOPMLButton" label="&importOPMLButton.label;"
+                          oncommand="Subscriber.importOPML()"/>
                 </hbox>
               </row>
             </rows>
@@ -58,30 +65,30 @@
             <rows>
               <row align="center">
                 <hbox flex="1" pack="end">
-                  <label control="twitterUsername" value="Username:"/>
+                  <label control="twitterUsername" value="&username.label;"/>
                 </hbox>
                 <textbox id="twitterUsername"/>
               </row>
               <row align="center">
                 <hbox flex="1" pack="end">
-                  <label value="Password:"/>
+                  <label control="twitterPassword" value="&password.label;"/>
                 </hbox>
-                <textbox type="password" id="twitterPassword"/>
+                <textbox id="twitterPassword" type="password"/>
               </row>
               <row align="center">
                 <box/>
-                <checkbox id="showPassword" label="&showPassword.label;"
+                <checkbox id="showTwitterPassword" label="&showPassword.label;"
                           oncommand="Subscriber.showTwitterPassword()"/>
               </row>
               <row align="center">
                 <box/>
-                <checkbox id="twitterRemember" label="&rememberPassword.label;"/>
+                <checkbox id="rememberTwitterPassword" label="&rememberPassword.label;"/>
               </row>
               <row>
                 <box/>
                 <hbox pack="start">
-                  <button label="Subscribe" default="true"
-                          oncommand="Subscriber.subscribeTwitter(event)"/>
+                  <button label="&subscribeButton.label;" default="true"
+                          oncommand="Subscriber.subscribeTwitter()"/>
                 </hbox>
               </row>
             </rows>
@@ -104,7 +111,7 @@
 
     <hbox>
       <spacer flex="1"/>
-      <button label="Close" oncommand="Subscriber.doClose(event)"/>
+      <button label="&closeButton.label;" oncommand="window.close()"/>
     </hbox>
 
   </vbox>

@@ -108,8 +108,8 @@ let Subscriber = {
     }
 
     if (params.feed) {
-      document.getElementById("snowlLocationTextbox").value = params.feed;
-      this.doSubscribe();
+      document.getElementById("locationTextbox").value = params.feed;
+      this.subscribeFeed();
     }
   },
 
@@ -125,13 +125,13 @@ let Subscriber = {
   //**************************************************************************//
   // Event Handlers
 
-  doSubscribe: function() {
-    let uri = URI.get(document.getElementById("snowlLocationTextbox").value);
+  subscribeFeed: function() {
+    let uri = URI.get(document.getElementById("locationTextbox").value);
     let feed = new SnowlFeed(null, null, uri);
     this._subscribe(feed);
   },
 
-  doImportOPML: function() {
+  importOPML: function() {
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     fp.init(window, "Import OPML", Ci.nsIFilePicker.modeOpen);
     fp.appendFilter("OPML Files", "*.opml");
@@ -157,12 +157,8 @@ let Subscriber = {
     this._importOutline(outline);
   },
 
-  doClose: function() {
-    window.close();
-  },
-
   showTwitterPassword: function() {
-    if (document.getElementById("showPassword").checked)
+    if (document.getElementById("showTwitterPassword").checked)
       document.getElementById("twitterPassword").removeAttribute("type");
     else
       document.getElementById("twitterPassword").setAttribute("type", "password");
@@ -172,7 +168,7 @@ let Subscriber = {
     let credentials = {
       username: document.getElementById("twitterUsername").value,
       password: document.getElementById("twitterPassword").value,
-      remember: document.getElementById("twitterRemember").checked
+      remember: document.getElementById("rememberTwitterPassword").checked
     };
 
     let twitter = new SnowlTwitter();
