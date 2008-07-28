@@ -34,7 +34,7 @@
 
   <vbox id="appcontent">
     <vbox id="snowlViewContainer" insertbefore="content" placement="top"
-          persist="hidden placement height width">
+          persist="hidden placement height width" hidden="true">
       <toolbar id="snowlViewToolbar" pack="end" align="center">
         <toolbarbutton id="snowlPlacementButton" class="snowlToolbarButton"
                        oncommand="SnowlMessageView.switchPlacement()"

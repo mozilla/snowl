@@ -16,3 +16,9 @@ let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          rootTreeItem.
                          QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIDOMWindow);
+
+{
+  let snowlViewContainer = gBrowserWindow.document.getElementById("snowlViewContainer");
+  if (snowlViewContainer.hidden)
+    snowlViewContainer.hidden = false;
+}
