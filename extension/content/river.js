@@ -599,9 +599,11 @@ let SnowlMessageView = {
       //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
       //bylineBox.appendChild(source);
 
-      // Author
-      //if (message.author)
-      //  bylineBox.appendChild(this._document.createTextNode(message.author));
+      // Author or Source
+      if (message.author)
+        bylineBox.appendChild(this._document.createTextNode(message.author));
+      else if (message.source)
+        bylineBox.appendChild(this._document.createTextNode(message.source.name));
 
       // Timestamp
       let lastUpdated = this._formatTimestamp(new Date(message.timestamp));
@@ -609,6 +611,8 @@ let SnowlMessageView = {
         let timestamp = this._document.createElementNS(HTML_NS, "span");
         timestamp.className = "timestamp";
         timestamp.appendChild(document.createTextNode(lastUpdated));
+        if (bylineBox.hasChildNodes())
+          bylineBox.appendChild(this._document.createTextNode(" - "));
         bylineBox.appendChild(timestamp);
       }
 
