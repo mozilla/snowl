@@ -23,11 +23,11 @@
     <separator class="groove-thin"/>
     <separator class="thin" orient="horizontal"/>
 
-    <tabbox>
+    <tabbox id="tabbox">
       <tabs>
-        <tab label="&feedsTab.label;"/>
-        <tab label="&twitterTab.label;"/>
-        <tab label="&opmlTab.label;"/>
+        <tab id="feedTab" label="&feedsTab.label;"/>
+        <tab id="twitterTab" label="&twitterTab.label;"/>
+        <tab id="opmlTab" label="&opmlTab.label;"/>
       </tabs>
 
       <tabpanels>

@@ -111,6 +111,18 @@ let Subscriber = {
       document.getElementById("locationTextbox").value = params.feed;
       this.subscribeFeed();
     }
+    else if (params.page) {
+      let tabbox = document.getElementById("tabbox");
+      switch (params.page) {
+        // The feed tab is selected by default.
+        case "twitter":
+          tabbox.selectedTab = document.getElementById("twitterTab");
+          break;
+        case "opml":
+          tabbox.selectedTab = document.getElementById("opmlTab");
+          break;
+      }
+    }
   },
 
   destroy: function() {
