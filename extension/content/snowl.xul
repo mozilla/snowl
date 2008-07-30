@@ -10,19 +10,26 @@
 
   <script type="application/x-javascript" src="snowl.js"/>
 
-  <menupopup id="viewSidebarMenu">
-    <menuitem observes="viewSnowlSidebar" accesskey="w"/>
+  <menupopup id="menu_viewPopup">
+    <!-- Since these both get inserted after viewSidebarMenuMenu, they appear
+       - in the reverse of the order below. -->
+    <menuitem insertafter="viewSidebarMenuMenu"
+              label="Message River" accesskey="v"
+              oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
+
+    <menuitem observes="viewSnowlSidebar" insertafter="viewSidebarMenuMenu"
+              accesskey="m"/>
   </menupopup>
 
   <broadcasterset id="mainBroadcasterSet"> 
     <broadcaster id="viewSnowlSidebar"
-                 label="Snowl"
+                 label="Message List"
                  autoCheck="false"
                  type="checkbox"
                  group="sidebar"
                  sidebarurl="chrome://snowl/content/sidebar.xul"
                  sidebartitle="Snowl"
-                 oncommand="toggleSidebar('viewSnowlSidebar');" />
+                 oncommand="toggleSidebar('viewSnowlSidebar')"/>
   </broadcasterset>
 
   <vbox id="appcontent">
