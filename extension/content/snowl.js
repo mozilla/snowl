@@ -167,7 +167,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
 
     this._collection = new SnowlCollection();
     this._sort();
-    this._rebuildView();
+    this._tree.view = this;
   },
 
   destroy: function() {
@@ -250,11 +250,18 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   _rebuildView: function() {
+    // Clear the selection before we rebuild the view, since it won't apply
+    // to the new data.
+    this._tree.view.selection.clearSelection();
+
     // Since the number of rows might have changed, we rebuild the view
     // by reinitializing it instead of merely invalidating the box object
     // (which wouldn't accommodate changes to the number of rows).
-    this._tree.view.selection.clearSelection();
+    // XXX Is there a better way to do this?
     this._tree.view = this;
+
+    // Scroll back to the top of the tree.
+    this._tree.boxObject.scrollToRow(this._tree.boxObject.getFirstVisibleRow());
   },
 
   // From toolkit/mozapps/update/content/history.js
