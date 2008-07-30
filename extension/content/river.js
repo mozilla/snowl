@@ -189,7 +189,7 @@ let SnowlMessageView = {
     // of the river view URL to reflect the selected collection and filters,
     // and chrome.manifest overlay instructions only work on exact matches
     // of the entire URL.
-    document.loadOverlay("chrome://snowl/content/collections.xul", this);
+    document.loadOverlay("chrome://snowl/content/collections.xul", null);
   },
 
   onCollectionsLoaded: function() {

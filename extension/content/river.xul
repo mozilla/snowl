@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/river.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/riverContent.css" type="text/css"?>
 
@@ -32,7 +33,7 @@
                     image="chrome://snowl/content/icons/newspaper.png"
                     oncommand="SnowlMessageView.onCommandCurrentButton(event)"
                     tooltiptext="Only show current messages."/>
-    
+
         <toolbarbutton id="bodyButton" type="checkbox"
                     image="chrome://snowl/content/icons/page_white_text.png"
                     oncommand="SnowlMessageView.onCommandBodyButton(event)"

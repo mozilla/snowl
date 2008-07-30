@@ -33,6 +33,11 @@ toolbarbutton {
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
 
+  /* Make it look like content rather than the chrome in which it is embedded. */
+  color: black;
+  background-color: white;
+  font: normal normal normal medium serif;
+
   /* This gets set programmatically on load, since setting it in CSS doesn't work. */
   height: 0;
 }
