@@ -253,7 +253,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // Since the number of rows might have changed, we rebuild the view
     // by reinitializing it instead of merely invalidating the box object
     // (which wouldn't accommodate changes to the number of rows).
-    this._tree.view.selection = null;
+    this._tree.view.selection.clearSelection();
     this._tree.view = this;
   },
 
