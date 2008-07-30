@@ -40,7 +40,9 @@
 
 <page id="snowlSidebar"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-      title="Snowl Sidebar">
+      title="Snowl Sidebar"
+      onload="gBrowserWindow.SnowlMessageView.show()"
+      onunload="gBrowserWindow.SnowlMessageView.hide()">
 
   <script type="application/x-javascript" src="chrome://snowl/content/sidebar.js"/>
 

@@ -6,15 +6,12 @@
     <link rel="stylesheet" type="text/css" href="https://services.mozilla.com/weave.css" />
     <script>
       const Ci = Components.interfaces;
-      function openSidebar() {
-        var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                             getInterface(Ci.nsIWebNavigation).
-                             QueryInterface(Ci.nsIDocShellTreeItem).
-                             rootTreeItem.
-                             QueryInterface(Ci.nsIInterfaceRequestor).
-                             getInterface(Ci.nsIDOMWindow);
-        gBrowserWindow.toggleSidebar('viewSnowlSidebar');
-      }
+      var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                           getInterface(Ci.nsIWebNavigation).
+                           QueryInterface(Ci.nsIDocShellTreeItem).
+                           rootTreeItem.
+                           QueryInterface(Ci.nsIInterfaceRequestor).
+                           getInterface(Ci.nsIDOMWindow);
     </script>
   </head>
 <body>
@@ -35,11 +32,11 @@
             <b>Getting Started</b>
           </p>
           <ol>
-            <li>Subscribe to feeds by selecting Snowl from the list of feed readers on the feed preview page.</li>
+            <li>Subscribe to feeds from the feed preview page.</li>
             <li><a href="chrome://snowl/content/subscribe.xul?page=twitter">Subscribe to Twitter</a>.</li>
-            <li>Access your subscriptions from the
-                <a href="javascript:openSidebar()">Snowl sidebar</a> or the
-                <a href="chrome://snowl/content/river.xul">river view</a>.
+            <li>Read messages in the
+                <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlSidebar')">list view</a>
+                or the <a href="chrome://snowl/content/river.xul">river view</a>.
             </li>
 
           </ol>

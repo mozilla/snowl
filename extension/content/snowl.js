@@ -474,25 +474,18 @@ this._log.info("_toggleRead: all? " + aAll);
     this._tree.boxObject.invalidate();
   },
 
-  toggle: function() {
+  show: function() {
     let container = document.getElementById("snowlViewContainer");
     let splitter = document.getElementById("snowlViewSplitter");
-    // We update the menuitem manually by setting its autocheck property
-    // to false so we can update it appropriately when the view is shown
-    // or hidden via other UI than the menuitem.
-    let menuitem = document.getElementById("viewMessagesMenuitem");
-    if (container.hidden) {
-      container.hidden = false;
-      splitter.hidden = false;
-      menuitem.setAttribute("checked", "true");
-    }
-    else {
-      container.hidden = true;
-      splitter.hidden = true;
-      // In theory this should be |menuitem.removeAttribute("checked")|, but we
-      // can't do that because of bug 15232, so we do a hack that seems to work.
-      menuitem.setAttribute("checked", "false");
-    }
+    container.hidden = false;
+    splitter.hidden = false;
+  },
+
+  hide: function() {
+    let container = document.getElementById("snowlViewContainer");
+    let splitter = document.getElementById("snowlViewSplitter");
+    container.hidden = true;
+    splitter.hidden = true;
   },
 
   onClickColumnHeader: function(aEvent) {

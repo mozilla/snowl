@@ -10,13 +10,6 @@
 
   <script type="application/x-javascript" src="snowl.js"/>
 
-  <menupopup id="menu_viewPopup">
-    <menuitem id="viewMessagesMenuitem" insertafter="viewSidebarMenuMenu"
-              label="Messages" accesskey="M"
-              type="checkbox" checked="true" autocheck="false" persist="checked"
-              oncommand="SnowlMessageView.toggle()"/>
-  </menupopup>
-
   <menupopup id="viewSidebarMenu">
     <menuitem observes="viewSnowlSidebar" accesskey="w"/>
   </menupopup>
@@ -56,9 +49,6 @@
 
         <textbox id="snowlFilter" type="timed" timeout="200"
                  oncommand="SnowlMessageView.onFilter()"/>
-
-        <toolbarbutton class="tabs-closebutton" tooltiptext="Close Messages"
-                       oncommand="SnowlMessageView.toggle()"/>
       </toolbar>
 
       <tree id="snowlView" flex="1" persist="sortResource sortDirection"
