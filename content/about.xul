@@ -1,14 +1,27 @@
+<?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/about.css" type"text/css"?>
+
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         windowtype="Snowl:About"
         title="About Snowl"
         buttons="accept">
-  <description value="Snowl"/>
+  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
+  <label value="version 0.1"/>
   <description>
-    Icons come from
-    the <html:a href="http://www.famfamfam.com/lab/icons/silk/">Silk icon set
-    by famfamfam</html:a>, licensed under
-    a <html:a href="http://creativecommons.org/licenses/by/2.5/">Creative Commons
-    Attribution 2.5 License</html:a>.
+    Most icons are from the
+    <html:a href="" link="http://www.famfamfam.com/lab/icons/silk/"
+            onclick="visitLink(event)">Silk icon set by famfamfam</html:a>,
+    licensed under a
+    <html:a href="" link="http://creativecommons.org/licenses/by/2.5/"
+            onclick="visitLink(event)">Creative Commons Attribution
+                                       2.5 License</html:a>.
+    The OPML icon is from
+    <html:a href="" link="http://opmlicons.com/"
+            onclick="visitLink(event)">OPML Icon Project</html:a>
+    licensed under a
+    <html:a href="" link="http://creativecommons.org/licenses/by-sa/2.5/"
+            onclick="visitLink(event)">Creative Commons Attribution-Share Alike
+                                       2.5 License</html:a>.
   </description>
 </dialog>
