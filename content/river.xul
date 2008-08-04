@@ -40,9 +40,11 @@
 <?xml-stylesheet href="chrome://snowl/content/river.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/riverContent.css" type="text/css"?>
 
+<!DOCTYPE page SYSTEM "chrome://snowl/locale/river.dtd">
+
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
-        title="Snowl: Messages"
+        title="&page.title;"
         onload="SnowlMessageView.init()"
         onresize="SnowlMessageView.resizeContentBox()">
 
@@ -68,20 +70,20 @@
         <toolbarbutton id="currentButton" type="checkbox"
                     image="chrome://snowl/content/icons/newspaper.png"
                     oncommand="SnowlMessageView.onCommandCurrentButton(event)"
-                    tooltiptext="Only show current messages."/>
+                    tooltiptext="&currentButton.tooltip;"/>
 
         <toolbarbutton id="bodyButton" type="checkbox"
                     image="chrome://snowl/content/icons/page_white_text.png"
                     oncommand="SnowlMessageView.onCommandBodyButton(event)"
-                    tooltiptext="Show message summaries/content."/>
-    
+                    tooltiptext="&bodyButton.tooltip;"/>
+
         <toolbarbutton id="orderButton" type="checkbox"
                     image="chrome://snowl/content/arrow-down.png"
                     oncommand="SnowlMessageView.onCommandOrderButton(event)"
-                    tooltiptext="Reverse the order of the messages."/>
-    
+                    tooltiptext="&orderButton.tooltip;"/>
+
         <spacer flex="1"/>
-    
+
         <textbox id="filterTextbox" type="timed" timeout="200"
                      oncommand="SnowlMessageView.onFilter(event)"/>
       </toolbar>
