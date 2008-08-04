@@ -39,34 +39,14 @@
 <!-- XXX Do we need references to the global and browser skins in an overlay? -->
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/snowl.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/list.css" type="text/css"?>
+
+<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/list.dtd">
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlOverlay">
 
-  <script type="application/x-javascript" src="snowl.js"/>
-
-  <menupopup id="menu_viewPopup">
-    <!-- Since these both get inserted after viewSidebarMenuMenu, they appear
-       - in the reverse of the order below. -->
-    <menuitem insertafter="viewSidebarMenuMenu"
-              label="Message River" accesskey="v"
-              oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
-
-    <menuitem observes="viewSnowlSidebar" insertafter="viewSidebarMenuMenu"
-              accesskey="m"/>
-  </menupopup>
-
-  <broadcasterset id="mainBroadcasterSet"> 
-    <broadcaster id="viewSnowlSidebar"
-                 label="Message List"
-                 autoCheck="false"
-                 type="checkbox"
-                 group="sidebar"
-                 sidebarurl="chrome://snowl/content/sidebar.xul"
-                 sidebartitle="Snowl"
-                 oncommand="toggleSidebar('viewSnowlSidebar')"/>
-  </broadcasterset>
+  <script type="application/x-javascript" src="list.js"/>
 
   <vbox id="appcontent">
     <vbox id="snowlViewContainer" insertbefore="content" placement="top"
@@ -74,7 +54,7 @@
       <toolbar id="snowlViewToolbar" pack="end" align="center">
         <toolbarbutton id="snowlPlacementButton" class="snowlToolbarButton"
                        oncommand="SnowlMessageView.switchPlacement()"
-                       tooltiptext="Switch placement."/>
+                       tooltiptext="&placementButton.tooltip;"/>
 
         <toolbarspring/>
 
@@ -82,13 +62,13 @@
                        type="checkbox"
                        image="chrome://snowl/content/icons/newspaper.png"
                        oncommand="SnowlMessageView.onCommandCurrentButton(event)"
-                       tooltiptext="Only show current messages."/>
+                       tooltiptext="&currentButton.tooltip;"/>
 
         <toolbarbutton id="snowlUnreadButton" class="snowlToolbarButton"
                        type="checkbox"
                        image="chrome://snowl/content/icons/new.png"
                        oncommand="SnowlMessageView.onCommandUnreadButton(event)"
-                       tooltiptext="Only show unread messages."/>
+                       tooltiptext="&unreadButton.tooltip;"/>
 
         <textbox id="snowlFilter" type="timed" timeout="200"
                  oncommand="SnowlMessageView.onFilter()"/>
@@ -100,17 +80,17 @@
             onselect="SnowlMessageView.onSelect(event)"
             onkeypress="SnowlMessageView.onKeyPress(event)">
         <treecols>
-          <treecol id="snowlAuthorCol" label="Author" flex="1"
+          <treecol id="snowlAuthorCol" label="&authorCol.label;" flex="1"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
                    onclick="SnowlMessageView.onClickColumnHeader(event)"/>
           <splitter class="tree-splitter"/>
-          <treecol id="snowlSubjectCol" label="Subject" flex="5"
+          <treecol id="snowlSubjectCol" label="&subjectCol.label;" flex="5"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
                    onclick="SnowlMessageView.onClickColumnHeader(event)"/>
           <splitter class="tree-splitter"/>
-          <treecol id="snowlTimestampCol" label="Date" flex="1"
+          <treecol id="snowlTimestampCol" label="&timestampCol.label;" flex="1"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
                    onclick="SnowlMessageView.onClickColumnHeader(event)"/>

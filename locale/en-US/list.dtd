@@ -1,0 +1,7 @@
+<!ENTITY placementButton.tooltip      "Switch placement.">
+<!ENTITY currentButton.tooltip        "Only show current messages.">
+<!ENTITY unreadButton.tooltip         "Only show unread messages.">
+
+<!ENTITY authorCol.label              "Author">
+<!ENTITY subjectCol.label             "Subject">
+<!ENTITY timestampCol.label           "Date">

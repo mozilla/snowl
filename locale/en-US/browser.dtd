@@ -1,0 +1,6 @@
+<!ENTITY riverView.label              "River of Messages">
+<!ENTITY riverView.accesskey          "v">
+<!ENTITY listView.label               "Message List">
+<!ENTITY listView.accesskey           "m">
+
+<!ENTITY sidebar.label                "Snowl">

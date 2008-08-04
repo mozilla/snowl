@@ -36,42 +36,31 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://snowl/content/collections.css" type"text/css"?>
+<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/browser.dtd">
 
-<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/collections.dtd">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         id="snowlBrowserOverlay">
 
-<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <menupopup id="menu_viewPopup">
+    <!-- Since these both get inserted after viewSidebarMenuMenu, they appear
+       - in the reverse of the order below. -->
+    <menuitem insertafter="viewSidebarMenuMenu"
+              label="&riverView.label;" accesskey="&riverView.accesskey;"
+              oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
 
-  <script type="application/x-javascript" src="chrome://snowl/content/collections.js"/>
+    <menuitem observes="viewSnowlSidebar" insertafter="viewSidebarMenuMenu"
+              accesskey="&listView.accesskey;"/>
+  </menupopup>
 
-  <vbox id="collectionsViewBox">
-    <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
-          onselect="SourcesView.onSelect(event)">
-      <treecols>
-        <treecol id="nameCol" label="&nameCol.label;" primary="true" flex="1"/>
-      </treecols>
-
-      <treechildren flex="1"/>
-    </tree>
-
-    <toolbar>
-      <toolbarbutton id="snowlSubscribeButton"
-                     image="chrome://snowl/content/icons/add.png"
-                     oncommand="SourcesView.subscribe()"
-                     tooltiptext="&subscribeButton.tooltip;"/>
-      <toolbarbutton id="snowlUnsubscribeButton"
-                     image="chrome://snowl/content/icons/delete.png"
-                     oncommand="SourcesView.unsubscribe()"
-                     tooltiptext="&unsubscribeButton.tooltip;"/>
-      <toolbarbutton id="snowlRefreshButton"
-                     image="chrome://snowl/content/icons/arrow_refresh_small.png"
-                     oncommand="SnowlService.refreshAllSources()"
-                     tooltiptext="&refreshButton.tooltip;"/>
-      <toolbarbutton id="snowlExportOPMLButton"
-                     image="chrome://snowl/content/icons/opml-icon-16x16.png"
-                     oncommand="SourcesView.exportOPML()"
-                     tooltiptext="&exportButton.tooltip;"/>
-    </toolbar>
-  </vbox>
+  <broadcasterset id="mainBroadcasterSet"> 
+    <broadcaster id="viewSnowlSidebar"
+                 label="&listView.label;"
+                 autoCheck="false"
+                 type="checkbox"
+                 group="sidebar"
+                 sidebarurl="chrome://snowl/content/sidebar.xul"
+                 sidebartitle="&sidebar.label;"
+                 oncommand="toggleSidebar('viewSnowlSidebar')"/>
+  </broadcasterset>
 
 </overlay>
