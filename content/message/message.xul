@@ -39,6 +39,8 @@
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/message/message.css" type="text/css"?>
 
+<!DOCTYPE page SYSTEM "chrome://snowl/locale/message.dtd">
+
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <vbox id="head">
@@ -50,25 +52,25 @@
       <rows>
         <row id="authorRow">
           <hbox class="labelBox">
-            <label class="label" value="Author:"/>
+            <label class="label" value="&author.label;"/>
           </hbox>
           <label id="author" crop="end"/>
         </row>
         <row id="subjectRow">
           <hbox class="labelBox">
-            <label class="label" value="Subject:"/>
+            <label class="label" value="&subject.label;"/>
           </hbox>
           <label id="subject" crop="end"/>
         </row>
         <row id="timestampRow">
           <hbox class="labelBox">
-            <label class="label" value="Date:"/>
+            <label class="label" value="&timestamp.label;"/>
           </hbox>
           <label id="timestamp" crop="end"/>
         </row>
         <row id="linkRow">
           <hbox class="labelBox">
-            <label class="label" value="Link:"/>
+            <label class="label" value="&link.label;"/>
           </hbox>
           <label id="link" class="text-link" crop="end"/>
         </row>
