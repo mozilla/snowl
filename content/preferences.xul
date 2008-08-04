@@ -38,14 +38,15 @@
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 
+<!DOCTYPE prefwindow SYSTEM "chrome://snowl/locale/preferences.dtd">
+
 <prefwindow xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-            title="Snowl Preferences"
-            buttons="none">
+            title="&prefwindow.title;">
 
   <script type="application/x-javascript" src="chrome://snowl/content/preferences.js"/>
 
-  <prefpane label="Snowl Preferences">
-    <button label="Import OPML" oncommand="SnowlPreferences.onImportOPML(event);"/>
+  <prefpane>
+    &noPreferences.message;
   </prefpane>
 
 </prefwindow>
