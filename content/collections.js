@@ -328,7 +328,12 @@ this._log.info(row.value + " is not selected");
   },
 
   unsubscribe: function(aEvent) {
-    let sourceID = this._collections[this._tree.currentIndex].id;
+    let collection = this._rows[this._tree.currentIndex];
+
+    if (!collection.parent || collection.parent.groupIDColumn != "sources.id")
+      return;
+
+    let sourceID = this._rows[this._tree.currentIndex].groupID;
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {

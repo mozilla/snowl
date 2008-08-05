@@ -137,6 +137,9 @@ SnowlCollection.prototype = {
 
         let group = new SnowlCollection(null, name, iconURL, constraints, this);
 
+        if (this.groupIDColumn)
+          group.groupID = statement.row.groupID;
+
         group.level = this.level + 1;
         groups.push(group);
       }
@@ -153,8 +156,12 @@ SnowlCollection.prototype = {
   _generateGetGroupsStatement: function() {
     let columns = [];
 
-    // FIXME: add groupIDColumn and make groupNameColumn optional.
-    columns.push("DISTINCT(" + this.groupNameColumn + ") AS name");
+    if (this.groupIDColumn) {
+      columns.push("DISTINCT(" + this.groupIDColumn + ") AS groupID");
+      columns.push(this.groupNameColumn + " AS name");
+    }
+    else
+      columns.push("DISTINCT(" + this.groupNameColumn + ") AS name");
 
     // For some reason, trying to access statement.row.foo dies without throwing
     // an exception if foo isn't defined as a column in the query, so we have to
