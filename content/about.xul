@@ -39,27 +39,26 @@
 <?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/about.css" type"text/css"?>
 
+<!DOCTYPE dialog SYSTEM "chrome://snowl/locale/about.dtd">
+
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         xmlns:html="http://www.w3.org/1999/xhtml"
         windowtype="Snowl:About"
-        title="About Snowl"
+        title="&dialog.title;"
         buttons="accept">
+
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-  <label value="version 0.1"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/about.properties"/>
+  </stringbundleset>
+
+  <!-- FIXME: retrieve and display the version number programmatically. -->
+  <label value="&version;"/>
+
   <description>
-    Most icons are from the
-    <html:a href="" link="http://www.famfamfam.com/lab/icons/silk/"
-            onclick="visitLink(event)">Silk icon set by famfamfam</html:a>,
-    licensed under a
-    <html:a href="" link="http://creativecommons.org/licenses/by/2.5/"
-            onclick="visitLink(event)">Creative Commons Attribution
-                                       2.5 License</html:a>.
-    The OPML icon is from
-    <html:a href="" link="http://opmlicons.com/"
-            onclick="visitLink(event)">OPML Icon Project</html:a>
-    licensed under a
-    <html:a href="" link="http://creativecommons.org/licenses/by-sa/2.5/"
-            onclick="visitLink(event)">Creative Commons Attribution-Share Alike
-                                       2.5 License</html:a>.
+    <html:div id="attributionDiv"/>
   </description>
+
+  <script type="application/x-javascript" src="chrome://snowl/content/about.js"/>
 </dialog>
