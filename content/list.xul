@@ -36,9 +36,6 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!-- XXX Do we need references to the global and browser skins in an overlay? -->
-<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/list.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://snowl/locale/list.dtd">
