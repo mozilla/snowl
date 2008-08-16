@@ -1,0 +1,6 @@
+<!ENTITY placementButton.tooltip "Skift placering.">
+<!ENTITY currentButton.tooltip "Vis kun nuværende meddelelse">
+<!ENTITY unreadButton.tooltip "Vis kun ulæste meddelelser.">
+<!ENTITY authorCol.label "Ophavsmand">
+<!ENTITY subjectCol.label "Emne">
+<!ENTITY timestampCol.label "Dato">

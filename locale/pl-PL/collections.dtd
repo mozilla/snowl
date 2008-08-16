@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "Nazwa">
+<!ENTITY subscribeButton.tooltip "Dodaj subskrypcję źródeł wiadomości.">
+<!ENTITY unsubscribeButton.tooltip "Usuń subskrypcję źródeł wiadomości.">
+<!ENTITY refreshButton.tooltip "Odśwież źródła wiadomości.">
+<!ENTITY exportButton.tooltip "Wyeksportuj źródła wiadomości w formacie OPML.">

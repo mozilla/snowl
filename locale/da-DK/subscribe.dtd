@@ -1,0 +1,8 @@
+<!ENTITY page.title "Snowl: Abonner på meddelelses kilder">
+<!ENTITY feedsTab.label "Feeds">
+<!ENTITY twitterTab.label "Twitter">
+<!ENTITY opmlTab.label "OPML">
+<!ENTITY location.label "Placering:">
+<!ENTITY subscribeButton.label "Abonnere">
+<!ENTITY importOPMLButton.label "Importer OPML Fil...">
+<!ENTITY closeButton.label "Luk">

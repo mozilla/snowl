@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "名前">
+<!ENTITY subscribeButton.tooltip "メッセージ源を購読します。">
+<!ENTITY unsubscribeButton.tooltip "メッセージ源の購読を解除します。">
+<!ENTITY refreshButton.tooltip "メッセージ源を更新します。">
+<!ENTITY exportButton.tooltip "メッセージ源を OPML として書き出します。">

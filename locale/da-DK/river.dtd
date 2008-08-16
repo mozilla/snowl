@@ -1,0 +1,4 @@
+<!ENTITY page.title "Snowl: Meddelelses flod">
+<!ENTITY currentButton.tooltip "Vis kun nuværende meddelelser.">
+<!ENTITY bodyButton.tooltip "Vis sammendrag/indhold.">
+<!ENTITY orderButton.tooltip "Omvend ordenen">

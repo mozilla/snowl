@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "Nom">
+<!ENTITY subscribeButton.tooltip "Subscriure&apos;t a les fonts de missatges.">
+<!ENTITY unsubscribeButton.tooltip "Desubscriure&apos;t a les fonts de missatges.">
+<!ENTITY refreshButton.tooltip "Actualitza fonts de missatges.">
+<!ENTITY exportButton.tooltip "Exporta fonts de missatges com a OPML.">

@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "名称">
+<!ENTITY subscribeButton.tooltip "订阅该信息源">
+<!ENTITY unsubscribeButton.tooltip "取消订阅该信息源">
+<!ENTITY refreshButton.tooltip "刷新信息源">
+<!ENTITY exportButton.tooltip "以OPML格式导出信息源">

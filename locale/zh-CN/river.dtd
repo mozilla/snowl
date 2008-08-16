@@ -1,0 +1,4 @@
+<!ENTITY page.title "Snowl: 信息流">
+<!ENTITY currentButton.tooltip "仅显示当前信息。">
+<!ENTITY bodyButton.tooltip "显示信息摘要/内容。">
+<!ENTITY orderButton.tooltip "将信息反向顺序排列">

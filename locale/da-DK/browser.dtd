@@ -1,0 +1,5 @@
+<!ENTITY riverView.label "Meddelelses flod">
+<!ENTITY riverView.accesskey "f">
+<!ENTITY listView.label "Meddelelses liste">
+<!ENTITY listView.accesskey "m">
+<!ENTITY sidebar.label "Snowl">

@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "Navn">
+<!ENTITY subscribeButton.tooltip "Tilføj abonnement">
+<!ENTITY unsubscribeButton.tooltip "Fjern abonnement">
+<!ENTITY refreshButton.tooltip "Opdater kilder">
+<!ENTITY exportButton.tooltip "Eksporter kilder som OPML.">

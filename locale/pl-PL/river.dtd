@@ -1,0 +1,4 @@
+<!ENTITY page.title "Snowl: Rzeka wiadmości">
+<!ENTITY currentButton.tooltip "Wyświetlaj tylko aktualne wiadomości.">
+<!ENTITY bodyButton.tooltip "Wyświetlaj podsumowania/zawartość wiadomości.">
+<!ENTITY orderButton.tooltip "Odwróć kolejność wiadomości.">

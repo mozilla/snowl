@@ -1,0 +1,5 @@
+<!ENTITY riverView.label "信息流">
+<!ENTITY riverView.accesskey "v">
+<!ENTITY listView.label "信息列表">
+<!ENTITY listView.accesskey "m">
+<!ENTITY sidebar.label "Snowl">

@@ -1,0 +1,6 @@
+<!ENTITY placementButton.tooltip "Przełącz układ.">
+<!ENTITY currentButton.tooltip "Wyświetlaj tylko aktualne wiadomości.">
+<!ENTITY unreadButton.tooltip "Wyświetlaj tylko nieprzeczytane wiadomości.">
+<!ENTITY authorCol.label "Autor">
+<!ENTITY subjectCol.label "Tytuł">
+<!ENTITY timestampCol.label "Data">

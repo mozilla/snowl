@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Aanmelding verzocht">
+<!ENTITY realm.label "De bron zegt:">
+<!ENTITY username.label "Gebruikersnaam">
+<!ENTITY password.label "Wachtwoord:">
+<!ENTITY showPassword.label "Wachtwoord weergeven">
+<!ENTITY rememberPassword.label "Dit wachtwoord onthouden als het correct is">

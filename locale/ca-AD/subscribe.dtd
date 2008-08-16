@@ -1,0 +1,8 @@
+<!ENTITY page.title "Snowl: Subscriu-te a la Font de Missatges">
+<!ENTITY feedsTab.label "Fonts">
+<!ENTITY twitterTab.label "Twitter">
+<!ENTITY opmlTab.label "OPML">
+<!ENTITY location.label "Localització:">
+<!ENTITY subscribeButton.label "Subscriu-te">
+<!ENTITY importOPMLButton.label "Importa arxiu OPML...">
+<!ENTITY closeButton.label "Tanca">

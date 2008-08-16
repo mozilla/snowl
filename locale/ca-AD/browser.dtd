@@ -1,0 +1,5 @@
+<!ENTITY riverView.label "Riu de Missatges">
+<!ENTITY riverView.accesskey "v">
+<!ENTITY listView.label "Llista de Missatges">
+<!ENTITY listView.accesskey "m">
+<!ENTITY sidebar.label "Snowl">

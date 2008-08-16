@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "Naam">
+<!ENTITY subscribeButton.tooltip "Abonneren op berichtenbronnen.">
+<!ENTITY unsubscribeButton.tooltip "Abonnement op berichtenbronnen opzeggen.">
+<!ENTITY refreshButton.tooltip "Berichtenbronnen vernieuwen.">
+<!ENTITY exportButton.tooltip "Berichtenbronnen als OPML exporteren.">

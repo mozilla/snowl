@@ -1,0 +1,4 @@
+<!ENTITY page.title "snowl: Riu de Missatges">
+<!ENTITY currentButton.tooltip "Mostra només missatges actuals.">
+<!ENTITY bodyButton.tooltip "Mostra sumari de missatges/contingut.">
+<!ENTITY orderButton.tooltip "inverteix l&apos;ordre dels missatges.">

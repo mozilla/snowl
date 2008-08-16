@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Autenticació Demanada">
+<!ENTITY realm.label "La font diu:">
+<!ENTITY username.label "Nom d&apos;usuari/a:">
+<!ENTITY password.label "Contrasenya:">
+<!ENTITY showPassword.label "Mostra contrasenya">
+<!ENTITY rememberPassword.label "Recorda aquesta contrasenya si és correcta">

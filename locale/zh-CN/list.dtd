@@ -1,0 +1,6 @@
+<!ENTITY placementButton.tooltip "切换布局">
+<!ENTITY currentButton.tooltip "仅显示当前信息">
+<!ENTITY unreadButton.tooltip "仅显示未读信息">
+<!ENTITY authorCol.label "作者">
+<!ENTITY subjectCol.label "主题">
+<!ENTITY timestampCol.label "日期">
