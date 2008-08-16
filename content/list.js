@@ -65,9 +65,12 @@ let Snowl = {
       setTimeout(function() { window.openUILinkIn(url, "tab") }, 500);
     }
     else if (lastVersion != this._version) {
-      let url = "chrome://snowl/content/update.html?old=" + lastVersion +
-                "&new=" + this._version;
-      setTimeout(function() { window.openUILinkIn(url, "tab"); }, 500);
+      // We don't use this code yet because we haven't yet set up update.html
+      // to properly list changes yet.
+      // FIXME: make this work.
+      //let url = "chrome://snowl/content/update.html?old=" + lastVersion +
+      //          "&new=" + this._version;
+      //setTimeout(function() { window.openUILinkIn(url, "tab"); }, 500);
     }
 
     this._prefs.set("lastVersion", this._version);
