@@ -1,8 +1,16 @@
 content snowl content/
-locale  snowl en-US locale/en-US/
 
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
 overlay chrome://browser/content/browser.xul chrome://snowl/content/list.xul
 overlay chrome://snowl/content/sidebar.xul chrome://snowl/content/collections.xul
 
 resource snowl ./
+
+# localizations in alphabetical order
+locale  snowl   ca-AD   locale/ca-AD/
+locale  snowl   da-DK   locale/da-DK/
+locale  snowl   en-US   locale/en-US/
+locale  snowl   ja-JP   locale/ja-JP/
+locale  snowl   nl-NL   locale/nl-NL/
+locale  snowl   pl-PL   locale/pl-PL/
+locale  snowl   zh-CN   locale/zh-CN/
