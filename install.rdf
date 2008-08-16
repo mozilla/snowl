@@ -6,10 +6,10 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>snowl@mozilla.org</em:id>
     <em:name>Snowl</em:name>
-    <em:version>0.1a2</em:version>
+    <em:version>0.1</em:version>
     <em:description>conversations redelivered</em:description>
     <em:creator>Myk Melez</em:creator>
-    <em:homepageURL>http://people.mozilla.com/~myk/snowl/</em:homepageURL>
+    <em:homepageURL>http://labs.mozilla.com/projects/snowl/</em:homepageURL>
     <em:optionsURL>chrome://snowl/content/preferences.xul</em:optionsURL>
     <em:aboutURL>chrome://snowl/content/about.xul</em:aboutURL>
 
