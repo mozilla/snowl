@@ -451,15 +451,12 @@ let SnowlMessageView = {
   // Safe DOM Manipulation
 
   /**
-   * Use this sandbox to run any dom manipulation code on nodes which
-   * are already inserted into the content document.
+   * Use this sandbox to run any DOM manipulation code on nodes
+   * which are already inserted into the content document.
    */
-  __contentSandbox: null,
   get _contentSandbox() {
-    if (!this.__contentSandbox)
-      this.__contentSandbox = new Cu.Sandbox(this._window);
-
-    return this.__contentSandbox;
+    delete this._contentSandbox;
+    return this._contentSandbox = new Cu.Sandbox(this._window);
   },
 
   // FIXME: use this when setting story title and byline.

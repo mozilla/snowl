@@ -36,43 +36,21 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/browser.dtd">
+<?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/stream.css" type="text/css"?>
 
-<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-         id="snowlBrowserOverlay">
+<!DOCTYPE page SYSTEM "chrome://snowl/locale/stream.dtd">
 
-  <menupopup id="viewSidebarMenu">
-    <menuitem observes="viewSnowlStream"/>
-  </menupopup>
+<page id="snowlStreamView"
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+      title="&page.title;"
+      onload="SnowlMessageView.onLoad()"
+      onunload="SnowlMessageView.onUnload()"
+      onclick="return window.parent.contentAreaClick(event, true);">
 
-  <menupopup id="menu_viewPopup">
-    <!-- Since these both get inserted after viewSidebarMenuMenu, they appear
-       - in the reverse of the order below. -->
-    <menuitem insertafter="viewSidebarMenuMenu"
-              label="&riverView.label;" accesskey="&riverView.accesskey;"
-              oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
+  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
-    <menuitem observes="viewSnowlSidebar" insertafter="viewSidebarMenuMenu"
-              accesskey="&listView.accesskey;"/>
-  </menupopup>
+  <vbox id="contentBox" flex="1"/>
 
-  <broadcasterset id="mainBroadcasterSet"> 
-    <broadcaster id="viewSnowlSidebar"
-                 label="&listView.label;"
-                 autoCheck="false"
-                 type="checkbox"
-                 group="sidebar"
-                 sidebarurl="chrome://snowl/content/sidebar.xul"
-                 sidebartitle="&sidebar.label;"
-                 oncommand="toggleSidebar('viewSnowlSidebar')"/>
-    <broadcaster id="viewSnowlStream"
-                 label="&streamView.label;"
-                 autoCheck="false"
-                 type="checkbox"
-                 group="sidebar"
-                 sidebarurl="chrome://snowl/content/stream.xul"
-                 sidebartitle="&streamSidebar.label;"
-                 oncommand="toggleSidebar('viewSnowlStream')"/>
-  </broadcasterset>
-
-</overlay>
+</page>

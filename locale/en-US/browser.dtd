@@ -4,3 +4,6 @@
 <!ENTITY listView.accesskey           "m">
 
 <!ENTITY sidebar.label                "Snowl">
+
+<!ENTITY streamView.label             "Message Stream">
+<!ENTITY streamSidebar.label          "Snowl Message Stream">

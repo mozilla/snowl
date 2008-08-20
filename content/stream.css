@@ -1,0 +1,114 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Snowl.
+ *
+ * The Initial Developer of the Original Code is Mozilla.
+ * Portions created by the Initial Developer are Copyright (C) 2008
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *   Myk Melez <myk@mozilla.org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#toolbar {
+  font: message-box;
+  -moz-box-align: center;
+  width: 100%;
+}
+
+/* Don't style the buttons natively because they look ugly on Linux.
+ * FIXME: test on other platforms and style conditionally as appropriate,
+ * and figure out how to make them look pretty on Linux. */
+toolbarbutton {
+  -moz-appearance: none;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+/* Hide the button labels, since they would otherwise take up space,
+ * even if empty, and throw off the centering of the button icons. */
+.toolbarbutton-text {
+  display: none;
+}
+
+/* Show icons in the sources menulist. */
+#sourceMenu > menupopup > menuitem > .menu-iconic-left {
+  display: block;
+}
+
+#contentBox {
+  padding: 7px;
+
+  -moz-user-focus: normal;
+  -moz-user-select: -moz-all;
+
+  /* Make it look like content rather than the chrome in which it is embedded. */
+  color: black;
+  background-color: white;
+  font: normal normal normal medium serif;
+
+  /* This gets set programmatically on load, since setting it in CSS doesn't work. */
+  height: 0;
+  
+  overflow: auto;
+}
+
+/* Make the title and source links look less like links to differentiate
+ * between the links in the content and these links in the chrome. */
+.source > a, .title > a {
+  font-family: sans-serif;
+  text-decoration: none;
+  color: black;
+}
+.source > a:visited, .title > a:visited {
+  color: #555;
+}
+
+h2 {
+  font-size: larger;
+  margin-bottom: 0;
+}
+
+.byline {
+  font-size: smaller;
+  font-family: sans-serif;
+}
+
+.metadata {
+  float: left;
+  width: 20%;
+
+  font: message-box;
+  font-size: smaller;
+}
+
+/* Don't draw borders around hyperlinked favicons, but do pad them a bit
+ * between the end of the favicon and the start of the source name. */
+a > img {
+  border: 0;
+  -moz-padding-end: 1px;
+}
