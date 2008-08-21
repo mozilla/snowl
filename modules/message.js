@@ -58,13 +58,14 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
-function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead) {
+function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorIcon) {
   this.id = aID;
   this.subject = aSubject;
   this.author = aAuthor;
   this.link = aLink;
   this.timestamp = aTimestamp;
   this._read = aRead;
+  this.authorIcon = aAuthorIcon;
 }
 
 SnowlMessage.get = function(aID) {

@@ -46,11 +46,12 @@
       title="&page.title;"
       onload="SnowlMessageView.onLoad()"
       onunload="SnowlMessageView.onUnload()"
-      onclick="return window.parent.contentAreaClick(event, true);">
+      onclick="return window.parent.contentAreaClick(event, true);"
+      onresize="SnowlMessageView.onResize()">
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
-  <vbox id="contentBox" flex="1"/>
+  <vbox id="contentBox"/>
 
 </page>

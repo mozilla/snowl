@@ -34,81 +34,94 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#toolbar {
-  font: message-box;
-  -moz-box-align: center;
-  width: 100%;
-}
-
-/* Don't style the buttons natively because they look ugly on Linux.
- * FIXME: test on other platforms and style conditionally as appropriate,
- * and figure out how to make them look pretty on Linux. */
-toolbarbutton {
-  -moz-appearance: none;
-  min-width: 24px;
-  min-height: 24px;
-}
-
-/* Hide the button labels, since they would otherwise take up space,
- * even if empty, and throw off the centering of the button icons. */
-.toolbarbutton-text {
-  display: none;
-}
-
-/* Show icons in the sources menulist. */
-#sourceMenu > menupopup > menuitem > .menu-iconic-left {
-  display: block;
+/* This goes at the beginning of the file because we update it dynamically
+ * as the width of the sidebar changes, and we access it by its index
+ * in the array of rules in this stylesheet, and this way its index doesn't
+ * change as this stylesheet gets updated as long as we don't put anything
+ * above this rule.
+ */
+.body > * {
+  /* This box must be flexible or have an explicit width or maximum width
+   * in order for it to wrap.  In theory, the best option would be a flexible
+   * width, but Mozilla doesn't wrap URLs in text until the path portion
+   * of the URL, which makes the middle column too wide when we use a flexible
+   * width and one of the messages contains a URL with a long hostname,
+   * so instead we specify an explicit width that we update dynamically
+   * as the width of the sidebar changes. */
+  width: 0;
 }
 
 #contentBox {
-  padding: 7px;
-
   -moz-user-focus: normal;
   -moz-user-select: -moz-all;
 
   /* Make it look like content rather than the chrome in which it is embedded. */
   color: black;
   background-color: white;
-  font: normal normal normal medium serif;
 
-  /* This gets set programmatically on load, since setting it in CSS doesn't work. */
-  height: 0;
-  
-  overflow: auto;
+  /* Use all available vertical space in the sidebar and scroll vertically. */
+  -moz-box-flex: 1;
+  overflow-y: auto;
+
+  /* Don't scroll horizontally even if content overflows (the user can expand
+   * the sidebar to see the overflowed content). */
+  overflow-x: hidden;
 }
 
-/* Make the title and source links look less like links to differentiate
- * between the links in the content and these links in the chrome. */
-.source > a, .title > a {
-  font-family: sans-serif;
-  text-decoration: none;
-  color: black;
-}
-.source > a:visited, .title > a:visited {
-  color: #555;
+.message {
+  border-bottom: 3px dotted grey;
 }
 
-h2 {
-  font-size: larger;
-  margin-bottom: 0;
+.leftColumn {
+  width: 48px;
 }
 
-.byline {
-  font-size: smaller;
-  font-family: sans-serif;
+.centerColumn {
+  /* This constrains the center column to the dynamically specified width
+   * of the body. Otherwise it would size itself to the widest content
+   * in the body, which can be wider than the specified width when Gecko
+   * can't wrap some content. */
+  max-width: 0;
 }
 
-.metadata {
-  float: left;
-  width: 20%;
-
-  font: message-box;
-  font-size: smaller;
+.rightColumn {
+  width: 16px;
 }
 
-/* Don't draw borders around hyperlinked favicons, but do pad them a bit
- * between the end of the favicon and the start of the source name. */
-a > img {
-  border: 0;
-  -moz-padding-end: 1px;
+.author,
+.timestamp {
+  -moz-box-flex: 1;
 }
+
+/* Border styles to clarify the structure for debugging purposes. */
+
+/*
+#contentBox {
+  outline: 1px solid yellow;
+}
+
+.message {
+  outline: 1px solid purple;
+}
+
+.leftColumn {
+  outline: 1px solid red;
+}
+
+.centerColumn {
+  outline: 1px solid green;
+}
+
+.rightColumn {
+  outline: 1px solid blue;
+}
+
+.author,
+.timestamp {
+  outline: 1px solid orange;
+}
+
+.body {
+  outline: 1px solid blue;
+}
+*/

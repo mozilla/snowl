@@ -93,11 +93,31 @@ let SnowlMessageView = {
   // The set of messages to display in the view.
   _collection: null,
 
+  // the width (narrower dimension) of the vertical and horizontal scrollbars;
+  // useful for calculating the viewable size of the viewport, since window.
+  // innerWidth and innerHeight include the area taken up by the scrollbars
+  // XXX Is this value correct, and does it vary by platform?
+  scrollbarWidth: 15,
+
+  get stylesheet() {
+    for (let i = 0; i < document.styleSheets.length; i++)
+      if (document.styleSheets[i].href == "chrome://snowl/content/stream.css")
+        return document.styleSheets[i];
+    return null;
+  },
+
+  _updateRule: function(position, newValue) {
+    this.stylesheet.deleteRule(position);
+    this.stylesheet.insertRule(newValue, position);
+  },
+
 
   //**************************************************************************//
   // Initialization & Destruction
 
   onLoad: function() {
+    this.onResize();
+
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
     // get a non-native object.
@@ -114,6 +134,19 @@ let SnowlMessageView = {
 
   //**************************************************************************//
   // Event Handlers
+
+  /**
+   * Resize the content in the middle column based on the width of the viewport.
+   * FIXME: file a bug on the problem that necessitates this hack.
+   */
+  onResize: function() {
+    // We anticipate that there will be a scrollbar, so we include it
+    // in the calculation.  Perhaps we should instead wait to include
+    // the scrollbar until the content actually overflows.
+    // XXX Why do we have to subtract *double* the width of the scrollbar???
+    let width = window.innerWidth - (this.scrollbarWidth * 2) - 48 - 16;
+    this._updateRule(0, ".body > * { width: " + width + "px }");
+  },
 
 
   //**************************************************************************//
@@ -230,24 +263,55 @@ let SnowlMessageView = {
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
-      let messageBox = this._document.createElementNS(HTML_NS, "div");
+      let messageBox = this._document.createElementNS(XUL_NS, "hbox");
       messageBox.className = "message";
       messageBox.setAttribute("index", i);
 
-      // Title
-      let title = this._document.createElementNS(HTML_NS, "div");
-      title.className = "title";
-      let titleLink = this._document.createElementNS(HTML_NS, "a");
-      titleLink.appendChild(this._document.createTextNode(message.subject || "untitled"));
-      if (message.link)
-        this._unsafeSetURIAttribute(titleLink, "href", message.link);
-      title.appendChild(titleLink);
-      messageBox.appendChild(title);
+      // left column
+      let leftColumn = this._document.createElementNS(XUL_NS, "vbox");
+      leftColumn.className = "leftColumn";
+      if (message.authorIcon) {
+        let icon = document.createElementNS(HTML_NS, "img");
+        icon.src = message.authorIcon;
+        leftColumn.appendChild(icon);
+      }
+      messageBox.appendChild(leftColumn);
 
-      // Byline
-      let bylineBox = this._document.createElementNS(HTML_NS, "div");
-      bylineBox.className = "byline";
-      messageBox.appendChild(bylineBox);
+      // center column
+      let centerColumn = this._document.createElementNS(XUL_NS, "vbox");
+      centerColumn.className = "centerColumn";
+      messageBox.appendChild(centerColumn);
+
+      // Author or Source
+      if (message.author || message.source) {
+        let desc = this._document.createElementNS(XUL_NS, "description");
+        desc.className = "author";
+        desc.setAttribute("crop", "end");
+        desc.setAttribute("value", message.author || message.source.name);
+        centerColumn.appendChild(desc);
+      }
+
+      // Timestamp
+      let lastUpdated = this._formatTimestamp(new Date(message.timestamp));
+      if (lastUpdated) {
+        let timestamp = this._document.createElementNS(XUL_NS, "description");
+        timestamp.className = "timestamp";
+        timestamp.setAttribute("crop", "end");
+        timestamp.setAttribute("value", lastUpdated);
+        centerColumn.appendChild(timestamp);
+      }
+
+      // content (title or short message)
+      let body = this._document.createElementNS(XUL_NS, "box");
+      body.className = "body";
+      let div = this._document.createElementNS(HTML_NS, "div");
+      let a = this._document.createElementNS(HTML_NS, "a");
+      if (message.link)
+        this._unsafeSetURIAttribute(a, "href", message.link);
+      a.appendChild(this._document.createTextNode(message.subject || "blank"));
+      div.appendChild(a);
+      body.appendChild(div);
+      centerColumn.appendChild(body);
 
       // Source
       //let source = this._document.createElementNS(HTML_NS, "a");
@@ -259,24 +323,12 @@ let SnowlMessageView = {
       //source.appendChild(this._document.createTextNode(message.source.name));
       //if (message.source.humanURI)
       //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
-      //bylineBox.appendChild(source);
+      //centerColumn.appendChild(source);
 
-      // Author or Source
-      if (message.author)
-        bylineBox.appendChild(this._document.createTextNode(message.author));
-      else if (message.source)
-        bylineBox.appendChild(this._document.createTextNode(message.source.name));
-
-      // Timestamp
-      let lastUpdated = this._formatTimestamp(new Date(message.timestamp));
-      if (lastUpdated) {
-        let timestamp = this._document.createElementNS(HTML_NS, "span");
-        timestamp.className = "timestamp";
-        timestamp.appendChild(document.createTextNode(lastUpdated));
-        if (bylineBox.hasChildNodes())
-          bylineBox.appendChild(this._document.createTextNode(" - "));
-        bylineBox.appendChild(timestamp);
-      }
+      // right column
+      let rightColumn = this._document.createElementNS(XUL_NS, "vbox");
+      rightColumn.className = "rightColumn";
+      messageBox.appendChild(rightColumn);
 
       this._contentSandbox.messageBox = messageBox;
 
@@ -293,6 +345,10 @@ let SnowlMessageView = {
     this._contentSandbox.messageBox = null;
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
+
+    //let serializer = Cc["@mozilla.org/xmlextras/xmlserializer;1"].
+    //                 createInstance(Ci.nsIDOMSerializer);
+    //this._log.info(serializer.serializeToString(document.getElementById("contentBox")));
   }),
 
   // FIXME: this also appears in the list and river views; factor it out.

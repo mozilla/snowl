@@ -247,7 +247,8 @@ SnowlCollection.prototype = {
                                        statement.row.author,
                                        statement.row.link,
                                        statement.row.timestamp,
-                                       (statement.row.read ? true : false));
+                                       (statement.row.read ? true : false),
+                                       statement.row.authorIcon);
         this._messages.push(message);
         this._messageIndex[message.id] = message;
       }
@@ -302,7 +303,8 @@ SnowlCollection.prototype = {
       //"SELECT subject, author, link, timestamp, content \
       // FROM sources JOIN messages ON sources.id = messages.sourceID \
       // LEFT JOIN parts on messages.id = parts.messageID";
-      "SELECT messages.id, subject, authors.name AS author, link, timestamp, read " +
+      "SELECT messages.id, subject, authors.name AS author, link, timestamp, " +
+      "       read, authors.iconURL AS authorIcon " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
