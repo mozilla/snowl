@@ -302,7 +302,7 @@ let SnowlMessageView = {
       }
 
       // content (title or short message)
-      let body = this._document.createElementNS(XUL_NS, "box");
+      let body = this._document.createElementNS(XUL_NS, "description");
       body.className = "body";
       let div = this._document.createElementNS(HTML_NS, "div");
       let a = this._document.createElementNS(HTML_NS, "a");
