@@ -271,8 +271,8 @@ let SnowlMessageView = {
       let leftColumn = this._document.createElementNS(XUL_NS, "vbox");
       leftColumn.className = "leftColumn";
       if (message.authorIcon) {
-        let icon = document.createElementNS(HTML_NS, "img");
-        icon.src = message.authorIcon;
+        let icon = document.createElementNS(XUL_NS, "image");
+        icon.setAttribute("src", message.authorIcon);
         leftColumn.appendChild(icon);
       }
       messageBox.appendChild(leftColumn);
