@@ -73,7 +73,8 @@
 }
 
 .leftColumn {
-  width: 48px;
+  width: 24px;
+  -moz-box-align: center;
 }
 
 .centerColumn {
@@ -95,6 +96,11 @@
 .timestamp {
   font-weight: lighter;
   font-size: smaller;
+}
+
+.icon {
+  max-width: 24px;
+  max-height: 24px;
 }
 
 /* Border styles to clarify the structure for debugging purposes. */

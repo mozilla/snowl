@@ -144,7 +144,7 @@ let SnowlMessageView = {
     // in the calculation.  Perhaps we should instead wait to include
     // the scrollbar until the content actually overflows.
     // XXX Why do we have to subtract *double* the width of the scrollbar???
-    let width = window.innerWidth - (this.scrollbarWidth * 2) - 48 - 16;
+    let width = window.innerWidth - (this.scrollbarWidth * 2) - 24 - 16;
     this._updateRule(0, ".body > * { width: " + width + "px }");
   },
 
@@ -270,11 +270,16 @@ let SnowlMessageView = {
       // left column
       let leftColumn = this._document.createElementNS(XUL_NS, "vbox");
       leftColumn.className = "leftColumn";
+      let icon = document.createElementNS(XUL_NS, "image");
+      icon.className = "icon";
       if (message.authorIcon) {
-        let icon = document.createElementNS(XUL_NS, "image");
         icon.setAttribute("src", message.authorIcon);
-        leftColumn.appendChild(icon);
       }
+      else {
+        let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
+        icon.setAttribute("src", this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec);
+      }
+      leftColumn.appendChild(icon);
       messageBox.appendChild(leftColumn);
 
       // center column
