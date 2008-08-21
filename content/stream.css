@@ -88,9 +88,13 @@
   width: 16px;
 }
 
-.author,
+.author {
+  font-weight: bold;
+}
+
 .timestamp {
-  -moz-box-flex: 1;
+  font-weight: lighter;
+  font-size: smaller;
 }
 
 /* Border styles to clarify the structure for debugging purposes. */
