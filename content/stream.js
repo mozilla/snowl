@@ -311,8 +311,10 @@ let SnowlMessageView = {
       body.className = "body";
       let div = this._document.createElementNS(HTML_NS, "div");
       let a = this._document.createElementNS(HTML_NS, "a");
-      if (message.link)
+      if (message.link) {
         this._unsafeSetURIAttribute(a, "href", message.link);
+        body.className += " text-link";
+      }
       a.appendChild(this._document.createTextNode(message.subject || "blank"));
       div.appendChild(a);
       body.appendChild(div);
