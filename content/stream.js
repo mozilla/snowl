@@ -112,6 +112,27 @@ let SnowlMessageView = {
   },
 
 
+  // This regex is designed to match URLs in plain text.  It correctly
+  // excludes puncuation at the end of the URL, so in "See http://example.com."
+  // it matches "http://example.com", not "http://example.com.".
+  // Based on http://www.perl.com/doc/FMTEYEWTK/regexps.html
+  get _linkifyRegex() {
+    let protocols = "(?:" + ["http", "https", "ftp"].join("|") + ")";
+    let ltrs = '\\w';
+    let gunk = '/#~:.?+=&%@!\\-';
+    let punc = '.:?\\-';
+    let any  = ltrs + gunk + punc;
+
+    let regex = new RegExp(
+      "\\b(" + protocols + ":[" + any + "]+?)(?=[" + punc + "]*[^" + any + "]|$)",
+      "gi"
+    );
+
+    delete this._linkifyRegex;
+    return this._linkifyRegex = regex;
+  },
+
+
   //**************************************************************************//
   // Initialization & Destruction
 
@@ -128,8 +149,6 @@ let SnowlMessageView = {
     this._collection.sortOrder = -1;
     this.rebuildView();
   },
-
-  onUnload: function() {},
 
 
   //**************************************************************************//
@@ -311,12 +330,32 @@ let SnowlMessageView = {
       body.className = "body";
       let div = this._document.createElementNS(HTML_NS, "div");
       let a = this._document.createElementNS(HTML_NS, "a");
+      // FIXME: make this localizable.
+      let subject = message.subject || "empty message";
+
       if (message.link) {
+        let a = this._document.createElementNS(HTML_NS, "a");
         this._unsafeSetURIAttribute(a, "href", message.link);
         body.className += " text-link";
+        a.appendChild(this._document.createTextNode(subject));
+        div.appendChild(a);
       }
-      a.appendChild(this._document.createTextNode(message.subject || "blank"));
-      div.appendChild(a);
+      else {
+        // Split the text into its plaintext and URL parts, which alternate
+        // in the array of results, with the first part always being plaintext.
+        let parts = subject.split(this._linkifyRegex);
+        for (let i = 0; i < parts.length; i++) {
+          if (i % 2 == 0)
+            div.appendChild(this._document.createTextNode(parts[i]));
+          else {
+            let a = this._document.createElementNS(HTML_NS, "a");
+            this._unsafeSetURIAttribute(a, "href", parts[i]);
+            a.appendChild(this._document.createTextNode(parts[i]));
+            div.appendChild(a);
+          }
+        }
+      }
+
       body.appendChild(div);
       centerColumn.appendChild(body);
 
