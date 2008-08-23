@@ -61,7 +61,7 @@ let SnowlDatastore = {
   _dbVersion: 4,
 
   _dbSchema: {
-    // Note: the timestamp is stored as JavaScript milliseconds since epoch.
+    // Note: datetime values like messages:timestamp are stored as Julian dates.
 
     // Note: the externalID is a unique identifier established by the source
     // of the message which remains constant across message transfer points
@@ -97,7 +97,17 @@ let SnowlDatastore = {
           "externalID TEXT",
           "subject TEXT",
           "authorID INTEGER REFERENCES people(id)",
-          "timestamp INTEGER",
+
+          // timestamp represents the date/time assigned to the message by its
+          // source.  It can have multiple meanings, including when the message
+          // was 'sent' by its author, when it was published, and when it was
+          // last updated.
+          "timestamp REAL",
+
+          // received represents the date/time at which the message was first
+          // received by this application.
+          "received REAL",
+
           "link TEXT",
           "current BOOLEAN DEFAULT 1",
           "read BOOLEAN DEFAULT 0"
@@ -462,7 +472,9 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
     this._insertMessageStatement.params.authorID = aAuthorID;
-    this._insertMessageStatement.params.timestamp = aTimestamp;
+    // Convert the timestamp to a Julian date.
+    let timestamp = aTimestamp ? aTimestamp.getTime() / 1000 / 86400 + 2440587.5 : null;
+    this._insertMessageStatement.params.timestamp = (timestamp);
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
 

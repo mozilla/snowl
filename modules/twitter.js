@@ -465,17 +465,13 @@ SnowlTwitter.prototype = {
    */
   addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
                              aTimestamp, aLink) {
-    // Convert the timestamp to milliseconds-since-epoch, which is how we store
-    // it in the datastore.
-    let timestamp = aTimestamp ? aTimestamp.getTime() : null;
-
     // Convert the link to its string spec, which is how we store it
     // in the datastore.
     let link = aLink ? aLink.spec : null;
 
     let messageID =
       SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthorID,
-                                   timestamp, link);
+                                   aTimestamp, link);
 
     return messageID;
   },

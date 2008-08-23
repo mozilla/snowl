@@ -246,7 +246,9 @@ SnowlCollection.prototype = {
                                        statement.row.subject,
                                        statement.row.author,
                                        statement.row.link,
-                                       statement.row.timestamp,
+                                       // Convert the Julian date to a JS "ms since Unix epoch" value.
+                                       // FIXME: further convert this to a JS Date object.
+                                       Math.round((statement.row.timestamp - 2440587.5) * 86400 * 1000),
                                        (statement.row.read ? true : false),
                                        statement.row.authorIcon);
         this._messages.push(message);
