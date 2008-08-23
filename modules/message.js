@@ -58,7 +58,7 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
-function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorIcon) {
+function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorIcon, aReceived) {
   this.id = aID;
   this.subject = aSubject;
   this.author = aAuthor;
@@ -66,13 +66,15 @@ function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorI
   this.timestamp = aTimestamp;
   this._read = aRead;
   this.authorIcon = aAuthorIcon;
+  this.received = aReceived;
 }
 
 SnowlMessage.get = function(aID) {
   let message;
 
   let statement = SnowlDatastore.createStatement(
-    "SELECT subject, authors.name AS author, link, timestamp, read " +
+    "SELECT subject, authors.name AS author, link, timestamp, read, " +
+    "       authors.iconURL AS authorIcon, received " +
     "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
     "WHERE messages.id = :id"
   );
@@ -87,7 +89,9 @@ SnowlMessage.get = function(aID) {
                                  // Convert the Julian date to a JS "ms since Unix epoch" value.
                                  // FIXME: further convert this to a JS Date object.
                                  Math.round((statement.row.timestamp - 2440587.5) * 86400 * 1000),
-                                 (statement.row.read ? true : false));
+                                 (statement.row.read ? true : false),
+                                 statement.row.authorIcon,
+                                 Math.round((statement.row.received - 2440587.5) * 86400 * 1000));
     }
   }
   finally {
@@ -104,6 +108,7 @@ SnowlMessage.prototype = {
   // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,
+  received: null,
 
   // FIXME: figure out whether or not setters should update the database.
 

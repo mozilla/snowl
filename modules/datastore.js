@@ -447,8 +447,8 @@ let SnowlDatastore = {
 
   get _insertMessageStatement() {
     let statement = this.createStatement(
-      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, link) \
-       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :link)"
+      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link) \
+       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link)"
     );
     this.__defineGetter__("_insertMessageStatement", function() { return statement });
     return this._insertMessageStatement;
@@ -474,7 +474,8 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.authorID = aAuthorID;
     // Convert the timestamp to a Julian date.
     let timestamp = aTimestamp ? aTimestamp.getTime() / 1000 / 86400 + 2440587.5 : null;
-    this._insertMessageStatement.params.timestamp = (timestamp);
+    this._insertMessageStatement.params.timestamp = timestamp;
+    this._insertMessageStatement.params.received = new Date().getTime() / 1000 / 86400 + 2440587.5;
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
 

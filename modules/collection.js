@@ -250,7 +250,8 @@ SnowlCollection.prototype = {
                                        // FIXME: further convert this to a JS Date object.
                                        Math.round((statement.row.timestamp - 2440587.5) * 86400 * 1000),
                                        (statement.row.read ? true : false),
-                                       statement.row.authorIcon);
+                                       statement.row.authorIcon,
+                                       Math.round((statement.row.received - 2440587.5) * 86400 * 1000));
         this._messages.push(message);
         this._messageIndex[message.id] = message;
       }
@@ -306,7 +307,7 @@ SnowlCollection.prototype = {
       // FROM sources JOIN messages ON sources.id = messages.sourceID \
       // LEFT JOIN parts on messages.id = parts.messageID";
       "SELECT messages.id, subject, authors.name AS author, link, timestamp, " +
-      "       read, authors.iconURL AS authorIcon " +
+      "       read, authors.iconURL AS authorIcon, received " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
