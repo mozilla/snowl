@@ -54,9 +54,11 @@ const textConstructTypes = {
   "text/plain": "text"
 };
 
+Cu.import("resource://snowl/modules/URI.js");
+
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
-Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorIcon, aReceived) {
   this.id = aID;
@@ -86,12 +88,11 @@ SnowlMessage.get = function(aID) {
                                  statement.row.subject,
                                  statement.row.author,
                                  statement.row.link,
-                                 // Convert the Julian date to a JS "ms since Unix epoch" value.
-                                 // FIXME: further convert this to a JS Date object.
-                                 Math.round((statement.row.timestamp - 2440587.5) * 86400 * 1000),
+                                 // FIXME: leave this as a JS Date object.
+                                 SnowlUtils.julianToJSDate(statement.row.timestamp).getTime(),
                                  (statement.row.read ? true : false),
                                  statement.row.authorIcon,
-                                 Math.round((statement.row.received - 2440587.5) * 86400 * 1000));
+                                 SnowlUtils.julianToJSDate(statement.row.received).getTime());
     }
   }
   finally {

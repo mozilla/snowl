@@ -41,6 +41,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource://snowl/modules/utils.js");
+
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
 
@@ -472,10 +474,9 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
     this._insertMessageStatement.params.authorID = aAuthorID;
-    // Convert the timestamp to a Julian date.
-    let timestamp = aTimestamp ? aTimestamp.getTime() / 1000 / 86400 + 2440587.5 : null;
+    let timestamp = aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null;
     this._insertMessageStatement.params.timestamp = timestamp;
-    this._insertMessageStatement.params.received = new Date().getTime() / 1000 / 86400 + 2440587.5;
+    this._insertMessageStatement.params.received = SnowlUtils.jsToJulianDate(new Date());
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
 
