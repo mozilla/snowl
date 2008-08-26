@@ -146,7 +146,7 @@ let SnowlMessageView = {
     this._document = this._window.document;
 
     this._collection = new SnowlCollection();
-    this._collection.sortProperty = ["received"];
+    this._collection.sortProperties = ["received"];
     this._collection.sortOrder = -1;
     this._collection.sort();
     this.rebuildView();

@@ -80,7 +80,7 @@ function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
   this.groupIconURLColumn = groupIconURLColumn;
   this._filters = filters || [];
 
-  this.sortProperty = ["timestamp"];
+  this.sortProperties = ["timestamp"];
 }
 
 SnowlCollection.prototype = {
@@ -231,9 +231,9 @@ SnowlCollection.prototype = {
   //**************************************************************************//
   // Retrieval
 
-  // sortProperty gets set to its default value in the constructor
+  // sortProperties gets set to its default value in the constructor
   // since the default is an array, which would be a singleton if defined here.
-  sortProperty: null,
+  sortProperties: null,
   sortOrder: 1,
 
   _messages: null,
@@ -345,7 +345,7 @@ SnowlCollection.prototype = {
   sort: function() {
     // Reflect these into local variables that the compare function closure
     // can access.
-    let properties = this.sortProperty;
+    let properties = this.sortProperties;
     let order = this.sortOrder;
 
     // Fall back on subject.
