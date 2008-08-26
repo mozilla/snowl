@@ -463,20 +463,22 @@ let SnowlDatastore = {
    * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
    * @param aAuthorID    {string}  the author of the message
-   * @param aTimestamp   {Date}    the date/time at which the message was sent
+   * @param aTimestamp   {Date}    the date/time when the message was sent
+   * @param aReceived    {Date}    the date/time when the message was received
    * @param aLink        {nsIURI}  a link to the content of the message,
    *                               if the content is hosted on a server
    *
    * @returns {integer} the ID of the newly-created record
    */
-  insertMessage: function(aSourceID, aExternalID, aSubject, aAuthorID, aTimestamp, aLink) {
+  insertMessage: function(aSourceID, aExternalID, aSubject, aAuthorID, aTimestamp, aReceived, aLink) {
     this._insertMessageStatement.params.sourceID = aSourceID;
     this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
     this._insertMessageStatement.params.authorID = aAuthorID;
     let timestamp = aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null;
     this._insertMessageStatement.params.timestamp = timestamp;
-    this._insertMessageStatement.params.received = SnowlUtils.jsToJulianDate(new Date());
+    let received = aReceived ? SnowlUtils.jsToJulianDate(aReceived) : null;
+    this._insertMessageStatement.params.received = received;
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
 

@@ -572,7 +572,7 @@ this._log.info("_toggleRead: all? " + aAll);
     let order = (direction == "ascending" ? 1 : -1);
 
     // Perform the sort.
-    this._collection.sort(property, order);
+    this._collection.sort([property], order);
   }
 };
 

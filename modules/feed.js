@@ -271,7 +271,7 @@ SnowlFeed.prototype = {
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(feed, entry, externalID);
+        internalID = this._addMessage(feed, entry, externalID, this.lastRefreshed);
         currentMessageIDs.push(internalID);
       }
 
@@ -299,8 +299,9 @@ SnowlFeed.prototype = {
    * @param aFeed         {nsIFeed}       the feed
    * @param aEntry        {nsIFeedEntry}  the entry
    * @param aExternalID   {string}        the external ID of the entry
+   * @param aReceived     {Date}          when the message was received
    */
-  _addMessage: function(aFeed, aEntry, aExternalID) {
+  _addMessage: function(aFeed, aEntry, aExternalID, aReceived) {
     let authorID = null;
     let authors = (aEntry.authors.length > 0) ? aEntry.authors
                   : (aFeed.authors.length > 0) ? aFeed.authors
@@ -335,7 +336,7 @@ SnowlFeed.prototype = {
     // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
                                           aEntry.title.text, authorID,
-                                          timestamp, aEntry.link);
+                                          timestamp, aReceived, aEntry.link);
 
     // Add parts
     if (aEntry.content) {
@@ -456,14 +457,14 @@ SnowlFeed.prototype = {
    * @returns {integer} the internal ID of the newly-created message
    */
   addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
-                             aTimestamp, aLink) {
+                             aTimestamp, aReceived, aLink) {
     // Convert the link to its string spec, which is how we store it
     // in the datastore.
     let link = aLink ? aLink.spec : null;
 
     let messageID =
       SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthorID,
-                                   aTimestamp, link);
+                                   aTimestamp, aReceived, link);
 
     return messageID;
   },

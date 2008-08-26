@@ -363,7 +363,7 @@ SnowlTwitter.prototype = {
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(message);
+        internalID = this._addMessage(message, this.lastRefreshed);
         currentMessages.push(internalID);
       }
 
@@ -387,7 +387,7 @@ SnowlTwitter.prototype = {
     Observers.notify(this, "snowl:subscribe:get:end", null);
   },
 
-  _addMessage: function(message) {
+  _addMessage: function(message, aReceived) {
     // We store the message text as both the subject and the content so that
     // the content shows up in the Subject column of the list view.
     // FIXME: make the list view automatically display some of the content
@@ -409,7 +409,7 @@ SnowlTwitter.prototype = {
     let timestamp = new Date(message.created_at);
 
     // Add the message.
-    let messageID = this.addSimpleMessage(this.id, message.id, subject, authorID, timestamp, null);
+    let messageID = this.addSimpleMessage(this.id, message.id, subject, authorID, timestamp, aReceived, null);
 
     // Add the message's content.
     this.addPart(messageID, PART_TYPE_CONTENT, message.text, null, null, "text/plain");
@@ -457,21 +457,22 @@ SnowlTwitter.prototype = {
    * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
    * @param aAuthorID    {string}  the author of the message
-   * @param aTimestamp   {Date}    the date/time at which the message was sent
+   * @param aTimestamp   {Date}    the date/time when the message was sent
+   * @param aReceived    {Date}    the date/time when the message was received
    * @param aLink        {nsIURI}  a link to the content of the message,
    *                               if the content is hosted on a server
    *
    * @returns {integer} the internal ID of the newly-created message
    */
   addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
-                             aTimestamp, aLink) {
+                             aTimestamp, aReceived, aLink) {
     // Convert the link to its string spec, which is how we store it
     // in the datastore.
     let link = aLink ? aLink.spec : null;
 
     let messageID =
       SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthorID,
-                                   aTimestamp, link);
+                                   aTimestamp, aReceived, link);
 
     return messageID;
   },

@@ -79,6 +79,8 @@ function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
   this.groupHomeURLColumn = groupHomeURLColumn;
   this.groupIconURLColumn = groupIconURLColumn;
   this._filters = filters || [];
+
+  this.sortProperty = ["timestamp"];
 }
 
 SnowlCollection.prototype = {
@@ -229,7 +231,9 @@ SnowlCollection.prototype = {
   //**************************************************************************//
   // Retrieval
 
-  sortProperty: "timestamp",
+  // sortProperty gets set to its default value in the constructor
+  // since the default is an array which would be a singleton if defined here.
+  sortProperty: null,
   sortOrder: 1,
 
   _messages: null,
@@ -338,25 +342,22 @@ SnowlCollection.prototype = {
     return statement;
   },
 
-  sort: function(aProperty, aOrder) {
-    this.sortProperty = aProperty;
+  sort: function(aProperties, aOrder) {
+    this.sortProperty = aProperties;
     this.sortOrder = aOrder;
 
-    let compare = function(a, b) {
-      if (prepareObjectForComparison(a[aProperty]) >
-          prepareObjectForComparison(b[aProperty]))
-        return 1 * aOrder;
-      if (prepareObjectForComparison(a[aProperty]) <
-          prepareObjectForComparison(b[aProperty]))
-        return -1 * aOrder;
+    // Fall back on subject.
+    // XXX Should we let callers make this decision?
+    if (aProperties[aProperties.length - 1] != "subject")
+      aProperties.push("subject");
 
-      // Fall back on the "subject" aProperty.
-      if (aProperty != "subject") {
-        if (prepareObjectForComparison(a.subject) >
-            prepareObjectForComparison(b.subject))
+    let compare = function(a, b) {
+      for each (let property in aProperties) {
+        if (prepareObjectForComparison(a[property]) >
+            prepareObjectForComparison(b[property]))
           return 1 * aOrder;
-        if (prepareObjectForComparison(a.subject) <
-            prepareObjectForComparison(b.subject))
+        if (prepareObjectForComparison(a[property]) <
+            prepareObjectForComparison(b[property]))
           return -1 * aOrder;
       }
 
