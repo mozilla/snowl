@@ -317,8 +317,7 @@ let SnowlMessageView = {
 
     // Presumably here we could do messages.reverse(), which would be faster,
     // but can we be sure the messages started in the reverse of the new state?
-    this._collection.sort(this._collection.sortProperty,
-                          this._collection.sortOrder);
+    this._collection.sort();
     this.rebuildView();
     this._updateURI();
   },

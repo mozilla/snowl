@@ -232,7 +232,7 @@ SnowlCollection.prototype = {
   // Retrieval
 
   // sortProperty gets set to its default value in the constructor
-  // since the default is an array which would be a singleton if defined here.
+  // since the default is an array, which would be a singleton if defined here.
   sortProperty: null,
   sortOrder: 1,
 
@@ -265,7 +265,7 @@ SnowlCollection.prototype = {
       statement.reset();
     }
 
-    this.sort(this.sortProperty, this.sortOrder);
+    this.sort();
 
     // A bug in SQLite breaks relating a virtual table via a LEFT JOIN, so we
     // can't pull content with our initial query.  Instead we do it here.
@@ -342,23 +342,25 @@ SnowlCollection.prototype = {
     return statement;
   },
 
-  sort: function(aProperties, aOrder) {
-    this.sortProperty = aProperties;
-    this.sortOrder = aOrder;
+  sort: function() {
+    // Reflect these into local variables that the compare function closure
+    // can access.
+    let properties = this.sortProperty;
+    let order = this.sortOrder;
 
     // Fall back on subject.
     // XXX Should we let callers make this decision?
-    if (aProperties[aProperties.length - 1] != "subject")
-      aProperties.push("subject");
+    if (properties[properties.length - 1] != "subject")
+      properties.push("subject");
 
     let compare = function(a, b) {
-      for each (let property in aProperties) {
+      for each (let property in properties) {
         if (prepareObjectForComparison(a[property]) >
             prepareObjectForComparison(b[property]))
-          return 1 * aOrder;
+          return 1 * order;
         if (prepareObjectForComparison(a[property]) <
             prepareObjectForComparison(b[property]))
-          return -1 * aOrder;
+          return -1 * order;
       }
 
       // Return an inconclusive result.
