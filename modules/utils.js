@@ -55,5 +55,73 @@ let SnowlUtils = {
     // the non-integer result of the calculation, potentially resulting in
     // an off-by-one error.
     return new Date(Math.round((date - 2440587.5) * 86400 * 1000));
+  },
+
+  // Date Formatting Service
+  get _dfSvc() {
+    delete this._dfSvc;
+    return this._dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
+                         getService(Ci.nsIScriptableDateFormat);
+  },
+
+  /**
+   * Formats a date for human consumption using the date formatting service
+   * for locale-specific formatting along with some additional smarts for more
+   * human-readable representations of recent dates.
+   * @param date {Date} the date to format
+   * @returns a human-readable string representing the date
+   */
+  _formatDate: function(date) {
+    let result;
+
+    let now = new Date();
+
+    let today = new Date(now.getFullYear(), now.getMonth, now.getDate());
+
+    let yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    yesterday = new Date(yesterday.getFullYear(),
+                         yesterday.getMonth(),
+                         yesterday.getDate());
+
+    let sixDaysAgo = new Date(now - 6 * 24 * 60 * 60 * 1000);
+    sixDaysAgo = new Date(sixDaysAgo.getFullYear(),
+                          sixDaysAgo.getMonth(),
+                          sixDaysAgo.getDate());
+
+    if (date.toLocaleDateString() == now.toLocaleDateString())
+      result = this._dfSvc.FormatTime("",
+                                      this._dfSvc.timeFormatNoSeconds,
+                                      date.getHours(),
+                                      date.getMinutes(),
+                                      null);
+    else if (date > yesterday)
+      result = "Yesterday " + this._dfSvc.FormatTime("",
+                                                     this._dfSvc.timeFormatNoSeconds,
+                                                     date.getHours(),
+                                                     date.getMinutes(),
+                                                     null);
+    else if (date > sixDaysAgo)
+      result = this._dfSvc.FormatDateTime("",
+                                          this._dfSvc.dateFormatWeekday, 
+                                          this._dfSvc.timeFormatNoSeconds,
+                                          date.getFullYear(),
+                                          date.getMonth() + 1,
+                                          date.getDate(),
+                                          date.getHours(),
+                                          date.getMinutes(),
+                                          date.getSeconds());
+    else
+      result = this._dfSvc.FormatDateTime("",
+                                          this._dfSvc.dateFormatShort, 
+                                          this._dfSvc.timeFormatNoSeconds,
+                                          date.getFullYear(),
+                                          date.getMonth() + 1,
+                                          date.getDate(),
+                                          date.getHours(),
+                                          date.getMinutes(),
+                                          date.getSeconds());
+
+    return result;
   }
+
 };

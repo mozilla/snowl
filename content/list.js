@@ -34,14 +34,15 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Cu.import("resource://snowl/modules/service.js");
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/collection.js");
-
 // FIXME: import these into an object to avoid name collisions.
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/Preferences.js");
+
+Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/collection.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 let Snowl = {
   get _prefs() {
@@ -88,15 +89,6 @@ let SnowlMessageView = {
     delete this._obsSvc;
     this._obsSvc = obsSvc;
     return this._obsSvc;
-  },
-
-  // Date Formatting Service
-  get _dfSvc() {
-    let dfSvc = Cc["@mozilla.org/intl/scriptabledateformat;1"].
-                getService(Ci.nsIScriptableDateFormat);
-    delete this._dfSvc;
-    this._dfSvc = dfSvc;
-    return this._dfSvc;
   },
 
   // Atom Service
@@ -159,7 +151,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
       case "snowlSubjectCol":
         return this._collection.messages[aRow].subject;
       case "snowlTimestampCol":
-        return this._formatTimestamp(new Date(this._collection.messages[aRow].timestamp));
+        return SnowlUtils._formatDate(new Date(this._collection.messages[aRow].timestamp));
       default:
         return null;
     }
@@ -301,63 +293,6 @@ this._log.info("get rowCount: " + this._collection.messages.length);
 
     // Scroll back to the top of the tree.
     this._tree.boxObject.scrollToRow(this._tree.boxObject.getFirstVisibleRow());
-  },
-
-  // From toolkit/mozapps/update/content/history.js
-  // XXX Really? ^
-
-  /**
-   * Formats a timestamp for human consumption using the date formatting service
-   * for locale-specific formatting along with some additional smarts for more
-   * human-readable representations of recent timestamps.
-   * @param   {Date} the timestamp to format
-   * @returns a human-readable string
-   */
-  _formatTimestamp: function(aTimestamp) {
-    let formattedString;
-
-    let now = new Date();
-
-    let yesterday = new Date(now - 24 * 60 * 60 * 1000);
-    yesterday = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-
-    let sixDaysAgo = new Date(now - 6 * 24 * 60 * 60 * 1000);
-    sixDaysAgo = new Date(sixDaysAgo.getFullYear(), sixDaysAgo.getMonth(), sixDaysAgo.getDate());
-
-    if (aTimestamp.toLocaleDateString() == now.toLocaleDateString())
-      formattedString = this._dfSvc.FormatTime("",
-                                               this._dfSvc.timeFormatNoSeconds,
-                                               aTimestamp.getHours(),
-                                               aTimestamp.getMinutes(),
-                                               null);
-    else if (aTimestamp > yesterday)
-      formattedString = "Yesterday " + this._dfSvc.FormatTime("",
-                                                              this._dfSvc.timeFormatNoSeconds,
-                                                              aTimestamp.getHours(),
-                                                              aTimestamp.getMinutes(),
-                                                              null);
-    else if (aTimestamp > sixDaysAgo)
-      formattedString = this._dfSvc.FormatDateTime("",
-                                                   this._dfSvc.dateFormatWeekday, 
-                                                   this._dfSvc.timeFormatNoSeconds,
-                                                   aTimestamp.getFullYear(),
-                                                   aTimestamp.getMonth() + 1,
-                                                   aTimestamp.getDate(),
-                                                   aTimestamp.getHours(),
-                                                   aTimestamp.getMinutes(),
-                                                   aTimestamp.getSeconds());
-    else
-      formattedString = this._dfSvc.FormatDateTime("",
-                                                   this._dfSvc.dateFormatShort, 
-                                                   this._dfSvc.timeFormatNoSeconds,
-                                                   aTimestamp.getFullYear(),
-                                                   aTimestamp.getMonth() + 1,
-                                                   aTimestamp.getDate(),
-                                                   aTimestamp.getHours(),
-                                                   aTimestamp.getMinutes(),
-                                                   aTimestamp.getSeconds());
-
-    return formattedString;
   },
 
   switchPlacement: function() {
