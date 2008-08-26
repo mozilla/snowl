@@ -72,56 +72,61 @@ let SnowlUtils = {
    * @returns a human-readable string representing the date
    */
   _formatDate: function(date) {
-    let result;
-
+    let day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     let now = new Date();
+    let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    let today = new Date(now.getFullYear(), now.getMonth, now.getDate());
-
-    let yesterday = new Date(now - 24 * 60 * 60 * 1000);
+    let yesterday = new Date(now - 1000 * 60 * 60 * 24);
     yesterday = new Date(yesterday.getFullYear(),
                          yesterday.getMonth(),
                          yesterday.getDate());
 
-    let sixDaysAgo = new Date(now - 6 * 24 * 60 * 60 * 1000);
+    let sixDaysAgo = new Date(now - 1000 * 60 * 60 * 24 * 6);
     sixDaysAgo = new Date(sixDaysAgo.getFullYear(),
                           sixDaysAgo.getMonth(),
                           sixDaysAgo.getDate());
 
-    if (date.toLocaleDateString() == now.toLocaleDateString())
-      result = this._dfSvc.FormatTime("",
-                                      this._dfSvc.timeFormatNoSeconds,
+    // If it's in the future or more than six days in the past, format it
+    // as a full date/time string, i.e.: 2008-05-13 15:37:42.
+    if (day > today || day < sixDaysAgo)
+      return this._dfSvc.FormatDateTime("",
+                                        Ci.nsIScriptableDateFormat.dateFormatShort,
+                                        Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                        date.getFullYear(),
+                                        date.getMonth() + 1,
+                                        date.getDate(),
+                                        date.getHours(),
+                                        date.getMinutes(),
+                                        date.getSeconds());
+
+    // If it's today, only show the time.
+    if (day.getTime() == today.getTime())
+      return this._dfSvc.FormatTime("",
+                                    Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                    date.getHours(),
+                                    date.getMinutes(),
+                                    null);
+
+    // If it's yesterday, show "Yesterday" plus the time.
+    // FIXME: make this localizable.
+    if (day.getTime() == yesterday.getTime())
+      return "Yesterday " +
+             this._dfSvc.FormatTime("",
+                                    Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                    date.getHours(),
+                                    date.getMinutes(),
+                                    null);
+
+    // It's two to six days ago, so show the day of the week plus the time.
+    return this._dfSvc.FormatDateTime("",
+                                      Ci.nsIScriptableDateFormat.dateFormatWeekday, 
+                                      Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                      date.getFullYear(),
+                                      date.getMonth() + 1,
+                                      date.getDate(),
                                       date.getHours(),
                                       date.getMinutes(),
-                                      null);
-    else if (date > yesterday)
-      result = "Yesterday " + this._dfSvc.FormatTime("",
-                                                     this._dfSvc.timeFormatNoSeconds,
-                                                     date.getHours(),
-                                                     date.getMinutes(),
-                                                     null);
-    else if (date > sixDaysAgo)
-      result = this._dfSvc.FormatDateTime("",
-                                          this._dfSvc.dateFormatWeekday, 
-                                          this._dfSvc.timeFormatNoSeconds,
-                                          date.getFullYear(),
-                                          date.getMonth() + 1,
-                                          date.getDate(),
-                                          date.getHours(),
-                                          date.getMinutes(),
-                                          date.getSeconds());
-    else
-      result = this._dfSvc.FormatDateTime("",
-                                          this._dfSvc.dateFormatShort, 
-                                          this._dfSvc.timeFormatNoSeconds,
-                                          date.getFullYear(),
-                                          date.getMonth() + 1,
-                                          date.getDate(),
-                                          date.getHours(),
-                                          date.getMinutes(),
-                                          date.getSeconds());
-
-    return result;
+                                      date.getSeconds());
   }
 
 };
