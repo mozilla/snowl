@@ -310,14 +310,18 @@ let SnowlMessageView = {
       }
 
       // Timestamp
-      let lastUpdated = SnowlUtils._formatDate(new Date(message.timestamp));
-      if (lastUpdated) {
-        let timestamp = this._document.createElementNS(XUL_NS, "description");
-        timestamp.className = "timestamp";
-        timestamp.setAttribute("crop", "end");
-        timestamp.setAttribute("value", lastUpdated);
-        centerColumn.appendChild(timestamp);
-      }
+      // Commented out because the timestamp isn't that useful when we order
+      // by time received.  Instead, we're going to group by time period
+      // received (this morning, yesterday, last week, etc.) to give users
+      // useful chronographic info.
+      //let lastUpdated = SnowlUtils._formatDate(new Date(message.timestamp));
+      //if (lastUpdated) {
+      //  let timestamp = this._document.createElementNS(XUL_NS, "description");
+      //  timestamp.className = "timestamp";
+      //  timestamp.setAttribute("crop", "end");
+      //  timestamp.setAttribute("value", lastUpdated);
+      //  centerColumn.appendChild(timestamp);
+      //}
 
       // content (title or short message)
       let body = this._document.createElementNS(XUL_NS, "description");
