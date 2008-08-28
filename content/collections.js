@@ -85,7 +85,8 @@ let SourcesView = {
     // FIXME: disable this for names that can't be changed.
     this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
 
-    gMessageViewWindow.SnowlMessageView.onCollectionsLoaded();
+    if (gMessageViewWindow.SnowlMessageView.onCollectionsLoaded)
+      gMessageViewWindow.SnowlMessageView.onCollectionsLoaded();
   },
 
 
