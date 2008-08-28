@@ -69,7 +69,39 @@ let Snowl = {
     }
 
     this._prefs.set("lastVersion", this._version);
+  },
+
+  //**************************************************************************//
+  // Menu Popup Sharing
+
+  // The menu popup through which users can access Snowl commands is accessible
+  // from both a menu item in the Tools menu and a statusbar button.  This code
+  // shares the same popup between those two elements so we don't have to
+  // duplicate the popup code.
+
+  onStatusbarButtonMouseDown: function(event) {
+    let menuPopup = document.getElementById('snowlMenuPopup');
+    let statusbarButton = document.getElementById("snowlStatusbarButton");
+
+    // If the menu popup isn't on the statusbar button, then move the popup
+    // onto the button so the popup appears when the user clicks the button.
+    // We'll move the popup back to the Tools > Snowl menu when the popup hides.
+    if (menuPopup.parentNode != statusbarButton)
+      statusbarButton.appendChild(menuPopup);
+  },
+
+  onPopupHiding: function() {
+    let menuPopup = document.getElementById("snowlMenuPopup");
+    let menu = document.getElementById("snowlMenu");
+
+    // If the menu popup isn't on the Tools > Snowl menu, then move the popup
+    // back onto that menu so the popup appears when the user selects the menu.
+    // We'll move the popup back to the statusbar button when the user clicks
+    // on that button.
+    if (menuPopup.parentNode != menu)
+      menu.appendChild(menuPopup);
   }
+
 };
 
 Cu.import("resource://snowl/modules/Preferences.js", Snowl);

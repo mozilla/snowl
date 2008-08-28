@@ -41,46 +41,52 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlBrowserOverlay">
 
-  <script type="application/javascript" src="chrome://snowl/content/.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/browser.js"/>
 
   <menupopup id="viewSidebarMenu">
-    <menuitem observes="viewSnowlStream"/>
-  </menupopup>
-
-  <menupopup id="menu_viewPopup">
-    <!-- Since these both get inserted after viewSidebarMenuMenu, they appear
-       - in the reverse of the order below. -->
-    <menuitem insertafter="viewSidebarMenuMenu"
-              label="&riverView.label;" accesskey="&riverView.accesskey;"
-              oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
-
-    <menuitem observes="viewSnowlSidebar" insertafter="viewSidebarMenuMenu"
-              accesskey="&listView.accesskey;"/>
+    <menuitem observes="viewSnowlList" label="&listViewSidebarMenuItem.label;"
+              accesskey="&listViewSidebarMenuItem.accesskey;"/>
+    <menuitem observes="viewSnowlStream" label="&streamViewSidebarMenuItem.label;"
+              accesskey="&streamViewSidebarMenuItem.accesskey;"/>
   </menupopup>
 
   <broadcasterset id="mainBroadcasterSet"> 
-    <broadcaster id="viewSnowlSidebar"
-                 label="&listView.label;"
+    <broadcaster id="viewSnowlList"
                  autoCheck="false"
                  type="checkbox"
                  group="sidebar"
-                 sidebarurl="chrome://snowl/content/sidebar.xul"
-                 sidebartitle="&sidebar.label;"
-                 oncommand="toggleSidebar('viewSnowlSidebar')"/>
+                 sidebarurl="chrome://snowl/content/list-sidebar.xul"
+                 sidebartitle="&listViewSidebar.label;"
+                 oncommand="toggleSidebar('viewSnowlList')"/>
     <broadcaster id="viewSnowlStream"
-                 label="&streamView.label;"
                  autoCheck="false"
                  type="checkbox"
                  group="sidebar"
                  sidebarurl="chrome://snowl/content/stream.xul"
-                 sidebartitle="&streamSidebar.label;"
+                 sidebartitle="&streamViewSidebar.label;"
                  oncommand="toggleSidebar('viewSnowlStream')"/>
   </broadcasterset>
 
+  <menupopup id="menu_ToolsPopup">
+    <menu id="snowlMenu" class="menu-iconic" label="&snowlMenu.label;"
+          image="chrome://snowl/content/icons/snowl-16.jpg"
+          accesskey="&snowlMenu.accesskey;" insertafter="menu_openAddons">
+      <menupopup id="snowlMenuPopup" onpopuphiding="Snowl.onPopupHiding()">
+        <menuitem observes="viewSnowlList" label="&listView.label;"
+                  accesskey="&listView.accesskey;"/>
+        <menuitem label="&riverView.label;" accesskey="&riverView.accesskey;"
+                  oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
+        <menuitem observes="viewSnowlStream" label="&streamView.label;"
+                  accesskey="&streamView.accesskey;"/>
+      </menupopup>
+    </menu>
+  </menupopup>
+
   <statusbar id="status-bar">
-    <statusbarpanel id="snowl-button" class="statusbarpanel-menu-iconic"
+    <statusbarpanel id="snowlStatusbarButton" class="statusbarpanel-menu-iconic"
                     insertbefore="statusbar-display"
-                    onmousedown="PersonaController.onMenuButtonMouseDown();">
+                    src="chrome://snowl/content/icons/snowl-16.jpg"
+                    onmousedown="Snowl.onStatusbarButtonMouseDown()">
     </statusbarpanel>
   </statusbar>
 
