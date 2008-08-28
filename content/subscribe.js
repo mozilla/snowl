@@ -147,9 +147,9 @@ let Subscriber = {
       document.getElementById("locationTextbox").value = params.feed;
       this.subscribeFeed();
     }
-    else if (params.page) {
+    else if (params.tab) {
       let tabbox = document.getElementById("tabbox");
-      switch (params.page) {
+      switch (params.tab) {
         // The feed tab is selected by default.
         case "twitter":
           tabbox.selectedTab = document.getElementById("twitterTab");

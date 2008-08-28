@@ -34,11 +34,13 @@
 
           <ol>
             <li>Subscribe to feeds from the feed preview page.</li>
-            <li><a href="chrome://snowl/content/subscribe.xul?page=twitter">Subscribe to Twitter</a>.</li>
-            <li><a href="chrome://snowl/content/subscribe.xul?page=opml">Import OPML</a>.</li>
+            <li><a href="chrome://snowl/content/subscribe.xul?tab=twitter">Subscribe to Twitter</a>.</li>
+            <li><a href="chrome://snowl/content/subscribe.xul?tab=opml">Import OPML</a>.</li>
             <li>Read messages in the
-                <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlSidebar')">list view</a>
-                or the <a href="chrome://snowl/content/river.xul">river view</a>.
+                <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlList')">list</a>,
+                <a href="chrome://snowl/content/river.xul">river</a>, or
+                <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlStream')">stream</a>
+                views.
             </li>
           </ol>
 
