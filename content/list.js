@@ -44,41 +44,6 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-let Snowl = {
-  get _prefs() {
-    delete this._prefs;
-    return this._prefs = new Preferences("extensions.snowl.");
-  },
-
-  get _version() {
-    let em = Cc["@mozilla.org/extensions/manager;1"].
-             getService(Ci.nsIExtensionManager);
-    let addon = em.getItemForID("snowl@mozilla.org");
-    delete this._version;
-    return this._version = addon.version;
-  },
-
-  init: function() {
-    let lastVersion = this._prefs.get("lastVersion");
-
-    if (!lastVersion) {
-      let url = "chrome://snowl/content/firstrun.html";
-      setTimeout(function() { window.openUILinkIn(url, "tab") }, 500);
-    }
-    else if (lastVersion != this._version) {
-      // We don't use this code yet because we haven't yet set up update.html
-      // to properly list changes yet.
-      // FIXME: make this work.
-      //let url = "chrome://snowl/content/update.html?old=" + lastVersion +
-      //          "&new=" + this._version;
-      //setTimeout(function() { window.openUILinkIn(url, "tab"); }, 500);
-    }
-
-    this._prefs.set("lastVersion", this._version);
-  }
-};
-
-
 let SnowlMessageView = {
   _log: null,
 
@@ -513,5 +478,4 @@ this._log.info("_toggleRead: all? " + aAll);
   }
 };
 
-window.addEventListener("load", function() { Snowl.init() }, false);
 window.addEventListener("load", function() { SnowlMessageView.init() }, false);

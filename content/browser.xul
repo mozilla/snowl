@@ -41,6 +41,8 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlBrowserOverlay">
 
+  <script type="application/javascript" src="chrome://snowl/content/browser.js"/>
+
   <menupopup id="viewSidebarMenu">
     <menuitem observes="viewSnowlStream"/>
   </menupopup>
