@@ -248,7 +248,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   _rebuildView: function() {
     // Clear the selection before we rebuild the view, since it won't apply
     // to the new data.
-    this._tree.view.selection.clearSelection();
+    this._tree.view.selection.select(-1);
 
     // Since the number of rows might have changed, we rebuild the view
     // by reinitializing it instead of merely invalidating the box object
