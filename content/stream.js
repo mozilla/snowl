@@ -341,6 +341,8 @@ let SnowlMessageView = {
       else {
         // Split the text into its plaintext and URL parts, which alternate
         // in the array of results, with the first part always being plaintext.
+        // FIXME: turn this whole block into a function that other views
+        // can use.
         let parts = subject.split(this._linkifyRegex);
         for (let i = 0; i < parts.length; i++) {
           if (i % 2 == 0)
