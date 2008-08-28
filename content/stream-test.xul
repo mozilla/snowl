@@ -78,13 +78,13 @@
     <vbox class="centerColumn">
       <description class="author" crop="end" value="Myk Melez"/>
       <description class="timestamp" value="2 hours ago"/>
-      <description class="body text-link">
+      <description class="body">
         <html:div style="width: 150px">
-          <html:a>
             foo
+          <html:a href="http://www.example.com">
             Zebrastuffingaloshesantaclaus.
-            bar
           </html:a>
+            bar
         </html:div>
       </description>
     </vbox>
