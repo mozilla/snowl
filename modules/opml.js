@@ -44,6 +44,10 @@ Cu.import("resource://snowl/modules/source.js");
 let EXPORTED_SYMBOLS = ["SnowlOPML"];
 
 let SnowlOPML = {
+  //**************************************************************************//
+  // OPML Export
+  // Based on code in Thunderbird's feed-subscriptions.js.
+
   export: function(window) {
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     // FIXME: make this string localizable.

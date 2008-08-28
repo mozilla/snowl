@@ -69,7 +69,7 @@
                      tooltiptext="&refreshButton.tooltip;"/>
       <toolbarbutton id="snowlExportOPMLButton"
                      image="chrome://snowl/content/icons/opml-icon-16x16.png"
-                     oncommand="SourcesView.exportOPML()"
+                     oncommand="SourcesView.onExportOPML()"
                      tooltiptext="&exportButton.tooltip;"/>
     </toolbar>
   </vbox>
