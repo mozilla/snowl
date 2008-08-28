@@ -15,6 +15,16 @@
 <!ENTITY streamView.label                     "Stream">
 <!ENTITY streamView.accesskey                 "t">
 
+<!ENTITY checkForNewMessages.label            "Check for New Messages">
+<!ENTITY checkForNewMessages.accesskey        "c">
+
+<!ENTITY subscribe.label                      "Subscribe...">
+<!ENTITY subscribe.accesskey                  "s">
+<!ENTITY importOPML.label                     "Import OPML...">
+<!ENTITY importOPML.accesskey                 "i">
+<!ENTITY exportOPML.label                     "Export OPML...">
+<!ENTITY exportOPML.accesskey                 "x">
+
 
 <!-- These labels and access keys are for items in the View > Sidebar menu,
    - where the user needs more context that these are for Snowl commands,

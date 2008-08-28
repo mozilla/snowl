@@ -75,9 +75,20 @@
         <menuitem observes="viewSnowlList" label="&listView.label;"
                   accesskey="&listView.accesskey;"/>
         <menuitem label="&riverView.label;" accesskey="&riverView.accesskey;"
-                  oncommand="gBrowser.selectedTab = gBrowser.addTab('chrome://snowl/content/river.xul')"/>
+                  oncommand="Snowl.onRiverView()"/>
         <menuitem observes="viewSnowlStream" label="&streamView.label;"
                   accesskey="&streamView.accesskey;"/>
+        <menuseparator/>
+        <menuitem label="&checkForNewMessages.label;"
+                  accesskey="&checkForNewMessages.accesskey;"
+                  oncommand="Snowl.onCheckForNewMessages()"/>
+        <menuseparator/>
+        <menuitem label="&subscribe.label;" accesskey="&subscribe.accesskey;"
+                  oncommand="Snowl.onSubscribe()"/>
+        <menuitem label="&importOPML.label;" accesskey="&importOPML.accesskey;"
+                  oncommand="Snowl.onImportOPML()"/>
+        <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
+                  oncommand="Snowl.onExportOPML()"/>
       </menupopup>
     </menu>
   </menupopup>

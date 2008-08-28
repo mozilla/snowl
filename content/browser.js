@@ -34,6 +34,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/opml.js");
+
 let Snowl = {
   // The Preferences service that is imported from the Preferences module below.
   // XXX Could we import it lazily when this property is first accessed?
@@ -100,6 +103,32 @@ let Snowl = {
     // on that button.
     if (menuPopup.parentNode != menu)
       menu.appendChild(menuPopup);
+  },
+
+
+  //**************************************************************************//
+  // Event Handlers
+
+  onRiverView: function() {
+    gBrowser.selectedTab = gBrowser.addTab("chrome://snowl/content/river.xul");
+  },
+
+  onCheckForNewMessages: function() {
+    SnowlService.refreshAllSources();
+  },
+
+  onSubscribe: function() {
+    gBrowser.selectedTab =
+      gBrowser.addTab("chrome://snowl/content/subscribe.xul");
+  },
+
+  onImportOPML: function() {
+    gBrowser.selectedTab =
+      gBrowser.addTab("chrome://snowl/content/subscribe.xul?tab=opml");
+  },
+
+  onExportOPML: function() {
+    SnowlOPML.export(window);
   }
 
 };
