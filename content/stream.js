@@ -39,9 +39,14 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that come with Firefox
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// modules that should come with Firefox
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
 
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -77,6 +82,15 @@ let SnowlMessageView = {
     delete this._faviconSvc;
     this._faviconSvc = faviconSvc;
     return this._faviconSvc;
+  },
+
+  // Observer Service
+  get _obsSvc() {
+    let obsSvc = Cc["@mozilla.org/observer-service;1"].
+                 getService(Ci.nsIObserverService);
+    delete this._obsSvc;
+    this._obsSvc = obsSvc;
+    return this._obsSvc;
   },
 
   _window: null,
@@ -124,11 +138,19 @@ let SnowlMessageView = {
     return this._linkifyRegex = regex;
   },
 
+  // nsISupports
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver,
+                                         Ci.nsISupportsWeakReference]),
+
 
   //**************************************************************************//
   // Initialization & Destruction
 
   onLoad: function() {
+    // FIXME: listen for messages added and then insert those messages
+    // into the view rather than rebuilding the whole view.
+    this._obsSvc.addObserver(this, "messages:changed", true);
+
     this.onResize();
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
@@ -146,7 +168,16 @@ let SnowlMessageView = {
 
 
   //**************************************************************************//
-  // Event Handlers
+  // Event & Notification Handlers
+
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "messages:changed":
+        this._onMessagesChanged();
+        break;
+    }
+  },
 
   /**
    * Resize the content in the middle column based on the width of the viewport.
@@ -159,6 +190,14 @@ let SnowlMessageView = {
     // XXX Why do we have to subtract *double* the width of the scrollbar???
     let width = window.innerWidth - (this.scrollbarWidth * 2) - 24 - 16;
     this._updateRule(0, ".body > * { width: " + width + "px }");
+  },
+
+  _onMessagesChanged: function() {
+    // FIXME: make the collection listen for message changes and invalidate
+    // itself, then rebuild the view in a timeout to give the collection time
+    // to do so.
+    this._collection.invalidate();
+    this._rebuildView();
   },
 
 

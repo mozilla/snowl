@@ -41,7 +41,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlBrowserOverlay">
 
-  <script type="application/javascript" src="chrome://snowl/content/browser.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/.js"/>
 
   <menupopup id="viewSidebarMenu">
     <menuitem observes="viewSnowlStream"/>
@@ -76,5 +76,12 @@
                  sidebartitle="&streamSidebar.label;"
                  oncommand="toggleSidebar('viewSnowlStream')"/>
   </broadcasterset>
+
+  <statusbar id="status-bar">
+    <statusbarpanel id="snowl-button" class="statusbarpanel-menu-iconic"
+                    insertbefore="statusbar-display"
+                    onmousedown="PersonaController.onMenuButtonMouseDown();">
+    </statusbarpanel>
+  </statusbar>
 
 </overlay>
