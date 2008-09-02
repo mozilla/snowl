@@ -45,6 +45,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 // modules that should come with Firefox
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/Observers.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
@@ -147,9 +148,7 @@ let SnowlMessageView = {
   // Initialization & Destruction
 
   onLoad: function() {
-    // FIXME: listen for messages added and then insert those messages
-    // into the view rather than rebuilding the whole view.
-    this._obsSvc.addObserver(this, "messages:changed", true);
+    Observers.add(this, "snowl:message:added");
 
     this.onResize();
 
@@ -163,7 +162,7 @@ let SnowlMessageView = {
     this._collection.sortProperties = ["received"];
     this._collection.sortOrder = -1;
     this._collection.sort();
-    this.rebuildView();
+    this._rebuildView();
   },
 
 
@@ -173,8 +172,8 @@ let SnowlMessageView = {
   // nsIObserver
   observe: function(subject, topic, data) {
     switch (topic) {
-      case "messages:changed":
-        this._onMessagesChanged();
+      case "snowl:message:added":
+        this._onMessageAdded(subject);
         break;
     }
   },
@@ -192,12 +191,15 @@ let SnowlMessageView = {
     this._updateRule(0, ".body > * { width: " + width + "px }");
   },
 
-  _onMessagesChanged: function() {
-    // FIXME: make the collection listen for message changes and invalidate
-    // itself, then rebuild the view in a timeout to give the collection time
-    // to do so.
-    this._collection.invalidate();
-    this._rebuildView();
+  _onMessageAdded: function(message) {
+    this._contentSandbox.messages = this._document.getElementById("contentBox");
+    this._contentSandbox.messageBox = this._buildMessageView(message);
+
+    let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
+    Cu.evalInSandbox(codeStr, this._contentSandbox);
+
+    this._contentSandbox.messages = null;
+    this._contentSandbox.messageBox = null;
   },
 
 
@@ -295,7 +297,7 @@ let SnowlMessageView = {
     yield this._rebuildViewFuture.result();
   }),
 
-  rebuildView: strand(function() {
+  _rebuildView: strand(function() {
     let begin = new Date();
 
     let contentBox = this._document.getElementById("contentBox");
@@ -315,105 +317,7 @@ let SnowlMessageView = {
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
-      let messageBox = this._document.createElementNS(XUL_NS, "hbox");
-      messageBox.className = "message";
-      messageBox.setAttribute("index", i);
-
-      // left column
-      let leftColumn = this._document.createElementNS(XUL_NS, "vbox");
-      leftColumn.className = "leftColumn";
-      let icon = document.createElementNS(XUL_NS, "image");
-      icon.className = "icon";
-      if (message.authorIcon) {
-        icon.setAttribute("src", message.authorIcon);
-      }
-      else {
-        let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
-        icon.setAttribute("src", this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec);
-      }
-      leftColumn.appendChild(icon);
-      messageBox.appendChild(leftColumn);
-
-      // center column
-      let centerColumn = this._document.createElementNS(XUL_NS, "vbox");
-      centerColumn.className = "centerColumn";
-      messageBox.appendChild(centerColumn);
-
-      // Author or Source
-      if (message.author || message.source) {
-        let desc = this._document.createElementNS(XUL_NS, "description");
-        desc.className = "author";
-        desc.setAttribute("crop", "end");
-        desc.setAttribute("value", message.author || message.source.name);
-        centerColumn.appendChild(desc);
-      }
-
-      // Timestamp
-      // Commented out because the timestamp isn't that useful when we order
-      // by time received.  Instead, we're going to group by time period
-      // received (this morning, yesterday, last week, etc.) to give users
-      // useful chronographic info.
-      //let lastUpdated = SnowlUtils._formatDate(new Date(message.timestamp));
-      //if (lastUpdated) {
-      //  let timestamp = this._document.createElementNS(XUL_NS, "description");
-      //  timestamp.className = "timestamp";
-      //  timestamp.setAttribute("crop", "end");
-      //  timestamp.setAttribute("value", lastUpdated);
-      //  centerColumn.appendChild(timestamp);
-      //}
-
-      // content (title or short message)
-      let body = this._document.createElementNS(XUL_NS, "description");
-      body.className = "body";
-      let div = this._document.createElementNS(HTML_NS, "div");
-      let a = this._document.createElementNS(HTML_NS, "a");
-      // FIXME: make this localizable.
-      let subject = message.subject || "empty message";
-
-      if (message.link) {
-        let a = this._document.createElementNS(HTML_NS, "a");
-        this._unsafeSetURIAttribute(a, "href", message.link);
-        body.className += " text-link";
-        a.appendChild(this._document.createTextNode(subject));
-        div.appendChild(a);
-      }
-      else {
-        // Split the text into its plaintext and URL parts, which alternate
-        // in the array of results, with the first part always being plaintext.
-        // FIXME: turn this whole block into a function that other views
-        // can use.
-        let parts = subject.split(this._linkifyRegex);
-        for (let i = 0; i < parts.length; i++) {
-          if (i % 2 == 0)
-            div.appendChild(this._document.createTextNode(parts[i]));
-          else {
-            let a = this._document.createElementNS(HTML_NS, "a");
-            this._unsafeSetURIAttribute(a, "href", parts[i]);
-            a.appendChild(this._document.createTextNode(parts[i]));
-            div.appendChild(a);
-          }
-        }
-      }
-
-      body.appendChild(div);
-      centerColumn.appendChild(body);
-
-      // Source
-      //let source = this._document.createElementNS(HTML_NS, "a");
-      //source.className = "source";
-      //let sourceIcon = document.createElementNS(HTML_NS, "img");
-      //let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
-      //sourceIcon.src = this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec;
-      //source.appendChild(sourceIcon);
-      //source.appendChild(this._document.createTextNode(message.source.name));
-      //if (message.source.humanURI)
-      //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
-      //centerColumn.appendChild(source);
-
-      // right column
-      let rightColumn = this._document.createElementNS(XUL_NS, "vbox");
-      rightColumn.className = "rightColumn";
-      messageBox.appendChild(rightColumn);
+      let messageBox = this._buildMessageView(message);
 
       this._contentSandbox.messageBox = messageBox;
 
@@ -434,6 +338,109 @@ let SnowlMessageView = {
     //let serializer = Cc["@mozilla.org/xmlextras/xmlserializer;1"].
     //                 createInstance(Ci.nsIDOMSerializer);
     //this._log.info(serializer.serializeToString(document.getElementById("contentBox")));
-  })
+  }),
+
+  _buildMessageView: function(message) {
+    let messageBox = this._document.createElementNS(XUL_NS, "hbox");
+    messageBox.className = "message";
+
+    // left column
+    let leftColumn = this._document.createElementNS(XUL_NS, "vbox");
+    leftColumn.className = "leftColumn";
+    let icon = document.createElementNS(XUL_NS, "image");
+    icon.className = "icon";
+    if (message.authorIcon) {
+      icon.setAttribute("src", message.authorIcon);
+    }
+    else {
+      let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
+      icon.setAttribute("src", this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec);
+    }
+    leftColumn.appendChild(icon);
+    messageBox.appendChild(leftColumn);
+
+    // center column
+    let centerColumn = this._document.createElementNS(XUL_NS, "vbox");
+    centerColumn.className = "centerColumn";
+    messageBox.appendChild(centerColumn);
+
+    // Author or Source
+    if (message.author || message.source) {
+      let desc = this._document.createElementNS(XUL_NS, "description");
+      desc.className = "author";
+      desc.setAttribute("crop", "end");
+      desc.setAttribute("value", message.author || message.source.name);
+      centerColumn.appendChild(desc);
+    }
+
+    // Timestamp
+    // Commented out because the timestamp isn't that useful when we order
+    // by time received.  Instead, we're going to group by time period
+    // received (this morning, yesterday, last week, etc.) to give users
+    // useful chronographic info.
+    //let lastUpdated = SnowlUtils._formatDate(new Date(message.timestamp));
+    //if (lastUpdated) {
+    //  let timestamp = this._document.createElementNS(XUL_NS, "description");
+    //  timestamp.className = "timestamp";
+    //  timestamp.setAttribute("crop", "end");
+    //  timestamp.setAttribute("value", lastUpdated);
+    //  centerColumn.appendChild(timestamp);
+    //}
+
+    // content (title or short message)
+    let body = this._document.createElementNS(XUL_NS, "description");
+    body.className = "body";
+    let div = this._document.createElementNS(HTML_NS, "div");
+    let a = this._document.createElementNS(HTML_NS, "a");
+    // FIXME: make this localizable.
+    let subject = message.subject || "empty message";
+
+    if (message.link) {
+      let a = this._document.createElementNS(HTML_NS, "a");
+      this._unsafeSetURIAttribute(a, "href", message.link);
+      body.className += " text-link";
+      a.appendChild(this._document.createTextNode(subject));
+      div.appendChild(a);
+    }
+    else {
+      // Split the text into its plaintext and URL parts, which alternate
+      // in the array of results, with the first part always being plaintext.
+      // FIXME: turn this whole block into a function that other views
+      // can use.
+      let parts = subject.split(this._linkifyRegex);
+      for (let i = 0; i < parts.length; i++) {
+        if (i % 2 == 0)
+          div.appendChild(this._document.createTextNode(parts[i]));
+        else {
+          let a = this._document.createElementNS(HTML_NS, "a");
+          this._unsafeSetURIAttribute(a, "href", parts[i]);
+          a.appendChild(this._document.createTextNode(parts[i]));
+          div.appendChild(a);
+        }
+      }
+    }
+
+    body.appendChild(div);
+    centerColumn.appendChild(body);
+
+    // Source
+    //let source = this._document.createElementNS(HTML_NS, "a");
+    //source.className = "source";
+    //let sourceIcon = document.createElementNS(HTML_NS, "img");
+    //let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
+    //sourceIcon.src = this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec;
+    //source.appendChild(sourceIcon);
+    //source.appendChild(this._document.createTextNode(message.source.name));
+    //if (message.source.humanURI)
+    //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
+    //centerColumn.appendChild(source);
+
+    // right column
+    let rightColumn = this._document.createElementNS(XUL_NS, "vbox");
+    rightColumn.className = "rightColumn";
+    messageBox.appendChild(rightColumn);
+
+    return messageBox;
+  }
 
 };

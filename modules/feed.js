@@ -54,6 +54,7 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
+Cu.import("resource://snowl/modules/message.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -405,6 +406,8 @@ SnowlFeed.prototype = {
       else
         this._addMetadatum(messageID, field.name, field.value);
     }
+
+    Observers.notify(SnowlMessage.get(messageID), "snowl:message:added", null);
 
     return messageID;
   },
