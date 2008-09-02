@@ -202,7 +202,11 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // itself, then rebuild the view in a timeout to give the collection time
     // to do so.
     this._collection.invalidate();
-    this._rebuildView();
+
+    // Don't rebuild the view if the list view hasn't been made visible yet
+    // (in which case the tree won't yet have a view property).
+    if (this._tree.view)
+      this._rebuildView();
   },
 
   onFilter: function() {
