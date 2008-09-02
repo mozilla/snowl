@@ -46,7 +46,8 @@
       title="&page.title;"
       onload="SnowlMessageView.onLoad()"
       onclick="return window.parent.contentAreaClick(event, true);"
-      onresize="SnowlMessageView.onResize()">
+      onresize="try { SnowlMessageView.onResize() }
+                catch(ex) { /* before script loaded */ }">
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
