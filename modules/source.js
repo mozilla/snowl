@@ -43,6 +43,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 function SnowlSource(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   this.id = aID;
@@ -77,7 +78,7 @@ SnowlSource.get = function(aID) {
                              this._getStatement.row.name,
                              URI.get(this._getStatement.row.machineURI),
                              URI.get(this._getStatement.row.humanURI),
-                             new Date(this._getStatement.row.lastRefreshed),
+                             SnowlUtils.julianToJSDate(this._getStatement.row.lastRefreshed),
                              this._getStatement.row.importance);
   }
   finally {
@@ -130,7 +131,7 @@ SnowlSource.prototype = {
     let stmt = SnowlDatastore.createStatement("UPDATE sources " +
                                               "SET lastRefreshed = :lastRefreshed " +
                                               "WHERE id = :id");
-    stmt.params.lastRefreshed = this._lastRefreshed.getTime();
+    stmt.params.lastRefreshed = SnowlUtils.jsToJulianDate(this._lastRefreshed);
     stmt.params.id = this.id;
     stmt.execute();
   },

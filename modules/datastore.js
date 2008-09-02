@@ -41,8 +41,6 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://snowl/modules/utils.js");
-
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
 
@@ -60,7 +58,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 4,
+  _dbVersion: 5,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -86,7 +84,7 @@ let SnowlDatastore = {
           // locations, not names (and thus never URNs)?
           "machineURI TEXT NOT NULL",
           "humanURI TEXT",
-          "lastRefreshed INTEGER",
+          "lastRefreshed REAL",
           "importance INTEGER"
         ]
       },
@@ -391,16 +389,20 @@ let SnowlDatastore = {
    * Thus migrating the database is as simple as constructing the schema as if
    * from scratch.
    */
-  _dbMigrate0To2: function(aDBConnection) {
+  _dbMigrate0To5: function(aDBConnection) {
     this._dbCreateTables(aDBConnection);
   },
 
-  _dbMigrate2To3: function(aDBConnection) {
-    aDBConnection.executeSimpleSQL("ALTER TABLE messages ADD COLUMN current BOOLEAN");
-  },
-
-  _dbMigrate3To4: function(aDBConnection) {
-    aDBConnection.executeSimpleSQL("ALTER TABLE messages ADD COLUMN read BOOLEAN");
+  _dbMigrate4To5: function(aDBConnection) {
+    aDBConnection.executeSimpleSQL(
+      "UPDATE sources SET lastRefreshed = lastRefreshed / 1000 / 86400 + 2440587.5"
+    );
+    aDBConnection.executeSimpleSQL(
+      "UPDATE messages SET timestamp = timestamp / 1000 / 86400 + 2440587.5"
+    );
+    aDBConnection.executeSimpleSQL(
+      "ALTER TABLE messages ADD COLUMN received REAL"
+    );
   },
 
   get _selectHasMessageStatement() {
@@ -463,9 +465,9 @@ let SnowlDatastore = {
    * @param aExternalID  {string}  the external ID of the message
    * @param aSubject     {string}  the title of the message
    * @param aAuthorID    {string}  the author of the message
-   * @param aTimestamp   {Date}    the date/time when the message was sent
-   * @param aReceived    {Date}    the date/time when the message was received
-   * @param aLink        {nsIURI}  a link to the content of the message,
+   * @param aTimestamp   {real}    the Julian date when the message was sent
+   * @param aReceived    {real}    the Julian date when the message was received
+   * @param aLink        {string}  a link to the content of the message,
    *                               if the content is hosted on a server
    *
    * @returns {integer} the ID of the newly-created record
@@ -475,12 +477,8 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
     this._insertMessageStatement.params.authorID = aAuthorID;
-    // FIXME: this method is too low-level to be in charge of massaging data;
-    // make its callers convert the date values to Julian Dates or null values.
-    let timestamp = aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null;
-    this._insertMessageStatement.params.timestamp = timestamp;
-    let received = aReceived ? SnowlUtils.jsToJulianDate(aReceived) : null;
-    this._insertMessageStatement.params.received = received;
+    this._insertMessageStatement.params.timestamp = aTimestamp;
+    this._insertMessageStatement.params.received = aReceived;
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
 

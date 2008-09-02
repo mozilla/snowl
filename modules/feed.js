@@ -55,6 +55,7 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -330,9 +331,10 @@ SnowlFeed.prototype = {
     // XXX Should we separately record when we added the entry so that the user
     // can sort in the "order received" and view "when received" separately from
     // "when published/updated"?
-    let timestamp = aEntry.updated ? new Date(aEntry.updated) :
-                    aEntry.published ? new Date(aEntry.published) :
-                    ISO8601DateUtils.parse(aEntry.get("dc:date"));
+    let timestamp =   aEntry.updated        ? new Date(aEntry.updated)
+                    : aEntry.published      ? new Date(aEntry.published)
+                    : aEntry.get("dc:date") ? ISO8601DateUtils.parse(aEntry.get("dc:date"))
+                    : null;
 
     // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
@@ -461,13 +463,14 @@ SnowlFeed.prototype = {
    */
   addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
                              aTimestamp, aReceived, aLink) {
-    // Convert the link to its string spec, which is how we store it
-    // in the datastore.
-    let link = aLink ? aLink.spec : null;
-
     let messageID =
-      SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthorID,
-                                   aTimestamp, aReceived, link);
+      SnowlDatastore.insertMessage(aSourceID,
+                                   aExternalID,
+                                   aSubject,
+                                   aAuthorID,
+                                   aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null,
+                                   SnowlUtils.jsToJulianDate(aReceived),
+                                   aLink ? aLink.spec : null);
 
     return messageID;
   },

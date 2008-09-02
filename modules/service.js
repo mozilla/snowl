@@ -48,6 +48,7 @@ Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 const PERMS_FILE      = 0644;
 const PERMS_DIRECTORY = 0755;
@@ -231,7 +232,7 @@ let SnowlService = {
                                      row.name,
                                      URI.get(row.machineURI),
                                      URI.get(row.humanURI),
-                                     new Date(row.lastRefreshed),
+                                     SnowlUtils.julianToJSDate(row.lastRefreshed),
                                      row.importance));
       }
     }

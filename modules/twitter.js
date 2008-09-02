@@ -50,11 +50,12 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
-// Snowl-specific modules
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -472,13 +473,14 @@ SnowlTwitter.prototype = {
    */
   addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
                              aTimestamp, aReceived, aLink) {
-    // Convert the link to its string spec, which is how we store it
-    // in the datastore.
-    let link = aLink ? aLink.spec : null;
-
     let messageID =
-      SnowlDatastore.insertMessage(aSourceID, aExternalID, aSubject, aAuthorID,
-                                   aTimestamp, aReceived, link);
+      SnowlDatastore.insertMessage(aSourceID,
+                                   aExternalID,
+                                   aSubject,
+                                   aAuthorID,
+                                   aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null,
+                                   SnowlUtils.jsToJulianDate(aReceived),
+                                   aLink ? aLink.spec : null);
 
     return messageID;
   },
