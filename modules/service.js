@@ -57,9 +57,6 @@ const PREF_CONTENTHANDLERS_BRANCH = "browser.contentHandlers.types.";
 const SNOWL_HANDLER_URI = "chrome://snowl/content/subscribe.xul?feed=%s";
 const SNOWL_HANDLER_TITLE = "Snowl";
 
-// How often to refresh sources, in milliseconds.
-const REFRESH_INTERVAL = 60 * 60 * 1000; // 60 minutes
- 
 // How often to check if sources need refreshing, in milliseconds.
 const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
 
@@ -226,8 +223,8 @@ let SnowlService = {
 
         let constructor = eval(row.type);
         if (!constructor) {
-          this._log.error("no constructor for type " + row.type);
-          continue;
+          this._log.warn("constructor " + row.type + " not defined; using SnowlSource");
+          constructor = SnowlSource;
         }
 
         sources.push(new constructor(row.id,
@@ -255,12 +252,10 @@ let SnowlService = {
     let allSources = this.getSources();
     let now = new Date();
     let staleSources = [];
-    for each (let source in allSources)
-{
-//this._log.info("checking source: " + source.id);
-      if (now - source.lastRefreshed > REFRESH_INTERVAL)
-{
-this._log.info("source: " + source.id + " is stale");
+    for each (let source in allSources) {
+      //this._log.info(source.name + " last refreshed " + source.lastRefreshed + ", " + (now - source.lastRefreshed)/1000 + "s ago; interval is " + source.refreshInterval/1000 + "s");
+      if (now - source.lastRefreshed > source.refreshInterval) {
+        this._log.info("source: " + source.id + " is stale; refreshing");
         staleSources.push(source);
       }
     }

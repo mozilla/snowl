@@ -65,7 +65,7 @@ const MACHINE_URI = URI.get("https://twitter.com");
 // XXX Should this be simply http://twitter.com ?
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
-function SnowlTwitter(aID, aLastRefreshed, aImportance) {
+function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   // XXX Should we append the username to the NAME const to enable users
   // to subscribe to multiple Twitter accounts?
 
@@ -74,6 +74,9 @@ function SnowlTwitter(aID, aLastRefreshed, aImportance) {
 }
 
 SnowlTwitter.prototype = {
+  // How often to refresh sources, in milliseconds.
+  refreshInterval: 1000 * 60 * 3, // 30 minutes
+
   constructor: SnowlTwitter,
 
   __proto__: SnowlSource.prototype,

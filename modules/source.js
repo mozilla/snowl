@@ -87,40 +87,7 @@ SnowlSource.get = function(aID) {
   return null;
 }
 
-SnowlSource.__defineGetter__("_getAllStatement",
-  function() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT id, name, machineURI, humanURI, lastRefreshed, importance " +
-      "FROM sources ORDER BY name"
-    );
-    this.__defineGetter__("_getAllStatement", function() { return statement });
-    return this._getAllStatement;
-  }
-);
-
-/**
- * Get all sources.
- */
-SnowlSource.getAll = function() {
-  let sources = [];
-
-  try {
-    while (this._getAllStatement.step())
-      sources.push(new SnowlSource(this._getAllStatement.row.id,
-                                   this._getAllStatement.row.name,
-                                   URI.get(this._getAllStatement.row.machineURI),
-                                   URI.get(this._getAllStatement.row.humanURI),
-                                   new Date(this._getAllStatement.row.lastRefreshed),
-                                   this._getAllStatement.row.importance));
-  }
-  finally {
-    this._getAllStatement.reset();
-  }
-
-  return sources;
-}
-
-    // Favicon Service
+// Favicon Service
 SnowlSource.__defineGetter__("faviconSvc",
   function() {
     let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
@@ -132,6 +99,9 @@ SnowlSource.__defineGetter__("faviconSvc",
 );
 
 SnowlSource.prototype = {
+  // How often to refresh sources, in milliseconds.
+  refreshInterval: 1000 * 60 * 30, // 30 minutes
+
   id: null,
 
   name: null,

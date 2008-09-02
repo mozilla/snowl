@@ -39,7 +39,7 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/service.js");
 
 let EXPORTED_SYMBOLS = ["SnowlOPML"];
 
@@ -100,7 +100,7 @@ let SnowlOPML = {
     root.appendChild(body);
 
     // Populate the <body> element with <outline> elements.
-    let sources = SnowlSource.getAll();
+    let sources = SnowlService.getSources();
     for each (let source in sources) {
       let outline = doc.createElement("outline");
       // XXX Should we specify the |type| attribute, and should we specify
