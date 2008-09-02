@@ -475,6 +475,8 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.externalID = aExternalID;
     this._insertMessageStatement.params.subject = aSubject;
     this._insertMessageStatement.params.authorID = aAuthorID;
+    // FIXME: this method is too low-level to be in charge of massaging data;
+    // make its callers convert the date values to Julian Dates or null values.
     let timestamp = aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null;
     this._insertMessageStatement.params.timestamp = timestamp;
     let received = aReceived ? SnowlUtils.jsToJulianDate(aReceived) : null;
