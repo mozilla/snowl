@@ -56,6 +56,15 @@ Cu.import("resource://snowl/modules/twitter.js");
 window.addEventListener("load", function() { Subscriber.init() }, false);
 
 function SubscriptionListener(subject, topic, data) {
+  // FIXME: figure out why the SubscriptionListener hangs around and gets called
+  // sometimes after the page has been unloaded and Subscriber is not defined.
+  if (typeof Subscriber == "undefined") {
+    Log4Moz.Service.getLogger("Snowl.SubscriptionListener").warn(
+      "called without Subscriber; subject: " + subject + "; topic: " + topic +
+      "; data: " + data);
+    return;
+  }
+
   let source = Subscriber.feed;
 
   // Don't track the status of subscriptions happening in other windows/tabs.
