@@ -75,19 +75,20 @@ Preferences.prototype = {
     if (typeof prefName == "object" && prefName.constructor.name == Array.name)
       return prefName.map(function(v) this.get(v), this);
 
-    try {
-      switch (this._prefSvc.getPrefType(prefName)) {
-        case Ci.nsIPrefBranch.PREF_STRING:
-          return this._prefSvc.getCharPref(prefName);
-        case Ci.nsIPrefBranch.PREF_INT:
-          return this._prefSvc.getIntPref(prefName);
-        case Ci.nsIPrefBranch.PREF_BOOL:
-          return this._prefSvc.getBoolPref(prefName);
-      }
+    switch (this._prefSvc.getPrefType(prefName)) {
+      case Ci.nsIPrefBranch.PREF_STRING:
+        return this._prefSvc.getCharPref(prefName);
+
+      case Ci.nsIPrefBranch.PREF_INT:
+        return this._prefSvc.getIntPref(prefName);
+
+      case Ci.nsIPrefBranch.PREF_BOOL:
+        return this._prefSvc.getBoolPref(prefName);
+
+      case Ci.nsIPrefBranch.PREF_INVALID:
+      default:
+        return defaultValue;
     }
-    catch (ex) {}
-  
-    return defaultValue;
   },
 
   set: function(prefName, prefValue) {
@@ -101,9 +102,11 @@ Preferences.prototype = {
         case "number":
           this._prefSvc.setIntPref(prefName, prefValue);
           break;
+
         case "boolean":
           this._prefSvc.setBoolPref(prefName, prefValue);
           break;
+
         case "string":
         default:
           this._prefSvc.setCharPref(prefName, prefValue);
@@ -115,7 +118,7 @@ Preferences.prototype = {
   // FIXME: make the methods below accept an array of pref names.
 
   has: function(prefName) {
-    return (this._prefSvc.getPrefType(prefName) != this._prefSvc.PREF_INVALID);
+    return (this._prefSvc.getPrefType(prefName) != Ci.nsIPrefBranch.PREF_INVALID);
   },
 
   modified: function(prefName) {
