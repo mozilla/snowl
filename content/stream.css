@@ -68,9 +68,9 @@
   overflow-x: hidden;
 }
 
-.message {
-  border-bottom: 1px solid lightgrey;
-  margin-bottom: 5px;
+.message + .message {
+  border-top: 1px solid lightgrey;
+  padding-top: 5px;
 }
 
 .leftColumn {
