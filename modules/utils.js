@@ -64,6 +64,27 @@ let SnowlUtils = {
                          getService(Ci.nsIScriptableDateFormat);
   },
 
+  get today() {
+    let sometimeToday = new Date();
+    return new Date(sometimeToday.getFullYear(),
+                    sometimeToday.getMonth(),
+                    sometimeToday.getDate());
+  },
+
+  get tomorrow() {
+    let sometimeTomorrow = new Date(new Date() + (1000 * 60 * 60 * 24));
+    return new Date(sometimeTomorrow.getFullYear(),
+                    sometimeTomorrow.getMonth(),
+                    sometimeTomorrow.getDate());
+  },
+
+  get yesterday() {
+    let sometimeYesterday = new Date(new Date() - (1000 * 60 * 60 * 24));
+    return new Date(sometimeYesterday.getFullYear(),
+                    sometimeYesterday.getMonth(),
+                    sometimeYesterday.getDate());
+  },
+
   /**
    * Formats a date for human consumption using the date formatting service
    * for locale-specific formatting along with some additional smarts for more
@@ -76,10 +97,7 @@ let SnowlUtils = {
     let now = new Date();
     let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    let yesterday = new Date(now - 1000 * 60 * 60 * 24);
-    yesterday = new Date(yesterday.getFullYear(),
-                         yesterday.getMonth(),
-                         yesterday.getDate());
+    let yesterday = this.yesterday;
 
     let sixDaysAgo = new Date(now - 1000 * 60 * 60 * 24 * 6);
     sixDaysAgo = new Date(sixDaysAgo.getFullYear(),

@@ -61,8 +61,12 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
 
+// FIXME: make SnowlCollection take a hash so it can have named parameters,
+// since the number of parameters it currently accepts, and the fact that they
+// are all optional, makes it unwieldy to pass them in the right order.
+
 /**
- * A group of messages.
+ * A set of messages.
  */
 function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
                          groupIDColumn, groupNameColumn, groupHomeURLColumn,
@@ -307,12 +311,20 @@ SnowlCollection.prototype = {
   },
 
   _generateStatement: function() {
+    let columns = ["messages.id", "subject", "authors.name AS author", "link",
+                   "timestamp", "read", "authors.iconURL AS authorIcon",
+                   "received"];
+
+    if (this.groupIDColumn) {
+      columns.push(this.groupIDColumn + " AS groupID");
+      columns.push(this.groupNameColumn + " AS groupName");
+    }
+
     let query = 
       //"SELECT subject, author, link, timestamp, content \
       // FROM sources JOIN messages ON sources.id = messages.sourceID \
       // LEFT JOIN parts on messages.id = parts.messageID";
-      "SELECT messages.id, subject, authors.name AS author, link, timestamp, " +
-      "       read, authors.iconURL AS authorIcon, received " +
+      "SELECT " + columns.join(", ") + " " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 

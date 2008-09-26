@@ -314,8 +314,25 @@ let SnowlMessageView = {
     this._contentSandbox.messages =
       this._document.getElementById("contentBox");
 
+    let groups = [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Today", epoch: SnowlUtils.today },
+      { name: "Yesterday", epoch: SnowlUtils.yesterday },
+      { name: "Older", epoch: 0 }
+    ];
+    let groupIndex = 0;
+
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
+
+      if (message.received < groups[groupIndex].epoch) {
+        ++groupIndex;
+        let desc = this._document.createElementNS(XUL_NS, "description");
+        desc.className = "group";
+        desc.setAttribute("crop", "end");
+        desc.setAttribute("value", groups[groupIndex].name);
+        contentBox.appendChild(desc);
+      }
 
       let messageBox = this._buildMessageView(message);
 

@@ -104,6 +104,11 @@
   max-height: 24px;
 }
 
+.group {
+  background-color: darkgrey;
+  color: white;
+}
+
 /* Border styles to clarify the structure for debugging purposes. */
 
 /*
