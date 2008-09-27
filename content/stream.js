@@ -202,6 +202,10 @@ let SnowlMessageView = {
     this._contentSandbox.messageBox = null;
   },
 
+  onToggleGroup: function(event) {
+    event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
+  },
+
 
   //**************************************************************************//
   // Safe DOM Manipulation
@@ -300,10 +304,6 @@ let SnowlMessageView = {
   _rebuildView: strand(function() {
     let begin = new Date();
 
-    let contentBox = this._document.getElementById("contentBox");
-    while (contentBox.hasChildNodes())
-      contentBox.removeChild(contentBox.lastChild);
-
     // Interrupt a strand currently writing messages so we don't both try
     // to write messages at the same time.
     // FIXME: figure out how to suppress the exception this throws to the error
@@ -311,8 +311,11 @@ let SnowlMessageView = {
     if (this._rebuildViewFuture)
       this._rebuildViewFuture.interrupt();
 
-    this._contentSandbox.messages =
-      this._document.getElementById("contentBox");
+    let contentBox = this._document.getElementById("contentBox");
+    while (contentBox.hasChildNodes())
+      contentBox.removeChild(contentBox.lastChild);
+
+    this._contentSandbox.messages = contentBox;
 
     let groups = [
       { name: "The Future", epoch: Number.MAX_VALUE },
@@ -327,11 +330,20 @@ let SnowlMessageView = {
 
       if (message.received < groups[groupIndex].epoch) {
         ++groupIndex;
-        let desc = this._document.createElementNS(XUL_NS, "description");
-        desc.className = "group";
-        desc.setAttribute("crop", "end");
-        desc.setAttribute("value", groups[groupIndex].name);
-        contentBox.appendChild(desc);
+
+        let header = this._document.createElementNS(XUL_NS, "checkbox");
+        header.className = "groupHeader";
+        header.setAttribute("label", groups[groupIndex].name);
+        header.setAttribute("checked", "true");
+        let listener = function(evt) { SnowlMessageView.onToggleGroup(evt) };
+        header.addEventListener("command", listener, false);
+
+        let container = this._document.createElementNS(XUL_NS, "vbox");
+        container.className = "groupBox";
+        this._contentSandbox.messages = container;
+
+        contentBox.appendChild(header);
+        contentBox.appendChild(container);
       }
 
       let messageBox = this._buildMessageView(message);
