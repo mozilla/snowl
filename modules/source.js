@@ -154,6 +154,13 @@ SnowlSource.prototype = {
     return URI.get("chrome://browser/skin/feeds/feedIcon16.png");
   },
 
+  /**
+   * Check for new messages and update the local store of messages to reflect
+   * the latest updates available from the source.  This method is a stub that
+   * is expected to be overridden by subclass implementations.
+   */
+  refresh: function() {},
+
   persist: function() {
     let statement =
       SnowlDatastore.createStatement(
