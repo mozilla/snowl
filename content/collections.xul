@@ -54,24 +54,7 @@
       <treechildren flex="1"/>
     </tree>
 
-    <toolbar>
-      <toolbarbutton id="snowlSubscribeButton"
-                     image="chrome://snowl/content/icons/add.png"
-                     oncommand="SourcesView.subscribe()"
-                     tooltiptext="&subscribeButton.tooltip;"/>
-      <toolbarbutton id="snowlUnsubscribeButton"
-                     image="chrome://snowl/content/icons/delete.png"
-                     oncommand="SourcesView.unsubscribe()"
-                     tooltiptext="&unsubscribeButton.tooltip;"/>
-      <toolbarbutton id="snowlRefreshButton"
-                     image="chrome://snowl/content/icons/arrow_refresh_small.png"
-                     oncommand="SnowlService.refreshAllSources()"
-                     tooltiptext="&refreshButton.tooltip;"/>
-      <toolbarbutton id="snowlExportOPMLButton"
-                     image="chrome://snowl/content/icons/opml-icon-16x16.png"
-                     oncommand="SourcesView.onExportOPML()"
-                     tooltiptext="&exportButton.tooltip;"/>
-    </toolbar>
+    <toolbar id="snowlToolbar"/>
   </vbox>
 
 </overlay>

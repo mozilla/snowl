@@ -322,40 +322,6 @@ this._log.info("on click");
 this._log.info(row.value + " is selected");
 else
 this._log.info(row.value + " is not selected");
-  },
-
-  subscribe: function(event) {
-    gBrowserWindow.gBrowser.selectedTab =
-      gBrowserWindow.gBrowser.addTab("chrome://snowl/content/subscribe.xul");
-  },
-
-  unsubscribe: function(aEvent) {
-    let collection = this._rows[this._tree.currentIndex];
-
-    if (!collection.parent || collection.parent.groupIDColumn != "sources.id")
-      return;
-
-    let sourceID = this._rows[this._tree.currentIndex].groupID;
-
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages WHERE sourceID = " + sourceID);
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources WHERE id = " + sourceID);
-      SnowlDatastore.dbConnection.commitTransaction();
-    }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      throw ex;
-    }
-
-    this._obsSvc.notifyObservers(null, "sources:changed", null);
-    this._obsSvc.notifyObservers(null, "messages:changed", null);
-  },
-
-  onExportOPML: function() {
-    SnowlOPML.export(window);
   }
 
 };

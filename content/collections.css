@@ -34,14 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-toolbarbutton {
-  -moz-appearance: none;
-}
-
-.toolbarbutton-icon {
-  -moz-margin-end: 0;
-}
-
 #sourcesView {
   margin-left: 0;
   margin-right: 0;

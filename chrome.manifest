@@ -3,6 +3,7 @@ content snowl content/
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
 overlay chrome://browser/content/browser.xul chrome://snowl/content/list.xul
 overlay chrome://snowl/content/list-sidebar.xul chrome://snowl/content/collections.xul
+overlay chrome://snowl/content/collections.xul chrome://snowl/content/toolbar.xul
 
 resource snowl ./
 
