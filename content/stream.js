@@ -192,6 +192,8 @@ let SnowlMessageView = {
   },
 
   _onMessageAdded: function(message) {
+    this._log.info("_onMessageAdded: " + (message ? message.subject : "null message") + "\n");
+
     this._contentSandbox.messages = this._document.getElementById("contentBox");
     this._contentSandbox.messageBox = this._buildMessageView(message);
 
