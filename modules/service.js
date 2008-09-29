@@ -222,10 +222,13 @@ let SnowlService = {
       while (this._getSourcesStatement.step()) {
         let row = this._getSourcesStatement.row;
 
-        let constructor = eval(row.type);
-        if (!constructor) {
-          this._log.warn("constructor " + row.type + " not defined; using SnowlSource");
-          constructor = SnowlSource;
+        let constructor = SnowlSource;
+        try {
+          constructor = eval(row.type);
+        }
+        catch(ex) {
+          this._log.warn("error evaling " + row.type + ": " + ex +
+                         "; falling back to SnowlSource");
         }
 
         sources.push(new constructor(row.id,
