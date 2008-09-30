@@ -445,10 +445,19 @@ let SnowlMessageView = {
         if (i % 2 == 0)
           div.appendChild(this._document.createTextNode(parts[i]));
         else {
+          // This is a bit hacky.  In theory, I should need either a XUL
+          // description tag of class="text-link" or an HTML a tag, but the
+          // description tag opens a new window when you click on it,
+          // and the a tag doesn't look like a link.  Using both results in
+          // the correct appearance and behavior, but it's overcomplicated.
+          // FIXME: fix this here and above, where we handle message.link.
+          let desc = this._document.createElementNS(XUL_NS, "description");
+          desc.className = "text-link";
           let a = this._document.createElementNS(HTML_NS, "a");
           this._unsafeSetURIAttribute(a, "href", parts[i]);
           a.appendChild(this._document.createTextNode(parts[i]));
-          div.appendChild(a);
+          desc.appendChild(a);
+          div.appendChild(desc);
         }
       }
     }
