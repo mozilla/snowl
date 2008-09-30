@@ -1,9 +1,26 @@
 content snowl content/
 
+# Generic browser chrome integration points: an icon in the status bar,
+# a menu in the Tools menu, View > Sidebar entrie, etc.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
+
+# The parts of the list view that are part of the browser chrome rather than
+# the list view sidebar.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/list.xul
+
+# Add the collections view to the list view sidebar.  We overlay it onto both
+# the list view sidebar and the river view, but for the river view we overlay it
+# dynamically via document.loadOverlay instead of an entry here because we
+# modify the query params of the river view URL to reflect the selected
+# collection and filters, and chrome.manifest overlay instructions only work
+# on exact matches of the entire URL.
 overlay chrome://snowl/content/list-sidebar.xul chrome://snowl/content/collections.xul
+
+# Add the toolbar to the collections and stream views.
+# XXX Should we add the toolbar directly to the list and river views
+# rather than indirectly via the collections view?
 overlay chrome://snowl/content/collections.xul chrome://snowl/content/toolbar.xul
+overlay chrome://snowl/content/stream.xul chrome://snowl/content/toolbar.xul
 
 resource snowl ./
 

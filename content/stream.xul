@@ -54,4 +54,6 @@
 
   <vbox id="contentBox"/>
 
+  <toolbar id="snowlToolbar"/>
+
 </page>
