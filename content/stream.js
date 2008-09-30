@@ -195,7 +195,8 @@ let SnowlMessageView = {
     dump("_onMessageAdded: " + (message ? message.subject : "null message") + "\n");
     Cu.reportError("_onMessageAdded: " + (message ? message.subject : "null message"));
 
-    this._contentSandbox.messages = this._document.getElementById("contentBox");
+    this._contentSandbox.messages = this._document.getElementById("contentBox").
+                                    getElementsByClassName("groupBox")[0];
     this._contentSandbox.messageBox = this._buildMessageView(message);
 
     let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
