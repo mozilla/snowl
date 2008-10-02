@@ -60,10 +60,17 @@ toolbarbutton {
   display: block;
 }
 
+#columnResizeSplitter {
+  display: none;
+}
+
+#contentStack[columns] > #columnResizeSplitter {
+  display: -moz-box;
+}
+
 #contentBox {
   padding: 7px;
 
-  -moz-column-width: 400px;
   -moz-column-gap: 2em;
 
   -moz-user-focus: normal;
@@ -76,6 +83,8 @@ toolbarbutton {
 
   /* This gets set programmatically on load, since setting it in CSS doesn't work. */
   height: 0;
+
+  -moz-box-flex: 1;
 }
 
 /* Make the title and source links look less like links to differentiate

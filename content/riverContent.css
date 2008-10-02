@@ -40,6 +40,10 @@
 
 /* rules that get updated programmatically */
 
+#contentStack[columns] > #scrollBox > #contentBox {
+  -moz-column-width: 400px;
+}
+
 /* Images should only be as wide as columns, which is 400px by default. */
 #contentBox img {
   max-width: 400px;

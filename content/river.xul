@@ -52,8 +52,8 @@
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>
 
   <keyset>
-    <key keycode="VK_PAGE_UP" oncommand="SnowlMessageView.doPageMove(-1)"/>
-    <key keycode="VK_PAGE_DOWN" oncommand="SnowlMessageView.doPageMove(1)"/>
+    <key id="pageLeftKey" keycode="VK_PAGE_UP" oncommand="SnowlMessageView.doPageMove(-1)" disabled="true"/>
+    <key id="pageRightKey" keycode="VK_PAGE_DOWN" oncommand="SnowlMessageView.doPageMove(1)" disabled="true"/>
     <key keycode="VK_PAGE_UP" modifiers="shift" oncommand="SnowlMessageView.doColumnMove(-1)"/>
     <key keycode="VK_PAGE_DOWN" modifiers="shift" oncommand="SnowlMessageView.doColumnMove(1)"/>
     <key keycode="VK_HOME" oncommand="SnowlMessageView.onHome()"/>
@@ -82,13 +82,18 @@
                     oncommand="SnowlMessageView.onCommandOrderButton(event)"
                     tooltiptext="&orderButton.tooltip;"/>
 
+        <toolbarbutton id="columnsButton" type="checkbox"
+                    image="chrome://snowl/content/icons/application_view_columns.png"
+                    oncommand="SnowlMessageView.onCommandColumnsButton(event)"
+                    tooltiptext="&columnsButton.tooltip;"/>
+
         <spacer flex="1"/>
 
         <textbox id="filterTextbox" type="timed" timeout="200"
                      oncommand="SnowlMessageView.onFilter(event)"/>
       </toolbar>
     
-      <stack flex="1">
+      <stack id="contentStack" flex="1">
         <scrollbox id="scrollBox"
                    style="overflow: auto;"
                    onoverflow="SnowlMessageView.onFlowChange(event)"

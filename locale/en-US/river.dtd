@@ -2,3 +2,4 @@
 <!ENTITY currentButton.tooltip        "Only show current messages.">
 <!ENTITY bodyButton.tooltip           "Show message summaries/content.">
 <!ENTITY orderButton.tooltip          "Reverse the order of the messages.">
+<!ENTITY columnsButton.tooltip        "Show the messages in columns.">

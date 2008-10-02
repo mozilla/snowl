@@ -99,6 +99,13 @@ let SnowlMessageView = {
     return this._orderButton;
   },
 
+  get _columnsButton() {
+    let columnsButton = document.getElementById("columnsButton");
+    delete this._columnsButton;
+    this._columnsButton = columnsButton;
+    return this._columnsButton;
+  },
+
   get _filterTextbox() {
     delete this._filter;
     return this._filter = document.getElementById("filterTextbox");
@@ -136,11 +143,13 @@ let SnowlMessageView = {
   },
 
   set columnWidth(newVal) {
-    document.getElementById("contentBox").style.MozColumnWidth = newVal + "px";
+    this._updateContentRule(0, "#contentStack[columns] > #scrollBox > " +
+                               "#contentBox { -moz-column-width: " + newVal +
+                               "px }");
 
     // Set the maximum width for images in the content so they don't stick out
     // the side of the columns.
-    this._updateContentRule(0, "#contentBox img { max-width: " + newVal + "px }");
+    this._updateContentRule(1, "#contentBox img { max-width: " + newVal + "px }");
   },
 
   _updateContentRule: function(position, newValue) {
@@ -157,8 +166,8 @@ let SnowlMessageView = {
 
     // Set the maximum height for images and tables in the content so they
     // don't make the columns taller than the height of the content box.
-    this._updateContentRule(1, "#contentBox img { max-height: " + newVal + "px }");
-    this._updateContentRule(2, "#contentBox table { max-height: " + newVal + "px }");
+    this._updateContentRule(2, "#contentBox img { max-height: " + newVal + "px }");
+    this._updateContentRule(3, "#contentBox table { max-height: " + newVal + "px }");
   },
 
   _window: null,
@@ -238,6 +247,14 @@ let SnowlMessageView = {
       this._orderButton.image = "chrome://snowl/content/arrow-up.png";
     }
 
+    if ("columns" in this._params) {
+      this._columnsButton.checked = true;
+      // XXX This feels like the wrong place to do this, but I don't see
+      // a better place at the moment.  Yuck, the whole process by which
+      // the view gets built needs to get cleaned up and documented.
+      this._setColumns(this._columnsButton.checked);
+    }
+
     let selected = false;
     if ("collection" in this._params) {
       //dump("this._params.collection: " + this._params.collection + "; this._params.group: " + this._params.group + "\n");
@@ -314,6 +331,26 @@ let SnowlMessageView = {
     this._updateURI();
   },
 
+  onCommandColumnsButton: function() {
+    this._setColumns(this._columnsButton.checked);
+    this._updateURI();
+  },
+
+  _setColumns: function(columns) {
+    if (columns) {
+      document.getElementById("contentStack").setAttribute("columns", true);
+      // Enable the keys that map PageUp and PageDown to PageLeft and PageRight.
+      document.getElementById("pageLeftKey").removeAttribute("disabled");
+      document.getElementById("pageRightKey").removeAttribute("disabled");
+    }
+    else {
+      document.getElementById("contentStack").removeAttribute("columns");
+      document.getElementById("pageLeftKey").setAttribute("disabled", "true");
+      document.getElementById("pageRightKey").setAttribute("disabled", "true");
+    }
+    
+  },
+
   _updateURI: function() {
     let params = [];
 
@@ -322,6 +359,9 @@ let SnowlMessageView = {
 
     if (this._bodyButton.checked)
       params.push("body");
+
+    if (this._columnsButton.checked)
+      params.push("columns");
 
     if (this._collection.id)
       params.push("collection=" + this._collection.id);
