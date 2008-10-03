@@ -92,13 +92,6 @@ let SnowlMessageView = {
     return this._bodyButton;
   },
 
-  get _orderButton() {
-    let orderButton = document.getElementById("orderButton");
-    delete this._orderButton;
-    this._orderButton = orderButton;
-    return this._orderButton;
-  },
-
   get _columnsButton() {
     let columnsButton = document.getElementById("columnsButton");
     delete this._columnsButton;
@@ -242,11 +235,6 @@ let SnowlMessageView = {
     if ("filter" in this._params)
       document.getElementById("filterTextbox").value = this._params.filter;
 
-    if ("order" in this._params && this._params.order == "descending") {
-      this._orderButton.checked = true;
-      this._orderButton.image = "chrome://snowl/content/arrow-up.png";
-    }
-
     if ("columns" in this._params) {
       this._columnsButton.checked = true;
       // XXX This feels like the wrong place to do this, but I don't see
@@ -314,23 +302,6 @@ let SnowlMessageView = {
     this._updateURI();
   },
 
-  onCommandOrderButton: function(aEvent) {
-    if (this._orderButton.checked) {
-      this._orderButton.image = "chrome://snowl/content/arrow-up.png";
-      this._collection.sortOrder = -1;
-    }
-    else {
-      this._orderButton.image = "chrome://snowl/content/arrow-down.png";
-      this._collection.sortOrder = 1;
-    }
-
-    // Presumably here we could do messages.reverse(), which would be faster,
-    // but can we be sure the messages started in the reverse of the new state?
-    this._collection.sort();
-    this.rebuildView();
-    this._updateURI();
-  },
-
   onCommandColumnsButton: function() {
     this._setColumns(this._columnsButton.checked);
     this._updateURI();
@@ -372,9 +343,6 @@ let SnowlMessageView = {
 
     if (this._filterTextbox.value)
       params.push("filter=" + encodeURIComponent(this._filterTextbox.value));
-
-    if (this._collection.sortOrder == -1)
-      params.push("order=descending");
 
     let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIWebNavigation).
@@ -467,10 +435,8 @@ let SnowlMessageView = {
 
   setCollection: function(collection) {
     this._collection = collection;
-    if (this._orderButton.checked)
-      this._collection.sortOrder = -1;
-    else
-      this._collection.sortOrder = 1;
+    this._collection.sortOrder = -1;
+    this._collection.sortProperties = ["received"];
     this._updateURI();
     this._applyFilters();
     // No need to rebuild the view here, as _applyFilters will do it for us.
@@ -590,11 +556,39 @@ let SnowlMessageView = {
     if (this._futureWriteMessages)
       this._futureWriteMessages.interrupt();
 
-    this._contentSandbox.messages =
-      this._document.getElementById("contentBox");
+    let contentBox = this._document.getElementById("contentBox");
+    this._contentSandbox.messages = contentBox;
+
+    let groups = [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Today", epoch: SnowlUtils.today },
+      { name: "Yesterday", epoch: SnowlUtils.yesterday },
+      { name: "Older", epoch: 0 }
+    ];
+    let groupIndex = 0;
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
+
+      if (message.received < groups[groupIndex].epoch) {
+        ++groupIndex;
+
+        let header = this._document.createElementNS(XUL_NS, "checkbox");
+        header.className = "groupHeader";
+        header.setAttribute("label", groups[groupIndex].name);
+        header.setAttribute("checked", "true");
+        let listener = function(event) {
+          event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
+        };
+        header.addEventListener("command", listener, false);
+        contentBox.appendChild(header);
+
+        let container = this._document.createElementNS(XUL_NS, "vbox");
+        container.className = "groupBox";
+        contentBox.appendChild(container);
+
+        this._contentSandbox.messages = container;
+      }
 
       let messageBox = this._document.createElementNS(HTML_NS, "div");
       messageBox.className = "message";

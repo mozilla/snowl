@@ -77,11 +77,6 @@
                     oncommand="SnowlMessageView.onCommandBodyButton(event)"
                     tooltiptext="&bodyButton.tooltip;"/>
 
-        <toolbarbutton id="orderButton" type="checkbox"
-                    image="chrome://snowl/content/arrow-down.png"
-                    oncommand="SnowlMessageView.onCommandOrderButton(event)"
-                    tooltiptext="&orderButton.tooltip;"/>
-
         <toolbarbutton id="columnsButton" type="checkbox"
                     image="chrome://snowl/content/icons/application_view_columns.png"
                     oncommand="SnowlMessageView.onCommandColumnsButton(event)"

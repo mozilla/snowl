@@ -122,3 +122,25 @@ a > img {
   border: 0;
   -moz-padding-end: 1px;
 }
+
+/* FIXME: factor this out with the almost identical code in stream.css. */
+.groupHeader {
+  -moz-appearance: none;
+  background-color: darkgrey;
+  color: white;
+  width: 99%;
+}
+
+.groupHeader > .checkbox-spacer-box {
+  -moz-appearance: none;
+}
+
+.groupHeader > .checkbox-spacer-box > .checkbox-check {
+  -moz-appearance: treetwisty;
+  background-image: none;
+  border: none;
+}
+
+.groupHeader[checked="true"] > .checkbox-spacer-box > .checkbox-check {
+  -moz-appearance: treetwistyopen;
+}
