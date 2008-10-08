@@ -65,10 +65,8 @@ URI.get = function(aSpec, aCharset, aBaseURI) {
 
 URI.__defineGetter__("ioSvc",
   function() {
-    let ioSvc = Cc["@mozilla.org/network/io-service;1"].
-                getService(Ci.nsIIOService);
     delete this.ioSvc;
-    this.ioSvc = ioSvc;
-    return this.ioSvc;
+    return this.ioSvc = Cc["@mozilla.org/network/io-service;1"].
+                        getService(Ci.nsIIOService);
   }
 );
