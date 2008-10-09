@@ -46,17 +46,17 @@ const Cu = Components.utils;
  * class, but in the future it might return an instance of this class and have
  * a more JS-friendly API for accessing and manipulating the URI.
  */
-function URI(aSpec, aCharset, aBaseURI) {
-  return URI.ioSvc.newURI(aSpec, aCharset, aBaseURI);
+function URI(spec, charset, baseURI) {
+  return URI.ioSvc.newURI(spec, charset, baseURI);
 }
 
 /**
  * Get a URI.  Similar to the constructor, but returns null instead of throwing
  * an exception if the URI object could not be constructed.
  */
-URI.get = function(aSpec, aCharset, aBaseURI) {
+URI.get = function(spec, charset, baseURI) {
   try {
-    return new URI(aSpec, aCharset, aBaseURI);
+    return new URI(spec, charset, baseURI);
   }
   catch(ex) {
     return null;
