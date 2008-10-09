@@ -215,6 +215,7 @@ let SnowlMessageView = {
     // in the calculation.  Perhap we should instead wait to resize
     // the content box until the content actually overflows horizontally.
     // XXX Why do I have to subtract *double* the width of the scrollbar???
+    // Maybe it's because of the 7px padding all around the contentBox?
     this.contentHeight =
       window.innerHeight - (this.scrollbarWidth*2) - toolbarHeight;
   },
@@ -594,7 +595,7 @@ let SnowlMessageView = {
         header.addEventListener("command", listener, false);
         contentBox.appendChild(header);
 
-        let container = this._document.createElementNS(XUL_NS, "vbox");
+        let container = this._document.createElementNS(HTML_NS, "div");
         container.className = "groupBox";
         contentBox.appendChild(container);
 
