@@ -47,7 +47,7 @@ Cu.import("resource://snowl/modules/opml.js");
 // FIXME: make this configurable.
 const SNOWL_COLLECTIONS_HIERARCHICAL = false;
 
-let SourcesView = {
+let CollectionsView = {
   _log: null,
 
   // Observer Service
@@ -83,7 +83,7 @@ let SourcesView = {
     // clicked on a row that is already selected (in which case we let them edit
     // the collection name).
     // FIXME: disable this for names that can't be changed.
-    this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
+    this._tree.addEventListener("mousedown", function(aEvent) { CollectionsView.onClick(aEvent) }, true);
   },
 
 
@@ -348,4 +348,4 @@ this._log.info(row.value + " is not selected");
 
 };
 
-window.addEventListener("load", function() { SourcesView.init() }, true);
+window.addEventListener("load", function() { CollectionsView.init() }, true);

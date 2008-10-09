@@ -46,7 +46,7 @@
 
   <vbox id="collectionsViewBox">
     <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
-          onselect="SourcesView.onSelect(event)">
+          onselect="CollectionsView.onSelect(event)">
       <treecols>
         <treecol id="nameCol" label="&nameCol.label;" primary="true" flex="1"/>
       </treecols>

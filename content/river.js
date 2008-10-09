@@ -257,11 +257,11 @@ let SnowlMessageView = {
     let selected = false;
     if ("collection" in this._params) {
       //dump("this._params.collection: " + this._params.collection + "; this._params.group: " + this._params.group + "\n");
-      for (let i = 0; i < SourcesView._rows.length; i++) {
-        let collection = SourcesView._rows[i];
+      for (let i = 0; i < CollectionsView._rows.length; i++) {
+        let collection = CollectionsView._rows[i];
         //dump("collection id: " + collection.id + "; parent id: " + (collection.parent ? collection.parent.id : "no parent") + "; collection.name = " + collection.name + "\n");
         if (collection.id == this._params.collection) {
-          SourcesView._tree.view.selection.select(i);
+          CollectionsView._tree.view.selection.select(i);
           selected = true;
           break;
         }
@@ -269,14 +269,14 @@ let SnowlMessageView = {
                  collection.parent &&
                  collection.parent.id == this._params.collection &&
                  collection.name == this._params.group) {
-          SourcesView._tree.view.selection.select(i);
+          CollectionsView._tree.view.selection.select(i);
           selected = true;
           break;
         }
       }
     }
     if (!selected)
-      SourcesView._tree.view.selection.select(0);
+      CollectionsView._tree.view.selection.select(0);
 
   },
 

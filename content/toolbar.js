@@ -46,7 +46,7 @@ let SnowlToolbar = {
   // FIXME: make this work again.
   // FIXME: make this not be specific to the tree in the collections view.
   unsubscribe: function(aEvent) {
-    SourcesView.unsubscribe();
+    CollectionsView.unsubscribe();
   },
 
   // FIXME: make this be context-specific, so if we're viewing a single source
