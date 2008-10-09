@@ -171,7 +171,18 @@ let SnowlMessageView = {
   // Initialization
 
   init: function() {
+    // Resize the content box to the initial size of the browser.
     this.resizeContentBox();
+
+    // Listen for resize events so we can resize the content box when the size
+    // of the browser changes.  We set this event listener here rather than
+    // in an onresize attribute because loading this view on startup can cause
+    // a resize event to fire before the view is fully loaded (and thus before
+    // SnowlMessageView has been defined), which would cause an attribute-based
+    // listener to throw an exception.
+    document.documentElement.addEventListener("resize",
+                                              function() SnowlMessageView.resizeContentBox(),
+                                              false);
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we

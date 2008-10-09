@@ -43,10 +43,9 @@
 <!DOCTYPE page SYSTEM "chrome://snowl/locale/river.dtd">
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:html="http://www.w3.org/1999/xhtml"
-        title="&page.title;"
-        onload="SnowlMessageView.init()"
-        onresize="SnowlMessageView.resizeContentBox()">
+      xmlns:html="http://www.w3.org/1999/xhtml"
+      title="&page.title;"
+      onload="SnowlMessageView.init()">
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>
