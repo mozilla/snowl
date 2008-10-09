@@ -171,6 +171,13 @@ let SnowlMessageView = {
   // Initialization
 
   init: function() {
+    // Finish initializing after a brief timeout to give the collections view
+    // time to initialize itself.
+    let t = this;
+    window.setTimeout(function() { t._initDelayed() }, 0);
+  },
+
+  _initDelayed: function() {
     // Resize the content box to the initial size of the browser.
     this.resizeContentBox();
 
@@ -190,14 +197,6 @@ let SnowlMessageView = {
     this._window = new XPCNativeWrapper(window);
     this._document = this._window.document;
 
-    // We have to load the overlay manually because we modify the query params
-    // of the river view URL to reflect the selected collection and filters,
-    // and chrome.manifest overlay instructions only work on exact matches
-    // of the entire URL.
-    document.loadOverlay("chrome://snowl/content/collections.xul", null);
-  },
-
-  onCollectionsLoaded: function() {
     //this._collection = new SnowlCollection();
     this._updateToolbar();
     //this.writeContent();

@@ -42,6 +42,8 @@
 
 <!DOCTYPE page SYSTEM "chrome://snowl/locale/river.dtd">
 
+<?xul-overlay href="chrome://snowl/content/collections.xul"?>
+
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml"
       title="&page.title;"

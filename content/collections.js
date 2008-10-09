@@ -84,9 +84,6 @@ let SourcesView = {
     // the collection name).
     // FIXME: disable this for names that can't be changed.
     this._tree.addEventListener("mousedown", function(aEvent) { SourcesView.onClick(aEvent) }, true);
-
-    if (gMessageViewWindow.SnowlMessageView.onCollectionsLoaded)
-      gMessageViewWindow.SnowlMessageView.onCollectionsLoaded();
   },
 
 
@@ -351,13 +348,4 @@ this._log.info(row.value + " is not selected");
 
 };
 
-// We can't listen for load and initialize then because load has already
-// happened when we get overlaid onto the river view, so we just set a timeout
-// by which time we hope the overlay has been loaded enough for this to work.
-// We also load the script at the end of the collections.xul overlay,
-// after the rest of the overlay has already been parsed, instead of at the top
-// of the overlay, which is where scripts are usually loaded in XUL files.
-// FIXME: figure out a better solution here.  In theory we should be able
-// to make the river view observe xul-overlay-merged and then initialize us,
-// but that doesn't work because of bug 392515.
-window.setTimeout(function() { SourcesView.init() }, 100);
+window.addEventListener("load", function() { SourcesView.init() }, true);

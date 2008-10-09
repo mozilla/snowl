@@ -42,6 +42,8 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <script type="application/x-javascript" src="chrome://snowl/content/collections.js"/>
+
   <vbox id="collectionsViewBox">
     <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
           onselect="SourcesView.onSelect(event)">
@@ -54,7 +56,5 @@
 
     <toolbar id="snowlToolbar"/>
   </vbox>
-
-  <script type="application/x-javascript" src="chrome://snowl/content/collections.js"/>
 
 </overlay>
