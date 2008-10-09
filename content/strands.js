@@ -15,6 +15,10 @@ Author - Kris Zyp - kriszyp@xucia.com
   * for the specific language governing rights and limitations under the
   * License.
   * ***** END LICENSE BLOCK ***** */
+
+// Suppress JS strict warnings by declaring all global strands variables.
+var Future, sleep, strands, _S, strand, _frm, _gen, returns;
+
 function temp() {
 		var standardPush = Array.prototype.push;
 	try {
