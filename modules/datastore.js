@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["SnowlDatastore"];
+let EXPORTED_SYMBOLS = ["SnowlDatastore", "PART_TYPE_CONTENT", "PART_TYPE_SUMMARY"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -43,6 +43,11 @@ const Cu = Components.utils;
 
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
+
+// XXX Should these be in here, or should they be in some Snowl-wide module
+// that all other modules include, like snowl.js?
+const PART_TYPE_CONTENT = 1;
+const PART_TYPE_SUMMARY = 2;
 
 let SnowlDatastore = {
   // FIXME: use the memoization technique for properties that aren't defined

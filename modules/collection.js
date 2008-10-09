@@ -34,16 +34,21 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = ["SnowlCollection"];
+let EXPORTED_SYMBOLS = ["SnowlCollection"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-// FIXME: factor this out into a common file.
-const PART_TYPE_CONTENT = 1;
-const PART_TYPE_SUMMARY = 2;
+// modules that are generic
+Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/log4moz.js");
+
+// modules that are Snowl-specific
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 // Media type to nsIFeedTextConstruct::type mappings.
 // FIXME: get this from message.js (or from something that both message.js
@@ -53,13 +58,6 @@ const textConstructTypes = {
   "application/xhtml+xml": "xhtml",
   "text/plain": "text"
 };
-
-Cu.import("resource://snowl/modules/URI.js");
-Cu.import("resource://snowl/modules/log4moz.js");
-
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/message.js");
-Cu.import("resource://snowl/modules/utils.js");
 
 // FIXME: make SnowlCollection take a hash so it can have named parameters,
 // since the number of parameters it currently accepts, and the fact that they

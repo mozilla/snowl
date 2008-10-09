@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-EXPORTED_SYMBOLS = ["SnowlFeed"];
+let EXPORTED_SYMBOLS = ["SnowlFeed"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -45,7 +45,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
-// modules that should come with Firefox
+// modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -56,10 +56,6 @@ Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
-
-// FIXME: factor this out into a common file.
-const PART_TYPE_CONTENT = 1;
-const PART_TYPE_SUMMARY = 2;
 
 // nsIFeedTextConstruct::type to media type mappings.
 const mediaTypes = { html: "text/html",

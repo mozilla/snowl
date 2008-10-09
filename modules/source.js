@@ -34,15 +34,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = ["SnowlSource"];
+let EXPORTED_SYMBOLS = ["SnowlSource"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-Cu.import("resource://snowl/modules/datastore.js");
+// modules that are generic
 Cu.import("resource://snowl/modules/URI.js");
+
+// modules that are Snowl-specific
+Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 function SnowlSource(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {

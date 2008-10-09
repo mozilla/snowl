@@ -34,16 +34,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = ["SnowlMessage"];
+let EXPORTED_SYMBOLS = ["SnowlMessage"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-// FIXME: factor this out into a common file.
-const PART_TYPE_CONTENT = 1;
-const PART_TYPE_SUMMARY = 2;
+// modules that are generic
+Cu.import("resource://snowl/modules/URI.js");
+
+// modules that are Snowl-specific
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 // Media type to nsIFeedTextConstruct::type mappings.
 // FIXME: get this from message.js (or from something that both message.js
@@ -53,12 +57,6 @@ const textConstructTypes = {
   "application/xhtml+xml": "xhtml",
   "text/plain": "text"
 };
-
-Cu.import("resource://snowl/modules/URI.js");
-
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/source.js");
-Cu.import("resource://snowl/modules/utils.js");
 
 function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorIcon, aReceived) {
   this.id = aID;
