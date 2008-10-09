@@ -83,10 +83,13 @@
 
         <spacer flex="1"/>
 
+        <!-- FIXME: change type="timed" to type="search" once we no longer
+           - support Firefox 3.0 -->
         <textbox id="filterTextbox" type="timed" timeout="200"
-                     oncommand="SnowlMessageView.onFilter(event)"/>
+                 emptytext="&filterTextbox.emptytext;"
+                 oncommand="SnowlMessageView.onFilter(event)"/>
       </toolbar>
-    
+
       <stack id="contentStack" flex="1">
         <scrollbox id="scrollBox"
                    style="overflow: auto;"
