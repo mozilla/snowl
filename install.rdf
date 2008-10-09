@@ -6,7 +6,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>snowl@mozilla.org</em:id>
     <em:name>Snowl</em:name>
-    <em:version>0.2pre1</em:version>
+    <em:version>0.2pre2pre</em:version>
     <em:description>conversations redelivered</em:description>
     <em:creator>Myk Melez</em:creator>
     <em:homepageURL>http://labs.mozilla.com/projects/snowl/</em:homepageURL>
@@ -18,7 +18,7 @@
       <Description>
         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
         <em:minVersion>3.0</em:minVersion>
-        <em:maxVersion>3.1b1pre</em:maxVersion>
+        <em:maxVersion>3.1b2pre</em:maxVersion>
       </Description>
     </em:targetApplication>
 
