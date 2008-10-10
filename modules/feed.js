@@ -231,12 +231,19 @@ SnowlFeed.prototype = {
   },
 
   onRefreshResult: function(aResult) {
+    // FIXME: Make this be "snowl:refresh:start" or move it into the subscribing
+    // caller so it makes sense that it's called "snowl:subscribe:get:start",
+    // since this method also gets called during periodically on feeds to which
+    // the user is already subscribed.
     Observers.notify(this, "snowl:subscribe:get:start", null);
 
     // Now that we know we successfully downloaded the feed and obtained
     // a result from it, update the "last refreshed" timestamp.
     this.lastRefreshed = new Date();
 
+    // FIXME: handle the case where this throws |aResult.doc is null|
+    // because the feed processor couldn't parse the feed file
+    // (f.e. because its content isn't a valid feed).
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     let currentMessageIDs = [];
