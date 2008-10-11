@@ -43,8 +43,8 @@
 <page id="snowlSidebar"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="&page.title;"
-      onload="gBrowserWindow.SnowlMessageView.show()"
-      onunload="gBrowserWindow.SnowlMessageView.hide()">
+      onload="ListSidebar.onLoad()"
+      onunload="ListSidebar.onUnload()">
 
   <script type="application/x-javascript" src="chrome://snowl/content/list-sidebar.js"/>
 

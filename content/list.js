@@ -45,24 +45,25 @@ Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 let SnowlMessageView = {
-  _log: null,
+  // Logger
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.Service.getLogger("Snowl.ListView");
+  },
 
   // Observer Service
+  // FIXME: switch to using the Observers module.
   get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
     delete this._obsSvc;
-    this._obsSvc = obsSvc;
-    return this._obsSvc;
+    return this._obsSvc = Cc["@mozilla.org/observer-service;1"].
+                          getService(Ci.nsIObserverService);
   },
 
   // Atom Service
   get _atomSvc() {
-    let atomSvc = Cc["@mozilla.org/atom-service;1"].
-                  getService(Ci.nsIAtomService);
     delete this._atomSvc;
-    this._atomSvc = atomSvc;
-    return this._atomSvc;
+    return this._atomSvc = Cc["@mozilla.org/atom-service;1"].
+                           getService(Ci.nsIAtomService);
   },
 
   // The ID of the source to display.  The sidebar can set this to the source
@@ -153,20 +154,28 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   //**************************************************************************//
   // Initialization and Destruction
 
-  init: function() {
-    this._log = Log4Moz.Service.getLogger("Snowl.View");
+  show: function() {
     this._obsSvc.addObserver(this, "messages:changed", true);
-
-    let container = document.getElementById("snowlViewContainer");
-    if (container.getAttribute("placement") == "side")
-      this.placeOnSide();
 
     this._collection = new SnowlCollection();
     this._sort();
-    this._tree.view = this;
+
+    // We don't have to initialize the view, as placing it does so for us.
+    //this._tree.view = this;
+
+    this.place();
+
+    document.getElementById("snowlViewContainer").hidden = false;
+    document.getElementById("snowlViewSplitter").hidden = false;
   },
 
-  destroy: function() {
+  hide: function() {
+    document.getElementById("snowlViewSplitter").hidden = true;
+    document.getElementById("snowlViewContainer").hidden = true;
+
+    // XXX Should we somehow destroy the view here (f.e. by setting
+    // this._tree.view to null)?
+
     this._obsSvc.removeObserver(this, "messages:changed");
   },
 
@@ -272,6 +281,19 @@ this._log.info("get rowCount: " + this._collection.messages.length);
       this.placeOnSide();
     else
       this.placeOnTop();
+  },
+
+  place: function() {
+    let container = document.getElementById("snowlViewContainer");
+    switch (container.getAttribute("placement")) {
+      case "side":
+        this.placeOnSide();
+        break;
+      case "top":
+      default:
+        this.placeOnTop();
+        break;
+    }
   },
 
   placeOnSide: function() {
@@ -425,20 +447,6 @@ this._log.info("_toggleRead: all? " + aAll);
     this._tree.boxObject.invalidate();
   },
 
-  show: function() {
-    let container = document.getElementById("snowlViewContainer");
-    let splitter = document.getElementById("snowlViewSplitter");
-    container.hidden = false;
-    splitter.hidden = false;
-  },
-
-  hide: function() {
-    let container = document.getElementById("snowlViewContainer");
-    let splitter = document.getElementById("snowlViewSplitter");
-    container.hidden = true;
-    splitter.hidden = true;
-  },
-
   onClickColumnHeader: function(aEvent) {
     let column = aEvent.target;
     let property = this._columnProperties[column.id];
@@ -481,5 +489,3 @@ this._log.info("_toggleRead: all? " + aAll);
     this._collection.sort();
   }
 };
-
-window.addEventListener("load", function() { SnowlMessageView.init() }, false);

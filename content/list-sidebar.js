@@ -52,3 +52,13 @@ let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          rootTreeItem.
                          QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIDOMWindow);
+
+let ListSidebar = {
+  onLoad: function() {
+    gBrowserWindow.SnowlMessageView.show();
+  },
+
+  onUnload: function() {
+    gBrowserWindow.SnowlMessageView.hide();
+  }
+}
