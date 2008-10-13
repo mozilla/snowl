@@ -166,9 +166,7 @@ let SnowlMessageView = {
       parameters: {}
     });
 
-    // FIXME: make this both received and sent so messages received at the same
-    // time show up in the correct order.
-    this._collection.sortProperties = ["received"];
+    this._collection.sortProperties = ["received", "timestamp"];
     this._collection.sortOrder = -1;
     this._collection.sort();
     this._rebuildView();

@@ -447,7 +447,7 @@ let SnowlMessageView = {
   setCollection: function(collection) {
     this._collection = collection;
     this._collection.sortOrder = -1;
-    this._collection.sortProperties = ["received"];
+    this._collection.sortProperties = ["received", "timestamp"];
     this._updateURI();
     this._applyFilters();
     // No need to rebuild the view here, as _applyFilters will do it for us.
