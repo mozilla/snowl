@@ -41,6 +41,8 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+let msInDay = (1000 * 60 * 60 * 24);
+
 let SnowlUtils = {
   jsToJulianDate: function(date) {
     // Divide by 1000 to get seconds since Unix epoch, divide by 86400
@@ -64,12 +66,26 @@ let SnowlUtils = {
                          getService(Ci.nsIScriptableDateFormat);
   },
 
+  // FIXME: make this localizable.
+  days: {
+    0: "Sunday",
+    1: "Monday",
+    2: "Tuesday",
+    3: "Wednesday",
+    4: "Thursday",
+    5: "Friday",
+    6: "Saturday"
+  },
+
   get today() {
     let sometimeToday = new Date();
     return new Date(sometimeToday.getFullYear(),
                     sometimeToday.getMonth(),
                     sometimeToday.getDate());
   },
+
+  // FIXME: accommodate daylight savings time, which could cause
+  // these calculations to be incorrect at times.
 
   get tomorrow() {
     let sometimeTomorrow = new Date(new Date() + (1000 * 60 * 60 * 24));
@@ -83,6 +99,31 @@ let SnowlUtils = {
     return new Date(sometimeYesterday.getFullYear(),
                     sometimeYesterday.getMonth(),
                     sometimeYesterday.getDate());
+  },
+
+  twoDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (msInDay * 2)) },
+    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+  },
+
+  threeDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (msInDay * 3)) },
+    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+  },
+
+  fourDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (msInDay * 4)) },
+    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+  },
+
+  fiveDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (msInDay * 5)) },
+    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+  },
+
+  sixDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (msInDay * 6)) },
+    get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
   /**

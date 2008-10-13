@@ -159,6 +159,15 @@ let SnowlMessageView = {
     this._document = this._window.document;
 
     this._collection = new SnowlCollection();
+
+    // Only show a week's worth of messages.
+    this._collection.constraints.push({
+      expression: "received > (julianday('now', 'start of day') - 6)",
+      parameters: {}
+    });
+
+    // FIXME: make this both received and sent so messages received at the same
+    // time show up in the correct order.
     this._collection.sortProperties = ["received"];
     this._collection.sortOrder = -1;
     this._collection.sort();
@@ -325,8 +334,14 @@ let SnowlMessageView = {
       { name: "The Future", epoch: Number.MAX_VALUE },
       { name: "Today", epoch: SnowlUtils.today },
       { name: "Yesterday", epoch: SnowlUtils.yesterday },
+      { name: SnowlUtils.twoDaysAgo.name, epoch: SnowlUtils.twoDaysAgo.epoch },
+      { name: SnowlUtils.threeDaysAgo.name, epoch: SnowlUtils.threeDaysAgo.epoch },
+      { name: SnowlUtils.fourDaysAgo.name, epoch: SnowlUtils.fourDaysAgo.epoch },
+      { name: SnowlUtils.fiveDaysAgo.name, epoch: SnowlUtils.fiveDaysAgo.epoch },
+      { name: SnowlUtils.sixDaysAgo.name, epoch: SnowlUtils.sixDaysAgo.epoch },
       { name: "Older", epoch: 0 }
     ];
+
     let groupIndex = 0;
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
