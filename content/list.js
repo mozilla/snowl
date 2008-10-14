@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Myk Melez <myk@mozilla.org>
+ *   alta88 <alta88@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -80,6 +81,21 @@ let SnowlMessageView = {
   get _tree() {
     delete this._tree;
     return this._tree = document.getElementById("snowlView");
+  },
+
+  get _snowlViewContainer() {
+    delete this._snowlViewContainer;
+    return this._snowlViewContainer = document.getElementById("snowlViewContainer");
+  },
+
+  get _snowlViewSplitter() {
+    delete this._snowlViewSplitter;
+    return this._snowlViewSplitter = document.getElementById("snowlViewSplitter");
+  },
+
+  get _snowlSidebar() {
+    delete this._snowlSidebar;
+    return this._snowlSidebar = document.getElementById("snowlSidebar");
   },
 
   get _currentButton() {
@@ -154,24 +170,41 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   //**************************************************************************//
   // Initialization and Destruction
 
+  init: function() {
+    // Move sidebar-box into our box for layouts
+    let sidebarBox = document.getElementById("sidebar-box");
+    this._snowlSidebar.appendChild(sidebarBox);
+
+    // Listen for sidebar-box hidden attr change, to toggle properly
+    sidebarBox.addEventListener("DOMAttrModified",
+        function(aEvent) { 
+          if (aEvent.target.id == "sidebar-box")
+            SnowlMessageView._toggleSidebar(aEvent);
+        }, false);
+
+    // Restore previous layout view and set menuitem checked
+    let mainWindow = document.getElementById("main-window");
+    let layout = mainWindow.getAttribute("snowlLayout");
+    // If error or first time default to 'classic' view
+    let layoutIndex = this.layoutName.indexOf(layout) < 0 ? 
+        0 : this.layoutName.indexOf(layout);
+    this.layout(layoutIndex);
+  },
+
   show: function() {
     this._obsSvc.addObserver(this, "messages:changed", true);
 
     this._collection = new SnowlCollection();
     this._sort();
+    this._tree.view = this;
 
-    // We don't have to initialize the view, as placing it does so for us.
-    //this._tree.view = this;
-
-    this.place();
-
-    document.getElementById("snowlViewContainer").hidden = false;
-    document.getElementById("snowlViewSplitter").hidden = false;
+    this._snowlViewContainer.hidden = false;
+    this._snowlViewSplitter.hidden = false;
   },
 
   hide: function() {
-    document.getElementById("snowlViewSplitter").hidden = true;
-    document.getElementById("snowlViewContainer").hidden = true;
+    this._snowlViewContainer.hidden = true;
+    this._snowlViewSplitter.hidden = true;
 
     // XXX Should we somehow destroy the view here (f.e. by setting
     // this._tree.view to null)?
@@ -273,61 +306,68 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     this._tree.boxObject.scrollToRow(this._tree.boxObject.getFirstVisibleRow());
   },
 
-  switchPlacement: function() {
-    let container = document.getElementById("snowlViewContainer");
-    let appcontent = document.getElementById("appcontent");
+  switchLayout: function(layout) {
+    // Build the layout
+    this.layout(layout);
 
-    if (container.parentNode == appcontent)
-      this.placeOnSide();
-    else
-      this.placeOnTop();
+    // Because we've moved the tree, we have to reattach the view to it,
+    // or we will get the error: "this._tree.boxObject.invalidate is not
+    // a function" when we switch sources.
+    this._tree.view = this;
   },
 
-  place: function() {
-    let container = document.getElementById("snowlViewContainer");
-    switch (container.getAttribute("placement")) {
-      case "side":
-        this.placeOnSide();
-        break;
-      case "top":
-      default:
-        this.placeOnTop();
-        break;
-    }
-  },
+  // Layout views
+  kClassicLayout: 0,
+  kVerticalLayout: 1,
+  kWideMessageLayout: 2,
+  kWideThreadLayout: 3,
+  kStackedLayout: 4,
+  gCurrentLayout: null,
+  layoutName: ["classic", "vertical", "widemessage", "widethread", "stacked"],
 
-  placeOnSide: function() {
+  layout: function(layout) {
+    let mainWindow = document.getElementById("main-window");
     let browser = document.getElementById("browser");
-    let container = document.getElementById("snowlViewContainer");
     let appcontent = document.getElementById("appcontent");
-    let splitter = document.getElementById("snowlViewSplitter");
-
-    browser.insertBefore(container, appcontent);
-    browser.insertBefore(splitter, appcontent);
-    splitter.setAttribute("orient", "horizontal");
-    container.setAttribute("placement", "side");
-
-    // Because we've moved the tree, we have to reattach the view to it,
-    // or we will get the error: "this._tree.boxObject.invalidate is not
-    // a function" when we switch sources.
-    this._tree.view = this;
-  },
-
-  placeOnTop: function() {
-    let appcontent = document.getElementById("appcontent");
-    let container = document.getElementById("snowlViewContainer");
     let content = document.getElementById("content");
-    let splitter = document.getElementById("snowlViewSplitter");
+    let sidebarSplitter = document.getElementById("sidebar-splitter");
+    let snowlThreadContainer = this._snowlViewContainer;
+    let snowlThreadSplitter = this._snowlViewSplitter;
 
-    appcontent.insertBefore(container, content);
-    appcontent.insertBefore(splitter, content);
-    splitter.setAttribute("orient", "vertical");
-    container.setAttribute("placement", "top");
+    let layoutThreadPaneParent = ["appcontent", "browser", "snowlSidebar", "main-window", "sidebar-box"];
+    // A 'null' is an effective appendChild, code is nice and reusable..
+    let layoutThreadPaneInsertBefore = [content, appcontent, null, browser, null];
+    // 0=horizontal, 1=vertical for orient arrays..
+    let layoutsnowlThreadSplitterOrient = [1, 0, 0, 1, 1];
+    let sidebarSplitterOrient = [0, 0, 1, 0, 0];
+    let layoutSnowlBoxFlex = [0, 1, 1, 0, 0];
 
-    // Because we've moved the tree, we have to reattach the view to it,
-    // or we will get the error: "this._tree.boxObject.invalidate is not
-    // a function" when we switch sources.
-    this._tree.view = this;
+    var desiredParent = document.getElementById(layoutThreadPaneParent[layout]);
+    if (snowlThreadContainer.parentNode.id != desiredParent.id) {
+      switch (layout) {
+        case this.kClassicLayout:
+        case this.kVerticalLayout:
+        case this.kWideThreadLayout:
+          desiredParent.insertBefore(snowlThreadContainer, layoutThreadPaneInsertBefore[layout]);
+          desiredParent.insertBefore(snowlThreadSplitter, layoutThreadPaneInsertBefore[layout]);
+          break;
+        case this.kStackedLayout:
+        case this.kWideMessageLayout:
+          desiredParent.insertBefore(snowlThreadSplitter, layoutThreadPaneInsertBefore[layout]);
+          desiredParent.insertBefore(snowlThreadContainer, layoutThreadPaneInsertBefore[layout]);
+          break;
+      }
+    }
+
+    // Adjust orient and flex for all layouts
+    browser.orient = sidebarSplitterOrient[layout] ? "vertical" : "horizontal";
+    snowlThreadSplitter.orient = layoutsnowlThreadSplitterOrient[layout] ? "vertical" : "horizontal";
+    sidebarSplitter.orient = sidebarSplitterOrient[layout] ? "vertical" : "horizontal";
+    snowlThreadContainer.setAttribute("flex", layoutSnowlBoxFlex[layout]);
+
+    // Store the layout
+    mainWindow.setAttribute("snowlLayout", this.layoutName[layout]);
+    this.gCurrentLayout = layout;
   },
 
   onSelect: function(aEvent) {
@@ -447,6 +487,31 @@ this._log.info("_toggleRead: all? " + aAll);
     this._tree.boxObject.invalidate();
   },
 
+  // Functions to handle proper display of sidebar since a parent node has
+  // been added to sidebar to make the extra layouts (widemessage) possible.
+  show_snowlSidebar: function() {
+    let snowlSidebar = this._snowlSidebar;
+    snowlSidebar.height = snowlSidebar.getAttribute("heightSnowlLayouts");
+    snowlSidebar.width = snowlSidebar.getAttribute("widthSnowlLayouts");
+  },
+
+  hide_snowlSidebar: function() {
+    let snowlSidebar = this._snowlSidebar;
+    snowlSidebar.setAttribute("heightSnowlLayouts", snowlSidebar.height);
+    snowlSidebar.height = 0;
+    snowlSidebar.setAttribute("widthSnowlLayouts", snowlSidebar.width);
+    snowlSidebar.width = 0;
+  },
+
+  _toggleSidebar: function(aEvent) {
+    if (aEvent.attrName == "hidden") {
+      if (aEvent.newValue == "true")
+        this.hide_snowlSidebar();
+      else
+        this.show_snowlSidebar();
+    }
+  },
+
   onClickColumnHeader: function(aEvent) {
     let column = aEvent.target;
     let property = this._columnProperties[column.id];
@@ -489,3 +554,5 @@ this._log.info("_toggleRead: all? " + aAll);
     this._collection.sort();
   }
 };
+
+window.addEventListener("load", function() { SnowlMessageView.init() }, false);

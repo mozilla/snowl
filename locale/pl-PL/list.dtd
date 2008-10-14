@@ -4,3 +4,9 @@
 <!ENTITY authorCol.label "Autor">
 <!ENTITY subjectCol.label "Tytuł">
 <!ENTITY timestampCol.label "Data">
+
+<!ENTITY layoutClassic.label          "Classic">
+<!ENTITY layoutVertical.label         "Vertical">
+<!ENTITY layoutWideMessage.label      "Wide Message">
+<!ENTITY layoutWideThread.label       "Wide Thread">
+<!ENTITY layoutStacked.label          "Stacked">

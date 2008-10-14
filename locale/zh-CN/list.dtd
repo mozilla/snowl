@@ -4,3 +4,9 @@
 <!ENTITY authorCol.label "作者">
 <!ENTITY subjectCol.label "主题">
 <!ENTITY timestampCol.label "日期">
+
+<!ENTITY layoutClassic.label          "Classic">
+<!ENTITY layoutVertical.label         "Vertical">
+<!ENTITY layoutWideMessage.label      "Wide Message">
+<!ENTITY layoutWideThread.label       "Wide Thread">
+<!ENTITY layoutStacked.label          "Stacked">
