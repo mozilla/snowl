@@ -126,6 +126,11 @@ let SnowlUtils = {
     get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
+  twentyNineDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (msInDay * 29)) },
+    get name() { return "Twenty Nine Days Ago" }
+  },
+
   /**
    * Formats a date for human consumption using the date formatting service
    * for locale-specific formatting along with some additional smarts for more

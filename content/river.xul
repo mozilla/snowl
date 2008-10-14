@@ -83,6 +83,16 @@
                     oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                     tooltiptext="&columnsButton.tooltip;"/>
 
+        <menulist id="periodMenu" oncommand="SnowlMessageView.onCommandPeriodMenu(event)">
+          <menupopup id="periodMenuPopup">
+            <menuitem label="&periodAll.label;" value="all" selected="true"/>
+            <menuitem label="&periodToday.label;" value="today"/>
+            <menuitem label="&periodYesterday.label;" value="yesterday"/>
+            <menuitem label="&periodLast7Days.label;" value="last7days"/>
+            <menuitem label="&periodLast30Days.label;" value="last30days"/>
+          </menupopup>
+        </menulist>
+
         <spacer flex="1"/>
 
         <!-- FIXME: change type="timed" to type="search" once we no longer

@@ -4,3 +4,9 @@
 <!ENTITY orderButton.tooltip          "Reverse the order of the messages.">
 <!ENTITY columnsButton.tooltip        "Show the messages in columns.">
 <!ENTITY filterTextbox.emptytext      "Search Messages">
+
+<!ENTITY periodAll.label              "All">
+<!ENTITY periodToday.label            "Today">
+<!ENTITY periodYesterday.label        "Yesterday">
+<!ENTITY periodLast7Days.label        "Last 7 Days">
+<!ENTITY periodLast30Days.label       "Last 30 Days">

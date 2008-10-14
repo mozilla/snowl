@@ -100,8 +100,58 @@ let SnowlMessageView = {
   },
 
   get _filterTextbox() {
-    delete this._filter;
-    return this._filter = document.getElementById("filterTextbox");
+    delete this._filterTextbox;
+    return this._filterTextbox = document.getElementById("filterTextbox");
+  },
+
+  get _periodMenu() {
+    delete this._periodMenu;
+    return this._periodMenu = document.getElementById("periodMenu");
+  },
+
+  get _periodMenuPopup() {
+    delete this._periodMenuPopup;
+    return this._periodMenuPopup = document.getElementById("periodMenuPopup");
+  },
+
+  get _periodStartTime() {
+    if (!this._periodMenu.selectedItem)
+      return 0;
+
+    switch (this._periodMenu.selectedItem.value) {
+      case "today":
+        return SnowlUtils.jsToJulianDate(SnowlUtils.today);
+      case "yesterday":
+        return SnowlUtils.jsToJulianDate(SnowlUtils.yesterday);
+      case "last7days":
+        return SnowlUtils.jsToJulianDate(SnowlUtils.sixDaysAgo.epoch);
+      case "last30days":
+        return SnowlUtils.jsToJulianDate(SnowlUtils.twentyNineDaysAgo.epoch);
+      case "all":
+      default:
+        return 0;
+    }
+  },
+
+  get _periodEndTime() {
+    if (!this._periodMenu.selectedItem)
+      return Number.MAX_VALUE;
+
+    switch (this._periodMenu.selectedItem.value) {
+      // Yesterday means only that day, but the rest of the periods are fairly
+      // open-ended, since they all include today, and in theory there shouldn't
+      // be any messages received after today.  I suppose we could exclude
+      // messages received in the future from these categories, but since that
+      // situation is exceptional, it's probably better to show those.
+      case "yesterday":
+        return SnowlUtils.jsToJulianDate(SnowlUtils.today);
+      case "today":
+      case "last7days":
+      case "last30days":
+      case "all":
+      default:
+        return Number.MAX_VALUE;
+    }
   },
 
   // The set of messages to display in the view.
@@ -246,6 +296,12 @@ let SnowlMessageView = {
     if ("filter" in this._params)
       document.getElementById("filterTextbox").value = this._params.filter;
 
+    if ("period" in this._params) {
+      let item = this._periodMenuPopup.getElementsByAttribute("value", this._params.period)[0];
+      if (item)
+        this._periodMenu.selectedItem = item;
+    }
+
     if ("columns" in this._params) {
       this._columnsButton.checked = true;
       // XXX This feels like the wrong place to do this, but I don't see
@@ -302,6 +358,11 @@ let SnowlMessageView = {
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)",
                      parameters: { filter: this._filterTextbox.value } });
 
+    if (this._periodMenu.selectedItem)
+      filters.push({ expression: "received >= :startTime AND received < :endTime",
+                     parameters: { startTime: this._periodStartTime,
+                                     endTime: this._periodEndTime } });
+
     this._collection.filters = filters;
 
     this._collection.invalidate();
@@ -333,6 +394,11 @@ let SnowlMessageView = {
     
   },
 
+  onCommandPeriodMenu: function(event) {
+    this._updateURI();
+    this._applyFilters();
+  },
+
   _updateURI: function() {
     let params = [];
 
@@ -345,6 +411,8 @@ let SnowlMessageView = {
     if (this._columnsButton.checked)
       params.push("columns");
 
+    // FIXME: don't add the collection if it's the default All collection,
+    // but do add it if it's already in the list of params.
     if (this._collection.id)
       params.push("collection=" + this._collection.id);
     else if (this._collection.parent) {
@@ -354,6 +422,10 @@ let SnowlMessageView = {
 
     if (this._filterTextbox.value)
       params.push("filter=" + encodeURIComponent(this._filterTextbox.value));
+
+    // FIXME: do add the All period if it's already in the list of params.
+    if (this._periodMenu.selectedItem && this._periodMenu.selectedItem.value != "all")
+      params.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
 
     let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIWebNavigation).
