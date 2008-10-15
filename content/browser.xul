@@ -69,7 +69,7 @@
 
   <menupopup id="menu_ToolsPopup">
     <menu id="snowlMenu" class="menu-iconic" label="&snowlMenu.label;"
-          image="chrome://snowl/content/icons/snowl-16.jpg"
+          image="chrome://snowl/content/icons/snowl-16.png"
           accesskey="&snowlMenu.accesskey;" insertafter="menu_openAddons">
       <menupopup id="snowlMenuPopup" onpopuphiding="Snowl.onPopupHiding()">
         <menuitem observes="viewSnowlList" label="&listView.label;"
@@ -96,7 +96,7 @@
   <statusbar id="status-bar">
     <statusbarpanel id="snowlStatusbarButton" class="statusbarpanel-menu-iconic"
                     insertbefore="statusbar-display"
-                    src="chrome://snowl/content/icons/snowl-16.jpg"
+                    src="chrome://snowl/content/icons/snowl-16.png"
                     onmousedown="Snowl.onStatusbarButtonMouseDown()">
     </statusbarpanel>
   </statusbar>
