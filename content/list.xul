@@ -53,7 +53,7 @@
   <hbox id="browser">
     <hbox id="snowlSidebar"
           insertbefore="sidebar-splitter"
-          persist="heightSnowlLayouts widthSnowlLayouts"/>
+          persist="width height hidden"/>
   </hbox>
   
   <vbox id="sidebar-box"

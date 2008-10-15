@@ -178,8 +178,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // Listen for sidebar-box hidden attr change, to toggle properly
     sidebarBox.addEventListener("DOMAttrModified",
         function(aEvent) { 
-          if (aEvent.target.id == "sidebar-box")
-            SnowlMessageView._toggleSidebar(aEvent);
+          if (aEvent.target.id == "sidebar-box" && aEvent.attrName == "hidden")
+            SnowlMessageView._snowlSidebar.hidden = (aEvent.newValue == "true");
         }, false);
 
     // Restore previous layout view and set menuitem checked
@@ -485,31 +485,6 @@ this._log.info("_toggleRead: all? " + aAll);
     let ids = this._collection.messages.map(function(v) { return v.id });
     this._collection.messages.forEach(function(v) { v.read = aRead });
     this._tree.boxObject.invalidate();
-  },
-
-  // Functions to handle proper display of sidebar since a parent node has
-  // been added to sidebar to make the extra layouts (widemessage) possible.
-  show_snowlSidebar: function() {
-    let snowlSidebar = this._snowlSidebar;
-    snowlSidebar.height = snowlSidebar.getAttribute("heightSnowlLayouts");
-    snowlSidebar.width = snowlSidebar.getAttribute("widthSnowlLayouts");
-  },
-
-  hide_snowlSidebar: function() {
-    let snowlSidebar = this._snowlSidebar;
-    snowlSidebar.setAttribute("heightSnowlLayouts", snowlSidebar.height);
-    snowlSidebar.height = 0;
-    snowlSidebar.setAttribute("widthSnowlLayouts", snowlSidebar.width);
-    snowlSidebar.width = 0;
-  },
-
-  _toggleSidebar: function(aEvent) {
-    if (aEvent.attrName == "hidden") {
-      if (aEvent.newValue == "true")
-        this.hide_snowlSidebar();
-      else
-        this.show_snowlSidebar();
-    }
   },
 
   onClickColumnHeader: function(aEvent) {
