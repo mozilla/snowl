@@ -5,7 +5,7 @@
 <!ENTITY columnsButton.tooltip        "Show the messages in columns.">
 <!ENTITY filterTextbox.emptytext      "Search Messages">
 
-<!ENTITY periodAll.label              "All">
+<!ENTITY periodAnytime.label          "Anytime">
 <!ENTITY periodToday.label            "Today">
 <!ENTITY periodYesterday.label        "Yesterday">
 <!ENTITY periodLast7Days.label        "Last 7 Days">

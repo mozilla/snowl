@@ -85,11 +85,27 @@
 
         <menulist id="periodMenu" oncommand="SnowlMessageView.onCommandPeriodMenu(event)">
           <menupopup id="periodMenuPopup">
-            <menuitem label="&periodAll.label;" value="all" selected="true"/>
-            <menuitem label="&periodToday.label;" value="today"/>
-            <menuitem label="&periodYesterday.label;" value="yesterday"/>
-            <menuitem label="&periodLast7Days.label;" value="last7days"/>
-            <menuitem label="&periodLast30Days.label;" value="last30days"/>
+            <menuitem label="&periodAnytime.label;"
+                      value="all"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/rainbow.png"
+                      selected="true"/>
+            <menuitem label="&periodToday.label;"
+                      value="today"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/calendar_view_day.png"/>
+            <menuitem label="&periodYesterday.label;"
+                      value="yesterday"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/calendar_view_day.png"/>
+            <menuitem label="&periodLast7Days.label;"
+                      value="last7days"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/calendar_view_week.png"/>
+            <menuitem label="&periodLast30Days.label;"
+                      value="last30days"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/calendar_view_month.png"/>
           </menupopup>
         </menulist>
 
