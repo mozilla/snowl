@@ -88,7 +88,10 @@ let SnowlUtils = {
   // these calculations to be incorrect at times.
 
   get tomorrow() {
-    let sometimeTomorrow = new Date(new Date() + (1000 * 60 * 60 * 24));
+    // We can't just add the right number of milliseconds to new Date() here
+    // because JavaScript will interpret the plus sign as string concatenation,
+    // so we have to explicitly call getTime() on the date object.
+    let sometimeTomorrow = new Date(new Date().getTime() + (1000 * 60 * 60 * 24));
     return new Date(sometimeTomorrow.getFullYear(),
                     sometimeTomorrow.getMonth(),
                     sometimeTomorrow.getDate());
