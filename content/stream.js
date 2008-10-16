@@ -345,7 +345,7 @@ let SnowlMessageView = {
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
-      if (message.received < groups[groupIndex].epoch) {
+      while (message.received < groups[groupIndex].epoch) {
         ++groupIndex;
 
         let header = this._document.createElementNS(XUL_NS, "checkbox");
