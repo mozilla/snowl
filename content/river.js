@@ -250,6 +250,8 @@ let SnowlMessageView = {
     //this._collection = new SnowlCollection();
     this._updateToolbar();
     //this.writeContent();
+
+    this._setMidnightTimout();
   },
 
   /**
@@ -267,6 +269,14 @@ let SnowlMessageView = {
     // Maybe it's because of the 7px padding all around the contentBox?
     this.contentHeight =
       window.innerHeight - (this.scrollbarWidth*2) - toolbarHeight;
+  },
+
+  _setMidnightTimout: function() {
+    let t = this;
+    let now = new Date();
+    let msUntilMidnight = SnowlUtils.tomorrow - now;
+    this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
+    window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
   },
 
 
@@ -462,6 +472,11 @@ let SnowlMessageView = {
 
   //**************************************************************************//
   // Event Handlers
+
+  onMidnight: function() {
+    this._setMidnightTimout();
+    this.rebuildView();
+  },
 
   doPageMove: function(direction) {
     this.doMove(direction * this.viewableWidth);

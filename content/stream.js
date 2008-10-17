@@ -170,6 +170,16 @@ let SnowlMessageView = {
     this._collection.sortOrder = -1;
     this._collection.sort();
     this._rebuildView();
+
+    this._setMidnightTimout();
+  },
+
+  _setMidnightTimout: function() {
+    let t = this;
+    let now = new Date();
+    let msUntilMidnight = SnowlUtils.tomorrow - now;
+    this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
+    window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
   },
 
 
@@ -183,6 +193,11 @@ let SnowlMessageView = {
         this._onMessageAdded(subject);
         break;
     }
+  },
+
+  onMidnight: function() {
+    this._setMidnightTimout();
+    this._rebuildView();
   },
 
   /**
