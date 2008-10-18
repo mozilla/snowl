@@ -133,7 +133,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
       case "snowlSubjectCol":
         return this._collection.messages[aRow].subject;
       case "snowlTimestampCol":
-        return SnowlUtils._formatDate(new Date(this._collection.messages[aRow].timestamp));
+        return SnowlUtils._formatDate(this._collection.messages[aRow].timestamp);
       default:
         return null;
     }

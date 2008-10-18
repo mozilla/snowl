@@ -331,9 +331,6 @@ SnowlFeed.prototype = {
     // 1. when the entry was last updated;
     // 2. when the entry was published;
     // 3. the Dublin Core timestamp associated with the entry;
-    // XXX Should we separately record when we added the entry so that the user
-    // can sort in the "order received" and view "when received" separately from
-    // "when published/updated"?
     let timestamp =   aEntry.updated        ? new Date(aEntry.updated)
                     : aEntry.published      ? new Date(aEntry.published)
                     : aEntry.get("dc:date") ? ISO8601DateUtils.parse(aEntry.get("dc:date"))
@@ -471,7 +468,7 @@ SnowlFeed.prototype = {
                                    aExternalID,
                                    aSubject,
                                    aAuthorID,
-                                   aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null,
+                                   SnowlUtils.jsToJulianDate(aTimestamp),
                                    SnowlUtils.jsToJulianDate(aReceived),
                                    aLink ? aLink.spec : null);
 

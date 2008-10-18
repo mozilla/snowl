@@ -474,7 +474,7 @@ SnowlTwitter.prototype = {
                                    aExternalID,
                                    aSubject,
                                    aAuthorID,
-                                   aTimestamp ? SnowlUtils.jsToJulianDate(aTimestamp) : null,
+                                   SnowlUtils.jsToJulianDate(aTimestamp),
                                    SnowlUtils.jsToJulianDate(aReceived),
                                    aLink ? aLink.spec : null);
 

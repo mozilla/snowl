@@ -86,10 +86,10 @@ SnowlMessage.get = function(aID) {
                                  statement.row.subject,
                                  statement.row.author,
                                  statement.row.link,
-                                 // FIXME: leave this as a JS Date object.
-                                 SnowlUtils.julianToJSDate(statement.row.timestamp).getTime(),
+                                 SnowlUtils.julianToJSDate(statement.row.timestamp),
                                  (statement.row.read ? true : false),
                                  statement.row.authorIcon,
+                                 // FIXME: leave this as a JS Date object.
                                  SnowlUtils.julianToJSDate(statement.row.received).getTime());
     }
   }

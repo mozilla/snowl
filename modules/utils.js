@@ -45,6 +45,11 @@ let msInDay = (1000 * 60 * 60 * 24);
 
 let SnowlUtils = {
   jsToJulianDate: function(date) {
+    // Sometimes we don't have a date.  We represent that the same way
+    // for both JS and Julian dates.
+    if (date == null)
+      return null;
+
     // Divide by 1000 to get seconds since Unix epoch, divide by 86400
     // to get days since Unix epoch, add the difference between the Unix epoch
     // and the Julian epoch.
@@ -52,6 +57,11 @@ let SnowlUtils = {
   },
 
   julianToJSDate: function(date) {
+    // Sometimes we don't have a date.  We represent that the same way
+    // for both JS and Julian dates.
+    if (date == null)
+      return null;
+
     // Invert the function in jsToJulianDate, but round its result before
     // constructing a Date object, as the Date object would truncate (floor)
     // the non-integer result of the calculation, potentially resulting in
@@ -142,6 +152,10 @@ let SnowlUtils = {
    * @returns a human-readable string representing the date
    */
   _formatDate: function(date) {
+    // FIXME: make this localizable.
+    if (!date)
+      return "unknown date";
+
     let day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     let now = new Date();
     let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

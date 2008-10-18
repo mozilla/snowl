@@ -41,11 +41,14 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that come with Firefox
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+// modules that should come with Firefox
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
 
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -221,6 +224,13 @@ let SnowlMessageView = {
   // Initialization
 
   init: function() {
+    // FIXME: use the Observers module to observe message change notifications
+    // and rebuild the view when they happen.  Or does the collections view
+    // already do that for us?
+
+    // FIXME: simplify the way the view gets built after the collections view
+    // gets loaded to make this code less buggy and easier to hack.
+
     // Finish initializing after a brief timeout to give the collections view
     // time to initialize itself.
     let t = this;
@@ -726,7 +736,7 @@ let SnowlMessageView = {
         bylineBox.appendChild(this._document.createTextNode(message.source.name));
 
       // Timestamp
-      let lastUpdated = SnowlUtils._formatDate(new Date(message.timestamp));
+      let lastUpdated = SnowlUtils._formatDate(message.timestamp);
       if (lastUpdated) {
         let timestamp = this._document.createElementNS(HTML_NS, "span");
         timestamp.className = "timestamp";

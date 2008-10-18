@@ -439,7 +439,7 @@ let SnowlMessageView = {
     // by time received.  Instead, we're going to group by time period
     // received (this morning, yesterday, last week, etc.) to give users
     // useful chronographic info.
-    //let lastUpdated = SnowlUtils._formatDate(new Date(message.timestamp));
+    //let lastUpdated = SnowlUtils._formatDate(message.timestamp);
     //if (lastUpdated) {
     //  let timestamp = this._document.createElementNS(XUL_NS, "description");
     //  timestamp.className = "timestamp";
