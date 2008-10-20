@@ -787,16 +787,16 @@ let SnowlMessageView = {
       else if (message.source)
         bylineBox.appendChild(this._document.createTextNode(message.source.name));
 
-      // Timestamp
-      let lastUpdated = SnowlUtils._formatDate(message.timestamp);
-      if (lastUpdated) {
-        let timestamp = this._document.createElementNS(HTML_NS, "span");
-        timestamp.className = "timestamp";
-        timestamp.appendChild(document.createTextNode(lastUpdated));
-        if (bylineBox.hasChildNodes())
-          bylineBox.appendChild(this._document.createTextNode(" - "));
-        bylineBox.appendChild(timestamp);
-      }
+      //// Timestamp
+      //let lastUpdated = SnowlUtils._formatDate(message.timestamp);
+      //if (lastUpdated) {
+      //  let timestamp = this._document.createElementNS(HTML_NS, "span");
+      //  timestamp.className = "timestamp";
+      //  timestamp.appendChild(document.createTextNode(lastUpdated));
+      //  if (bylineBox.hasChildNodes())
+      //    bylineBox.appendChild(this._document.createTextNode(" - "));
+      //  bylineBox.appendChild(timestamp);
+      //}
 
       // Body
       if (this._bodyButton.checked) {
