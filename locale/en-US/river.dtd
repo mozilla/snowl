@@ -9,4 +9,4 @@
 <!ENTITY periodToday.label            "Today">
 <!ENTITY periodYesterday.label        "Yesterday">
 <!ENTITY periodLast7Days.label        "Last 7 Days">
-<!ENTITY periodLast30Days.label       "Last 30 Days">
+<!ENTITY periodLast4Weeks.label       "Last 4 Weeks">

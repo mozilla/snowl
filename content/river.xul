@@ -102,8 +102,8 @@
                       value="last7days"
                       class="menuitem-iconic"
                       image="chrome://snowl/content/icons/calendar_view_week.png"/>
-            <menuitem label="&periodLast30Days.label;"
-                      value="last30days"
+            <menuitem label="&periodLast4Weeks.label;"
+                      value="last4weeks"
                       class="menuitem-iconic"
                       image="chrome://snowl/content/icons/calendar_view_month.png"/>
           </menupopup>

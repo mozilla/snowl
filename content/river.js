@@ -128,8 +128,8 @@ let SnowlMessageView = {
         return SnowlUtils.jsToJulianDate(SnowlUtils.yesterday);
       case "last7days":
         return SnowlUtils.jsToJulianDate(SnowlUtils.sixDaysAgo.epoch);
-      case "last30days":
-        return SnowlUtils.jsToJulianDate(SnowlUtils.twentyNineDaysAgo.epoch);
+      case "last4weeks":
+        return SnowlUtils.jsToJulianDate(SnowlUtils.twentySevenDaysAgo.epoch);
       case "all":
       default:
         return 0;
@@ -150,7 +150,7 @@ let SnowlMessageView = {
         return SnowlUtils.jsToJulianDate(SnowlUtils.today);
       case "today":
       case "last7days":
-      case "last30days":
+      case "last4weeks":
       case "all":
       default:
         return Number.MAX_VALUE;
@@ -640,6 +640,62 @@ let SnowlMessageView = {
    */
   _futureWriteMessages: null,
 
+  // FIXME: make group names localizable.
+  // FIXME: move group names into the SnowlUtils module.
+
+  // I wonder if it makes more sense to define groups in a data structure
+  // that also defines the periods to which they apply and specify start/end
+  // times rather than epochs (which are essentially start times).
+  // Among other benefits, we could potentially eliminate unused epochs
+  // like "The Future" and (in some cases) "Older" while fixing the bug
+  // that epochs never reached don't appear in the view.
+
+  // The groups into which we break up messages.  These vary by period,
+  // since different periods are optimally split up into different groupings.
+  _groups: {
+    today: [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Evening", epoch: SnowlUtils.evening(SnowlUtils.today) },
+      { name: "Afternoon", epoch: SnowlUtils.afternoon(SnowlUtils.today) },
+      { name: "Morning", epoch: SnowlUtils.morning(SnowlUtils.today) },
+      { name: "Wee Hours", epoch: SnowlUtils.today },
+      { name: "Older", epoch: 0 }
+    ],
+    yesterday: [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Evening", epoch: SnowlUtils.evening(SnowlUtils.yesterday) },
+      { name: "Afternoon", epoch: SnowlUtils.afternoon(SnowlUtils.yesterday) },
+      { name: "Morning", epoch: SnowlUtils.morning(SnowlUtils.yesterday) },
+      { name: "Wee Hours", epoch: SnowlUtils.yesterday },
+      { name: "Older", epoch: 0 }
+    ],
+    last7days: [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Today", epoch: SnowlUtils.today },
+      { name: "Yesterday", epoch: SnowlUtils.yesterday },
+      { name: SnowlUtils.twoDaysAgo.name, epoch: SnowlUtils.twoDaysAgo.epoch },
+      { name: SnowlUtils.threeDaysAgo.name, epoch: SnowlUtils.threeDaysAgo.epoch },
+      { name: SnowlUtils.fourDaysAgo.name, epoch: SnowlUtils.fourDaysAgo.epoch },
+      { name: SnowlUtils.fiveDaysAgo.name, epoch: SnowlUtils.fiveDaysAgo.epoch },
+      { name: SnowlUtils.sixDaysAgo.name, epoch: SnowlUtils.sixDaysAgo.epoch },
+      { name: "Older", epoch: 0 }
+    ],
+    last4weeks: [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Week One", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 7) },
+      { name: "Week Two", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 14) },
+      { name: "Week Three", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 21) },
+      { name: "Week Four", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 28) },
+      { name: "Older", epoch: 0 }
+    ],
+    all: [
+      { name: "The Future", epoch: Number.MAX_VALUE },
+      { name: "Today", epoch: SnowlUtils.today },
+      { name: "Yesterday", epoch: SnowlUtils.yesterday },
+      { name: "Older", epoch: 0 }
+    ]
+  },
+
   /**
    * Sleep the specified number of milliseconds before continuing at the point
    * in the caller where this function was called.  For the most part, this is
@@ -667,12 +723,8 @@ let SnowlMessageView = {
     let contentBox = this._document.getElementById("contentBox");
     this._contentSandbox.messages = contentBox;
 
-    let groups = [
-      { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Today", epoch: SnowlUtils.today },
-      { name: "Yesterday", epoch: SnowlUtils.yesterday },
-      { name: "Older", epoch: 0 }
-    ];
+    let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
+    let groups = this._groups[period];
     let groupIndex = 0;
 
     for (let i = 0; i < this._collection.messages.length; ++i) {

@@ -41,9 +41,13 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-let msInDay = (1000 * 60 * 60 * 24);
-
+// FIXME: rename this to reflect the fact that it's date-specific rather than
+// being a generic set of utilities.
 let SnowlUtils = {
+  get msInHour() 1000 * 60 * 60,
+
+  get msInDay() this.msInHour * 24,
+
   jsToJulianDate: function(date) {
     // Sometimes we don't have a date.  We represent that the same way
     // for both JS and Julian dates.
@@ -87,15 +91,21 @@ let SnowlUtils = {
     6: "Saturday"
   },
 
-  get today() {
-    let sometimeToday = new Date();
-    return new Date(sometimeToday.getFullYear(),
-                    sometimeToday.getMonth(),
-                    sometimeToday.getDate());
-  },
+  // FIXME: accommodate daylight savings time (DST), which could cause
+  // these calculations to be incorrect at times (the current implementation
+  // is naive and ignores the existence of DST).
 
-  // FIXME: accommodate daylight savings time, which could cause
-  // these calculations to be incorrect at times.
+  // tomorrow, today, and yesterday return an epoch; twoDaysAgo etc. return
+  // an object that has epoch and name properties; while evening, afternoon,
+  // and morning take a Date object and return an epoch.
+  // FIXME: make the API consistent.
+
+  // I wonder if it makes sense to define (or borrow) a domain-specific language
+  // for doing date calculations.  Another option would be to add methods
+  // to the Date object for adding and subtracting time.  We might even be able
+  // to confine such modifications to Date objects created within this module,
+  // since each module gets its own set of standard global objects.  Or we could
+  // hang stuff off a SnowlDate object that inherits from Date.
 
   get tomorrow() {
     // We can't just add the right number of milliseconds to new Date() here
@@ -107,6 +117,13 @@ let SnowlUtils = {
                     sometimeTomorrow.getDate());
   },
 
+  get today() {
+    let sometimeToday = new Date();
+    return new Date(sometimeToday.getFullYear(),
+                    sometimeToday.getMonth(),
+                    sometimeToday.getDate());
+  },
+
   get yesterday() {
     let sometimeYesterday = new Date(new Date() - (1000 * 60 * 60 * 24));
     return new Date(sometimeYesterday.getFullYear(),
@@ -115,33 +132,45 @@ let SnowlUtils = {
   },
 
   twoDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (msInDay * 2)) },
+    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 2)) },
     get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
   threeDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (msInDay * 3)) },
+    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 3)) },
     get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
   fourDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (msInDay * 4)) },
+    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 4)) },
     get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
   fiveDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (msInDay * 5)) },
+    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 5)) },
     get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
   sixDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (msInDay * 6)) },
+    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 6)) },
     get name() { return SnowlUtils.days[this.epoch.getDay()] }
   },
 
-  twentyNineDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (msInDay * 29)) },
-    get name() { return "Twenty Nine Days Ago" }
+  twentySevenDaysAgo: {
+    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 27)) },
+    get name() { return "Twenty Seven Days Ago" }
+  },
+
+  evening: function(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 18);
+  },
+
+  afternoon: function(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+  },
+
+  morning: function(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6);
   },
 
   /**
