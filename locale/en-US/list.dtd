@@ -7,10 +7,3 @@
 <!ENTITY authorCol.label              "Author">
 <!ENTITY subjectCol.label             "Subject">
 <!ENTITY timestampCol.label           "Date">
-
-<!ENTITY layoutClassic.label          "Classic">
-<!ENTITY layoutVertical.label         "Vertical">
-<!ENTITY layoutWideMessage.label      "Wide Message">
-<!ENTITY layoutWideThread.label       "Wide Thread">
-<!ENTITY layoutStacked.label          "Stacked">
-

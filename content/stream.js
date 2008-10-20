@@ -172,6 +172,8 @@ let SnowlMessageView = {
     this._rebuildView();
 
     this._setMidnightTimout();
+
+    gBrowserWindow.Snowl._initSnowlToolbar();
   },
 
   _setMidnightTimout: function() {

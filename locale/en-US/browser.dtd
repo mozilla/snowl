@@ -10,7 +10,7 @@
 
 <!ENTITY listView.label                       "List">
 <!ENTITY listView.accesskey                   "l">
-<!ENTITY riverView.label                      "River">
+<!ENTITY riverView.label                      "Open River in New Tab">
 <!ENTITY riverView.accesskey                  "r">
 <!ENTITY streamView.label                     "Stream">
 <!ENTITY streamView.accesskey                 "t">
@@ -37,3 +37,35 @@
 <!ENTITY streamViewSidebarMenuItem.label      "Message Stream">
 <!ENTITY streamViewSidebarMenuItem.accesskey  "t">
 <!ENTITY streamViewSidebar.label              "Message Stream">
+
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. -->
+
+<!ENTITY snowlLayoutMenu.label                "Layouts">
+<!ENTITY snowlLayoutMenu.accesskey            "y">
+<!ENTITY layoutClassic.label                  "Classic">
+<!ENTITY layoutClassic.accesskey              "C">
+<!ENTITY layoutVertical.label                 "Vertical">
+<!ENTITY layoutVertical.accesskey             "V">
+<!ENTITY layoutWideMessage.label              "Wide Message">
+<!ENTITY layoutWideMessage.accesskey          "M">
+<!ENTITY layoutWideThread.label               "Wide List">
+<!ENTITY layoutWideThread.accesskey           "L">
+<!ENTITY layoutStacked.label                  "Stacked">
+<!ENTITY layoutStacked.accesskey              "S">
+
+<!ENTITY headerNone.label                     "No Header">
+<!ENTITY headerNone.accesskey                 "N">
+<!ENTITY headerBrief.label                    "Brief Header">
+<!ENTITY headerBrief.accesskey                "B">
+<!ENTITY headerBrief.label                    "Brief Header">
+<!ENTITY headerFull.label                     "Full Header">
+<!ENTITY headerFull.accesskey                 "F">
+<!ENTITY toolbar.label                        "Sidebar Toolbar">
+<!ENTITY toolbar.accesskey                    "d">
+<!ENTITY viewtoolbar.label                    "List Toolbar">
+<!ENTITY viewtoolbar.accesskey                "i">
+
+<!ENTITY toggleHeader.tooltip                 "Toggle message header to none, brief, or full">
+<!ENTITY toggleHeader.label                   "Snowl Toggle Header">

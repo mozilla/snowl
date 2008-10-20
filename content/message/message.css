@@ -46,6 +46,14 @@
   font-weight: bold;
 }
 
+.briefHeaderBox {
+  -moz-box-align: baseline;
+}
+
+#briefSubject[href] .textbox-input {
+  cursor: pointer;
+}
+
 #body {
   -moz-box-flex: 1;
   -moz-user-focus: normal;

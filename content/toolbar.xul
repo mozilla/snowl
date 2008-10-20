@@ -44,7 +44,8 @@
 
   <script type="application/x-javascript" src="chrome://snowl/content/toolbar.js"/>
 
-  <toolbar id="snowlToolbar">
+  <toolbar id="snowlToolbar"
+           persist="hidden">
     <toolbarbutton id="snowlSubscribeButton"
                    image="chrome://snowl/content/icons/add.png"
                    oncommand="SnowlToolbar.subscribe()"

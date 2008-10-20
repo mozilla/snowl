@@ -200,6 +200,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
 
     this._snowlViewContainer.hidden = false;
     this._snowlViewSplitter.hidden = false;
+
+    Snowl._initSnowlToolbar();
   },
 
   hide: function() {

@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Myk Melez <myk@mozilla.org>
+ *   alta88 <alta88@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,6 +47,13 @@ Cu.import("resource://snowl/modules/utils.js");
 const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIWebNavigation).
+                     QueryInterface(Ci.nsIDocShellTreeItem).
+                     rootTreeItem.
+                     QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIDOMWindow);
 
 // Parse URL parameters
 let params = {};
@@ -75,9 +83,18 @@ if (content) {
     body.appendChild(docFragment);
 }
 
+// Brief headers
+document.getElementById("briefAuthor").value = message.author;
+document.getElementById("briefSubject").value = message.subject;
+document.getElementById("briefSubject").setAttribute("href", message.link);
+document.getElementById("briefTimestamp").value = SnowlUtils._formatDate(message.timestamp);
+
+// Full headers
 document.getElementById("author").value = message.author;
 document.getElementById("subject").value = message.subject;
 document.documentElement.setAttribute("title", message.subject);
 document.getElementById("timestamp").value = SnowlUtils._formatDate(message.timestamp);
 document.getElementById("link").href = message.link;
 document.getElementById("link").value = message.link;
+
+gBrowserWindow.Snowl._toggleHeader("TabSelect");

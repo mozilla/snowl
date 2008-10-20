@@ -21,6 +21,7 @@
    -
    - Contributor(s):
    -   Myk Melez <myk@mozilla.org>
+   -   alta88 <alta88@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,6 +36,8 @@
    - the terms of any one of the MPL, the GPL or the LGPL.
    -
    - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://snowl/content/browser.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://snowl/locale/browser.dtd">
 
@@ -71,17 +74,105 @@
     <menu id="snowlMenu" class="menu-iconic" label="&snowlMenu.label;"
           image="chrome://snowl/content/icons/snowl-16.png"
           accesskey="&snowlMenu.accesskey;" insertafter="menu_openAddons">
-      <menupopup id="snowlMenuPopup" onpopuphiding="Snowl.onPopupHiding()">
+      <menupopup id="snowlMenuPopup" onpopuphiding="Snowl.onPopupHiding(event)">
         <menuitem observes="viewSnowlList" label="&listView.label;"
                   accesskey="&listView.accesskey;"/>
-        <menuitem label="&riverView.label;" accesskey="&riverView.accesskey;"
-                  oncommand="Snowl.onRiverView()"/>
         <menuitem observes="viewSnowlStream" label="&streamView.label;"
                   accesskey="&streamView.accesskey;"/>
         <menuseparator/>
+        <menuitem label="&riverView.label;" accesskey="&riverView.accesskey;"
+                  oncommand="Snowl.onRiverView()"/>
         <menuitem label="&checkForNewMessages.label;"
                   accesskey="&checkForNewMessages.accesskey;"
                   oncommand="Snowl.onCheckForNewMessages()"/>
+        <menuseparator/>
+        <menu id="snowlLayoutMenu"
+              label="&snowlLayoutMenu.label;"
+              accesskey="&snowlLayoutMenu.accesskey;">
+          <menupopup id="snowlLayoutPopup"
+                     onpopupshowing="Snowl.onLayoutPopupShowing(event)">
+            <menuitem id="snowlLayoutMenuitemClassic"
+                      label="&layoutClassic.label;"
+                      type="radio"
+                      checked="true"
+                      accesskey="&layoutClassic.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      persist="checked"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kClassicLayout)"/>
+            <menuitem id="snowlLayoutMenuitemVertical"
+                      label="&layoutVertical.label;"
+                      type="radio"
+                      accesskey="&layoutVertical.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      persist="checked"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kVerticalLayout)"/>
+            <menuitem id="snowlLayoutMenuitemWideMessage"
+                      label="&layoutWideMessage.label;"
+                      type="radio"
+                      accesskey="&layoutWideMessage.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      persist="checked"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideMessageLayout)"/>
+            <menuitem id="snowlLayoutMenuitemWideThread"
+                      label="&layoutWideThread.label;"
+                      type="radio"
+                      accesskey="&layoutWideThread.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      persist="checked"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideThreadLayout)"/>
+            <menuitem id="snowlLayoutMenuitemStacked"
+                      label="&layoutStacked.label;"
+                      type="radio"
+                      accesskey="&layoutStacked.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      persist="checked"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kStackedLayout)"/>
+            <menuseparator/>
+            <menuitem id="snowlHeaderMenuitemNone"
+                      label="&headerNone.label;"
+                      type="radio"
+                      accesskey="&headerNone.accesskey;"
+                      name="snowlHeaderMenuitemGroup"
+                      persist="checked"
+                      headerType="Snowl.kNoHeader"
+                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuitem id="snowlHeaderMenuitemBrief"
+                      label="&headerBrief.label;"
+                      type="radio"
+                      accesskey="&headerBrief.accesskey;"
+                      name="snowlHeaderMenuitemGroup"
+                      persist="checked"
+                      headerType="Snowl.kBriefHeader"
+                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuitem id="snowlHeaderMenuitemFull"
+                      label="&headerFull.label;"
+                      type="radio"
+                      accesskey="&headerFull.accesskey;"
+                      name="snowlHeaderMenuitemGroup"
+                      persist="checked"
+                      headerType="Snowl.kFullHeader"
+                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuseparator/>
+            <menuitem id="snowlToolbarMenuitem"
+                      label="&toolbar.label;"
+                      type="checkbox"
+                      checked="true"
+                      autoCheck="false"
+                      accesskey="&toolbar.accesskey;"
+                      name="snowlToolbar"
+                      persist="checked"
+                      oncommand="Snowl._toggleToolbar(event)"/>
+            <menuitem id="snowlViewToolbarMenuitem"
+                      label="&viewtoolbar.label;"
+                      type="checkbox"
+                      checked="true"
+                      autoCheck="false"
+                      accesskey="&viewtoolbar.accesskey;"
+                      name="snowlViewToolbar"
+                      persist="checked"
+                      oncommand="Snowl._toggleToolbar(event)"/>
+          </menupopup>
+        </menu>
         <menuseparator/>
         <menuitem label="&subscribe.label;" accesskey="&subscribe.accesskey;"
                   oncommand="Snowl.onSubscribe()"/>
@@ -93,11 +184,26 @@
     </menu>
   </menupopup>
 
+  <toolbarpalette id="BrowserToolbarPalette">
+    <toolbarbutton id="snowlToolbarButton"
+                   type="menu"
+                   label="&snowlMenu.label;"
+                   tooltiptext="&snowlMenu.label;"
+                   onmousedown="Snowl.onStatusbarButtonMouseDown(event)"/>
+
+    <toolbarbutton id="snowlToggleHeaderButton"
+                   class="toolbarbutton-1"
+                   oncommand="Snowl._toggleHeader('Toggle')"
+                   label="&toggleHeader.label;"
+                   snowlHeader="full"
+                   tooltiptext="&toggleHeader.tooltip;"/>
+  </toolbarpalette>>
+
   <statusbar id="status-bar">
     <statusbarpanel id="snowlStatusbarButton" class="statusbarpanel-menu-iconic"
                     insertbefore="statusbar-display"
                     src="chrome://snowl/content/icons/snowl-16.png"
-                    onmousedown="Snowl.onStatusbarButtonMouseDown()">
+                    onmousedown="Snowl.onStatusbarButtonMouseDown(event)">
     </statusbarpanel>
   </statusbar>
 

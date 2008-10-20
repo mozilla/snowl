@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Myk Melez <myk@mozilla.org>
+ *   alta88 <alta88@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -72,6 +73,11 @@ let Snowl = {
     }
 
     this._prefs.set("lastVersion", this._version);
+
+    // Listen for tab selected, to toggle preferred header view
+    gBrowser.tabContainer.addEventListener("TabSelect",
+        function() { Snowl._toggleHeader("TabSelect"); }, false);
+
   },
 
   //**************************************************************************//
@@ -85,17 +91,39 @@ let Snowl = {
   onStatusbarButtonMouseDown: function(event) {
     let menuPopup = document.getElementById('snowlMenuPopup');
     let statusbarButton = document.getElementById("snowlStatusbarButton");
+    let toolbarButton = document.getElementById("snowlToolbarButton");
 
-    // If the menu popup isn't on the statusbar button, then move the popup
+    // If the menu popup isn't on the statusbar or toolbar button, then move it
     // onto the button so the popup appears when the user clicks the button.
     // We'll move the popup back to the Tools > Snowl menu when the popup hides.
-    if (menuPopup.parentNode != statusbarButton)
+    if (event.target.id == "snowlToolbarButton" &&
+        menuPopup.parentNode != toolbarButton)
+      toolbarButton.appendChild(menuPopup);
+    if (event.target.id == "snowlStatusbarButton" &&
+        menuPopup.parentNode != statusbarButton)
       statusbarButton.appendChild(menuPopup);
   },
 
-  onPopupHiding: function() {
+  onLayoutPopupShowing: function(event) {
+    let layoutmenu = document.getElementById("snowlLayoutMenu");
+    let lchecked = document.getElementById("viewSnowlList").hasAttribute("checked");
+    let schecked = document.getElementById("viewSnowlStream").hasAttribute("checked");
+    let layoutmenuitems = document.getElementsByAttribute("name", "snowlLayoutMenuitemGroup");
+
+    if (layoutmenuitems) {
+      for (var i = 0; i < layoutmenuitems.length; i++)
+        layoutmenuitems[i].setAttribute("disabled", !lchecked);
+    }
+    document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
+        (!lchecked && !schecked) ? true : false);
+    document.getElementById("snowlViewToolbarMenuitem").setAttribute("disabled",
+        (!lchecked) ? true : false)
+  },
+
+  onPopupHiding: function(event) {
     let menuPopup = document.getElementById("snowlMenuPopup");
     let menu = document.getElementById("snowlMenu");
+    event.target.parentNode.removeAttribute("open");
 
     // If the menu popup isn't on the Tools > Snowl menu, then move the popup
     // back onto that menu so the popup appears when the user selects the menu.
@@ -129,8 +157,88 @@ let Snowl = {
 
   onExportOPML: function() {
     SnowlOPML.export(window);
-  }
+  },
 
+  //**************************************************************************//
+  // Buttons
+
+  // Header toggle
+  kNoHeader: 0,
+  kBriefHeader: 1,
+  kFullHeader: 2,
+
+  _toggleHeader: function(val) {
+    let contentWindowDoc = gBrowser.selectedBrowser.contentDocument;
+    let selectedIndex = null;
+    let headerDeck = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
+        .getElementById("headerDeck");
+
+    let button = document.getElementById("snowlToggleHeaderButton");
+    if (button)
+      button.setAttribute("disabled", !headerDeck ? true : false);
+
+    // Not a snowl message in the tab..
+    if (!headerDeck)
+      return;
+
+    let briefHeader = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
+        .getElementById("briefHeader");
+    let fullHeader = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
+        .getElementById("fullHeader");
+    let menuitems = document.getElementsByAttribute("name", "snowlHeaderMenuitemGroup");
+
+    if (val == "TabSelect")
+      // Make sure tab switch reflects header state
+      selectedIndex = this._prefs.get("message.headerView");
+    else if (val == "Toggle") {
+      // Toggled to next in 3 way
+      selectedIndex = parseInt(headerDeck.selectedIndex);
+      selectedIndex = ++selectedIndex > 2 ? 0 : selectedIndex++;
+      this._prefs.set("message.headerView", selectedIndex);
+    }
+    else {
+      // Passed an event from menuitem choice
+      selectedIndex = eval(val.target.getAttribute("headerType"));
+      val.target.setAttribute("checked", true);
+      this._prefs.set("message.headerView", selectedIndex);
+    }
+
+    headerDeck.setAttribute("selectedIndex", selectedIndex);
+    briefHeader.setAttribute("collapsed", selectedIndex == 1 ? false : true);
+    fullHeader.setAttribute("collapsed", selectedIndex == 2 ? false : true);
+
+    if (button)
+      button.setAttribute("snowlHeader", selectedIndex == 0 ?
+          "none" : (selectedIndex == 1 ? "brief" : "full"));
+    if (menuitems) {
+      menuitems[selectedIndex].setAttribute("checked", true);
+//alert("id: checked "+menuitems[selectedIndex].id+":"+menuitems[selectedIndex].getAttribute("checked"));
+    }
+  },
+
+  // Need to init onLoad due to xul structure, toolbar exists in list and stream
+  _initSnowlToolbar: function() {
+    let menuitem = document.getElementById("snowlToolbarMenuitem");
+    let doc = document.getElementById("sidebar").contentDocument;
+    let toolbar = doc.getElementById("snowlToolbar");
+
+    if (toolbar) {
+      menuitem.setAttribute("checked", !toolbar.hidden);
+    }
+  },
+
+  _toggleToolbar: function(event) {
+    let name = event.target.getAttribute("name");
+    let menuitem = document.getElementById(name+"Menuitem");
+    let doc = (name == "snowlToolbar") ?
+        document.getElementById("sidebar").contentDocument : document;
+    let toolbar = doc.getElementById(name);
+
+    if (toolbar) {
+      toolbar.hidden = !toolbar.hidden;
+      menuitem.setAttribute("checked", !toolbar.hidden);
+    }
+  },
 };
 
 Cu.import("resource://snowl/modules/Preferences.js", Snowl);

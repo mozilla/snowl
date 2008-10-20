@@ -53,10 +53,6 @@ treechildren::-moz-tree-cell-text(unread) {
   display: none;
 }
 
-#snowlLayoutButton {
-  list-style-image: url("chrome://snowl/content/icons/application_tile_horizontal.png");
-}
-
 #snowlView {
   height: 12em;
 }

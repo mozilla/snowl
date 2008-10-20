@@ -58,7 +58,7 @@
   
   <vbox id="sidebar-box"
         flex="1"/>
-           
+
   <browser id="sidebar"
            style="min-width: 14em; width: 18em; max-width: none;"/>
 
@@ -71,48 +71,8 @@
           hidden="true">
       <toolbar id="snowlViewToolbar"
                pack="end"
-               align="center">
-        <toolbarbutton id="snowlLayoutButton"
-                       class="snowlToolbarButton"
-                       type="menu"
-                       tooltiptext="Change Layout">
-          <menupopup id="snowlLayoutPopup">
-            <menuitem id="snowlLayoutMenuitemClassic"
-                      label="&layoutClassic.label;"
-                      type="radio"
-                      checked="true"
-                      name="snowlLayoutMenuitemGroup"
-                      persist="checked"
-                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kClassicLayout)"/>
-            <menuitem id="snowlLayoutMenuitemVertical"
-                      label="&layoutVertical.label;"
-                      type="radio"
-                      name="snowlLayoutMenuitemGroup"
-                      persist="checked"
-                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kVerticalLayout)"/>
-            <menuitem id="snowlLayoutMenuitemWideMessage"
-                      label="&layoutWideMessage.label;"
-                      type="radio"
-                      name="snowlLayoutMenuitemGroup"
-                      persist="checked"
-                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideMessageLayout)"/>
-            <menuitem id="snowlLayoutMenuitemWideThread"
-                      label="&layoutWideThread.label;"
-                      type="radio"
-                      name="snowlLayoutMenuitemGroup"
-                      persist="checked"
-                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideThreadLayout)"/>
-            <menuitem id="snowlLayoutMenuitemStacked"
-                      label="&layoutStacked.label;"
-                      type="radio"
-                      name="snowlLayoutMenuitemGroup"
-                      persist="checked"
-                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kStackedLayout)"/>
-          </menupopup>
-        </toolbarbutton>
-
-        <toolbarspring/>
-
+               align="center"
+               persist="hidden">
         <toolbarbutton id="snowlCurrentButton" class="snowlToolbarButton"
                        type="checkbox"
                        image="chrome://snowl/content/icons/newspaper.png"

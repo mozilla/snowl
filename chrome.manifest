@@ -8,6 +8,9 @@ overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
 # the list view sidebar.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/list.xul
 
+# For Customize to display our buttons correctly.
+style chrome://global/content/customizeToolbar.xul chrome://snowl/content/browser.css
+
 # Add the collections view to the list view sidebar.  We overlay it onto both
 # the list view sidebar and the river view, but for the river view we overlay it
 # dynamically via document.loadOverlay instead of an entry here because we
