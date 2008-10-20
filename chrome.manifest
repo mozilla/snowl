@@ -1,7 +1,7 @@
 content snowl content/
 
 # Generic browser chrome integration points: an icon in the status bar,
-# a menu in the Tools menu, View > Sidebar entrie, etc.
+# a menu in the Tools menu, View > Sidebar entries, etc.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
 
 # The parts of the list view that are part of the browser chrome rather than
