@@ -257,8 +257,7 @@ SnowlCollection.prototype = {
                                        SnowlUtils.julianToJSDate(statement.row.timestamp),
                                        (statement.row.read ? true : false),
                                        statement.row.authorIcon,
-                                       // FIXME: leave this as a JS Date object.
-                                       SnowlUtils.julianToJSDate(statement.row.received).getTime());
+                                       SnowlUtils.julianToJSDate(statement.row.received));
         this._messages.push(message);
         this._messageIndex[message.id] = message;
       }
