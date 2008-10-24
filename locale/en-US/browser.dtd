@@ -10,7 +10,7 @@
 
 <!ENTITY listView.label                       "List">
 <!ENTITY listView.accesskey                   "l">
-<!ENTITY riverView.label                      "Open River in New Tab">
+<!ENTITY riverView.label                      "River">
 <!ENTITY riverView.accesskey                  "r">
 <!ENTITY streamView.label                     "Stream">
 <!ENTITY streamView.accesskey                 "t">

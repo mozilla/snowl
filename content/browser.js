@@ -56,6 +56,11 @@ let Snowl = {
     return this._version = addon.version;
   },
 
+  get _mainWindow() {
+    delete this._mainWindow;
+    return this._mainWindow = document.getElementById("main-window");
+  },
+
   init: function() {
     let lastVersion = this._prefs.get("lastVersion");
 
@@ -74,10 +79,29 @@ let Snowl = {
 
     this._prefs.set("lastVersion", this._version);
 
-    // Listen for tab selected, to toggle preferred header view
-    gBrowser.tabContainer.addEventListener("TabSelect",
-        function() { Snowl._toggleHeader("TabSelect"); }, false);
+    // Init tab listeners
+    this._initTabListeners();
 
+    // Init river tab 
+    setTimeout(function() { Snowl._initSnowlRiverTab() }, 100);
+
+  },
+
+  _snowlRiverTab: function() {
+    // Could be null if none else a reference to the tab
+    let gBrowser = document.getElementById("content");
+    let snowlTab = null;
+    let snowlTabOpen = false;
+    
+    for (let index = 0; index < gBrowser.mTabs.length && !snowlTabOpen; index++) {
+      // Get the next tab
+      let currentTab = gBrowser.mTabs[index];
+      if (currentTab.hasAttribute("snowl")) {
+        snowlTabOpen = true;
+        snowlTab = currentTab;
+      }
+    }
+    return snowlTab;
   },
 
   //**************************************************************************//
@@ -104,15 +128,35 @@ let Snowl = {
       statusbarButton.appendChild(menuPopup);
   },
 
+  onPopupShowing: function(event) {
+    // River view menuitem checkstate is off if its tab is not selected+focused
+    let rivermenuitem = document.getElementById("viewSnowlRiver");
+    let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
+    rivermenuitem.setAttribute("checked", isRiverTab);
+
+    // Header checked state
+    let menuitems = document.getElementsByAttribute("name", "snowlHeaderMenuitemGroup");
+    let selectedIndex = this._prefs.get("message.headerView");
+    if (menuitems)
+      menuitems[selectedIndex].setAttribute("checked", true);
+  },
+
+  layoutName: ["classic", "vertical", "widemessage", "widethread", "stacked"],
+
   onLayoutPopupShowing: function(event) {
     let layoutmenu = document.getElementById("snowlLayoutMenu");
     let lchecked = document.getElementById("viewSnowlList").hasAttribute("checked");
     let schecked = document.getElementById("viewSnowlStream").hasAttribute("checked");
     let layoutmenuitems = document.getElementsByAttribute("name", "snowlLayoutMenuitemGroup");
+    let layout = this._mainWindow.getAttribute("snowllayout");
+    let layoutIndex = this.layoutName.indexOf(layout);
 
     if (layoutmenuitems) {
-      for (var i = 0; i < layoutmenuitems.length; i++)
+      for (var i = 0; i < layoutmenuitems.length; i++) {
         layoutmenuitems[i].setAttribute("disabled", !lchecked);
+        if (i == layoutIndex)
+          layoutmenuitems[i].setAttribute("checked", true);
+      }
     }
     document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
         (!lchecked && !schecked) ? true : false);
@@ -138,7 +182,44 @@ let Snowl = {
   // Event Handlers
 
   onRiverView: function() {
-    gBrowser.selectedTab = gBrowser.addTab("chrome://snowl/content/river.xul");
+    // Unchecking river menuitem, if current tab is snowl river tab, close it
+    let snowlRiverTab = this._snowlRiverTab();
+    if (gBrowser.selectedTab == snowlRiverTab) {
+      this.closeRiverView(gBrowser.selectedTab);
+      return;
+    }
+
+    // Handle unchecked menuitem
+    if (snowlRiverTab != null) {
+      // Snowl River tab is already open, focus it
+      gBrowser.selectedTab = snowlRiverTab;
+      gBrowser.focus();
+    }
+    else {
+      // River tab not open, create a new one, toggle other views in sidebar 'off'
+//      let lchecked = document.getElementById("viewSnowlList").hasAttribute("checked");
+//      let schecked = document.getElementById("viewSnowlStream").hasAttribute("checked");
+//      if (lchecked)
+//        toggleSidebar('viewSnowlList');
+//      if (schecked)
+//        toggleSidebar('viewSnowlStream');
+
+      gBrowser.selectedTab = gBrowser.addTab("chrome://snowl/content/river.xul");
+      let tabIndex = gBrowser.mTabContainer.selectedIndex;
+      this._mainWindow.setAttribute("snowltabindex", tabIndex);
+      gBrowser.mTabs[tabIndex].setAttribute("snowl", "river");
+    }
+  },
+
+  closeRiverView: function(aTab) {
+    gBrowser.removeTab(aTab);
+    document.getElementById("viewSnowlRiver").setAttribute("checked", false);
+  },
+
+  onTabSelect: function() {
+    // Make sure desired header view showing..
+    this._toggleHeader("TabSelect");
+    // others..
   },
 
   onCheckForNewMessages: function() {
@@ -159,8 +240,22 @@ let Snowl = {
     SnowlOPML.export(window);
   },
 
+  _initTabListeners: function() {
+    // TabSelect - make sure header state correct
+    gBrowser.tabContainer.addEventListener("TabSelect",
+        function() { Snowl.onTabSelect("TabSelect"); }, false);
+
+    // TabOpen, TabClose, TabMove - make sure snowl River tab index is correct
+    gBrowser.tabContainer.addEventListener("TabOpen",
+        function() { Snowl._resetSnowlRiverTabIndex(); }, false);
+    gBrowser.tabContainer.addEventListener("TabClose",
+        function() { Snowl._resetSnowlRiverTabIndex(); }, false);
+    gBrowser.tabContainer.addEventListener("TabMove",
+        function() { Snowl._resetSnowlRiverTabIndex(); }, false);
+  },
+
   //**************************************************************************//
-  // Buttons
+  // Buttons, menuitems, commands..
 
   // Header toggle
   kNoHeader: 0,
@@ -212,7 +307,6 @@ let Snowl = {
           "none" : (selectedIndex == 1 ? "brief" : "full"));
     if (menuitems) {
       menuitems[selectedIndex].setAttribute("checked", true);
-//alert("id: checked "+menuitems[selectedIndex].id+":"+menuitems[selectedIndex].getAttribute("checked"));
     }
   },
 
@@ -239,6 +333,29 @@ let Snowl = {
       menuitem.setAttribute("checked", !toolbar.hidden);
     }
   },
+
+  // Need to init snowl River tab, if exists
+  _initSnowlRiverTab: function() {
+    let tabIndex = parseInt(this._mainWindow.getAttribute("snowltabindex"));
+    if (tabIndex >= 0 && tabIndex <= gBrowser.mTabs.length)
+      gBrowser.mTabs[tabIndex].setAttribute("snowl", "river");
+  },
+
+  // Need to reset snowl River tab index
+  _resetSnowlRiverTabIndex: function () {
+    setTimeout(function() {
+      let snowlRiverTab = Snowl._snowlRiverTab();
+      if (snowlRiverTab) {
+        // River tab exists
+        let newIndex = snowlRiverTab._tPos;
+        Snowl._mainWindow.setAttribute("snowltabindex", newIndex);
+      }
+      else
+        // Tab closed or none, remove it
+        Snowl._mainWindow.removeAttribute("snowltabindex");
+    }, 200)
+  },
+
 };
 
 Cu.import("resource://snowl/modules/Preferences.js", Snowl);

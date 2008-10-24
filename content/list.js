@@ -108,6 +108,10 @@ let SnowlMessageView = {
     return this._unreadButton = document.getElementById("snowlUnreadButton");
   },
 
+  // Always maintain selected collection within a session, only for List view
+  // XXX store on document for restore on restart??
+  _listCollectionIndex: null,
+
   // Maps XUL tree column IDs to collection properties.
   _columnProperties: {
     "snowlAuthorCol": "author",
@@ -175,6 +179,10 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     let sidebarBox = document.getElementById("sidebar-box");
     this._snowlSidebar.appendChild(sidebarBox);
 
+    // Save position of sidebar/splitter (for wide message layout change)
+    let sidebarSplitter = document.getElementById("sidebar-splitter");
+    this.gSidebarSplitterSiblingID = sidebarSplitter.nextSibling.id;
+
     // Listen for sidebar-box hidden attr change, to toggle properly
     sidebarBox.addEventListener("DOMAttrModified",
         function(aEvent) { 
@@ -182,12 +190,11 @@ this._log.info("get rowCount: " + this._collection.messages.length);
             SnowlMessageView._snowlSidebar.hidden = (aEvent.newValue == "true");
         }, false);
 
-    // Restore previous layout view and set menuitem checked
-    let mainWindow = document.getElementById("main-window");
-    let layout = mainWindow.getAttribute("snowlLayout");
+    // Restore previous layout view
+    let layout = Snowl._mainWindow.getAttribute("snowllayout");
     // If error or first time default to 'classic' view
-    let layoutIndex = this.layoutName.indexOf(layout) < 0 ? 
-        0 : this.layoutName.indexOf(layout);
+    let layoutIndex = Snowl.layoutName.indexOf(layout) < 0 ?
+        this.kClassicLayout : Snowl.layoutName.indexOf(layout);
     this.layout(layoutIndex);
   },
 
@@ -288,8 +295,9 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     this._rebuildView();
   },
 
-  setCollection: function(collection) {
+  setCollection: function(collection, index) {
     this._collection = collection;
+    this._listCollectionIndex = index;
     this._rebuildView();
   },
 
@@ -302,7 +310,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // by reinitializing it instead of merely invalidating the box object
     // (which wouldn't accommodate changes to the number of rows).
     // XXX Is there a better way to do this?
-    this._tree.view = this;
+    // this._tree.view = this; <- doesn't work for all DOM moves..
+    this._tree.boxObject.QueryInterface(Ci.nsITreeBoxObject).view = this;
 
     // Scroll back to the top of the tree.
     this._tree.boxObject.scrollToRow(this._tree.boxObject.getFirstVisibleRow());
@@ -315,7 +324,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // Because we've moved the tree, we have to reattach the view to it,
     // or we will get the error: "this._tree.boxObject.invalidate is not
     // a function" when we switch sources.
-    this._tree.view = this;
+    this._tree.boxObject.QueryInterface(Ci.nsITreeBoxObject).view = this;
   },
 
   // Layout views
@@ -325,18 +334,25 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   kWideThreadLayout: 3,
   kStackedLayout: 4,
   gCurrentLayout: null,
-  layoutName: ["classic", "vertical", "widemessage", "widethread", "stacked"],
+  gSidebarSplitterSiblingID: null,
 
   layout: function(layout) {
-    let mainWindow = document.getElementById("main-window");
+    if (layout == this.gCurrentLayout)
+      return;
+
     let browser = document.getElementById("browser");
     let appcontent = document.getElementById("appcontent");
     let content = document.getElementById("content");
     let sidebarSplitter = document.getElementById("sidebar-splitter");
+    let snowlSidebar = this._snowlSidebar;
     let snowlThreadContainer = this._snowlViewContainer;
     let snowlThreadSplitter = this._snowlViewSplitter;
 
-    let layoutThreadPaneParent = ["appcontent", "browser", "snowlSidebar", "main-window", "sidebar-box"];
+    let layoutThreadPaneParent = ["appcontent",
+                                  "browser",
+                                  "snowlSidebar",
+                                  "main-window",
+                                  "sidebar-box"];
     // A 'null' is an effective appendChild, code is nice and reusable..
     let layoutThreadPaneInsertBefore = [content, appcontent, null, browser, null];
     // 0=horizontal, 1=vertical for orient arrays..
@@ -350,25 +366,46 @@ this._log.info("get rowCount: " + this._collection.messages.length);
         case this.kClassicLayout:
         case this.kVerticalLayout:
         case this.kWideThreadLayout:
-          desiredParent.insertBefore(snowlThreadContainer, layoutThreadPaneInsertBefore[layout]);
-          desiredParent.insertBefore(snowlThreadSplitter, layoutThreadPaneInsertBefore[layout]);
-          break;
         case this.kStackedLayout:
+          // Restore sidebar if coming from wide mess
+          if (this.gCurrentLayout == this.kWideMessageLayout) {
+            browser.insertBefore(snowlSidebar,
+                document.getElementById(this.gSidebarSplitterSiblingID));
+            browser.insertBefore(sidebarSplitter,
+                document.getElementById(this.gSidebarSplitterSiblingID));
+          }
+          if (layout == this.kStackedLayout)
+            desiredParent.insertBefore(snowlThreadSplitter,
+                layoutThreadPaneInsertBefore[layout]);
+            desiredParent.insertBefore(snowlThreadContainer,
+                layoutThreadPaneInsertBefore[layout]);
+          if (layout != this.kStackedLayout)
+            desiredParent.insertBefore(snowlThreadSplitter,
+                layoutThreadPaneInsertBefore[layout]);
+          break;
+
         case this.kWideMessageLayout:
-          desiredParent.insertBefore(snowlThreadSplitter, layoutThreadPaneInsertBefore[layout]);
-          desiredParent.insertBefore(snowlThreadContainer, layoutThreadPaneInsertBefore[layout]);
+          // Move sidebar for wide mess
+          Snowl._mainWindow.insertBefore(snowlSidebar, browser);
+          Snowl._mainWindow.insertBefore(sidebarSplitter, browser);
+
+          desiredParent.insertBefore(snowlThreadSplitter,
+              layoutThreadPaneInsertBefore[layout]);
+          desiredParent.insertBefore(snowlThreadContainer,
+              layoutThreadPaneInsertBefore[layout]);
           break;
       }
     }
 
     // Adjust orient and flex for all layouts
-    browser.orient = sidebarSplitterOrient[layout] ? "vertical" : "horizontal";
-    snowlThreadSplitter.orient = layoutsnowlThreadSplitterOrient[layout] ? "vertical" : "horizontal";
-    sidebarSplitter.orient = sidebarSplitterOrient[layout] ? "vertical" : "horizontal";
+    snowlThreadSplitter.orient = layoutsnowlThreadSplitterOrient[layout] ?
+        "vertical" : "horizontal";
+    sidebarSplitter.orient = sidebarSplitterOrient[layout] ?
+        "vertical" : "horizontal";
     snowlThreadContainer.setAttribute("flex", layoutSnowlBoxFlex[layout]);
 
     // Store the layout
-    mainWindow.setAttribute("snowlLayout", this.layoutName[layout]);
+    Snowl._mainWindow.setAttribute("snowllayout", Snowl.layoutName[layout]);
     this.gCurrentLayout = layout;
   },
 

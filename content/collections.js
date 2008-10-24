@@ -79,6 +79,11 @@ let CollectionsView = {
     this._getCollections();
     this._tree.view = this;
 
+    // Ensure collection selection maintained, if in List sidebar
+    if (document.getElementById("snowlSidebar"))
+      this._tree.view.selection.select(
+          gMessageViewWindow.SnowlMessageView._listCollectionIndex);
+
     // Add a capturing click listener to the tree so we can find out if the user
     // clicked on a row that is already selected (in which case we let them edit
     // the collection name).
@@ -305,7 +310,8 @@ let CollectionsView = {
       return;
 
     let collection = this._rows[this._tree.currentIndex];
-    gMessageViewWindow.SnowlMessageView.setCollection(collection);
+    let index = this._tree.currentIndex;
+    gMessageViewWindow.SnowlMessageView.setCollection(collection, index);
   },
 
   onClick: function(aEvent) {

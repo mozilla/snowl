@@ -47,8 +47,9 @@
   <script type="application/x-javascript" src="list.js"/>
 
   <window id="main-window"
-          persist="screenX screenY width height sizemode snowlLayout"
-          snowlLayout="classic"/>
+          persist="screenX screenY width height sizemode
+             snowllayout snowltabindex snowlcollectionindex"
+          snowllayout="classic"/>
 
   <hbox id="browser">
     <hbox id="snowlSidebar"

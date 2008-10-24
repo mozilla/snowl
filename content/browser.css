@@ -61,3 +61,11 @@
 #palette-box toolbarbutton.snowlToolbarMenuButton {
   -moz-box-orient: vertical;
 }
+
+tab[snowl] {
+  background: white;
+}
+
+tab[snowl] > image {
+  list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
+}
