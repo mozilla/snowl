@@ -447,14 +447,9 @@ let SnowlMessageView = {
     if (this._periodMenu.selectedItem && this._periodMenu.selectedItem.value != "all")
       params.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
 
-    let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                         getInterface(Ci.nsIWebNavigation).
-                         QueryInterface(Ci.nsIDocShellTreeItem).
-                         rootTreeItem.
-                         QueryInterface(Ci.nsIInterfaceRequestor).
-                         getInterface(Ci.nsIDOMWindow);
+    let browser = gBrowserWindow.gBrowser.getBrowserForDocument(document);
 
-    let currentURI = gBrowserWindow.gBrowser.docShell.currentURI.QueryInterface(Ci.nsIURL);
+    let currentURI = browser.docShell.currentURI.QueryInterface(Ci.nsIURL);
 
     let query = params.length > 0 ? "?" + params.join("&") : "";
     let spec = currentURI.prePath + currentURI.filePath + query;
@@ -464,11 +459,11 @@ let SnowlMessageView = {
 
     // Update the docshell with the new URI.  This updates the location bar
     // and gets used by the bookmarks service when the user bookmarks the page.
-    gBrowserWindow.gBrowser.docShell.setCurrentURI(uri);
+    browser.docShell.setCurrentURI(uri);
 
     // Update the session history entry for the page with the new URI.
     // This gets used when the user reloads the page or traverses history.
-    let history = gBrowserWindow.gBrowser.sessionHistory;
+    let history = browser.sessionHistory;
     let historyEntry = history.getEntryAtIndex(history.index, false);
     if (historyEntry instanceof Ci.nsISHEntry)
       historyEntry.setURI(uri);
