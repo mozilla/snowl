@@ -304,23 +304,8 @@ let SnowlService = {
    */
   hasMessage: function(aExternalID) {
     return SnowlDatastore.selectHasMessage(aExternalID);
-  },
-
-  _restartApp: function() {
-    // Notify all windows that an application quit has been requested.
-    var os = Cc["@mozilla.org/observer-service;1"].
-             getService(Ci.nsIObserverService);
-    var cancelQuit = Cc["@mozilla.org/supports-PRBool;1"].
-                     createInstance(Ci.nsISupportsPRBool);
-    os.notifyObservers(cancelQuit, "quit-application-requested", "restart");
-
-    // Something aborted the quit process.
-    if (cancelQuit.data)
-      return;
-
-    Cc["@mozilla.org/toolkit/app-startup;1"].getService(Ci.nsIAppStartup).
-    quit(Ci.nsIAppStartup.eRestart | Ci.nsIAppStartup.eAttemptQuit);
   }
+
 };
 
 SnowlService._init();
