@@ -35,14 +35,32 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#snowlToolbarButton {
+#snowlMenu,
+#snowlToolbarButton,
+#snowlStatusbarButton,
+tab[snowl] > image {
   list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
+}
+
+#snowlToolbarButton {
 /* temporary til bug 355143 */
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
 }
 
+#snowlToggleListButton {
+  list-style-image: url("chrome://snowl/content/icons/layout.png");
+}
+
+#snowlToggleStreamButton {
+  list-style-image: url("chrome://snowl/content/icons/application_tile_horizontal.png");
+}
+
+#snowlToggleRiverButton {
+  list-style-image: url("chrome://snowl/content/icons/table_multiple.png");
+}
+
 #snowlToggleHeaderButton[snowlHeader="none"] {
-  list-style-image: url("chrome://snowl/content/icons/application_split.png")
+  list-style-image: url("chrome://snowl/content/icons/application_split.png");
 }
 
 #snowlToggleHeaderButton[snowlHeader="brief"] {
@@ -57,15 +75,6 @@
   opacity: .3;
 }
 
-/* For correct orientation; type=menu cannot be vertical unless in customize.. */
-#palette-box toolbarbutton.snowlToolbarMenuButton {
-  -moz-box-orient: vertical;
-}
-
 tab[snowl] {
   background: white;
-}
-
-tab[snowl] > image {
-  list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
 }

@@ -87,63 +87,48 @@ let Snowl = {
 
   },
 
-  _snowlRiverTab: function() {
-    // Could be null if none else a reference to the tab
-    let gBrowser = document.getElementById("content");
-    let snowlTab = null;
-    let snowlTabOpen = false;
-    
-    for (let index = 0; index < gBrowser.mTabs.length && !snowlTabOpen; index++) {
-      // Get the next tab
-      let currentTab = gBrowser.mTabs[index];
-      if (currentTab.hasAttribute("snowl")) {
-        snowlTabOpen = true;
-        snowlTab = currentTab;
-      }
-    }
-    return snowlTab;
-  },
 
   //**************************************************************************//
-  // Menu Popup Sharing
+  // Menu Popups
 
-  // The menu popup through which users can access Snowl commands is accessible
-  // from both a menu item in the Tools menu and a statusbar button.  This code
-  // shares the same popup between those two elements so we don't have to
-  // duplicate the popup code.
-
-  onStatusbarButtonMouseDown: function(event) {
-    let menuPopup = document.getElementById('snowlMenuPopup');
-    let statusbarButton = document.getElementById("snowlStatusbarButton");
-    let toolbarButton = document.getElementById("snowlToolbarButton");
-
-    // If the menu popup isn't on the statusbar or toolbar button, then move it
-    // onto the button so the popup appears when the user clicks the button.
-    // We'll move the popup back to the Tools > Snowl menu when the popup hides.
-    if (event.target.id == "snowlToolbarButton" &&
-        menuPopup.parentNode != toolbarButton)
-      toolbarButton.appendChild(menuPopup);
-    if (event.target.id == "snowlStatusbarButton" &&
-        menuPopup.parentNode != statusbarButton)
-      statusbarButton.appendChild(menuPopup);
+  onToolsMenuPopupShowing: function(event) {
+    // Reuse popup
+    let popup = document.getElementById("snowlMenuPopup");
+    let element = document.getElementById("snowlMenu");
+    document.popupNode = element;
+    popup.hidden = false;
+    popup.openPopup(element, "end_before", -3);
   },
 
-  onPopupShowing: function(event) {
+  onToolsMenuPopupHiding: function(event) {
+    // Hide it manually, no idea why .hidePopup doesn't work..
+    let popup = document.getElementById("snowlMenuPopup");
+    //popup.hidePopup();
+    popup.hidden = true;
+  },
+
+  onSnowlMenuPopupShowing: function(event) {
     // River view menuitem checkstate is off if its tab is not selected+focused
     let rivermenuitem = document.getElementById("viewSnowlRiver");
     let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
     rivermenuitem.setAttribute("checked", isRiverTab);
 
-    // Header checked state
-    let menuitems = document.getElementsByAttribute("name", "snowlHeaderMenuitemGroup");
-    let selectedIndex = this._prefs.get("message.headerView");
-    if (menuitems)
-      menuitems[selectedIndex].setAttribute("checked", true);
+    if (event.target.id == "snowlMenuPopup")
+      if (document.popupNode.localName == "toolbarbutton")
+        document.popupNode.setAttribute("open", true);
+  },
+
+  onSnowlMenuPopupHiding: function(event) {
+    event.target.hidden = false;
+    if (event.target.id == "snowlMenuPopup")
+      if (document.popupNode.localName == "toolbarbutton")
+        document.popupNode.removeAttribute("open");
   },
 
   layoutName: ["classic", "vertical", "widemessage", "widethread", "stacked"],
 
   onLayoutPopupShowing: function(event) {
+    // Layout checked state
     let layoutmenu = document.getElementById("snowlLayoutMenu");
     let lchecked = document.getElementById("viewSnowlList").hasAttribute("checked");
     let schecked = document.getElementById("viewSnowlStream").hasAttribute("checked");
@@ -158,23 +143,35 @@ let Snowl = {
           layoutmenuitems[i].setAttribute("checked", true);
       }
     }
+
+    // Header checked state
+    let menuitems = document.getElementsByAttribute("name", "snowlHeaderMenuitemGroup");
+    let selectedIndex = this._prefs.get("message.headerView");
+    if (menuitems) {
+      for (var i = 0; i < menuitems.length; i++) {
+        menuitems[i].setAttribute("disabled", !this._listMessageHeader());
+        if (i == selectedIndex)
+          menuitems[i].setAttribute("checked", true);
+      }
+    }
+
+    // Toolbars
     document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
         (!lchecked && !schecked) ? true : false);
     document.getElementById("snowlViewToolbarMenuitem").setAttribute("disabled",
         (!lchecked) ? true : false)
   },
 
-  onPopupHiding: function(event) {
-    let menuPopup = document.getElementById("snowlMenuPopup");
-    let menu = document.getElementById("snowlMenu");
-    event.target.parentNode.removeAttribute("open");
+  onSnowlButtonMouseDown: function(event) {
+    // Jumping thru hoops to reuse popup for menupopup and button..
+    let popup = document.getElementById("snowlMenuPopup");
+    popup.hidden = false;
+  },
 
-    // If the menu popup isn't on the Tools > Snowl menu, then move the popup
-    // back onto that menu so the popup appears when the user selects the menu.
-    // We'll move the popup back to the statusbar button when the user clicks
-    // on that button.
-    if (menuPopup.parentNode != menu)
-      menu.appendChild(menuPopup);
+  // Correct state of button based on message in current tab
+  // XXX better to add url change listener?
+  onSnowlToggleHeaderButtonMouseover: function(event) {
+    event.target.setAttribute("disabled", !this._listMessageHeader());
   },
 
 
@@ -208,6 +205,11 @@ let Snowl = {
       let tabIndex = gBrowser.mTabContainer.selectedIndex;
       this._mainWindow.setAttribute("snowltabindex", tabIndex);
       gBrowser.mTabs[tabIndex].setAttribute("snowl", "river");
+
+      let riverbroadcaster = document.getElementById("viewSnowlRiver");
+      let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
+      if (riverbroadcaster)
+        riverbroadcaster.setAttribute("checked", isRiverTab);
     }
   },
 
@@ -219,7 +221,12 @@ let Snowl = {
   onTabSelect: function() {
     // Make sure desired header view showing..
     this._toggleHeader("TabSelect");
-    // others..
+
+    // Set checkstate of River broadcaster
+    let riverbroadcaster = document.getElementById("viewSnowlRiver");
+    let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
+    if (riverbroadcaster)
+      riverbroadcaster.setAttribute("checked", isRiverTab);
   },
 
   onCheckForNewMessages: function() {
@@ -265,9 +272,7 @@ let Snowl = {
   _toggleHeader: function(val) {
     let contentWindowDoc = gBrowser.selectedBrowser.contentDocument;
     let selectedIndex = null;
-    let headerDeck = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
-        .getElementById("headerDeck");
-
+    let headerDeck = this._listMessageHeader();
     let button = document.getElementById("snowlToggleHeaderButton");
     if (button)
       button.setAttribute("disabled", !headerDeck ? true : false);
@@ -310,6 +315,13 @@ let Snowl = {
     }
   },
 
+  _listMessageHeader: function() {
+    let contentWindowDoc = gBrowser.selectedBrowser.contentDocument;
+    let headerDeck = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
+        .getElementById("headerDeck");
+    return headerDeck;
+  },
+
   // Need to init onLoad due to xul structure, toolbar exists in list and stream
   _initSnowlToolbar: function() {
     let menuitem = document.getElementById("snowlToolbarMenuitem");
@@ -334,11 +346,34 @@ let Snowl = {
     }
   },
 
+  // See if River tab exists
+  _snowlRiverTab: function() {
+    // Could be null if none else a reference to the tab
+    let gBrowser = document.getElementById("content");
+    let snowlTab = null;
+    let snowlTabOpen = false;
+    
+    for (let index = 0; index < gBrowser.mTabs.length && !snowlTabOpen; index++) {
+      // Get the next tab
+      let currentTab = gBrowser.mTabs[index];
+      if (currentTab.hasAttribute("snowl")) {
+        snowlTabOpen = true;
+        snowlTab = currentTab;
+      }
+    }
+    return snowlTab;
+  },
+
   // Need to init snowl River tab, if exists
   _initSnowlRiverTab: function() {
     let tabIndex = parseInt(this._mainWindow.getAttribute("snowltabindex"));
     if (tabIndex >= 0 && tabIndex <= gBrowser.mTabs.length)
       gBrowser.mTabs[tabIndex].setAttribute("snowl", "river");
+
+    let riverbroadcaster = document.getElementById("viewSnowlRiver");
+    let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
+    if (riverbroadcaster)
+      riverbroadcaster.setAttribute("checked", isRiverTab);
   },
 
   // Need to reset snowl River tab index

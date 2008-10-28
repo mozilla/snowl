@@ -67,5 +67,13 @@
 <!ENTITY viewtoolbar.label                    "List Toolbar">
 <!ENTITY viewtoolbar.accesskey                "i">
 
-<!ENTITY toggleHeader.tooltip                 "Toggle message header to none, brief, or full">
+<!-- These labels and access keys are for toolbar buttons -->
+
+<!ENTITY toggleList.label                     "Snowl Toggle List View">
+<!ENTITY toggleList.tooltip                   "Toggle List View">
+<!ENTITY toggleStream.label                   "Snowl Toggle Stream View">
+<!ENTITY toggleStream.tooltip                 "Toggle Stream View">
+<!ENTITY toggleRiver.label                    "Snowl Toggle River View">
+<!ENTITY toggleRiver.tooltip                  "Toggle River View">
 <!ENTITY toggleHeader.label                   "Snowl Toggle Header">
+<!ENTITY toggleHeader.tooltip                 "Toggle message header to none, brief, or full">
