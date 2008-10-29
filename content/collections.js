@@ -44,8 +44,12 @@ Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/opml.js");
 
-// FIXME: make this configurable.
-const SNOWL_COLLECTIONS_HIERARCHICAL = false;
+let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIWebNavigation).
+                     QueryInterface(Ci.nsIDocShellTreeItem).
+                     rootTreeItem.
+                     QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIDOMWindow);
 
 let CollectionsView = {
   _log: null,
@@ -69,6 +73,7 @@ let CollectionsView = {
     return this._children = this._tree.getElementsByTagName("treechildren")[0];
   },
 
+  isHierarchical: gBrowserWindow.Snowl._prefs.get("collection.hierarchicalView"),
 
   //**************************************************************************//
   // Initialization & Destruction
@@ -77,7 +82,7 @@ let CollectionsView = {
     this._log = Log4Moz.Service.getLogger("Snowl.Sidebar");
     this._obsSvc.addObserver(this, "sources:changed", true);
     this._getCollections();
-    this._tree.view = this;
+    this._buildCollectionTree();
 
     // Ensure collection selection maintained, if in List sidebar
     if (document.getElementById("snowlSidebar"))
@@ -148,7 +153,7 @@ let CollectionsView = {
   getLevel: function(row) {
     //this._log.info("getLevel: " + row);
 
-    if (!SNOWL_COLLECTIONS_HIERARCHICAL)
+    if (!this.isHierarchical)
       return 0;
 
     return this._rows[row].level;
@@ -252,7 +257,7 @@ let CollectionsView = {
         // Since the number of rows might have changed, we do this by reinitializing
         // the view instead of merely invalidating the box object (which doesn't
         // expect changes to the number of rows).
-        this._tree.view = this;
+        this._buildCollectionTree();
         break;
     }
   },
@@ -285,12 +290,13 @@ let CollectionsView = {
     finally {
       statement.reset();
     }
+  },
 
-    // Build the list of rows in the tree.  By default, all containers
-    // are closed, so this is the same as the list of collections, although
-    // in the future we might persist and restore the open state.
-    // XXX Should this work be in a separate function?
-    if (SNOWL_COLLECTIONS_HIERARCHICAL) {
+  // Build the list of rows in the tree.  By default, all containers
+  // are closed, so this is the same as the list of collections, although
+  // in the future we might persist and restore the open state.
+  _buildCollectionTree: function() {
+    if (this.isHierarchical) {
       this._rows = [collection for each (collection in this._collections)];
     }
     else {
@@ -303,6 +309,8 @@ let CollectionsView = {
           this._rows.push(collection);
       }
     }
+
+    this._tree.view = this;
   },
 
   onSelect: function(aEvent) {

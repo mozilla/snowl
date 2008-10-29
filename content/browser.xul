@@ -167,6 +167,19 @@
                     headerType="Snowl.kFullHeader"
                     oncommand="Snowl._toggleHeader(event)"/>
           <menuseparator/>
+          <menuitem id="snowlHierarchyOffMenuitem"
+                    label="&hierarchyOff.label;"
+                    type="radio"
+                    accesskey="&hierarchyOff.accesskey;"
+                    name="snowlHierarchyMenuitemGroup"
+                    oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOff)"/>
+          <menuitem id="snowlHierarchyOnMenuitem"
+                    label="&hierarchyOn.label;"
+                    type="radio"
+                    accesskey="&hierarchyOn.accesskey;"
+                    name="snowlHierarchyMenuitemGroup"
+                    oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOn)"/>
+          <menuseparator/>
           <menuitem id="snowlToolbarMenuitem"
                     label="&toolbar.label;"
                     type="checkbox"

@@ -45,6 +45,7 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="&page.title;"
       onload="SnowlMessageView.onLoad()"
+      onunload="SnowlMessageView.onunLoad()"
       onclick="return window.parent.contentAreaClick(event, true);"
       onresize="try { SnowlMessageView.onResize() }
                 catch(ex) { /* before script loaded */ }">

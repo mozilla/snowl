@@ -176,6 +176,10 @@ let SnowlMessageView = {
     gBrowserWindow.Snowl._initSnowlToolbar();
   },
 
+  onunLoad: function() {
+    Observers.remove(this, "snowl:message:added");
+  },
+
   _setMidnightTimout: function() {
     let t = this;
     let now = new Date();

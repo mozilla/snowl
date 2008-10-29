@@ -155,6 +155,18 @@ let Snowl = {
       }
     }
 
+    // Hierarchy init 
+    let hmenuitems = document.getElementsByAttribute("name", "snowlHierarchyMenuitemGroup");
+    let isHierarchical = this._prefs.get("collection.hierarchicalView");
+    let rivertab = this._snowlRiverTab();
+    if (hmenuitems) {
+      for (var i = 0; i < hmenuitems.length; i++) {
+        hmenuitems[i].setAttribute("disabled", !lchecked && !(rivertab));
+        if (i == isHierarchical)
+          hmenuitems[i].setAttribute("checked", true);
+      }
+    }
+
     // Toolbars
     document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
         (!lchecked && !schecked) ? true : false);
@@ -322,6 +334,29 @@ let Snowl = {
     return headerDeck;
   },
 
+  // Collections hierarchy toggle
+  kHierarchyOff: 0,
+  kHierarchyOn: 1,
+
+  _toggleHierarchy: function(val) {
+    let sidebarDoc = document.getElementById("sidebar").contentWindow;
+    let lchecked = document.getElementById("viewSnowlList").hasAttribute("checked");
+    if (lchecked) {
+      sidebarDoc.CollectionsView.isHierarchical = val;
+      sidebarDoc.CollectionsView._buildCollectionTree();
+    }
+
+    let rivertab = this._snowlRiverTab();
+    if (rivertab) {
+      let tabWindowDoc = gBrowser.getBrowserAtIndex(rivertab._tPos).contentWindow;
+      let tabDoc = new XPCNativeWrapper(tabWindowDoc).wrappedJSObject;
+      tabDoc.CollectionsView.isHierarchical = val;
+      tabDoc.CollectionsView._buildCollectionTree();
+    }
+
+    this._prefs.set("collection.hierarchicalView", val);
+  },
+
   // Need to init onLoad due to xul structure, toolbar exists in list and stream
   _initSnowlToolbar: function() {
     let menuitem = document.getElementById("snowlToolbarMenuitem");
@@ -336,14 +371,27 @@ let Snowl = {
   _toggleToolbar: function(event) {
     let name = event.target.getAttribute("name");
     let menuitem = document.getElementById(name+"Menuitem");
-    let doc = (name == "snowlToolbar") ?
-        document.getElementById("sidebar").contentDocument : document;
-    let toolbar = doc.getElementById(name);
+    let doc, toolbar, rtoolbar = null;
 
+    if (name == "snowlToolbar") {
+      doc = document.getElementById("sidebar").contentDocument;
+      let rivertab = this._snowlRiverTab();
+      if (rivertab)
+        rtoolbar = gBrowser.getBrowserAtIndex(rivertab._tPos).
+                   contentDocument.getElementById(name);
+    }
+    else 
+      doc = document;
+
+    toolbar = doc.getElementById(name);
     if (toolbar) {
       toolbar.hidden = !toolbar.hidden;
       menuitem.setAttribute("checked", !toolbar.hidden);
     }
+    if (rtoolbar)
+      rtoolbar.hidden = !rtoolbar.hidden;
+
+
   },
 
   // See if River tab exists
