@@ -66,6 +66,10 @@
 <!ENTITY toolbar.accesskey                    "d">
 <!ENTITY viewtoolbar.label                    "List Toolbar">
 <!ENTITY viewtoolbar.accesskey                "i">
+<!ENTITY hierarchyOff.label                   "Flat Collections">
+<!ENTITY hierarchyOff.accesskey               "a">
+<!ENTITY hierarchyOn.label                    "Hierarchical Collections">
+<!ENTITY hierarchyOn.accesskey                "H">
 
 <!-- These labels and access keys are for toolbar buttons -->
 
