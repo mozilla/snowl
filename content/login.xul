@@ -55,6 +55,7 @@
   <hbox flex="1">
     <image class="spaced authentication-icon question-icon"/>
     <description id="prompt" flex="1" style="width: 0;"/>
+    <image src="chrome://snowl/content/icons/snowl-40.png"/>
   </hbox>
 
   <grid>
