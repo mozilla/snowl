@@ -81,7 +81,7 @@ SnowlSource.get = function(aID) {
                              this._getStatement.row.name,
                              URI.get(this._getStatement.row.machineURI),
                              URI.get(this._getStatement.row.humanURI),
-                             SnowlUtils.julianToJSDate(this._getStatement.row.lastRefreshed),
+                             SnowlDateUtils.julianToJSDate(this._getStatement.row.lastRefreshed),
                              this._getStatement.row.importance);
   }
   finally {
@@ -134,7 +134,7 @@ SnowlSource.prototype = {
     let stmt = SnowlDatastore.createStatement("UPDATE sources " +
                                               "SET lastRefreshed = :lastRefreshed " +
                                               "WHERE id = :id");
-    stmt.params.lastRefreshed = SnowlUtils.jsToJulianDate(this._lastRefreshed);
+    stmt.params.lastRefreshed = SnowlDateUtils.jsToJulianDate(this._lastRefreshed);
     stmt.params.id = this.id;
     stmt.execute();
   },

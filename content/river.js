@@ -123,13 +123,13 @@ let SnowlMessageView = {
 
     switch (this._periodMenu.selectedItem.value) {
       case "today":
-        return SnowlUtils.jsToJulianDate(SnowlUtils.today);
+        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.today);
       case "yesterday":
-        return SnowlUtils.jsToJulianDate(SnowlUtils.yesterday);
+        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.yesterday);
       case "last7days":
-        return SnowlUtils.jsToJulianDate(SnowlUtils.sixDaysAgo.epoch);
+        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.sixDaysAgo.epoch);
       case "last4weeks":
-        return SnowlUtils.jsToJulianDate(SnowlUtils.twentySevenDaysAgo.epoch);
+        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.twentySevenDaysAgo.epoch);
       case "all":
       default:
         return 0;
@@ -147,7 +147,7 @@ let SnowlMessageView = {
       // messages received in the future from these categories, but since that
       // situation is exceptional, it's probably better to show those.
       case "yesterday":
-        return SnowlUtils.jsToJulianDate(SnowlUtils.today);
+        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.today);
       case "today":
       case "last7days":
       case "last4weeks":
@@ -284,7 +284,7 @@ let SnowlMessageView = {
   _setMidnightTimout: function() {
     let t = this;
     let now = new Date();
-    let msUntilMidnight = SnowlUtils.tomorrow - now;
+    let msUntilMidnight = SnowlDateUtils.tomorrow - now;
     this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
     window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
   },
@@ -650,43 +650,43 @@ let SnowlMessageView = {
   _groups: {
     today: [
       { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Evening", epoch: SnowlUtils.evening(SnowlUtils.today) },
-      { name: "Afternoon", epoch: SnowlUtils.afternoon(SnowlUtils.today) },
-      { name: "Morning", epoch: SnowlUtils.morning(SnowlUtils.today) },
-      { name: "Wee Hours", epoch: SnowlUtils.today },
+      { name: "Evening", epoch: SnowlDateUtils.evening(SnowlDateUtils.today) },
+      { name: "Afternoon", epoch: SnowlDateUtils.afternoon(SnowlDateUtils.today) },
+      { name: "Morning", epoch: SnowlDateUtils.morning(SnowlDateUtils.today) },
+      { name: "Wee Hours", epoch: SnowlDateUtils.today },
       { name: "Older", epoch: 0 }
     ],
     yesterday: [
       { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Evening", epoch: SnowlUtils.evening(SnowlUtils.yesterday) },
-      { name: "Afternoon", epoch: SnowlUtils.afternoon(SnowlUtils.yesterday) },
-      { name: "Morning", epoch: SnowlUtils.morning(SnowlUtils.yesterday) },
-      { name: "Wee Hours", epoch: SnowlUtils.yesterday },
+      { name: "Evening", epoch: SnowlDateUtils.evening(SnowlDateUtils.yesterday) },
+      { name: "Afternoon", epoch: SnowlDateUtils.afternoon(SnowlDateUtils.yesterday) },
+      { name: "Morning", epoch: SnowlDateUtils.morning(SnowlDateUtils.yesterday) },
+      { name: "Wee Hours", epoch: SnowlDateUtils.yesterday },
       { name: "Older", epoch: 0 }
     ],
     last7days: [
       { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Today", epoch: SnowlUtils.today },
-      { name: "Yesterday", epoch: SnowlUtils.yesterday },
-      { name: SnowlUtils.twoDaysAgo.name, epoch: SnowlUtils.twoDaysAgo.epoch },
-      { name: SnowlUtils.threeDaysAgo.name, epoch: SnowlUtils.threeDaysAgo.epoch },
-      { name: SnowlUtils.fourDaysAgo.name, epoch: SnowlUtils.fourDaysAgo.epoch },
-      { name: SnowlUtils.fiveDaysAgo.name, epoch: SnowlUtils.fiveDaysAgo.epoch },
-      { name: SnowlUtils.sixDaysAgo.name, epoch: SnowlUtils.sixDaysAgo.epoch },
+      { name: "Today", epoch: SnowlDateUtils.today },
+      { name: "Yesterday", epoch: SnowlDateUtils.yesterday },
+      { name: SnowlDateUtils.twoDaysAgo.name, epoch: SnowlDateUtils.twoDaysAgo.epoch },
+      { name: SnowlDateUtils.threeDaysAgo.name, epoch: SnowlDateUtils.threeDaysAgo.epoch },
+      { name: SnowlDateUtils.fourDaysAgo.name, epoch: SnowlDateUtils.fourDaysAgo.epoch },
+      { name: SnowlDateUtils.fiveDaysAgo.name, epoch: SnowlDateUtils.fiveDaysAgo.epoch },
+      { name: SnowlDateUtils.sixDaysAgo.name, epoch: SnowlDateUtils.sixDaysAgo.epoch },
       { name: "Older", epoch: 0 }
     ],
     last4weeks: [
       { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Week One", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 7) },
-      { name: "Week Two", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 14) },
-      { name: "Week Three", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 21) },
-      { name: "Week Four", epoch: SnowlUtils.tomorrow - (SnowlUtils.msInDay * 28) },
+      { name: "Week One", epoch: SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 7) },
+      { name: "Week Two", epoch: SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 14) },
+      { name: "Week Three", epoch: SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 21) },
+      { name: "Week Four", epoch: SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28) },
       { name: "Older", epoch: 0 }
     ],
     all: [
       { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Today", epoch: SnowlUtils.today },
-      { name: "Yesterday", epoch: SnowlUtils.yesterday },
+      { name: "Today", epoch: SnowlDateUtils.today },
+      { name: "Yesterday", epoch: SnowlDateUtils.yesterday },
       { name: "Older", epoch: 0 }
     ]
   },
@@ -783,7 +783,7 @@ let SnowlMessageView = {
         bylineBox.appendChild(this._document.createTextNode(message.source.name));
 
       //// Timestamp
-      //let lastUpdated = SnowlUtils._formatDate(message.timestamp);
+      //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
       //if (lastUpdated) {
       //  let timestamp = this._document.createElementNS(HTML_NS, "span");
       //  timestamp.className = "timestamp";

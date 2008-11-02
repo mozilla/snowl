@@ -49,7 +49,21 @@
   <window id="main-window"
           persist="screenX screenY width height sizemode
              snowllayout snowltabindex snowlcollectionindex"
-          snowllayout="classic"/>
+          snowllayout="classic">
+
+    <!-- Apparently Popup can not be child of mainPopupSet, otherwise popup hide
+         click is sent as select event. This effect is not bad but could not be
+         recreated in the collections sidebar tree context popup. Quirky xul here. -->
+    <popup id="snowlListContext"
+           onpopuphidden="SnowlMessageView.onTreeContextPopupHidden(event)">
+      <menuitem id="snowlOpenListMessageMenuitem"
+                disabled="true"
+                label="&openListMessage.label;"
+                accesskey="&openListMessage.accesskey;"
+                oncommand="SnowlMessageView._openListMessage(event)"/>
+    </popup>  
+
+  </window>
 
   <hbox id="browser">
     <hbox id="snowlSidebar"
@@ -112,7 +126,8 @@
                    onclick="SnowlMessageView.onClickColumnHeader(event)"/>
         </treecols>
 
-        <treechildren flex="1"/>
+        <treechildren flex="1" context="snowlListContext"
+                      onmousedown="SnowlMessageView.onListTreeMouseDown(event)"/>
       </tree>
     </vbox>
 

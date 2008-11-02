@@ -34,16 +34,17 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const EXPORTED_SYMBOLS = ["SnowlUtils"];
+const EXPORTED_SYMBOLS = ["SnowlDateUtils", "SnowlUtils"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-// FIXME: rename this to reflect the fact that it's date-specific rather than
-// being a generic set of utilities.
-let SnowlUtils = {
+//modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
+
+let SnowlDateUtils = {
   get msInHour() 1000 * 60 * 60,
 
   get msInDay() this.msInHour * 24,
@@ -132,32 +133,32 @@ let SnowlUtils = {
   },
 
   twoDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 2)) },
-    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 2)) },
+    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
   },
 
   threeDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 3)) },
-    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 3)) },
+    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
   },
 
   fourDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 4)) },
-    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 4)) },
+    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
   },
 
   fiveDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 5)) },
-    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 5)) },
+    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
   },
 
   sixDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 6)) },
-    get name() { return SnowlUtils.days[this.epoch.getDay()] }
+    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 6)) },
+    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
   },
 
   twentySevenDaysAgo: {
-    get epoch() { return new Date(SnowlUtils.today - (SnowlUtils.msInDay * 27)) },
+    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 27)) },
     get name() { return "Twenty Seven Days Ago" }
   },
 
@@ -237,6 +238,131 @@ let SnowlUtils = {
                                       date.getHours(),
                                       date.getMinutes(),
                                       date.getSeconds());
+  },
+};
+
+let SnowlUtils = {
+  get _log() {
+    let log = Log4Moz.Service.getLogger("Snowl.Utils");
+    this.__defineGetter__("_log", function() { return log });
+    return this._log;
+  },
+
+  // Always maintain selected listitem within a session
+  // XXX store on document for restore on restart??
+  gListViewListIndex: null,
+  gListViewCollectionIndex: null,
+
+  // From Tb: Detect right mouse click and change the highlight to the row
+  // where the click happened without loading the message headers in
+  // the Folder or Thread Pane.
+  gRightMouseButtonDown: false,
+  gSelectOnRtClick: false,
+  onTreeMouseDown: function(aEvent, tree) {
+    if (aEvent.button == 2 && !this.gSelectOnRtClick) {
+      this.gRightMouseButtonDown = true;
+      this.ChangeSelectionWithoutContentLoad(aEvent, aEvent.target.parentNode);
+    }
+    else {
+      // Add a capturing click listener to the tree so we can find out if the user
+      // clicked on a row that is already selected (in which case we let them edit
+      // the collection name).
+      // FIXME: disable this for names that can't be changed.
+      // this._tree.addEventListener("mousedown", function(aEvent) { 
+      //     CollectionsView.onClick(aEvent) }, true);
+      let row = {}, col = {}, child = {};
+      tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, child);
+      if (tree.view.selection.isSelected(row.value))
+this._log.info("row: "+ row.value + " is selected");
+      else {
+this._log.info("row: "+ row.value + " is not selected");
+      }
+    this.gRightMouseButtonDown = false;
+    }
+  },
+
+  // From Tb: Function to change the highlighted row to where the mouse was
+  // clicked without loading the contents of the selected row.
+  // It will also keep the outline/dotted line in the original row.
+  ChangeSelectionWithoutContentLoad: function(aEvent, tree) {
+this._log.info("change selection right click: tree.id = "+tree.id);
+    let treeBoxObj = tree.treeBoxObject;
+    let treeSelection = treeBoxObj.view.selection;
+
+    let row = treeBoxObj.getRowAt(aEvent.clientX, aEvent.clientY);
+
+    // Make sure that row.value is valid so that it doesn't mess up
+    // the call to ensureRowIsVisible().
+    if((row >= 0) && !treeSelection.isSelected(row)) {
+      let saveCurrentIndex = treeSelection.currentIndex;
+      treeSelection.selectEventsSuppressed = true;
+      treeSelection.select(row);
+      treeSelection.currentIndex = saveCurrentIndex;
+      treeBoxObj.ensureRowIsVisible(row);
+      // This causes onSelect to fire, not necessary here
+//      treeSelection.selectEventsSuppressed = false;
+
+      // Keep track of which row in the tree is currently selected.
+      if(tree.id == "snowlView")
+        this.gListViewListIndex = row;
+      if(tree.id == "sourcesView")
+        this.gListViewCollectionIndex = row;
+    }
+    // This will not stop the onSelect event, need to test in the handler..
+//    aEvent.stopPropagation();
+  },
+
+  // From Tb: Function to change the highlighted row back to the row that
+  // is currently outline/dotted without loading the contents of either rows.
+  // This is triggered when the context menu for a given row is hidden/closed
+  // (onpopuphidden for the context <popup>).
+  RestoreSelectionWithoutContentLoad: function(tree) {
+    // If a delete or move command had been issued, then we should
+    // reset gRightMouseButtonDown and gListDeleteOrMoveOccurred
+    // and return (see bug 142065).
+    // TODO: once contextmenu has these options..
+//    if(this.gListDeleteOrMoveOccurred) {
+//      this.gRightMouseButtonDown = false;
+//      this.gListDeleteOrMoveOccurred = false;
+//      return;
+//    }
+this._log.info("restore selection onpopuphidden: tree.id = "+tree.id);
+
+    let treeSelection = tree.view.selection;
+
+    // Make sure that currentIndex is valid so that we don't try to restore
+    // a selection of an invalid row.
+    if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
+        (treeSelection.currentIndex >= 0)) {
+      treeSelection.selectEventsSuppressed = true;
+      treeSelection.select(treeSelection.currentIndex);
+      treeSelection.selectEventsSuppressed = false;
+
+      // Keep track of which row in the tree is currently selected.
+      // This is currently only needed when deleting messages.
+      // TODO: once contextmenu has these options..
+//      if(tree.id == "snowlView")
+//        this.gListViewListIndex = treeSelection.currentIndex;
+//      if(tree.id == "sourcesView")
+//        this.gListViewCollectionIndex = treeSelection.currentIndex;
+    }
+    else if(treeSelection.currentIndex < 0)
+      // Clear the selection in the case of when a folder has just been
+      // loaded where the message pane does not have a message loaded yet.
+      // When right-clicking a message in this case and dismissing the
+      // popup menu (by either executing a menu command or clicking
+      // somewhere else),  the selection needs to be cleared.
+      // However, if the 'Delete Message' or 'Move To' menu item has been
+      // selected, DO NOT clear the selection, else it will prevent the
+      // tree view from refreshing.
+      treeSelection.clearSelection();
+
+    // Need to reset gRightMouseButtonDown to false here because
+    // TreeOnMouseDown() is only called on a mousedown, not on a key down.
+    // So resetting it here allows the loading of messages in the messagepane
+    // when navigating via the keyboard or the toolbar buttons *after*
+    // the context menu has been dismissed.
+    this.gRightMouseButtonDown = false;
   }
 
 };

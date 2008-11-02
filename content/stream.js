@@ -183,7 +183,7 @@ let SnowlMessageView = {
   _setMidnightTimout: function() {
     let t = this;
     let now = new Date();
-    let msUntilMidnight = SnowlUtils.tomorrow - now;
+    let msUntilMidnight = SnowlDateUtils.tomorrow - now;
     this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
     window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
   },
@@ -351,13 +351,13 @@ let SnowlMessageView = {
 
     let groups = [
       { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Today", epoch: SnowlUtils.today },
-      { name: "Yesterday", epoch: SnowlUtils.yesterday },
-      { name: SnowlUtils.twoDaysAgo.name, epoch: SnowlUtils.twoDaysAgo.epoch },
-      { name: SnowlUtils.threeDaysAgo.name, epoch: SnowlUtils.threeDaysAgo.epoch },
-      { name: SnowlUtils.fourDaysAgo.name, epoch: SnowlUtils.fourDaysAgo.epoch },
-      { name: SnowlUtils.fiveDaysAgo.name, epoch: SnowlUtils.fiveDaysAgo.epoch },
-      { name: SnowlUtils.sixDaysAgo.name, epoch: SnowlUtils.sixDaysAgo.epoch },
+      { name: "Today", epoch: SnowlDateUtils.today },
+      { name: "Yesterday", epoch: SnowlDateUtils.yesterday },
+      { name: SnowlDateUtils.twoDaysAgo.name, epoch: SnowlDateUtils.twoDaysAgo.epoch },
+      { name: SnowlDateUtils.threeDaysAgo.name, epoch: SnowlDateUtils.threeDaysAgo.epoch },
+      { name: SnowlDateUtils.fourDaysAgo.name, epoch: SnowlDateUtils.fourDaysAgo.epoch },
+      { name: SnowlDateUtils.fiveDaysAgo.name, epoch: SnowlDateUtils.fiveDaysAgo.epoch },
+      { name: SnowlDateUtils.sixDaysAgo.name, epoch: SnowlDateUtils.sixDaysAgo.epoch },
       { name: "Older", epoch: 0 }
     ];
 
@@ -445,7 +445,7 @@ let SnowlMessageView = {
     // by time received.  Instead, we're going to group by time period
     // received (this morning, yesterday, last week, etc.) to give users
     // useful chronographic info.
-    //let lastUpdated = SnowlUtils._formatDate(message.timestamp);
+    //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
     //if (lastUpdated) {
     //  let timestamp = this._document.createElementNS(XUL_NS, "description");
     //  timestamp.className = "timestamp";

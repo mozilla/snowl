@@ -243,7 +243,7 @@ let SnowlService = {
                                      row.name,
                                      URI.get(row.machineURI),
                                      URI.get(row.humanURI),
-                                     SnowlUtils.julianToJSDate(row.lastRefreshed),
+                                     SnowlDateUtils.julianToJSDate(row.lastRefreshed),
                                      row.importance));
       }
     }

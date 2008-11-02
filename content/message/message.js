@@ -87,13 +87,13 @@ if (content) {
 document.getElementById("briefAuthor").value = message.author;
 document.getElementById("briefSubject").value = message.subject;
 document.getElementById("briefSubject").setAttribute("href", message.link);
-document.getElementById("briefTimestamp").value = SnowlUtils._formatDate(message.timestamp);
+document.getElementById("briefTimestamp").value = SnowlDateUtils._formatDate(message.timestamp);
 
 // Full headers
 document.getElementById("author").value = message.author;
 document.getElementById("subject").value = message.subject;
 document.documentElement.setAttribute("title", message.subject);
-document.getElementById("timestamp").value = SnowlUtils._formatDate(message.timestamp);
+document.getElementById("timestamp").value = SnowlDateUtils._formatDate(message.timestamp);
 document.getElementById("link").href = message.link;
 document.getElementById("link").value = message.link;
 

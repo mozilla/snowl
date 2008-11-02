@@ -39,6 +39,9 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+//modules that are Snowl-specific
+Cu.import("resource://snowl/modules/utils.js");
+
 let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
                      QueryInterface(Ci.nsIDocShellTreeItem).

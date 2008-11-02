@@ -45,13 +45,24 @@
   <script type="application/x-javascript" src="chrome://snowl/content/collections.js"/>
 
   <vbox id="collectionsViewBox">
-    <tree id="sourcesView" flex="1" context="sourcesContextMenu" editable="true"
+
+    <!-- Collection context -->
+    <popup id="snowlCollectionContext"
+           onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
+      <menuitem id="snowlCollectionRefreshMenuitem"
+                label="&refreshAll.label;"
+                accesskey="&refreshAll.accesskey;"
+                oncommand="SnowlService.refreshAllSources();"/>
+    </popup>
+
+    <tree id="sourcesView" flex="1" editable="true"
           onselect="CollectionsView.onSelect(event)">
       <treecols>
         <treecol id="nameCol" label="&nameCol.label;" primary="true" flex="1"/>
       </treecols>
 
-      <treechildren flex="1"/>
+      <treechildren flex="1" context="snowlCollectionContext"
+                    onmousedown="CollectionsView.onCollectionsTreeMouseDown(event)"/>
     </tree>
 
     <toolbar id="snowlToolbar"/>

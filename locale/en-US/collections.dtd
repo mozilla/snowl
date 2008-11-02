@@ -1,1 +1,5 @@
-<!ENTITY nameCol.label                "Name">
+<!ENTITY nameCol.label                      "Name">
+
+<!-- Collections contextmenu -->
+<!ENTITY refreshAll.label                   "Refresh All">
+<!ENTITY refreshAll.accesskey               "A">

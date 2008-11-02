@@ -254,10 +254,10 @@ SnowlCollection.prototype = {
                                        statement.row.subject,
                                        statement.row.author,
                                        statement.row.link,
-                                       SnowlUtils.julianToJSDate(statement.row.timestamp),
+                                       SnowlDateUtils.julianToJSDate(statement.row.timestamp),
                                        (statement.row.read ? true : false),
                                        statement.row.authorIcon,
-                                       SnowlUtils.julianToJSDate(statement.row.received));
+                                       SnowlDateUtils.julianToJSDate(statement.row.received));
         this._messages.push(message);
         this._messageIndex[message.id] = message;
       }

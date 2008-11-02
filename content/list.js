@@ -108,10 +108,6 @@ let SnowlMessageView = {
     return this._unreadButton = document.getElementById("snowlUnreadButton");
   },
 
-  // Always maintain selected collection within a session, only for List view
-  // XXX store on document for restore on restart??
-  _listCollectionIndex: null,
-
   // Maps XUL tree column IDs to collection properties.
   _columnProperties: {
     "snowlAuthorCol": "author",
@@ -137,7 +133,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
       case "snowlSubjectCol":
         return this._collection.messages[aRow].subject;
       case "snowlTimestampCol":
-        return SnowlUtils._formatDate(this._collection.messages[aRow].timestamp);
+        return SnowlDateUtils._formatDate(this._collection.messages[aRow].timestamp);
       default:
         return null;
     }
@@ -190,9 +186,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
             SnowlMessageView._snowlSidebar.hidden = (aEvent.newValue == "true");
         }, false);
 
-    // Restore previous layout view
+    // Restore previous layout, if error or first time default to 'classic' view
     let layout = Snowl._mainWindow.getAttribute("snowllayout");
-    // If error or first time default to 'classic' view
     let layoutIndex = Snowl.layoutName.indexOf(layout) < 0 ?
         this.kClassicLayout : Snowl.layoutName.indexOf(layout);
     this.layout(layoutIndex);
@@ -295,9 +290,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     this._rebuildView();
   },
 
-  setCollection: function(collection, index) {
+  setCollection: function(collection) {
     this._collection = collection;
-    this._listCollectionIndex = index;
     this._rebuildView();
   },
 
@@ -410,7 +404,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   onSelect: function(aEvent) {
-    if (this._tree.currentIndex == -1)
+this._log.info("onSelect - start: event.target.id = "+aEvent.target.id);
+    if (this._tree.currentIndex == -1 || SnowlUtils.gRightMouseButtonDown)
       return;
 
     // When we support opening multiple links in the background,
@@ -424,6 +419,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     let url = "chrome://snowl/content/message/message.xul?id=" + message.id;
     window.loadURI(url, null, null, false);
 
+    SnowlUtils.gListViewListIndex = row;
     this._setRead(true);
   },
 
@@ -440,6 +436,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
       this._toggleRead(true);
     else if (aEvent.charCode == " ".charCodeAt(0))
       this._onSpacePress(aEvent);
+    else if (aEvent.keyCode == "13")
+      this._openListMessage(aEvent);
   },
 
   // Based on SpaceHit in mailWindowOverlay.js
@@ -527,12 +525,14 @@ this._log.info("_toggleRead: all? " + aAll);
   },
 
   onClickColumnHeader: function(aEvent) {
+    // Only for left click, button = 0..
+    if (aEvent.button != 0)
+      return;
+
     let column = aEvent.target;
     let property = this._columnProperties[column.id];
     let sortResource = this._tree.getAttribute("sortResource");
     let sortDirection = this._tree.getAttribute("sortDirection");
-
-    // FIXME: don't sort if the user right- or middle-clicked the header.
 
     // Determine the sort order.  If the user clicked on the header for
     // the current sort column, we sort in the reverse of the current order.
@@ -566,7 +566,21 @@ this._log.info("_toggleRead: all? " + aAll);
     this._collection.sortProperties = [property];
     this._collection.sortOrder = order;
     this._collection.sort();
-  }
+  },
+
+  _openListMessage: function(event) {
+alert("openlistmessage");
+  },
+
+  onListTreeMouseDown: function(aEvent) {
+    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
+  },
+
+  onTreeContextPopupHidden: function(aEvent) {
+    if (!SnowlUtils.gSelectOnRtClick)
+      SnowlUtils.RestoreSelectionWithoutContentLoad(this._tree);
+  },
+
 };
 
 window.addEventListener("load", function() { SnowlMessageView.init() }, false);

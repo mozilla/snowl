@@ -86,14 +86,7 @@ let CollectionsView = {
 
     // Ensure collection selection maintained, if in List sidebar
     if (document.getElementById("snowlSidebar"))
-      this._tree.view.selection.select(
-          gMessageViewWindow.SnowlMessageView._listCollectionIndex);
-
-    // Add a capturing click listener to the tree so we can find out if the user
-    // clicked on a row that is already selected (in which case we let them edit
-    // the collection name).
-    // FIXME: disable this for names that can't be changed.
-    this._tree.addEventListener("mousedown", function(aEvent) { CollectionsView.onClick(aEvent) }, true);
+      this._tree.view.selection.select(SnowlUtils.gListViewCollectionIndex);
   },
 
 
@@ -314,25 +307,21 @@ let CollectionsView = {
   },
 
   onSelect: function(aEvent) {
-    if (this._tree.currentIndex == -1)
+    if (this._tree.currentIndex == -1 || SnowlUtils.gRightMouseButtonDown)
       return;
 
     let collection = this._rows[this._tree.currentIndex];
-    let index = this._tree.currentIndex;
-    gMessageViewWindow.SnowlMessageView.setCollection(collection, index);
+    SnowlUtils.gListViewCollectionIndex = this._tree.currentIndex;
+    gMessageViewWindow.SnowlMessageView.setCollection(collection);
   },
 
-  onClick: function(aEvent) {
-this._log.info("on click");
-//this._log.info(Log4Moz.enumerateProperties(aEvent).join("\n"));
-//this._log.info(aEvent.target.nodeName);
+  onCollectionsTreeMouseDown: function(aEvent) {
+    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
+  },
 
-  let row = {}, col = {}, child = {};
-  this._tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, child);
-  if (this._tree.view.selection.isSelected(row.value))
-this._log.info(row.value + " is selected");
-else
-this._log.info(row.value + " is not selected");
+  onTreeContextPopupHidden: function() {
+    if (!SnowlUtils.gSelectOnRtClick)
+      SnowlUtils.RestoreSelectionWithoutContentLoad(this._tree);
   },
 
   unsubscribe: function() {
