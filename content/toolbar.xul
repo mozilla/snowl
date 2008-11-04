@@ -44,8 +44,7 @@
 
   <script type="application/x-javascript" src="chrome://snowl/content/toolbar.js"/>
 
-  <toolbar id="snowlToolbar"
-           persist="hidden">
+  <toolbar id="snowlToolbar" persist="hidden">
     <toolbarbutton id="snowlSubscribeButton"
                    image="chrome://snowl/content/icons/add.png"
                    oncommand="SnowlToolbar.subscribe()"
@@ -62,6 +61,11 @@
                    image="chrome://snowl/content/icons/opml-icon-16x16.png"
                    oncommand="SnowlToolbar.onExportOPML()"
                    tooltiptext="&exportButton.tooltip;"/>
+    <toolbarspring/>
+    <toolbarbutton id="snowlWriteMessageButton" type="checkbox"
+                   image="chrome://snowl/content/icons/email_add.png"
+                   oncommand="SnowlToolbar.onWriteMessage(event)"
+                   tooltiptext="&writeMessageButton.tooltip;"/>
   </toolbar>
 
 </overlay>

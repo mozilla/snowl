@@ -100,8 +100,7 @@ let SnowlOPML = {
     root.appendChild(body);
 
     // Populate the <body> element with <outline> elements.
-    let sources = SnowlService.getSources();
-    for each (let source in sources) {
+    for each (let source in SnowlService.sources) {
       let outline = doc.createElement("outline");
       // XXX Should we specify the |type| attribute, and should we specify
       // type="atom" for Atom feeds or just type="rss" for all feeds?

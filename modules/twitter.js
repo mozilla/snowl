@@ -556,6 +556,79 @@ SnowlTwitter.prototype = {
 
     // Now that we've saved the login, we don't need the auth info anymore.
     this._authInfo = null;
+  },
+
+
+  //**************************************************************************//
+  // Sending
+
+  send: function(content) {
+    Observers.notify(this, "snowl:send:start", null);
+
+    let data = "status=" + encodeURIComponent(content);
+    //          + "&in_reply_to_status_id=" + encodeURIComponent(inReplyToID);
+
+    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+
+    request.QueryInterface(Ci.nsIDOMEventTarget);
+    let (t = this) {
+      request.addEventListener("load", function(e) { t.onSendLoad(e) }, false);
+      request.addEventListener("error", function(e) { t.onSendError(e) }, false);
+    }
+
+    request.QueryInterface(Ci.nsIXMLHttpRequest);
+    request.open("POST", this.machineURI.spec + "/statuses/update.json", true);
+    request.channel.notificationCallbacks = this;
+    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    request.send(data);
+  },
+
+  onSendLoad: function(event) {
+    let request = event.target;
+
+    // FIXME: the next three chunks of code are the same for multiple
+    // load handlers; find some way to factor them out.
+
+    // If the request failed, let the error handler handle it.
+    // XXX Do we need this?  Don't such failures call the error handler directly?
+    if (request.status < 200 || request.status > 299) {
+      this.onSendError(event);
+      return;
+    }
+
+    // If the response is empty, assume failure.
+    // XXX What's the right way to handle this?
+    if (request.responseText.length == 0) {
+      this.onSendError(event);
+      return;
+    }
+
+    // _authInfo only gets set if we prompted the user to authenticate
+    // and the user checked the "remember password" box.  Since we're here,
+    // it means the request succeeded, so we save the login.
+    if (this._authInfo)
+      this._saveLogin();
+
+    this._log.info("onSendLoad: " + request.responseText);
+    this._processSend(request.responseText);
+  },
+
+  onSendError: function(event) {
+    let request = event.target;
+
+    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE
+    let statusText = "";
+    try {
+      statusText = request.statusText;
+    }
+    catch(ex) {}
+    
+    this._log.error("onSendError: " + request.status + " (" + statusText + ")");
+  },
+
+  _processSend: function(responseText) {
+    var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+    let response = JSON.decode(responseText);
   }
 
 };

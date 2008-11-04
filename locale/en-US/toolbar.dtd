@@ -2,3 +2,4 @@
 <!ENTITY unsubscribeButton.tooltip    "Unsubscribe from message sources.">
 <!ENTITY refreshButton.tooltip        "Refresh message sources.">
 <!ENTITY exportButton.tooltip         "Export message sources as OPML.">
+<!ENTITY writeMessageButton.tooltip   "Write a message.">

@@ -57,6 +57,9 @@ let SnowlToolbar = {
 
   onExportOPML: function() {
     SnowlOPML.export(window);
-  }
+  },
 
+  onWriteMessage: function(event) {
+    SnowlMessageView.onWriteMessage(event);
+  }
 };

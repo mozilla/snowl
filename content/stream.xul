@@ -53,8 +53,16 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
-  <vbox id="contentBox"/>
-
   <toolbar id="snowlToolbar"/>
+
+  <vbox id="writeBox">
+    <textbox id="writeTextbox" multiline="true" rows="3"/>
+    <hbox>
+      <spacer flex="1"/>
+      <button label="Send" oncommand="SnowlMessageView.onSendMessage()"/>
+    </hbox>
+  </vbox>
+
+  <vbox id="contentBox"/>
 
 </page>

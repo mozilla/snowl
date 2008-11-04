@@ -51,6 +51,8 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/utils.js");
+Cu.import("resource://snowl/modules/twitter.js");
+Cu.import("resource://snowl/modules/service.js");
 
 const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -162,10 +164,19 @@ let SnowlMessageView = {
     this._setMidnightTimout();
 
     gBrowserWindow.Snowl._initSnowlToolbar();
+
+    // For some reason setting hidden="true" in the XUL file prevents us
+    // from showing the box later via writeBox.hidden = false.
+    // FIXME: file a bug on this abnormality.
+    let writeBox = document.getElementById("writeBox");
+    writeBox.hidden = true;
+
+    this._updateWriteButton();
   },
 
   onunLoad: function() {
     Observers.remove(this, "snowl:message:added");
+    Observers.remove(this, "snowl:sources:changed");
   },
 
   _setMidnightTimout: function() {
@@ -174,6 +185,13 @@ let SnowlMessageView = {
     let msUntilMidnight = SnowlDateUtils.tomorrow - now;
     this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
     window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
+  },
+
+  // Selectively show/hide the button for writing a message depending on
+  // whether or not the user has an account that supports writing.
+  _updateWriteButton: function() {
+    document.getElementById("snowlWriteMessageButton").disabled =
+      (SnowlService.targets.length == 0);
   },
 
 
@@ -226,11 +244,24 @@ let SnowlMessageView = {
   },
 
   _onSourcesChanged: function() {
+    this._updateWriteButton();
     this._rebuildView();
   },
 
   onToggleGroup: function(event) {
     event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
+  },
+
+  onWriteMessage: function(event) {
+    let writeBox = document.getElementById("writeBox");
+    writeBox.hidden = !event.target.checked;
+  },
+
+  onSendMessage: function() {
+    let writeTextbox = document.getElementById("writeTextbox");
+    let content = writeTextbox.value;
+    let twitter = new SnowlTwitter();
+    twitter.send(content);
   },
 
 
