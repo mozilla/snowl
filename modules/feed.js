@@ -93,14 +93,6 @@ SnowlFeed.prototype = {
   // the request succeeds, at which point we store it with the login manager.
   _authInfo: null,
 
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    this.__defineGetter__("_obsSvc", function() { return obsSvc });
-    return this._obsSvc;
-  },
-
 
   //**************************************************************************//
   // Class Composition Goo
@@ -308,7 +300,7 @@ SnowlFeed.prototype = {
     }
 
     if (messagesChanged)
-      this._obsSvc.notifyObservers(null, "messages:changed", null);
+      Observers.notify(null, "snowl:messages:changed", null);
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
   },
@@ -598,7 +590,7 @@ SnowlFeed.prototype = {
       this.persist();
 
       // Let observers know about the new source.
-      this._obsSvc.notifyObservers(null, "sources:changed", null);
+      Observers.notify(null, "snowl:sources:changed", null);
 
       // Refresh the feed to import all its items.
       this.onRefreshResult(aResult);

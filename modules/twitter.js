@@ -86,14 +86,6 @@ SnowlTwitter.prototype = {
 
   _log: Log4Moz.Service.getLogger("Snowl.Twitter"),
 
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    this.__defineGetter__("_obsSvc", function() { return obsSvc });
-    return this._obsSvc;
-  },
-
 
   //**************************************************************************//
   // Class Composition Goo
@@ -269,7 +261,7 @@ SnowlTwitter.prototype = {
     this.persist();
 
     // Let observers know about the new source.
-    this._obsSvc.notifyObservers(null, "sources:changed", null);
+    Observers.notify(null, "snowl:sources:changed", null);
 
     this.refresh();
   },
@@ -397,7 +389,7 @@ SnowlTwitter.prototype = {
     }
 
     if (messagesChanged)
-      this._obsSvc.notifyObservers(null, "messages:changed", null);
+      Observers.notify(null, "snowl:messages:changed", null);
 
     // FIXME: if we added people, refresh the collections view too.
 

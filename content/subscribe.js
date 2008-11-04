@@ -42,10 +42,10 @@ const Cu = Components.utils;
 // modules that come with Firefox
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-// modules that should come with Firefox
+// modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
-Cu.import("resource://snowl/modules/log4moz.js");
 
 // Snowl-specific modules
 Cu.import("resource://snowl/modules/service.js");

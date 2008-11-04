@@ -42,10 +42,10 @@ const Cu = Components.utils;
 // modules that come with Firefox
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-// modules that should come with Firefox
+// modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
@@ -83,15 +83,6 @@ let SnowlMessageView = {
     delete this._faviconSvc;
     this._faviconSvc = faviconSvc;
     return this._faviconSvc;
-  },
-
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    delete this._obsSvc;
-    this._obsSvc = obsSvc;
-    return this._obsSvc;
   },
 
   _window: null,
@@ -139,16 +130,13 @@ let SnowlMessageView = {
     return this._linkifyRegex = regex;
   },
 
-  // nsISupports
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver,
-                                         Ci.nsISupportsWeakReference]),
-
 
   //**************************************************************************//
   // Initialization & Destruction
 
   onLoad: function() {
     Observers.add(this, "snowl:message:added");
+    Observers.add(this, "snowl:sources:changed");
 
     this.onResize();
 
@@ -198,6 +186,9 @@ let SnowlMessageView = {
       case "snowl:message:added":
         this._onMessageAdded(subject);
         break;
+      case "snowl:sources:changed":
+        this._onSourcesChanged();
+        break;
     }
   },
 
@@ -232,6 +223,10 @@ let SnowlMessageView = {
 
     this._contentSandbox.messages = null;
     this._contentSandbox.messageBox = null;
+  },
+
+  _onSourcesChanged: function() {
+    this._rebuildView();
   },
 
   onToggleGroup: function(event) {

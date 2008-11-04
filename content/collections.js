@@ -34,12 +34,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// modules that come with Firefox
+
+// modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/URI.js");
+
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
-Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/opml.js");
@@ -53,15 +59,6 @@ let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
 
 let CollectionsView = {
   _log: null,
-
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    delete this._obsSvc;
-    this._obsSvc = obsSvc;
-    return this._obsSvc;
-  },
 
   get _tree() {
     delete this._tree;
@@ -80,7 +77,7 @@ let CollectionsView = {
 
   init: function() {
     this._log = Log4Moz.Service.getLogger("Snowl.Sidebar");
-    this._obsSvc.addObserver(this, "sources:changed", true);
+    Observers.add(this, "snowl:sources:changed");
     this._getCollections();
     this._buildCollectionTree();
 
@@ -229,22 +226,12 @@ let CollectionsView = {
 
 
   //**************************************************************************//
-  // Misc XPCOM Interface Implementations
-
-  // nsISupports
-  QueryInterface: function(aIID) {
-    if (aIID.equals(Ci.nsIObserver) ||
-        aIID.equals(Ci.nsISupportsWeakReference) ||
-        aIID.equals(Ci.nsISupports))
-      return this;
-
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  },
+  // Misc XPCOM Interfaces
 
   // nsIObserver
   observe: function(subject, topic, data) {
     switch (topic) {
-      case "sources:changed":
+      case "snowl:sources:changed":
         this._getCollections();
         // Rebuild the view to reflect the new collection of messages.
         // Since the number of rows might have changed, we do this by reinitializing
@@ -345,8 +332,8 @@ let CollectionsView = {
       throw ex;
     }
 
-    this._obsSvc.notifyObservers(null, "sources:changed", null);
-    this._obsSvc.notifyObservers(null, "messages:changed", null);
+    Observers.notify(null, "snowl:sources:changed", null);
+    Observers.notify(null, "snowl:messages:changed", null);
   }
 
 };

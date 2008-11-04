@@ -35,11 +35,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-// FIXME: import these into an object to avoid name collisions.
-Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/URI.js");
-Cu.import("resource://snowl/modules/Preferences.js");
+// FIXME: import modules into an object to avoid name collisions, since this
+// script gets loaded into the main browser window context.
 
+// modules that come with Firefox
+
+// modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Preferences.js");
+Cu.import("resource://snowl/modules/URI.js");
+
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
@@ -50,14 +57,6 @@ let SnowlMessageView = {
   get _log() {
     delete this._log;
     return this._log = Log4Moz.Service.getLogger("Snowl.ListView");
-  },
-
-  // Observer Service
-  // FIXME: switch to using the Observers module.
-  get _obsSvc() {
-    delete this._obsSvc;
-    return this._obsSvc = Cc["@mozilla.org/observer-service;1"].
-                          getService(Ci.nsIObserverService);
   },
 
   // Atom Service
@@ -194,7 +193,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   show: function() {
-    this._obsSvc.addObserver(this, "messages:changed", true);
+    Observers.add(this, "snowl:messages:changed");
 
     this._collection = new SnowlCollection();
     this._sort();
@@ -213,27 +212,17 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // XXX Should we somehow destroy the view here (f.e. by setting
     // this._tree.view to null)?
 
-    this._obsSvc.removeObserver(this, "messages:changed");
+    Observers.remove(this, "snowl:messages:changed");
   },
 
 
   //**************************************************************************//
   // Misc XPCOM Interfaces
 
-  // nsISupports
-  QueryInterface: function(aIID) {
-    if (aIID.equals(Ci.nsIObserver) ||
-        aIID.equals(Ci.nsISupportsWeakReference) ||
-        aIID.equals(Ci.nsISupports))
-      return this;
-    
-    throw Cr.NS_ERROR_NO_INTERFACE;
-  },
-
   // nsIObserver
   observe: function(subject, topic, data) {
     switch (topic) {
-      case "messages:changed":
+      case "snowl:messages:changed":
         this._onMessagesChanged();
         break;
     }

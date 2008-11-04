@@ -78,15 +78,6 @@ let SnowlService = {
     return this._prefSvc;
   },
 
-  // Observer Service
-  get _obsSvc() {
-    let obsSvc = Cc["@mozilla.org/observer-service;1"].
-                 getService(Ci.nsIObserverService);
-    delete this._obsSvc;
-    this._obsSvc = obsSvc;
-    return this._obsSvc;
-  },
-
   get _dirSvc() {
     let dirSvc = Cc["@mozilla.org/file/directory_service;1"].
                  getService(Ci.nsIProperties);
@@ -237,7 +228,6 @@ let SnowlService = {
         let type;
         try {
           type = eval(row.type);
-          this._log.info("got " + row.type + " for " + row.name);
         }
         catch(ex) {
           this._log.error("error getting " + row.name + ": " + ex);

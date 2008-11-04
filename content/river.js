@@ -224,9 +224,8 @@ let SnowlMessageView = {
   // Initialization
 
   init: function() {
-    // FIXME: use the Observers module to observe message change notifications
-    // and rebuild the view when they happen.  Or does the collections view
-    // already do that for us?
+    // FIXME: use the Observers module to observe message change
+    // or message added notifications and rebuild the view when they happen.
 
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
