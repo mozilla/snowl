@@ -261,7 +261,10 @@ let SnowlMessageView = {
     let writeTextbox = document.getElementById("writeTextbox");
     let content = writeTextbox.value;
     let twitter = new SnowlTwitter();
-    twitter.send(content);
+    // FIXME: if there is more than one target, let the user choose which one
+    // to send to.
+    let target = SnowlService.targets[0];
+    target.send(content);
   },
 
 

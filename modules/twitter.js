@@ -627,8 +627,9 @@ SnowlTwitter.prototype = {
   },
 
   _processSend: function(responseText) {
-    var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+    let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     let response = JSON.decode(responseText);
+    this._addMessage(response, new Date());
   }
 
 };
