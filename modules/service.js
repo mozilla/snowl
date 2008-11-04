@@ -41,13 +41,19 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that come with Firefox
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/URI.js");
+
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/source.js");
-Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 const PERMS_FILE      = 0644;
@@ -214,73 +220,73 @@ let SnowlService = {
     }
   },
 
-  get _getSourcesStatement() {
-    let statement = SnowlDatastore.createStatement(
+  get _getAccountsStatement() {
+    delete this._getAccountsStatement;
+    return this._getAccountsStatement = SnowlDatastore.createStatement(
       "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance FROM sources"
     );
-    delete this._getSourcesStatement;
-    this._getSourcesStatement = statement;
-    return this._getSourcesStatement;
   },
 
-  getSources: function() {
-    let sources = [];
+  get accounts() {
+    let accounts = [];
 
     try {
-      while (this._getSourcesStatement.step()) {
-        let row = this._getSourcesStatement.row;
+      while (this._getAccountsStatement.step()) {
+        let row = this._getAccountsStatement.row;
 
-        let constructor = SnowlSource;
+        let type;
         try {
-          constructor = eval(row.type);
+          type = eval(row.type);
+          this._log.info("got " + row.type + " for " + row.name);
         }
         catch(ex) {
-          this._log.warn("error evaling " + row.type + ": " + ex +
-                         "; falling back to SnowlSource");
+          this._log.error("error getting " + row.name + ": " + ex);
+          continue;
         }
 
-        sources.push(new constructor(row.id,
-                                     row.name,
-                                     URI.get(row.machineURI),
-                                     URI.get(row.humanURI),
-                                     SnowlDateUtils.julianToJSDate(row.lastRefreshed),
-                                     row.importance));
+        accounts.push(new type(row.id,
+                               row.name,
+                               URI.get(row.machineURI),
+                               URI.get(row.humanURI),
+                               SnowlDateUtils.julianToJSDate(row.lastRefreshed),
+                               row.importance));
       }
     }
     finally {
-      this._getSourcesStatement.reset();
+      this._getAccountsStatement.reset();
     }
 
-    return sources;
+    return accounts;
+  },
+
+  get sources() {
+    return this.accounts.filter(function(acct) acct.implements(SnowlSource));
+  },
+
+  get targets() {
+    return this.accounts.filter(function(acct) acct.implements(SnowlTarget));
   },
 
   refreshStaleSources: function() {
     this._log.info("refreshing stale sources");
 
-    // XXX Should SnowlDatastore::selectSources return SnowlSource objects,
-    // of which SnowlFeed is a subclass?  Or perhaps selectSources should simply
-    // return a database cursor, and SnowlService::getSources should return
-    // SnowlSource objects?
-    let allSources = this.getSources();
     let now = new Date();
     let staleSources = [];
-    for each (let source in allSources) {
-      //this._log.info(source.name + " last refreshed " + source.lastRefreshed + ", " + (now - source.lastRefreshed)/1000 + "s ago; interval is " + source.refreshInterval/1000 + "s");
-      if (now - source.lastRefreshed > source.refreshInterval) {
-        this._log.info("source: " + source.id + " is stale; refreshing");
+    for each (let source in this.sources)
+      if (now - source.lastRefreshed > source.refreshInterval)
         staleSources.push(source);
-      }
-    }
     this._refreshSources(staleSources);
   },
 
   refreshAllSources: function() {
-    let sources = this.getSources();
-    this._refreshSources(sources);
+    this._log.info("refreshing all sources");
+    this._refreshSources(this.sources);
   },
 
-  _refreshSources: function(aSources) {
-    for each (let source in aSources) {
+  _refreshSources: function(sources) {
+    for each (let source in sources) {
+      this._log.info("refreshing source " + source.name);
+
       source.refresh();
 
       // We reset the last refreshed timestamp here even though the refresh

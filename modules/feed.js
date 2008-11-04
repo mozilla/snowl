@@ -53,6 +53,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -99,6 +100,20 @@ SnowlFeed.prototype = {
     this.__defineGetter__("_obsSvc", function() { return obsSvc });
     return this._obsSvc;
   },
+
+
+  //**************************************************************************//
+  // Class Composition Goo
+
+  _classes: [SnowlSource],
+
+  implements: function(cls) {
+    return (this._classes.indexOf(cls) != -1);
+  },
+
+
+  //**************************************************************************//
+  // XPCOM Interface Goo
 
   // nsISupports
 

@@ -53,6 +53,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
+Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -66,14 +67,19 @@ function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImpor
   // XXX Should we append the username to the NAME const to enable users
   // to subscribe to multiple Twitter accounts?
 
-  // Call the superclass's constructor to initialize the new instance.
+  // Call the superclasses' constructors to initialize the new instance.
+  // FIXME: use composition to inherit functionality from the superclasses.
   SnowlSource.call(this, aID, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
+  SnowlTarget.call(this);
 }
 
 SnowlTwitter.prototype = {
   // How often to refresh sources, in milliseconds.
   refreshInterval: 1000 * 60 * 3, // 30 minutes
 
+  // The constructor property is defined automatically, but we destroy it
+  // when we redefine the prototype, so we redefine it here in case we ever
+  // need to check it to find out what kind of object an instance is.
   constructor: SnowlTwitter,
 
   __proto__: SnowlSource.prototype,
@@ -86,6 +92,16 @@ SnowlTwitter.prototype = {
                  getService(Ci.nsIObserverService);
     this.__defineGetter__("_obsSvc", function() { return obsSvc });
     return this._obsSvc;
+  },
+
+
+  //**************************************************************************//
+  // Class Composition Goo
+
+  _classes: [SnowlSource, SnowlTarget],
+
+  implements: function(cls) {
+    return (this._classes.indexOf(cls) != -1);
   },
 
 
