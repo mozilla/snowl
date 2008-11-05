@@ -78,13 +78,35 @@ let SnowlMessageView = {
     return this._log = Log4Moz.Service.getLogger("Snowl.Stream");
   },
 
-  // Favicon Service
   get _faviconSvc() {
-    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
-                     getService(Ci.nsIFaviconService);
     delete this._faviconSvc;
-    this._faviconSvc = faviconSvc;
-    return this._faviconSvc;
+    return this._faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                              getService(Ci.nsIFaviconService);
+  },
+
+  get _stringBundle() {
+    delete this._stringBundle;
+    return this._stringBundle = document.getElementById("snowlStringBundle");
+  },
+
+  get _writeMessageButton() {
+    delete this._writeMessageButton;
+    return this._writeMessageButton = document.getElementById("snowlWriteMessageButton");
+  },
+
+  get _writeBox() {
+    delete this._writeBox;
+    return this._writeBox = document.getElementById("writeBox");
+  },
+
+  get _writeTextbox() {
+    delete this._writeTextbox;
+    return this._writeTextbox = document.getElementById("writeTextbox");
+  },
+
+  get _sendButton() {
+    delete this._sendButton;
+    return this._sendButton = document.getElementById("sendButton");
   },
 
   _window: null,
@@ -166,10 +188,10 @@ let SnowlMessageView = {
     gBrowserWindow.Snowl._initSnowlToolbar();
 
     // For some reason setting hidden="true" in the XUL file prevents us
-    // from showing the box later via writeBox.hidden = false.
+    // from showing the box later via writeBox.hidden = false, so we set it
+    // here instead.
     // FIXME: file a bug on this abnormality.
-    let writeBox = document.getElementById("writeBox");
-    writeBox.hidden = true;
+    this._writeBox.hidden = true;
 
     this._updateWriteButton();
   },
@@ -180,18 +202,16 @@ let SnowlMessageView = {
   },
 
   _setMidnightTimout: function() {
-    let t = this;
     let now = new Date();
     let msUntilMidnight = SnowlDateUtils.tomorrow - now;
     this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
-    window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
+    window.setTimeout(function() { SnowlMessageView.onMidnight() }, msUntilMidnight);
   },
 
   // Selectively show/hide the button for writing a message depending on
   // whether or not the user has an account that supports writing.
   _updateWriteButton: function() {
-    document.getElementById("snowlWriteMessageButton").disabled =
-      (SnowlService.targets.length == 0);
+    this._writeMessageButton.disabled = (SnowlService.targets.length == 0);
   },
 
 
@@ -253,18 +273,39 @@ let SnowlMessageView = {
   },
 
   onWriteMessage: function(event) {
-    let writeBox = document.getElementById("writeBox");
-    writeBox.hidden = !event.target.checked;
+    this._writeBox.hidden = !event.target.checked;
   },
 
   onSendMessage: function() {
-    let writeTextbox = document.getElementById("writeTextbox");
-    let content = writeTextbox.value;
-    let twitter = new SnowlTwitter();
-    // FIXME: if there is more than one target, let the user choose which one
-    // to send to.
+    this._sendButton.setAttribute("state", "sending");
+    this._sendButton.label = this._stringBundle.getString("sendButton.label.sending");
+    this._sendButton.disabled = true;
+
+    // FIXME: if there is more than one target, let the user choose
+    // which one to send to.
     let target = SnowlService.targets[0];
-    target.send(content);
+    let content = this._writeTextbox.value;
+    let callback = function() { SnowlMessageView.onMessageSent() };
+
+    // FIXME: pass an error callback and display a message to users on error.
+    target.send(content, callback);
+  },
+
+  onMessageSent: function() {
+    this._sendButton.setAttribute("state", "sent");
+    this._sendButton.label = this._stringBundle.getString("sendButton.label.sent");
+
+    window.setTimeout(function() { SnowlMessageView.onMessageSentDelayed() }, 5000);
+  },
+
+  onMessageSentDelayed: function() {
+    this._sendButton.removeAttribute("state");
+    this._sendButton.label = this._stringBundle.getString("sendButton.label");
+    this._sendButton.disabled = false;
+
+    this._writeBox.hidden = true;
+    this._writeMessageButton.checked = false;
+    this._writeTextbox.value = "";
   },
 
 

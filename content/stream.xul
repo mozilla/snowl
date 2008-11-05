@@ -53,13 +53,17 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/stream.properties"/>
+  </stringbundleset>
+
   <toolbar id="snowlToolbar"/>
 
   <vbox id="writeBox">
     <textbox id="writeTextbox" multiline="true" rows="3"/>
     <hbox>
       <spacer flex="1"/>
-      <button label="Send" oncommand="SnowlMessageView.onSendMessage()"/>
+      <button id="sendButton" label="&sendButton.label;" oncommand="SnowlMessageView.onSendMessage()"/>
     </hbox>
   </vbox>
 

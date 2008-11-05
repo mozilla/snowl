@@ -562,11 +562,15 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Sending
 
-  send: function(content) {
+  _sendCallback: null,
+
+  send: function(content, callback) {
     Observers.notify(this, "snowl:send:start", null);
 
     let data = "status=" + encodeURIComponent(content);
     //          + "&in_reply_to_status_id=" + encodeURIComponent(inReplyToID);
+
+    this._sendCallback = callback;
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -603,13 +607,19 @@ SnowlTwitter.prototype = {
       return;
     }
 
+    if (this._sendCallback) {
+      this._sendCallback();
+      this._sendCallback = null;
+    }
+
+    this._log.info("onSendLoad: " + request.responseText);
+
     // _authInfo only gets set if we prompted the user to authenticate
     // and the user checked the "remember password" box.  Since we're here,
     // it means the request succeeded, so we save the login.
     if (this._authInfo)
       this._saveLogin();
 
-    this._log.info("onSendLoad: " + request.responseText);
     this._processSend(request.responseText);
   },
 
