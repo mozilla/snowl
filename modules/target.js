@@ -36,18 +36,6 @@
 
 let EXPORTED_SYMBOLS = ["SnowlTarget"];
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
-
-// modules that come with Firefox
-
-// modules that are generic
-
-// modules that are Snowl-specific
-
-
 function SnowlTarget() {}
 
 SnowlTarget.prototype = {
