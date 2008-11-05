@@ -272,6 +272,12 @@ let SnowlMessageView = {
     event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
   },
 
+
+  //**************************************************************************//
+  // Writing and Sending Messages
+
+  // FIXME: if there is more than one target, let the user choose which one to use.
+
   onWriteMessage: function(event) {
     this._writeBox.hidden = !event.target.checked;
   },
@@ -280,13 +286,11 @@ let SnowlMessageView = {
     this._sendButton.setAttribute("state", "sending");
     this._sendButton.label = this._stringBundle.getString("sendButton.label.sending");
     this._sendButton.disabled = true;
+    this._writeTextbox.disabled = true;
 
-    // FIXME: if there is more than one target, let the user choose
-    // which one to send to.
     let target = SnowlService.targets[0];
     let content = this._writeTextbox.value;
     let callback = function() { SnowlMessageView.onMessageSent() };
-
     // FIXME: pass an error callback and display a message to users on error.
     target.send(content, callback);
   },
@@ -295,16 +299,16 @@ let SnowlMessageView = {
     this._sendButton.setAttribute("state", "sent");
     this._sendButton.label = this._stringBundle.getString("sendButton.label.sent");
 
-    window.setTimeout(function() { SnowlMessageView.onMessageSentDelayed() }, 5000);
+    window.setTimeout(function() { SnowlMessageView._resetWriteForm() }, 5000);
   },
 
-  onMessageSentDelayed: function() {
+  _resetWriteForm: function() {
+    this._writeBox.hidden = true;
+    this._writeMessageButton.checked = false;
     this._sendButton.removeAttribute("state");
     this._sendButton.label = this._stringBundle.getString("sendButton.label");
     this._sendButton.disabled = false;
-
-    this._writeBox.hidden = true;
-    this._writeMessageButton.checked = false;
+    this._writeTextbox.disabled = false;
     this._writeTextbox.value = "";
   },
 
