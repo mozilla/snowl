@@ -562,6 +562,8 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Sending
 
+  maxMessageLength: 140,
+
   _sendCallback: null,
 
   send: function(content, callback) {

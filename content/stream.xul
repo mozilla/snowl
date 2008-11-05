@@ -60,8 +60,9 @@
   <toolbar id="snowlToolbar"/>
 
   <vbox id="writeBox">
-    <textbox id="writeTextbox" multiline="true" rows="3"/>
+    <textbox id="writeTextbox" multiline="true" rows="3" oninput="SnowlMessageView.onInputMessage()"/>
     <hbox>
+      <description id="writeCounter"/>
       <spacer flex="1"/>
       <button id="sendButton" label="&sendButton.label;" oncommand="SnowlMessageView.onSendMessage()"/>
     </hbox>

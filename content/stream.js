@@ -104,6 +104,11 @@ let SnowlMessageView = {
     return this._writeTextbox = document.getElementById("writeTextbox");
   },
 
+  get _writeCounter() {
+    delete this._writeCounter;
+    return this._writeCounter = document.getElementById("writeCounter");
+  },
+
   get _sendButton() {
     delete this._sendButton;
     return this._sendButton = document.getElementById("sendButton");
@@ -277,9 +282,22 @@ let SnowlMessageView = {
   // Writing and Sending Messages
 
   // FIXME: if there is more than one target, let the user choose which one to use.
+  _target: null,
 
   onWriteMessage: function(event) {
     this._writeBox.hidden = !event.target.checked;
+    this._target = SnowlService.targets[0];
+    this.onInputMessage();
+  },
+
+  onInputMessage: function() {
+    // Update the counter to reflect how many characters the user can still type.
+    this._writeCounter.value =
+      this._target.maxMessageLength - this._writeTextbox.value.length;
+
+    // If the user has typed more than they can send, disable the Send button.
+    this._sendButton.disabled =
+      (this._writeTextbox.value.length > this._target.maxMessageLength);
   },
 
   onSendMessage: function() {
@@ -288,11 +306,10 @@ let SnowlMessageView = {
     this._sendButton.disabled = true;
     this._writeTextbox.disabled = true;
 
-    let target = SnowlService.targets[0];
     let content = this._writeTextbox.value;
     let callback = function() { SnowlMessageView.onMessageSent() };
     // FIXME: pass an error callback and display a message to users on error.
-    target.send(content, callback);
+    this._target.send(content, callback);
   },
 
   onMessageSent: function() {
@@ -310,6 +327,7 @@ let SnowlMessageView = {
     this._sendButton.disabled = false;
     this._writeTextbox.disabled = false;
     this._writeTextbox.value = "";
+    this._target = null;
   },
 
 

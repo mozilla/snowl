@@ -51,5 +51,18 @@ const Cu = Components.utils;
 function SnowlTarget() {}
 
 SnowlTarget.prototype = {
-  send: function(content) {}
+  /**
+   * The maximum number of characters a message can contain.
+   */
+  maxMessageLength: null,
+
+  /**
+   * Send a message to this target.
+   *
+   * @param content {string} the content of the message
+   * @param callback {Function} a function to call when the send completes
+   *
+   * FIXME: add an error callback to call if the send fails.
+   */
+  send: function(content, callback) {}
 };

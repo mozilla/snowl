@@ -132,6 +132,9 @@
   list-style-image: url(chrome://global/skin/icons/loading_16.png);
 }
 
+#writeCounter {
+  font-size: 200%;
+}
 
 /* Border styles to clarify the structure for debugging purposes. */
 
