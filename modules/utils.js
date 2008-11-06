@@ -252,6 +252,8 @@ let SnowlUtils = {
   // XXX store on document for restore on restart??
   gListViewListIndex: null,
   gListViewCollectionIndex: null,
+  // Position of current page in tabs and history
+  gMessagePosition: {tabIndex: null, pageIndex: null},
 
   // From Tb: Detect right mouse click and change the highlight to the row
   // where the click happened without loading the message headers in
@@ -285,7 +287,7 @@ this._log.info("row: "+ row.value + " is not selected");
   // clicked without loading the contents of the selected row.
   // It will also keep the outline/dotted line in the original row.
   ChangeSelectionWithoutContentLoad: function(aEvent, tree) {
-this._log.info("change selection right click: tree.id = "+tree.id);
+//this._log.info("change selection right click: tree.id = "+tree.id);
     let treeBoxObj = tree.treeBoxObject;
     let treeSelection = treeBoxObj.view.selection;
 
@@ -326,7 +328,7 @@ this._log.info("change selection right click: tree.id = "+tree.id);
 //      this.gListDeleteOrMoveOccurred = false;
 //      return;
 //    }
-this._log.info("restore selection onpopuphidden: tree.id = "+tree.id);
+//this._log.info("restore selection onpopuphidden: tree.id = "+tree.id);
 
     let treeSelection = tree.view.selection;
 

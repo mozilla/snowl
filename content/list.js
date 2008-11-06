@@ -240,6 +240,9 @@ this._log.info("get rowCount: " + this._collection.messages.length);
 
     // Don't rebuild the view if the list view hasn't been made visible yet
     // (in which case the tree won't yet have a view property).
+    // XXX problem: if some non viewed source updates, we loose our selection
+    // which is not good. not good even if our viewed source updates
+    // (additions).. need to rebuild for unsubscribe though (blank out view).
     if (this._tree.view)
       this._rebuildView();
   },
@@ -393,7 +396,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   onSelect: function(aEvent) {
-this._log.info("onSelect - start: event.target.id = "+aEvent.target.id);
+//this._log.info("onSelect - start: event.target.id = "+aEvent.target.id);
     if (this._tree.currentIndex == -1 || SnowlUtils.gRightMouseButtonDown)
       return;
 
@@ -410,6 +413,8 @@ this._log.info("onSelect - start: event.target.id = "+aEvent.target.id);
 
     SnowlUtils.gListViewListIndex = row;
     this._setRead(true);
+    // If new message selected, reset for toggle
+    SnowlUtils.gMessagePosition.pageIndex = null;
   },
 
   onKeyPress: function(aEvent) {
@@ -427,6 +432,28 @@ this._log.info("onSelect - start: event.target.id = "+aEvent.target.id);
       this._onSpacePress(aEvent);
     else if (aEvent.keyCode == "13")
       this._openListMessage(aEvent);
+  },
+
+  onClick: function(aEvent) {
+    // Only for left click, button = 0..
+    if (aEvent.button != 0)
+      return;
+
+    // Figure out what cell the click was in
+    let row = {}, col = {}, child = {};
+    this._tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, child);
+    if (row.value == -1)
+      return;
+
+    // If the cell is in a "cycler" column or if the user double clicked on
+    // the twisty, don't open the message in a new window
+    if (aEvent.detail == 2 && !col.value.cycler && (child.value != "twisty")) {
+      this._listDoubleClick();
+      // Double clicking should not toggle the open / close state of the 
+      // thread.  This will happen if we don't prevent the event from
+      // bubbling to the default handler in tree.xml
+      aEvent.stopPropagation();
+    }
   },
 
   // Based on SpaceHit in mailWindowOverlay.js
@@ -557,8 +584,36 @@ this._log.info("_toggleRead: all? " + aAll);
     this._collection.sort();
   },
 
+  _listDoubleClick: function() {
+    // Special type?
+//    if () {} else
+    this._openListMessage();
+  },
+
+  // Toggle between summary and web page (feeds); use back/forward to avoid
+  // slow reload, but must also reset this in case tab changes or a url is
+  // loaded from address bar or link is clicked (in onblur) or another item
+  // in the list is selected (in onSelect).
   _openListMessage: function(event) {
-alert("openlistmessage");
+    let row = this._tree.currentIndex;
+    let message = this._collection.messages[row];
+
+    // No message or link in this message 
+    if (!message || typeof(message.link)=="undefined")
+      return;
+
+    if (SnowlUtils.gMessagePosition.pageIndex == --gBrowser.sessionHistory.index)
+      window.BrowserBack();
+    else
+      if (SnowlUtils.gMessagePosition.pageIndex == gBrowser.sessionHistory.index)
+        window.BrowserForward();
+      else {
+        SnowlUtils.gMessagePosition.tabIndex = gBrowser.tabContainer.selectedIndex;
+        SnowlUtils.gMessagePosition.pageIndex =
+            (++gBrowser.sessionHistory.index == gBrowser.sessionHistory.maxLength) ?
+            --gBrowser.sessionHistory.index : gBrowser.sessionHistory.index;
+        window.loadURI(message.link, null, null, false);
+      }
   },
 
   onListTreeMouseDown: function(aEvent) {
