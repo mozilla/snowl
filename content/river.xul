@@ -68,6 +68,8 @@
 
     <vbox flex="1">
       <toolbar id="toolbar">
+        <!-- <toolbarbutton oncommand="dump(new XMLSerializer().serializeToString(document))"/> -->
+
         <toolbarbutton id="currentButton" type="checkbox"
                     image="chrome://snowl/content/icons/newspaper.png"
                     oncommand="SnowlMessageView.onCommandCurrentButton(event)"

@@ -98,14 +98,45 @@ toolbarbutton {
   color: #555;
 }
 
-h2 {
-  font-size: larger;
-  margin-bottom: 0;
+.message {
+  clear: both;
+}
+
+.messageIcon {
+  max-width: 100px !important;
+  max-height: 100px !important;
+  float: right;
 }
 
 .byline {
   font-size: smaller;
   font-family: sans-serif;
+  color: grey;
+}
+
+.title {
+  font-size: 100%;
+  margin-bottom: 0.5em;
+  margin-top: 0;
+}
+
+#contentBox div.body {
+  display: none;
+}
+
+#contentBox.body div.body {
+  display: block;
+}
+
+#contentBox.body .messageIcon {
+  display: none;
+}
+
+/* Suppress the top margin on the initial content element so we can control
+ * the amount of margin between the subject and the content with the rule
+ * above on the subject element. */
+div.body > *:first-child {
+  margin-top: 0;
 }
 
 .metadata {
