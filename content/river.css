@@ -34,6 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+
+/******************************************************************************/
+/* Toolbar */
+
 #toolbar {
   font: message-box;
   -moz-box-align: center;
@@ -87,16 +91,9 @@ toolbarbutton {
   -moz-box-flex: 1;
 }
 
-/* Make the title and source links look less like links to differentiate
- * between the links in the content and these links in the chrome. */
-.source > a, .title > a {
-  font-family: sans-serif;
-  text-decoration: none;
-  color: black;
-}
-.source > a:visited, .title > a:visited {
-  color: #555;
-}
+
+/******************************************************************************/
+/* Message */
 
 .message {
   clear: both;
@@ -120,14 +117,34 @@ toolbarbutton {
   margin-top: 0;
 }
 
+/* Make the title and source links look less like links to differentiate
+ * between the links in the content and these links in the chrome. */
+.source > a, .title > a {
+  font-family: sans-serif;
+  text-decoration: none;
+  color: black;
+}
+.source > a:visited, .title > a:visited {
+  color: #555;
+}
+
 #contentBox div.body {
   display: none;
+}
+
+#contentBox .title {
+  display: inline;
 }
 
 #contentBox.body div.body {
   display: block;
 }
 
+#contentBox.body .title {
+  display: block;
+}
+
+#contentBox.body .excerpt,
 #contentBox.body .messageIcon {
   display: none;
 }

@@ -756,9 +756,11 @@ let SnowlMessageView = {
       messageBox.setAttribute("index", i);
 
       // These are the elements that will be appended to the message box.
-      let messageIcon, bylineBox, title, body;
+      let messageIcon, bylineBox, title, excerpt, body;
 
       messageIcon = document.createElementNS(HTML_NS, "img");
+      excerpt = document.createElementNS(HTML_NS, "span");
+      excerpt.className = "excerpt";
 
       // Byline
       bylineBox = this._document.createElementNS(HTML_NS, "div");
@@ -805,8 +807,14 @@ let SnowlMessageView = {
         let docFragment = bodyText.createDocumentFragment(body);
         if (docFragment) {
           body.appendChild(docFragment);
-          // If the message contains an image, use it to create an icon
-          // representing the image.
+
+          // Generate a excerpt of the message.
+          // FIXME: use an actual ellipsis.
+          // XXX Does an ellipsis need to be localizable?
+          excerpt.appendChild(document.createTextNode(
+            body.textContent.substring(0, 140) + ((body.textContent.length > 140) ? "..." : "")));
+
+          // Generate an icon representing the message.
           let firstImage = body.getElementsByTagName("img")[0];
           if (firstImage) {
             messageIcon = firstImage.cloneNode(false);
@@ -833,6 +841,7 @@ let SnowlMessageView = {
       messageBox.appendChild(messageIcon);
       messageBox.appendChild(bylineBox);
       messageBox.appendChild(title);
+      messageBox.appendChild(excerpt);
       messageBox.appendChild(body);
 
       this._contentSandbox.messageBox = messageBox;
