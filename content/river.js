@@ -748,20 +748,19 @@ let SnowlMessageView = {
       messageBox.className = "message";
       messageBox.setAttribute("index", i);
 
-      // Title
-      let title = this._document.createElementNS(HTML_NS, "h2");
-      title.className = "title";
-      let titleLink = this._document.createElementNS(HTML_NS, "a");
-      titleLink.appendChild(this._document.createTextNode(message.subject || "untitled"));
-      if (message.link)
-        this._unsafeSetURIAttribute(titleLink, "href", message.link);
-      title.appendChild(titleLink);
-      messageBox.appendChild(title);
-
       // Byline
       let bylineBox = this._document.createElementNS(HTML_NS, "div");
       bylineBox.className = "byline";
       messageBox.appendChild(bylineBox);
+
+      // Author and/or Source
+      if (message.author)
+        bylineBox.appendChild(this._document.createTextNode(message.author));
+      if (message.source) {
+        if (message.author)
+          bylineBox.appendChild(this._document.createTextNode(" - "));
+        bylineBox.appendChild(this._document.createTextNode(message.source.name));
+      }
 
       // Source
       //let source = this._document.createElementNS(HTML_NS, "a");
@@ -775,11 +774,15 @@ let SnowlMessageView = {
       //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
       //bylineBox.appendChild(source);
 
-      // Author or Source
-      if (message.author)
-        bylineBox.appendChild(this._document.createTextNode(message.author));
-      else if (message.source)
-        bylineBox.appendChild(this._document.createTextNode(message.source.name));
+      // Title
+      let title = this._document.createElementNS(HTML_NS, "h2");
+      title.className = "title";
+      let titleLink = this._document.createElementNS(HTML_NS, "a");
+      titleLink.appendChild(this._document.createTextNode(message.subject || "untitled"));
+      if (message.link)
+        this._unsafeSetURIAttribute(titleLink, "href", message.link);
+      title.appendChild(titleLink);
+      messageBox.appendChild(title);
 
       //// Timestamp
       //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
