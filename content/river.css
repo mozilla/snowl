@@ -59,13 +59,35 @@ toolbarbutton {
   display: none;
 }
 
-#columnResizeSplitter {
-  display: none;
+
+/******************************************************************************/
+/* Period Menu */
+
+#periodMenu menupopup > menuitem {
+  -moz-padding-start: 23px;
 }
 
-#contentStack[columns] > #columnResizeSplitter {
-  display: -moz-box;
+#periodMenu menupopup > menuitem.menuitem-iconic {
+  -moz-padding-start: 2px;
 }
+
+#periodMenu menupopup > .menuitem-iconic > .menu-iconic-left {
+  display: -moz-box;
+  min-width: 16px;
+  -moz-padding-end: 2px;
+}
+
+#periodMenu .menulist-icon,
+#periodMenu menupopup > .menuitem-iconic > .menu-iconic-left > .menu-iconic-icon {
+  width: 16px;
+  height: 16px;
+}
+
+
+/******************************************************************************/
+/* Content Stack, Box, Splitter */
+
+/* Rules updated dynamically are defined in riverContent.css. */
 
 #contentBox {
   padding: 7px;
@@ -86,85 +108,17 @@ toolbarbutton {
   -moz-box-flex: 1;
 }
 
+#columnResizeSplitter {
+  display: none;
+}
+
+#contentStack[columns] > #columnResizeSplitter {
+  display: -moz-box;
+}
+
 
 /******************************************************************************/
-/* Message */
-
-.message {
-  clear: both;
-}
-
-.messageIcon {
-  max-width: 100px !important;
-  max-height: 100px !important;
-  float: right;
-}
-
-.byline {
-  font-size: smaller;
-  font-family: sans-serif;
-  color: grey;
-}
-
-.title {
-  font-size: 100%;
-  margin-bottom: 0.5em;
-  margin-top: 0;
-}
-
-/* Make the title and source links look less like links to differentiate
- * between the links in the content and these links in the chrome. */
-.source > a, .title > a {
-  font-family: sans-serif;
-  text-decoration: none;
-  color: black;
-}
-.source > a:visited, .title > a:visited {
-  color: #555;
-}
-
-#contentBox div.body {
-  display: none;
-}
-
-#contentBox .title {
-  display: inline;
-}
-
-#contentBox.body div.body {
-  display: block;
-}
-
-#contentBox.body .title {
-  display: block;
-}
-
-#contentBox.body .excerpt,
-#contentBox.body .messageIcon {
-  display: none;
-}
-
-/* Suppress the top margin on the initial content element so we can control
- * the amount of margin between the subject and the content with the rule
- * above on the subject element. */
-div.body > *:first-child {
-  margin-top: 0;
-}
-
-.metadata {
-  float: left;
-  width: 20%;
-
-  font: message-box;
-  font-size: smaller;
-}
-
-/* Don't draw borders around hyperlinked favicons, but do pad them a bit
- * between the end of the favicon and the start of the source name. */
-a > img {
-  border: 0;
-  -moz-padding-end: 1px;
-}
+/* Group Headers */
 
 /* FIXME: factor this out with the almost identical code in stream.css. */
 .groupHeader {
@@ -189,22 +143,63 @@ a > img {
 }
 
 
-#periodMenu menupopup > menuitem {
-  -moz-padding-start: 23px;
+/******************************************************************************/
+/* Message */
+
+.message {
+  /* Clear the float on the previous message's icon. */
+  clear: both;
 }
 
-#periodMenu menupopup > menuitem.menuitem-iconic {
-  -moz-padding-start: 2px;
+/* The selector has to include #contentBox here so the rule takes precedence
+ * over the ones in riverContent.css. */
+#contentBox .messageIcon {
+  max-width: 100px;
+  max-height: 100px;
+  float: right;
 }
 
-#periodMenu menupopup > .menuitem-iconic > .menu-iconic-left {
-  display: -moz-box;
-  min-width: 16px;
-  -moz-padding-end: 2px;
+.byline {
+  font-size: smaller;
+  font-family: sans-serif;
+  color: grey;
 }
 
-#periodMenu .menulist-icon,
-#periodMenu menupopup > .menuitem-iconic > .menu-iconic-left > .menu-iconic-icon {
-  width: 16px;
-  height: 16px;
+.title {
+  font-size: 100%;
+  margin-bottom: 0.5em;
+  margin-top: 0;
+}
+
+/* Suppress the top margin on the initial content element so we can control
+ * the amount of margin between the subject and the content with the rule
+ * above on the title element. */
+.body > *:first-child {
+  margin-top: 0;
+}
+
+/* Make the title and source links look less like links to differentiate
+ * between the links in the content and these links that are in chrome. */
+.source > a, .title > a {
+  font-family: sans-serif;
+  text-decoration: none;
+  color: black;
+}
+.source > a:visited, .title > a:visited {
+  color: #555;
+}
+
+/* Show/hide elements based on whether we're displaying full content. */
+#contentBox .body             { display: none; }
+#contentBox .title            { display: inline; }
+#contentBox.body .body        { display: block; }
+#contentBox.body .title       { display: block; }
+#contentBox.body .excerpt     { display: none; }
+#contentBox.body .messageIcon { display: none; }
+
+/* Don't draw borders around hyperlinked favicons, but do pad them a bit
+ * between the end of the favicon and the start of the source name. */
+a > img {
+  border: 0;
+  -moz-padding-end: 1px;
 }
