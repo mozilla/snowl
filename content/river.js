@@ -389,7 +389,14 @@ let SnowlMessageView = {
   },
 
   onCommandBodyButton: function(aEvent) {
-    this.rebuildView();
+    let contentBox = document.getElementById("contentBox");
+    if (this._bodyButton.checked) {
+      let classes = contentBox.className.split(/\s/);
+      classes.push("body");
+      contentBox.className = classes.join(" ");
+    }
+    else
+      contentBox.className = contentBox.className.split(/\s/).filter(function(v) v != "body").join(" ");
     this._updateURI();
   },
 
@@ -748,10 +755,14 @@ let SnowlMessageView = {
       messageBox.className = "message";
       messageBox.setAttribute("index", i);
 
+      // These are the elements that will be appended to the message box.
+      let messageIcon, bylineBox, title, body;
+
+      messageIcon = document.createElementNS(HTML_NS, "img");
+
       // Byline
-      let bylineBox = this._document.createElementNS(HTML_NS, "div");
+      bylineBox = this._document.createElementNS(HTML_NS, "div");
       bylineBox.className = "byline";
-      messageBox.appendChild(bylineBox);
 
       // Author and/or Source
       if (message.author)
@@ -775,14 +786,36 @@ let SnowlMessageView = {
       //bylineBox.appendChild(source);
 
       // Title
-      let title = this._document.createElementNS(HTML_NS, "h2");
+      title = this._document.createElementNS(HTML_NS, "h2");
       title.className = "title";
       let titleLink = this._document.createElementNS(HTML_NS, "a");
       titleLink.appendChild(this._document.createTextNode(message.subject || "untitled"));
       if (message.link)
         this._unsafeSetURIAttribute(titleLink, "href", message.link);
       title.appendChild(titleLink);
-      messageBox.appendChild(title);
+
+      // Body
+      let bodyText = message.content || message.summary;
+      if (bodyText) {
+        body = this._document.createElementNS(HTML_NS, "div");
+        body.className = "body";
+        if (bodyText.base)
+          body.setAttributeNS(XML_NS, "base", bodyText.base.spec);
+
+        let docFragment = bodyText.createDocumentFragment(body);
+        if (docFragment) {
+          body.appendChild(docFragment);
+          // If the message contains an image, use it to create an icon
+          // representing the image.
+          let firstImage = body.getElementsByTagName("img")[0];
+          if (firstImage) {
+            messageIcon = firstImage.cloneNode(false);
+            messageIcon.removeAttribute("width");
+            messageIcon.removeAttribute("height");
+            messageIcon.className = "messageIcon";
+          }
+        }
+      }
 
       //// Timestamp
       //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
@@ -795,24 +828,12 @@ let SnowlMessageView = {
       //  bylineBox.appendChild(timestamp);
       //}
 
-      // Body
-      if (this._bodyButton.checked) {
-        let bodyText = message.content || message.summary;
-        if (bodyText) {
-          let body = this._document.createElementNS(HTML_NS, "div");
-          body.className = "body";
-          messageBox.appendChild(body);
-
-          if (bodyText.base)
-            body.setAttributeNS(XML_NS, "base", bodyText.base.spec);
-
-          let docFragment = bodyText.createDocumentFragment(body);
-          if (docFragment)
-            body.appendChild(docFragment);
-        }
-      }
-
       // FIXME: implement support for enclosures.
+
+      messageBox.appendChild(messageIcon);
+      messageBox.appendChild(bylineBox);
+      messageBox.appendChild(title);
+      messageBox.appendChild(body);
 
       this._contentSandbox.messageBox = messageBox;
 

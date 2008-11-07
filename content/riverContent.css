@@ -50,6 +50,9 @@
 }
 
 /* FIXME: figure out why this doesn't resize images proportionally. */
+/* SOLUTION: it's because the images still have "width" and/or "height"
+ * attributes.  Remove those attributes, and this rule (plus the one above)
+ * will work proportionally. */
 #contentBox img {
   max-height: 0;
 }
