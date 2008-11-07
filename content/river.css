@@ -59,11 +59,6 @@ toolbarbutton {
   display: none;
 }
 
-/* Show icons in the sources menulist. */
-#sourceMenu > menupopup > menuitem > .menu-iconic-left {
-  display: block;
-}
-
 #columnResizeSplitter {
   display: none;
 }
