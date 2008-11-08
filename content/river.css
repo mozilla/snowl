@@ -104,6 +104,9 @@ toolbarbutton {
 
   /* This gets set programmatically on load, since setting it in CSS doesn't work. */
   height: 0;
+
+  /* We need this in order for content to wrap in non-columns mode. */
+  -moz-box-flex: 1;
 }
 
 #columnResizeSplitter {

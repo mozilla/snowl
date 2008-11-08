@@ -126,7 +126,7 @@
                    onoverflow="SnowlMessageView.onFlowChange(event)"
                    onunderflow="SnowlMessageView.onFlowChange(event)"
                    flex="1">
-            <html:div id="contentBox"/>
+          <html:div id="contentBox"/>
         </scrollbox>
         <splitter id="columnResizeSplitter" left="410"
                   onmousedown="splitterDragObserver.onMouseDown(event)"
