@@ -121,11 +121,7 @@
       </toolbar>
 
       <stack id="contentStack" flex="1">
-        <scrollbox id="scrollBox"
-                   onoverflow="SnowlMessageView.onFlowChange(event)"
-                   onunderflow="SnowlMessageView.onFlowChange(event)">
-          <html:div id="contentBox"/>
-        </scrollbox>
+        <html:div id="contentBox"/>
         <splitter id="columnResizeSplitter" left="410"
                   onmousedown="splitterDragObserver.onMouseDown(event)"
                   onmouseup="splitterDragObserver.onMouseUp(event)"/>

@@ -40,7 +40,7 @@
 
 /* rules that get updated programmatically */
 
-#contentStack[columns] > #scrollBox > #contentBox {
+#contentStack[columns] > #contentBox {
   -moz-column-width: 400px;
 }
 
