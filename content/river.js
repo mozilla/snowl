@@ -170,17 +170,6 @@ let SnowlMessageView = {
   // XXX Is this value correct, and does it vary by platform?
   scrollbarWidth: 15,
 
-  // the viewable size of the viewport (i.e. the inner size minus the space
-  // taken up by scrollbars, if any)
-  get viewableWidth() {
-    return window.innerWidth -
-           (this._hasVerticalScrollbar ? this.scrollbarWidth : 0);
-  },
-  get viewableHeight() {
-    return window.innerHeight -
-           (this._hasHorizontalScrollbar ? this.scrollbarWidth : 0);
-  },
-
   get contentStylesheet() {
     for (let i = 0; i < document.styleSheets.length; i++)
       if (document.styleSheets[i].href == "chrome://snowl/content/riverContent.css")
@@ -499,9 +488,34 @@ let SnowlMessageView = {
   },
 
   doPageMove: function(direction) {
-    this.doMove(direction * this.viewableWidth);
+    let contentBox = document.getElementById("contentBox");
+
+    // element.clientWidth is the width of an element not including the space
+    // taken up by a vertical scrollbar, if any, so it should be the right
+    // number of pixels to scroll whether or not there is a vertical scrollbar
+    // (which there shouldn't ever be but sometimes is anyway because of bugs
+    // or limitations in the column breaking algorithm).  However, for some
+    // reason clientWidth is actually 18 pixels less than the number of pixels
+    // to scroll, so we have to add back that number of pixels.
+    let pixelsToScroll = contentBox.clientWidth + 18;
+
+    // FIXME: file a bug on the column breaking algorithm sometimes choosing
+    // to make columns taller than the height of the columnized block.
+
+    // FIXME: file a bug on clientWidth being 18 pixels less than the width
+    // of the page (if it really is; first, measure to make sure it's the case,
+    // as the bug could be an issue with column placement instead).
+
+    this.doMove(direction * pixelsToScroll);
   },
 
+  // FIXME: make this work right (i.e. actually move you exactly one column
+  // instead of approximatetly one column) by figuring out the actual width
+  // of each column and its gap, which may not be the same as the computed
+  // width, since Gecko treats specified (and computed, apparently) widths
+  // as advisory.
+  // FIXME: file a bug on this issue, as Gecko should set the computed values
+  // to the actual values it's using.
   doColumnMove: function(direction) {
     let contentBox = document.getElementById("contentBox");
     let computedStyle = window.getComputedStyle(contentBox, null);
