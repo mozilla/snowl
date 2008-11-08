@@ -115,6 +115,11 @@ toolbarbutton {
   -moz-box-flex: 0;
 }
 
+#scrollBox {
+  overflow: auto;
+  -moz-box-flex: 1;
+}
+
 #columnResizeSplitter {
   display: none;
 }

@@ -122,10 +122,8 @@
 
       <stack id="contentStack" flex="1">
         <scrollbox id="scrollBox"
-                   style="overflow: auto;"
                    onoverflow="SnowlMessageView.onFlowChange(event)"
-                   onunderflow="SnowlMessageView.onFlowChange(event)"
-                   flex="1">
+                   onunderflow="SnowlMessageView.onFlowChange(event)">
           <html:div id="contentBox"/>
         </scrollbox>
         <splitter id="columnResizeSplitter" left="410"
