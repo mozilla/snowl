@@ -211,7 +211,6 @@ let SnowlService = {
 
   _accountTypeConstructors: {},
   addAccountType: function(constructor) {
-this._log.info("add account type for " + constructor.name);
     if (constructor in this._accountTypeConstructors)
       this._log.warn("constructor for " + constructor.name +
                      "already exists");
