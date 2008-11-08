@@ -109,6 +109,12 @@ toolbarbutton {
   -moz-box-flex: 1;
 }
 
+#contentStack[columns] #contentBox {
+  /* In columns mode, flex creates a bunch of empty space after the content,
+   * so we turn it off. */
+  -moz-box-flex: 0;
+}
+
 #columnResizeSplitter {
   display: none;
 }
