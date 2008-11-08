@@ -104,8 +104,6 @@ toolbarbutton {
 
   /* This gets set programmatically on load, since setting it in CSS doesn't work. */
   height: 0;
-
-  -moz-box-flex: 1;
 }
 
 #columnResizeSplitter {
