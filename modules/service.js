@@ -44,8 +44,6 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/feed.js");
-Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -59,7 +57,7 @@ const SNOWL_HANDLER_TITLE = "Snowl";
 
 // How often to refresh sources, in milliseconds.
 const REFRESH_INTERVAL = 60 * 60 * 1000; // 60 minutes
- 
+
 // How often to check if sources need refreshing, in milliseconds.
 const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
 
@@ -217,6 +215,14 @@ let SnowlService = {
     return this._getSourcesStatement;
   },
 
+  _sourceTypeConstructors: {},
+  addSourceType: function(constructor) {
+    if (constructor in this._sourceTypeConstructors)
+      this._log.warn("constructor for " + constructor.name +
+                     "already exists");
+    this._sourceTypeConstructors[constructor.name] = constructor;
+  },
+
   getSources: function() {
     let sources = [];
 
@@ -224,7 +230,7 @@ let SnowlService = {
       while (this._getSourcesStatement.step()) {
         let row = this._getSourcesStatement.row;
 
-        let constructor = eval(row.type);
+        let constructor = this._sourceTypeConstructors[row.type];
         if (!constructor) {
           this._log.error("no constructor for type " + row.type);
           continue;

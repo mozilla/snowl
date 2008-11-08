@@ -54,6 +54,7 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
+Cu.import("resource://snowl/modules/service.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -269,7 +270,7 @@ SnowlTwitter.prototype = {
       statusText = request.statusText;
     }
     catch(ex) {}
-    
+
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
 
     Observers.notify(this, "snowl:subscribe:connect:end", request.status);
@@ -336,7 +337,7 @@ SnowlTwitter.prototype = {
       statusText = request.statusText;
     }
     catch(ex) {}
-    
+
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
 
@@ -550,3 +551,5 @@ SnowlTwitter.prototype = {
   }
 
 };
+
+SnowlService.addSourceType(SnowlTwitter);

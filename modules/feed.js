@@ -54,6 +54,7 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
+Cu.import("resource://snowl/modules/service.js");
 
 // FIXME: factor this out into a common file.
 const PART_TYPE_CONTENT = 1;
@@ -228,7 +229,7 @@ SnowlFeed.prototype = {
       statusText = request.statusText;
     }
     catch(ex) {}
-    
+
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
 
@@ -634,3 +635,5 @@ SnowlFeed.prototype = {
   }
 
 };
+
+SnowlService.addSourceType(SnowlFeed);
