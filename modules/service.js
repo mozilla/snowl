@@ -50,8 +50,6 @@ Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/feed.js");
-Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -211,6 +209,15 @@ let SnowlService = {
     }
   },
 
+  _accountTypeConstructors: {},
+  addAccountType: function(constructor) {
+this._log.info("add account type for " + constructor.name);
+    if (constructor in this._accountTypeConstructors)
+      this._log.warn("constructor for " + constructor.name +
+                     "already exists");
+    this._accountTypeConstructors[constructor.name] = constructor;
+  },
+
   get _getAccountsStatement() {
     delete this._getAccountsStatement;
     return this._getAccountsStatement = SnowlDatastore.createStatement(
@@ -225,21 +232,18 @@ let SnowlService = {
       while (this._getAccountsStatement.step()) {
         let row = this._getAccountsStatement.row;
 
-        let type;
-        try {
-          type = eval(row.type);
-        }
-        catch(ex) {
-          this._log.error("error getting " + row.name + ": " + ex);
+        let constructor = this._accountTypeConstructors[row.type];
+        if (!constructor) {
+          this._log.error("no constructor for type " + row.type);
           continue;
         }
 
-        accounts.push(new type(row.id,
-                               row.name,
-                               URI.get(row.machineURI),
-                               URI.get(row.humanURI),
-                               SnowlDateUtils.julianToJSDate(row.lastRefreshed),
-                               row.importance));
+        accounts.push(new constructor(row.id,
+                                      row.name,
+                                      URI.get(row.machineURI),
+                                      URI.get(row.humanURI),
+                                      SnowlDateUtils.julianToJSDate(row.lastRefreshed),
+                                      row.importance));
       }
     }
     finally {

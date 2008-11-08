@@ -57,6 +57,7 @@ Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
+Cu.import("resource://snowl/modules/service.js");
 
 const NAME = "Twitter";
 const MACHINE_URI = URI.get("https://twitter.com");
@@ -278,7 +279,7 @@ SnowlTwitter.prototype = {
       statusText = request.statusText;
     }
     catch(ex) {}
-    
+
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
 
     Observers.notify(this, "snowl:subscribe:connect:end", request.status);
@@ -345,7 +346,7 @@ SnowlTwitter.prototype = {
       statusText = request.statusText;
     }
     catch(ex) {}
-    
+
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
 
@@ -645,3 +646,5 @@ SnowlTwitter.prototype = {
   }
 
 };
+
+SnowlService.addAccountType(SnowlTwitter);

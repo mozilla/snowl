@@ -57,6 +57,7 @@ Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
+Cu.import("resource://snowl/modules/service.js");
 
 // nsIFeedTextConstruct::type to media type mappings.
 const mediaTypes = { html: "text/html",
@@ -233,7 +234,7 @@ SnowlFeed.prototype = {
       statusText = request.statusText;
     }
     catch(ex) {}
-    
+
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
 
@@ -644,3 +645,5 @@ SnowlFeed.prototype = {
   }
 
 };
+
+SnowlService.addAccountType(SnowlFeed);
