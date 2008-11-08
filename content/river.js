@@ -499,9 +499,6 @@ let SnowlMessageView = {
     // to scroll, so we have to add back that number of pixels.
     let pixelsToScroll = contentBox.clientWidth + 18;
 
-    // FIXME: file a bug on the column breaking algorithm sometimes choosing
-    // to make columns taller than the height of the columnized block.
-
     // FIXME: file a bug on clientWidth being 18 pixels less than the width
     // of the page (if it really is; first, measure to make sure it's the case,
     // as the bug could be an issue with column placement instead).
@@ -509,13 +506,11 @@ let SnowlMessageView = {
     this.doMove(direction * pixelsToScroll);
   },
 
-  // FIXME: make this work right (i.e. actually move you exactly one column
-  // instead of approximatetly one column) by figuring out the actual width
-  // of each column and its gap, which may not be the same as the computed
-  // width, since Gecko treats specified (and computed, apparently) widths
-  // as advisory.
-  // FIXME: file a bug on this issue, as Gecko should set the computed values
-  // to the actual values it's using.
+  // Note: this doesn't really work because the computed column width
+  // isn't the same as the actual width.  Bug 463828 is about Gecko providing
+  // a way to get the actual width (perhaps by making the computed width
+  // be the actual width).
+  // FIXME: fix this once bug 463828 is fixed.
   doColumnMove: function(direction) {
     let contentBox = document.getElementById("contentBox");
     let computedStyle = window.getComputedStyle(contentBox, null);

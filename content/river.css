@@ -115,6 +115,16 @@ toolbarbutton {
   /* In columns mode, flex creates a bunch of empty space after the content,
    * so we turn it off. */
   -moz-box-flex: 0;
+
+  /* In columns mode, show horizontal overflow, which is the direction in which
+   * the columns are laid out (and in which users scroll to read the content),
+   * but hide vertical overflow, which shouldn't be necessary, because we've set
+   * an explicit height on the content box, so Gecko should never let content
+   * overflow the box vertically, but is necessary because of bug 463832.
+   * Note: in addition to hiding vertical overflow, we resize elements that are
+   * too tall using dynamically updated rules in riverContent.css. */
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 #columnResizeSplitter {

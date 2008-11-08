@@ -40,6 +40,9 @@
 
 /* rules that get updated programmatically */
 
+/* FIXME: move this to river.css, since it isn't a content rule, or split up
+ * rules between the two files by whether or not they are dynamically updated
+ * rather than whether or not they modify content. */
 #contentStack[columns] > #contentBox {
   -moz-column-width: 400px;
 }
@@ -53,6 +56,8 @@
 /* SOLUTION: it's because the images still have "width" and/or "height"
  * attributes.  Remove those attributes, and this rule (plus the one above)
  * will work proportionally. */
+/* XXX apply max-height to all elements, not just images and tables?
+ * There could be other elements that also have this problem. */
 #contentBox img {
   max-height: 0;
 }
