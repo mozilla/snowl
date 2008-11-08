@@ -35,6 +35,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// We have to import these here, even though we don't use them in this overlay,
+// so that they get parsed and register themselves with the service.
+Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/twitter.js");
+
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/opml.js");
 
