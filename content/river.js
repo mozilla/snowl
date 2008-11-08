@@ -309,8 +309,10 @@ let SnowlMessageView = {
     if ("current" in this._params)
       this._currentButton.checked = true;
 
-    if ("body" in this._params)
+    if ("body" in this._params) {
       this._bodyButton.checked = true;
+      this._setBody(true);
+    }
 
     if ("filter" in this._params)
       document.getElementById("filterTextbox").value = this._params.filter;
@@ -388,16 +390,24 @@ let SnowlMessageView = {
     this.rebuildView();
   },
 
-  onCommandBodyButton: function(aEvent) {
+  onCommandBodyButton: function() {
+    this._setBody(this._bodyButton.checked);
+    this._updateURI();
+  },
+
+  _setBody: function(showBody) {
     let contentBox = document.getElementById("contentBox");
-    if (this._bodyButton.checked) {
+    if (showBody) {
       let classes = contentBox.className.split(/\s/);
-      classes.push("body");
+      classes.push("showBody");
       contentBox.className = classes.join(" ");
     }
-    else
-      contentBox.className = contentBox.className.split(/\s/).filter(function(v) v != "body").join(" ");
-    this._updateURI();
+    else {
+      contentBox.className = contentBox.className.
+                             split(/\s/).
+                             filter(function(v) v != "showBody").
+                             join(" ");
+    }
   },
 
   onCommandColumnsButton: function() {
@@ -839,10 +849,10 @@ let SnowlMessageView = {
       // FIXME: implement support for enclosures.
 
       messageBox.appendChild(messageIcon);
-      messageBox.appendChild(bylineBox);
       messageBox.appendChild(title);
       messageBox.appendChild(excerpt);
       messageBox.appendChild(body);
+      messageBox.appendChild(bylineBox);
 
       this._contentSandbox.messageBox = messageBox;
 

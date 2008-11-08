@@ -149,6 +149,7 @@ toolbarbutton {
 .message {
   /* Clear the float on the previous message's icon. */
   clear: both;
+  margin-bottom: 1em;
 }
 
 /* The selector has to include #contentBox here so the rule takes precedence
@@ -157,6 +158,7 @@ toolbarbutton {
   max-width: 100px;
   max-height: 100px;
   float: right;
+  margin-bottom: 1em;
 }
 
 .byline {
@@ -167,16 +169,14 @@ toolbarbutton {
 
 .title {
   font-size: 100%;
-  margin-bottom: 0.5em;
-  margin-top: 0;
+  margin: 0;
 }
 
-/* Suppress the top margin on the initial content element so we can control
- * the amount of margin between the subject and the content with the rule
- * above on the title element. */
-.body > *:first-child {
-  margin-top: 0;
-}
+/* Specify the margins above and below the message bodies.  In order to control
+ * these more consistently, we remove margins on the content they contain. */
+.body > *:first-child { margin-top: 0; }
+.body > *:last-child  { margin-bottom: 0; }
+.body { margin-top: 0.2em; margin-bottom: 0.2em; }
 
 /* Make the title and source links look less like links to differentiate
  * between the links in the content and these links that are in chrome. */
@@ -189,13 +189,21 @@ toolbarbutton {
   color: #555;
 }
 
+.excerpt {
+  font-style: italic;
+}
+
 /* Show/hide elements based on whether we're displaying full content. */
-#contentBox .body             { display: none; }
-#contentBox .title            { display: inline; }
-#contentBox.body .body        { display: block; }
-#contentBox.body .title       { display: block; }
-#contentBox.body .excerpt     { display: none; }
-#contentBox.body .messageIcon { display: none; }
+#contentBox .body                 { display: none; }
+#contentBox .title                { display: inline; }
+#contentBox.showBody .body        { display: block; }
+#contentBox.showBody .title       { display: block; }
+#contentBox.showBody .excerpt     { display: none; }
+#contentBox.showBody .messageIcon { display: none; }
+
+/* Separate the title and excerpt with a colon when the body is hidden. */
+#contentBox .title:after          { content: ": " }
+#contentBox.showBody .title:after { content: none }
 
 /* Don't draw borders around hyperlinked favicons, but do pad them a bit
  * between the end of the favicon and the start of the source name. */
