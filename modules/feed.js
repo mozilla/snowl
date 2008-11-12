@@ -307,10 +307,6 @@ SnowlFeed.prototype = {
     if (messagesChanged)
       Observers.notify(null, "snowl:messages:changed", this.id);
 
-    // Let observers know about the new source. Do it here, after messages
-    // added, to avoid timing/db commit issue when refreshing collections view
-    Observers.notify(null, "snowl:sources:changed", null);
-
     Observers.notify(this, "snowl:subscribe:get:end", null);
   },
 
@@ -600,6 +596,11 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
 
       // Refresh the feed to import all its items.
       this.onRefreshResult(aResult);
+
+      // Let observers know about the new source. Do it here, after messages
+      // added, to avoid timing/db commit issue when refreshing collections view
+      Observers.notify(null, "snowl:sources:changed", null);
+
     }
     catch(ex) {
       dump("error on subscribe result: " + ex + "\n");

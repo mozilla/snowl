@@ -184,6 +184,7 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Subscription
 
+  subscribed: false,
   subscribe: function(credentials) {
     Observers.notify(this, "snowl:subscribe:connect:start", null);
 
@@ -261,6 +262,7 @@ SnowlTwitter.prototype = {
 
     // Save the source to the database.
     this.persist();
+    this.subscribed = true;
 
     this.refresh();
   },
@@ -377,8 +379,12 @@ SnowlTwitter.prototype = {
 
       // Update the current flag.
       // XXX Should this affect whether or not messages have changed?
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 0 WHERE sourceID = " + this.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE id IN (" + currentMessages.join(", ") + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "UPDATE messages SET current = 0 " +
+        "WHERE sourceID = " + this.id);
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "UPDATE messages SET current = 1 " +
+        "WHERE id IN (" + currentMessages.join(", ") + ")");
 
       SnowlDatastore.dbConnection.commitTransaction();
     }
@@ -392,7 +398,10 @@ SnowlTwitter.prototype = {
 
     // Let observers know about the new source. Do it here, after messages
     // added, to avoid timing/db commit issue when refreshing collections view
-    Observers.notify(null, "snowl:sources:changed", null);
+    if (this.subscribed) {
+      Observers.notify(null, "snowl:sources:changed", null);
+      this.subscribed = false;
+    }
 
     // FIXME: if we added people, refresh the collections view too.
 
