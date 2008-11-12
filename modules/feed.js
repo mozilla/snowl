@@ -77,9 +77,9 @@ function stringToArray(string) {
   return array;
 }
 
-function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+function SnowlFeed(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   // Call the superclass's constructor to initialize the new instance.
-  SnowlSource.call(this, aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+  SnowlSource.call(this, aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
 }
 
 SnowlFeed.prototype = {
@@ -290,8 +290,12 @@ SnowlFeed.prototype = {
 
       // Update the current flag.
       // XXX Should this affect whether or not messages have changed?
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 0 WHERE sourceID = " + this.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET current = 1 WHERE id IN (" + currentMessageIDs.join(", ") + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "UPDATE messages SET current = 0 " +
+        "WHERE sourceID = " + this.id);
+      SnowlDatastore.dbConnection.executeSimpleSQL("" +
+        "UPDATE messages SET current = 1 " +
+        "WHERE id IN (" + currentMessageIDs.join(", ") + ")");
 
       SnowlDatastore.dbConnection.commitTransaction();
     }
@@ -301,7 +305,11 @@ SnowlFeed.prototype = {
     }
 
     if (messagesChanged)
-      Observers.notify(null, "snowl:messages:changed", null);
+      Observers.notify(null, "snowl:messages:changed", this.id);
+
+    // Let observers know about the new source. Do it here, after messages
+    // added, to avoid timing/db commit issue when refreshing collections view
+    Observers.notify(null, "snowl:sources:changed", null);
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
   },
@@ -517,7 +525,7 @@ SnowlFeed.prototype = {
 
     this._subscribeCallback = callback;
 
-    this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
+this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -589,9 +597,6 @@ SnowlFeed.prototype = {
       this.humanURI = feed.link;
 
       this.persist();
-
-      // Let observers know about the new source.
-      Observers.notify(null, "snowl:sources:changed", null);
 
       // Refresh the feed to import all its items.
       this.onRefreshResult(aResult);

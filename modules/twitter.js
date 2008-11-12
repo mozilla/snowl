@@ -59,18 +59,19 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/service.js");
 
+const TYPE = "SnowlTwitter";
 const NAME = "Twitter";
 const MACHINE_URI = URI.get("https://twitter.com");
 // XXX Should this be simply http://twitter.com ?
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
-function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+function SnowlTwitter(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   // XXX Should we append the username to the NAME const to enable users
   // to subscribe to multiple Twitter accounts?
 
   // Call the superclasses' constructors to initialize the new instance.
   // FIXME: use composition to inherit functionality from the superclasses.
-  SnowlSource.call(this, aID, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
+  SnowlSource.call(this, aID, TYPE, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
   SnowlTarget.call(this);
 }
 
@@ -261,9 +262,6 @@ SnowlTwitter.prototype = {
     // Save the source to the database.
     this.persist();
 
-    // Let observers know about the new source.
-    Observers.notify(null, "snowl:sources:changed", null);
-
     this.refresh();
   },
 
@@ -390,7 +388,11 @@ SnowlTwitter.prototype = {
     }
 
     if (messagesChanged)
-      Observers.notify(null, "snowl:messages:changed", null);
+      Observers.notify(null, "snowl:messages:changed", this.id);
+
+    // Let observers know about the new source. Do it here, after messages
+    // added, to avoid timing/db commit issue when refreshing collections view
+    Observers.notify(null, "snowl:sources:changed", null);
 
     // FIXME: if we added people, refresh the collections view too.
 

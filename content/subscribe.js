@@ -184,7 +184,7 @@ let Subscriber = {
 
   subscribeFeed: function() {
     let uri = URI.get(document.getElementById("locationTextbox").value);
-    let feed = new SnowlFeed(null, null, uri);
+    let feed = new SnowlFeed(null, null, null, uri);
     this._subscribe(feed);
   },
 

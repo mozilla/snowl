@@ -250,8 +250,8 @@ let SnowlUtils = {
 
   // Always maintain selected listitem within a session
   // XXX store on document for restore on restart??
-  gListViewListIndex: null,
-  gListViewCollectionIndex: null,
+  gListViewListIndex: -1,
+  gListViewCollectionIndex: -1,
   // Position of current page in tabs and history
   gMessagePosition: {tabIndex: null, pageIndex: null},
 
@@ -301,8 +301,7 @@ this._log.info("row: "+ row.value + " is not selected");
       treeSelection.select(row);
       treeSelection.currentIndex = saveCurrentIndex;
       treeBoxObj.ensureRowIsVisible(row);
-      // This causes onSelect to fire, not necessary here
-//      treeSelection.selectEventsSuppressed = false;
+      treeSelection.selectEventsSuppressed = false;
 
       // Keep track of which row in the tree is currently selected.
       if(tree.id == "snowlView")
@@ -319,17 +318,6 @@ this._log.info("row: "+ row.value + " is not selected");
   // This is triggered when the context menu for a given row is hidden/closed
   // (onpopuphidden for the context <popup>).
   RestoreSelectionWithoutContentLoad: function(tree) {
-    // If a delete or move command had been issued, then we should
-    // reset gRightMouseButtonDown and gListDeleteOrMoveOccurred
-    // and return (see bug 142065).
-    // TODO: once contextmenu has these options..
-//    if(this.gListDeleteOrMoveOccurred) {
-//      this.gRightMouseButtonDown = false;
-//      this.gListDeleteOrMoveOccurred = false;
-//      return;
-//    }
-//this._log.info("restore selection onpopuphidden: tree.id = "+tree.id);
-
     let treeSelection = tree.view.selection;
 
     // Make sure that currentIndex is valid so that we don't try to restore
@@ -340,13 +328,11 @@ this._log.info("row: "+ row.value + " is not selected");
       treeSelection.select(treeSelection.currentIndex);
       treeSelection.selectEventsSuppressed = false;
 
-      // Keep track of which row in the tree is currently selected.
-      // This is currently only needed when deleting messages.
-      // TODO: once contextmenu has these options..
-//      if(tree.id == "snowlView")
-//        this.gListViewListIndex = treeSelection.currentIndex;
-//      if(tree.id == "sourcesView")
-//        this.gListViewCollectionIndex = treeSelection.currentIndex;
+      // Reset which row in the tree is currently selected.
+      if(tree.id == "snowlView")
+        this.gListViewListIndex = treeSelection.currentIndex;
+      if(tree.id == "sourcesView")
+        this.gListViewCollectionIndex = treeSelection.currentIndex;
     }
     else if(treeSelection.currentIndex < 0)
       // Clear the selection in the case of when a folder has just been

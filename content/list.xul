@@ -109,7 +109,6 @@
             enableColumnDrag="true" disableKeyNavigation="true"
             onselect="SnowlMessageView.onSelect(event)"
             onblur="SnowlUtils.gMessagePosition.pageIndex=null"
-            ondblclick="SnowlMessageView.onKeyPress(event)"
             onkeypress="SnowlMessageView.onKeyPress(event)">
         <treecols>
           <treecol id="snowlAuthorCol" label="&authorCol.label;" flex="1"

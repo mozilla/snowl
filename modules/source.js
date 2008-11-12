@@ -48,8 +48,9 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-function SnowlSource(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+function SnowlSource(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
   this.id = aID;
+  this.type = aType;
   this.name = aName;
   this.machineURI = aMachineURI;
   this.humanURI = aHumanURI;
@@ -60,7 +61,7 @@ function SnowlSource(aID, aName, aMachineURI, aHumanURI, aLastRefreshed, aImport
 SnowlSource.__defineGetter__("_getStatement",
   function() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT name, machineURI, humanURI, lastRefreshed, importance " +
+      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
       "FROM sources WHERE id = :id"
     );
     this.__defineGetter__("_getStatement", function() { return statement });
@@ -78,6 +79,7 @@ SnowlSource.get = function(aID) {
     this._getStatement.params.id = aID;
     if (this._getStatement.step())
       return new SnowlSource(aID,
+                             this._getStatement.row.type,
                              this._getStatement.row.name,
                              URI.get(this._getStatement.row.machineURI),
                              URI.get(this._getStatement.row.humanURI),
@@ -107,6 +109,8 @@ SnowlSource.prototype = {
   refreshInterval: 1000 * 60 * 30, // 30 minutes
 
   id: null,
+
+  type: null,
 
   name: null,
 

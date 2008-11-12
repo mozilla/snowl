@@ -1,5 +1,9 @@
 <!ENTITY nameCol.label                      "Name">
 
 <!-- Collections contextmenu -->
-<!ENTITY refreshAll.label                   "Refresh All">
+<!ENTITY refresh.label                      "Refresh">
+<!ENTITY refresh.accesskey                  "R">
+<!ENTITY refreshAll.label                   "Refresh All Sources">
 <!ENTITY refreshAll.accesskey               "A">
+<!ENTITY unsubscribe.label                  "Unsubscribe">
+<!ENTITY unsubscribe.accesskey              "U">

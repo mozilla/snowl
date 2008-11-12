@@ -212,7 +212,8 @@ let CollectionsView = {
   getColumnProperties: function(columnID, column, properties) {},
 
   setCellText: function(aRow, aCol, aValue) {
-    let statement = SnowlDatastore.createStatement("UPDATE sources SET name = :name WHERE id = :id");
+    let statement = SnowlDatastore.createStatement(
+      "UPDATE sources SET name = :name WHERE id = :id");
     statement.params.name = this._rows[aRow].name = aValue;
     statement.params.id = this._rows[aRow].id;
 
@@ -248,7 +249,8 @@ let CollectionsView = {
 
     let statement = SnowlDatastore.createStatement(
       "SELECT id, name, iconURL, grouped, groupIDColumn, groupNameColumn, " +
-      "groupHomeURLColumn, groupIconURLColumn FROM collections ORDER BY orderKey"
+        "groupHomeURLColumn, groupIconURLColumn " +
+      "FROM collections ORDER BY orderKey"
     );
 
     statement.QueryInterface(Ci.mozIStorageStatementWrapper);
@@ -276,6 +278,9 @@ let CollectionsView = {
   // are closed, so this is the same as the list of collections, although
   // in the future we might persist and restore the open state.
   _buildCollectionTree: function() {
+    // XXX: add in proper scrollling/row selection code
+    this._tree.view.selection.select(-1);
+
     if (this.isHierarchical) {
       this._rows = [collection for each (collection in this._collections)];
     }
@@ -311,29 +316,65 @@ let CollectionsView = {
       SnowlUtils.RestoreSelectionWithoutContentLoad(this._tree);
   },
 
-  unsubscribe: function() {
-    let collection = this._rows[this._tree.currentIndex];
+  refreshSource: function() {
+    let selectedSourceIDs = [];
 
-    if (!collection.parent || collection.parent.groupIDColumn != "sources.id")
+    // XXX: put in a loop for multiselected collections?
+    let selectedSource = this._rows[SnowlUtils.gListViewCollectionIndex];
+
+    if (!selectedSource.parent || selectedSource.parent.groupIDColumn != "sources.id")
       return;
+//this._log.info("refreshing selected source ID: "+selectedSource.groupID);
 
-    let sourceID = this._rows[this._tree.currentIndex].groupID;
+    selectedSourceIDs.push(selectedSource.groupID);
 
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts WHERE messageID IN (SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages WHERE sourceID = " + sourceID);
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources WHERE id = " + sourceID);
-      SnowlDatastore.dbConnection.commitTransaction();
-    }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      throw ex;
+    let selectedSources = SnowlService.selectedSources(selectedSourceIDs);
+    SnowlService.refreshAllSources(selectedSources);
+  },
+
+  unsubscribe: function() {
+    let selectedSourceIDs = [];
+    let currentSourceID = this._rows[this._tree.currentIndex] ?
+        this._rows[this._tree.currentIndex].groupID : null;
+    let notifyID = null;
+
+    // XXX: put in a loop for multiselected collections?
+    let selectedSource = this._rows[SnowlUtils.gListViewCollectionIndex];
+
+    if (!selectedSource.parent || selectedSource.parent.groupIDColumn != "sources.id")
+      return;
+this._log.info("unsubscribing source: "+selectedSource.name);
+
+    selectedSourceIDs.push(selectedSource.groupID);
+
+    // Delete loop here
+    for (let i = 0; i < selectedSourceIDs.length; ++i) {
+      sourceID = selectedSourceIDs[i];
+      SnowlDatastore.dbConnection.beginTransaction();
+      try {
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
+            "WHERE messageID IN " +
+            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
+            "WHERE messageID IN" +
+            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
+            "WHERE sourceID = " + sourceID);
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources " +
+            "WHERE id = " + sourceID);
+        SnowlDatastore.dbConnection.commitTransaction();
+      }
+      catch(ex) {
+        SnowlDatastore.dbConnection.rollbackTransaction();
+        throw ex;
+      }
+      if (sourceID == currentSourceID)
+        notifyID = sourceID;
     }
 
     Observers.notify(null, "snowl:sources:changed", null);
-    Observers.notify(null, "snowl:messages:changed", null);
+    // If the current selection is unsubscribed, pass its id on to list view
+    Observers.notify(null, "snowl:messages:changed", notifyID);
   }
 
 };

@@ -223,7 +223,9 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   observe: function(subject, topic, data) {
     switch (topic) {
       case "snowl:messages:changed":
-        this._onMessagesChanged();
+        // Update list view only if passed the id of the selected source
+        if (this._collection.groupID == data)
+          this._onMessagesChanged();
         break;
     }
   },
@@ -599,7 +601,7 @@ this._log.info("_toggleRead: all? " + aAll);
     let message = this._collection.messages[row];
 
     // No message or link in this message 
-    if (!message || typeof(message.link)=="undefined")
+    if (!message || !message.link)
       return;
 
     if (SnowlUtils.gMessagePosition.pageIndex == --gBrowser.sessionHistory.index)

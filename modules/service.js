@@ -209,6 +209,39 @@ let SnowlService = {
     }
   },
 
+  selectedSources: function(selectedSourceIDs) {
+    let selectedSources = [];
+//this._log.info("selected sourceIDs: "+selectedSourceIDs.toString());
+
+    for (let i = 0; i < selectedSourceIDs.length; ++i) {
+      try {
+        SnowlSource._getStatement.params.id = selectedSourceIDs[i];
+        if (SnowlSource._getStatement.step()) {
+          let row = SnowlSource._getStatement.row;
+//this._log.info("selected source name: "+row.name);
+
+          let constructor = this._accountTypeConstructors[row.type];
+          if (!constructor) {
+            this._log.error("no constructor for type " + row.type);
+            continue;
+          }
+
+          selectedSources.push(new constructor(row.id,
+                                               row.type,
+                                               row.name,
+                                               URI.get(row.machineURI),
+                                               URI.get(row.humanURI),
+                                               SnowlDateUtils.julianToJSDate(row.lastRefreshed),
+                                               row.importance));
+        }
+      }
+      finally {
+        SnowlSource._getStatement.reset();
+      }
+    }
+    return selectedSources;
+  },
+
   _accountTypeConstructors: {},
   addAccountType: function(constructor) {
     if (constructor in this._accountTypeConstructors)
@@ -220,7 +253,8 @@ let SnowlService = {
   get _getAccountsStatement() {
     delete this._getAccountsStatement;
     return this._getAccountsStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance FROM sources"
+      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
+      "FROM sources"
     );
   },
 
@@ -238,6 +272,7 @@ let SnowlService = {
         }
 
         accounts.push(new constructor(row.id,
+                                      row.type,
                                       row.name,
                                       URI.get(row.machineURI),
                                       URI.get(row.humanURI),
@@ -268,16 +303,16 @@ let SnowlService = {
     for each (let source in this.sources)
       if (now - source.lastRefreshed > source.refreshInterval)
         staleSources.push(source);
-    this._refreshSources(staleSources);
+    this.refreshAllSources(staleSources);
   },
 
-  refreshAllSources: function() {
-    this._log.info("refreshing all sources");
-    this._refreshSources(this.sources);
+  refreshAllSources: function(sources) {
+    let allSources = sources ? sources : this.sources;
+    for each (let source in allSources)
+      this._refreshSource(source);
   },
 
-  _refreshSources: function(sources) {
-    for each (let source in sources) {
+  _refreshSource: function(source) {
       this._log.info("refreshing source " + source.name);
 
       source.refresh();
@@ -291,7 +326,6 @@ let SnowlService = {
       // but with a progressively longer interval (up to the standard one).
       // FIXME: implement the approach described above.
       source.lastRefreshed = new Date();
-    }
   },
 
   /**
