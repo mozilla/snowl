@@ -69,32 +69,47 @@ for each (let param in query.split("&")) {
   params[name] = value;
 }
 
+let stringBundle = document.getElementById("snowlStringBundle");
+
 let message = SnowlMessage.get(parseInt(params.id));
 
 let body = document.getElementById("body");
 
-let content = message.content || message.summary;
+let content = message.content || message.summary || message.notfound;
+
 if (content) {
-  if (content.base)
-    body.setAttributeNS(XML_NS, "base", content.base.spec);
+  if (content.text != "notfound") {
+
+    if (content.base)
+      body.setAttributeNS(XML_NS, "base", content.base.spec);
+
+    // Brief headers
+    document.getElementById("briefAuthor").value = message.author;
+    document.getElementById("briefSubject").value = message.subject;
+    document.getElementById("briefSubject").setAttribute("href", message.link);
+    document.getElementById("briefTimestamp").value = SnowlDateUtils._formatDate(message.timestamp);
+    
+    // Full headers
+    document.getElementById("author").value = message.author;
+    document.getElementById("subject").value = message.subject;
+    document.documentElement.setAttribute("title", message.subject);
+    document.getElementById("timestamp").value = SnowlDateUtils._formatDate(message.timestamp);
+    document.getElementById("link").href = message.link;
+    document.getElementById("link").value = message.link;
+  
+    gBrowserWindow.Snowl._toggleHeader("TabSelect");
+  }
+  else {
+    // No message found
+    let notFound = stringBundle.getFormattedString("messageNotFound", [params.id]);
+    content.text = "<p><strong>" + notFound + "</strong></p>";
+    document.documentElement.setAttribute("title",
+        stringBundle.getFormattedString("messageNotFoundTitle", [params.id]));
+
+    gBrowserWindow.Snowl._toggleHeader(gBrowserWindow.Snowl.kNoHeader);
+  }
 
   let docFragment = content.createDocumentFragment(body);
   if (docFragment)
     body.appendChild(docFragment);
 }
-
-// Brief headers
-document.getElementById("briefAuthor").value = message.author;
-document.getElementById("briefSubject").value = message.subject;
-document.getElementById("briefSubject").setAttribute("href", message.link);
-document.getElementById("briefTimestamp").value = SnowlDateUtils._formatDate(message.timestamp);
-
-// Full headers
-document.getElementById("author").value = message.author;
-document.getElementById("subject").value = message.subject;
-document.documentElement.setAttribute("title", message.subject);
-document.getElementById("timestamp").value = SnowlDateUtils._formatDate(message.timestamp);
-document.getElementById("link").href = message.link;
-document.getElementById("link").value = message.link;
-
-gBrowserWindow.Snowl._toggleHeader("TabSelect");

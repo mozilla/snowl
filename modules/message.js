@@ -91,6 +91,17 @@ SnowlMessage.get = function(aID) {
                                  statement.row.authorIcon,
                                  SnowlDateUtils.julianToJSDate(statement.row.received));
     }
+    else {
+      // Message not there, create structure anyway
+      message = new SnowlMessage(null,
+                                 null,
+                                 null,
+                                 null,
+                                 null,
+                                 null,
+                                 null,
+                                 null);
+    }
   }
   finally {
     statement.reset();
@@ -178,6 +189,20 @@ SnowlMessage.prototype = {
     return part;
   },
 
+  _notfound: null,
+  get notfound() {
+    if (!this._notfound) {
+      let part = Cc["@mozilla.org/feed-textconstruct;1"].
+                 createInstance(Ci.nsIFeedTextConstruct);
+      part.text = "notfound";
+      part.type = "html";
+      part.base = null;
+      part.lang = null;
+      this._notfound = part;
+    }
+    return this._notfound;
+  },
+
   // FIXME: for performance, make this a class property rather than an instance
   // property?
   get _getSourceIDStatement() {
@@ -201,6 +226,6 @@ SnowlMessage.prototype = {
     }
 
     return this._source;
-  }
+  },
 
 };

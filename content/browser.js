@@ -313,6 +313,13 @@ let Snowl = {
       selectedIndex = ++selectedIndex > 2 ? 0 : selectedIndex++;
       this._prefs.set("message.headerView", selectedIndex);
     }
+    else if (val == this.kNoHeader) {
+      // Passed no header, temporary state, no pref/state changed
+      headerDeck.setAttribute("selectedIndex", this.kNoHeader);
+      briefHeader.setAttribute("collapsed", true);
+      fullHeader.setAttribute("collapsed", true);
+      return;
+    }
     else {
       // Passed an event from menuitem choice
       selectedIndex = eval(val.target.getAttribute("headerType"));
