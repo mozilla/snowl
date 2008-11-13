@@ -36,17 +36,130 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/preferences.css"?>
 
-<!DOCTYPE prefwindow SYSTEM "chrome://snowl/locale/preferences.dtd">
+<!DOCTYPE overlay [
+  <!ENTITY % snowlPreferencesDTD SYSTEM "chrome://snowl/locale/preferences.dtd">
+  %snowlPreferencesDTD;
+]>
 
-<prefwindow xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-            title="&prefwindow.title;">
+<overlay id="snowlPreferencesPaneOverlay"
+         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<prefwindow id="BrowserPreferences">
 
   <script type="application/x-javascript" src="chrome://snowl/content/preferences.js"/>
 
-  <prefpane>
-    &noPreferences.message;
-  </prefpane>
+  <prefpane id="paneSnowl"
+            label="&paneSnowl.title;"
+            onpaneload=""
+            insertbefore="paneAdvanced">
 
+    <preferences id="snowlPreferences">
+      <preference id="browser.preferences.snowl.selectedTabIndex"
+                  name="browser.preferences.snowl.selectedTabIndex"
+                  type="int"/>
+    </preferences>
+
+      <!-- General tab
+      <preference id="accessibility.browsewithcaret"
+                  name="accessibility.browsewithcaret"
+                  type="bool"/>
+      <preference id="accessibility.typeaheadfind"
+                  name="accessibility.typeaheadfind"
+                  type="bool"/>
+      -->
+
+      <!-- Subscribe tab
+      <preference id="browser.cache.disk.capacity"
+                  name="browser.cache.disk.capacity"
+                  type="int"/>
+      <preference id="browser.offline-apps.notify"
+                  name="browser.offline-apps.notify"
+                  type="bool"/>
+      -->
+
+      <!-- Organize tab
+      <preference id="app.update.enabled"
+                  name="app.update.enabled"
+                  type="bool"
+                  onchange="gAdvancedPane.updateAppUpdateItems();
+                            gAdvancedPane.updateAutoItems();
+                            gAdvancedPane.updateModeItems();"/>
+    </preferences>
+    
+    <stringbundle id="bundleShell" src="chrome://browser/locale/shellservice.properties"/>
+    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
+ -->
+    <script type="application/x-javascript" src="chrome://browser/content/preferences/advanced.js"/>
+
+    <tabbox id="snowlPrefs" flex="1"
+            onselect="SnowPreferencesPane.tabSelectionChanged();">
+
+      <tabs id="snowlTabsElement">
+        <tab id="snowlTab1"
+             label="&generalTab.label;"
+             helpTopic="prefs-advanced-general"/>
+        <tab id="snowlTab2"
+             label="&subscribeTab.label;"
+             disabled="true"
+             helpTopic="prefs-advanced-network"/>
+        <tab id="snowlTab3"
+             label="&organizeTab.label;"
+             disabled="true"
+             helpTopic="prefs-advanced-network"/>
+      </tabs>
+
+      <tabpanels flex="1">
+
+        <!-- General -->
+        <tabpanel id="snowlPanel1" orient="vertical">
+
+          <!-- Layouts -->
+          <groupbox id="snowlPanel1a" align="start">
+            <caption label="Layouts"/>
+          </groupbox>
+
+          <!-- Browsing -->
+          <groupbox id="snowlPanel1b" align="start">
+            <caption label="Other"/>
+          </groupbox>
+        </tabpanel>
+
+        <!-- Subscribe -->
+        <tabpanel id="snowlPanel2" orient="vertical">
+
+           <!--  -->
+           <groupbox id="snowlPanel2a">
+             <caption label="snowlPanel2a"/>
+
+           </groupbox>
+
+           <!--  -->
+           <groupbox id="snowlPanel2b">
+             <caption label="snowlPanel2b"/>
+           </groupbox>
+        </tabpanel>
+
+        <!-- Organize -->
+        <tabpanel id="snowlPanel3" orient="vertical">
+
+           <!--  -->
+           <groupbox id="snowlPanel3a">
+             <caption label="snowlPanel3a"/>
+
+           </groupbox>
+
+           <!--  -->
+           <groupbox id="snowlPanel3b">
+             <caption label="snowlPanel3b"/>
+           </groupbox>
+        </tabpanel>
+
+
+      </tabpanels>
+    </tabbox>
+  </prefpane>
 </prefwindow>
+
+</overlay>

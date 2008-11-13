@@ -24,6 +24,8 @@
 <!ENTITY importOPML.accesskey                 "i">
 <!ENTITY exportOPML.label                     "Export OPML...">
 <!ENTITY exportOPML.accesskey                 "x">
+<!ENTITY options.label                        "Options">
+<!ENTITY options.accesskey                    "O">
 
 
 <!-- These labels and access keys are for items in the View > Sidebar menu,

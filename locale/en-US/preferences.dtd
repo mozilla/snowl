@@ -1,2 +1,5 @@
-<!ENTITY prefwindow.title             "Snowl Preferences">
+<!ENTITY paneSnowl.title              "Snowl">
 <!ENTITY noPreferences.message        "Snowl does not yet have preferences.">
+<!ENTITY generalTab.label             "General">
+<!ENTITY subscribeTab.label           "Subscribe">
+<!ENTITY organizeTab.label            "Organize">

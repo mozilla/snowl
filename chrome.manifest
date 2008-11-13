@@ -25,6 +25,9 @@ overlay chrome://snowl/content/list-sidebar.xul chrome://snowl/content/collectio
 overlay chrome://snowl/content/collections.xul chrome://snowl/content/toolbar.xul
 overlay chrome://snowl/content/stream.xul chrome://snowl/content/toolbar.xul
 
+# Add preferences to the main Options dialog.
+overlay chrome://browser/content/preferences/preferences.xul chrome://snowl/content/preferences.xul
+
 resource snowl ./
 
 # localizations in alphabetical order

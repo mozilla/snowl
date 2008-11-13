@@ -204,6 +204,9 @@
                 oncommand="Snowl.onImportOPML()"/>
       <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
                 oncommand="Snowl.onExportOPML()"/>
+      <menuseparator/>
+      <menuitem label="&options.label;" accesskey="&options.accesskey;"
+                oncommand="openPreferences('paneSnowl');"/>
     </popup>
 
   </popupset>
