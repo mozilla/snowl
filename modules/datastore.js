@@ -410,6 +410,27 @@ let SnowlDatastore = {
     );
   },
 
+  get _selectHasSourceStatement() {
+    let statement = this.createStatement(
+      "SELECT 1 FROM sources WHERE machineURI = :machineURI"
+    );
+    this.__defineGetter__("_selectHasSourceStatement", function() { return statement });
+    return this._selectHasSourceStatement;
+  },
+
+  selectHasSource: function(aMachineURI) {
+    try {
+      this._selectHasSourceStatement.params.machineURI = aMachineURI;
+      if (this._selectHasSourceStatement.step())
+        return true;
+    }
+    finally {
+      this._selectHasSourceStatement.reset();
+    }
+
+    return false;
+  },
+
   get _selectHasMessageStatement() {
     let statement = this.createStatement(
       "SELECT 1 FROM messages WHERE externalID = :externalID"

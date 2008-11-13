@@ -337,6 +337,17 @@ let SnowlService = {
    */
   hasMessage: function(aExternalID) {
     return SnowlDatastore.selectHasMessage(aExternalID);
+  },
+
+  /**
+   * Determine whether or not the datastore contains a source with the given URI.
+   *
+   * @param aMachineURI {string}  the URI to check
+   *
+   * @returns {boolean} whether or not the datastore contains the URI
+   */
+  hasSource: function(aMachineURI) {
+    return SnowlDatastore.selectHasSource(aMachineURI);
   }
 
 };

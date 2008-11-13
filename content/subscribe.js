@@ -95,26 +95,28 @@ function SubscriptionListener(subject, topic, data) {
       setStatus("active", "Connecting to " + identity);
       break;
     case "snowl:subscribe:connect:end":
-      {
-        let code, message;
+      let code, message;
 
-        if (data < 200 || data > 299) {
-          code = "error";
-          message = "Error connecting to " + identity;
-          if (data == 401) {
-            message += ": your credentials were not accepted.  Please check " +
-                      "your username and password and try again.";
-          }
-        }
-        else {
-          // Under most circumstances, this message will be replaced immediately
-          // by the "getting messages" message.
-          code = "complete";
-          message = "Connected to " + identity;
-        }
-
-        setStatus(code, message);
+      if (data == "duplicate") {
+        code = "error";
+        message = "Already subscribed to " + identity;
       }
+      else if (data < 200 || data > 299) {
+        code = "error";
+        message = "Error connecting to " + identity;
+        if (data == 401) {
+          message += ": your credentials were not accepted.  Please check " +
+                    "your username and password and try again.";
+        }
+      }
+      else {
+        // Under most circumstances, this message will be replaced immediately
+        // by the "getting messages" message.
+        code = "complete";
+        message = "Connected to " + identity;
+      }
+
+      setStatus(code, message);
       break;
     case "snowl:subscribe:get:start":
       setStatus("active", "Getting messages for " + identity);
@@ -267,12 +269,14 @@ let Subscriber = {
   }),
 
   _subscribe: strand(function(feed, callback) {
-    // FIXME: make sure the user isn't already subscribed to the feed
-    // before subscribing them to it.
-
     // Store a reference to the feed to which we are currently subscribing
     // so the progress listener can filter out events for some other feed.
     this.feed = feed;
+
+    if (SnowlService.hasSource(feed.machineURI.spec)) {
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate");
+      return;
+    }
 
     let future = new Future();
     feed.subscribe(future.fulfill);
