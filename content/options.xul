@@ -38,11 +38,13 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-   <script type="application/x-javascript"><![CDATA[
-      var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                         .getService(Components.interfaces.nsIWindowMediator);
-      var win = wm.getMostRecentWindow("navigator:browser");
+  <script type="application/x-javascript"><![CDATA[
+    var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
+    var win = wm.getMostRecentWindow("navigator:browser");
+    try {
       win.openPreferences("paneSnowl");
-      window.close();
-   ]]></script>
+    } catch (e) {};
+    window.close();
+  ]]></script>
 </dialog>

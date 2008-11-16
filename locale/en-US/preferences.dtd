@@ -1,5 +1,27 @@
+<!-- Snowl Options -->
 <!ENTITY paneSnowl.title              "Snowl">
 <!ENTITY noPreferences.message        "Snowl does not yet have preferences.">
+<!ENTITY page.title                   "Snowl: Subscribe to Message Sources">
+
+<!-- General tab -->
 <!ENTITY generalTab.label             "General">
+
+<!-- Subscribe tab -->
 <!ENTITY subscribeTab.label           "Subscribe">
+<!ENTITY source.label                 "New Source">
+<!ENTITY feeds.label                  "Feed">
+<!ENTITY feeds.accesskey              "F">
+<!ENTITY twitter.label                "Twitter">
+<!ENTITY twitter.accesskey            "T">
+<!ENTITY mail.label                   "Mail">
+<!ENTITY mail.accesskey               "M">
+<!ENTITY newsgroup.label              "Newsgroup">
+<!ENTITY newsgroup.accesskey          "N">
+<!ENTITY location.label               "Location:">
+<!ENTITY name.label                   "Name:">
+<!ENTITY subscribeButton.label        "Subscribe">
+<!ENTITY closeButton.label            "Close">
+<!ENTITY clearButton.label            "Clear">
+
+<!-- Organize tab -->
 <!ENTITY organizeTab.label            "Organize">

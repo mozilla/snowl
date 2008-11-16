@@ -60,3 +60,38 @@ radio[pane="paneSnowl"]:active {
   padding-bottom: 10px;
 }
 
+/******************************************************************************/
+/* Subscribe tab */
+
+#statusIcon[status="active"] {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
+
+#statusIcon[status="complete"] {
+  list-style-image: url("chrome://snowl/content/icons/tick.png");
+}
+
+#statusIcon[status="error"] {
+  list-style-image: url("chrome://global/skin/icons/error-16.png");
+}
+
+/******************************************************************************/
+/* Subscribe page */
+
+content {
+  border: 1px solid threedshadow;
+  padding: 1em;
+  -moz-border-radius: 10px;
+  background-color: -moz-field;
+  color: -moz-fieldtext;
+  width: 44em;
+}
+
+#title {
+  font-size: 2em;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  border-bottom: 1px solid threedlightshadow;
+}
+
+

@@ -40,7 +40,9 @@
 
 <!DOCTYPE overlay [
   <!ENTITY % snowlPreferencesDTD SYSTEM "chrome://snowl/locale/preferences.dtd">
+  <!ENTITY % snowlLoginDTD SYSTEM "chrome://snowl/locale/login.dtd">
   %snowlPreferencesDTD;
+  %snowlLoginDTD;
 ]>
 
 <overlay id="snowlPreferencesPaneOverlay"
@@ -49,15 +51,22 @@
 <prefwindow id="BrowserPreferences">
 
   <script type="application/x-javascript" src="chrome://snowl/content/preferences.js"/>
+  <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
+  <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="snowlStringBundle"
+                  src="chrome://snowl/locale/preferences.properties"/>
+  </stringbundleset>
 
   <prefpane id="paneSnowl"
             label="&paneSnowl.title;"
-            onpaneload=""
+            onpaneload="SnowlPreferences.onPaneLoad();"
             insertbefore="paneAdvanced">
 
     <preferences id="snowlPreferences">
-      <preference id="browser.preferences.snowl.selectedTabIndex"
-                  name="browser.preferences.snowl.selectedTabIndex"
+      <preference id="extensions.snowl.preferences.selectedTabIndex"
+                  name="extensions.snowl.preferences.selectedTabIndex"
                   type="int"/>
     </preferences>
 
@@ -87,39 +96,32 @@
                             gAdvancedPane.updateAutoItems();
                             gAdvancedPane.updateModeItems();"/>
     </preferences>
-    
-    <stringbundle id="bundleShell" src="chrome://browser/locale/shellservice.properties"/>
-    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
  -->
-    <script type="application/x-javascript" src="chrome://browser/content/preferences/advanced.js"/>
 
     <tabbox id="snowlPrefs" flex="1"
-            onselect="SnowPreferencesPane.tabSelectionChanged();">
+            persist="selectedIndex">
 
-      <tabs id="snowlTabsElement">
-        <tab id="snowlTab1"
+      <tabs id="snowlPrefsTabs">
+        <tab id="snowlPrefsTabGeneral"
              label="&generalTab.label;"
-             helpTopic="prefs-advanced-general"/>
-        <tab id="snowlTab2"
+             XXXhelpTopic="prefs-snowl-general"/>
+        <tab id="snowlPrefsTabSubscribe"
              label="&subscribeTab.label;"
-             disabled="true"
-             helpTopic="prefs-advanced-network"/>
-        <tab id="snowlTab3"
+             XXXhelpTopic="prefs-snowl-subscribe"/>
+        <tab id="snowlPrefsTabOrganize"
              label="&organizeTab.label;"
              disabled="true"
-             helpTopic="prefs-advanced-network"/>
+             XXXhelpTopic="prefs-snowl-organize"/>
       </tabs>
 
-      <tabpanels flex="1">
+      <tabpanels id="snowlPrefsPanels" flex="1">
 
         <!-- General -->
-        <tabpanel id="snowlPanel1" orient="vertical">
-
+        <tabpanel id="snowlPrefsGeneralPanel" orient="vertical">
           <!-- Layouts -->
           <groupbox id="snowlPanel1a" align="start">
             <caption label="Layouts"/>
           </groupbox>
-
           <!-- Browsing -->
           <groupbox id="snowlPanel1b" align="start">
             <caption label="Other"/>
@@ -127,35 +129,122 @@
         </tabpanel>
 
         <!-- Subscribe -->
-        <tabpanel id="snowlPanel2" orient="vertical">
+        <tabpanel id="snowlPrefsSubscribePanel" orient="vertical">
+          <!-- New Source -->
+          <groupbox>
 
-           <!--  -->
-           <groupbox id="snowlPanel2a">
-             <caption label="snowlPanel2a"/>
+            <caption label="&source.label;"/>
+            <radiogroup id="subscribeRadio"
+                        orient="horizontal"
+                        oncommand="SnowlPreferences.selectSubcribeDeck()">
+              <radio label="&feeds.label;"
+                     accesskey="&feeds.accesskey;"/>
+              <radio label="&twitter.label;"
+                     accesskey="&twitter.accesskey;"/>
+              <radio label="&mail.label;" disabled="true"
+                     accesskey="&mail.accesskey;"/>
+              <radio label="&newsgroup.label;" disabled="true"
+                     accesskey="&newsgroup.accesskey;"/>
+            </radiogroup>
+            <separator class="groove-thin"/>
 
-           </groupbox>
+            <deck id="subscribeDeck">
+              <grid id="feedSubscribe">
+                <columns>
+                  <column/>
+                  <column flex="1"/>
+                </columns>
+                <rows>
+                  <row align="center">
+                    <hbox flex="1" pack="end">
+                      <label control="locationTextbox" value="&location.label;"/>
+                    </hbox>
+                    <textbox id="locationTextbox" clickSelectsAll="true"/>
+                  </row>
+                  <row align="center">
+                    <hbox flex="1" pack="end">
+                      <label control="nameTextbox" value="&name.label;"/>
+                    </hbox>
+                    <textbox id="nameTextbox" readonly="true" clickSelectsAll="true"/>
+                  </row>
+                  <row>
+                    <box/>
+                    <hbox pack="start">
+                      <button label="&subscribeButton.label;" default="true"
+                              oncommand="Subscriber.subscribeFeed()"/>
+                      <spacer flex="1"/>
+                      <button label="&clearButton.label;"
+                              oncommand="SnowlPreferences.clearFields()"/>
+                    </hbox>
+                  </row>
+                </rows>
+              </grid>
 
-           <!--  -->
-           <groupbox id="snowlPanel2b">
-             <caption label="snowlPanel2b"/>
-           </groupbox>
+              <grid id="twitterSubscribe">
+                <columns>
+                  <column/>
+                  <column flex="1"/>
+                </columns>
+                <rows>
+                  <row align="center">
+                    <hbox flex="1" pack="end">
+                      <label control="twitterUsername" value="&username.label;"/>
+                    </hbox>
+                    <textbox id="twitterUsername"/>
+                  </row>
+                  <row align="center">
+                    <hbox flex="1" pack="end">
+                      <label control="twitterPassword" value="&password.label;"/>
+                    </hbox>
+                    <textbox id="twitterPassword" type="password"/>
+                  </row>
+                  <row align="center">
+                    <box/>
+                    <checkbox id="showTwitterPassword" label="&showPassword.label;"
+                              oncommand="Subscriber.showTwitterPassword()"/>
+                  </row>
+                  <row align="center">
+                    <box/>
+                    <checkbox id="rememberTwitterPassword" label="&rememberPassword.label;"/>
+                  </row>
+                  <row>
+                    <box/>
+                    <hbox >
+                      <button label="&subscribeButton.label;" default="true"
+                              oncommand="Subscriber.subscribeTwitter()"/>
+                      <spacer flex="1"/>
+                      <button label="&clearButton.label;"
+                              oncommand="SnowlPreferences.clearFields()"/>
+                    </hbox>
+                  </row>
+                </rows>
+              </grid>
+            </deck>
+
+          </groupbox>
+
+          <hbox id="statusBox">
+            <vbox pack="center">
+              <image id="statusIcon" />
+            </vbox>
+            <description id="statusMessage" flex="1"/>
+          </hbox>
+
         </tabpanel>
 
         <!-- Organize -->
-        <tabpanel id="snowlPanel3" orient="vertical">
-
+        <tabpanel id="snowlPrefsOrganizePanel" orient="vertical">
            <!--  -->
            <groupbox id="snowlPanel3a">
              <caption label="snowlPanel3a"/>
-
            </groupbox>
 
            <!--  -->
            <groupbox id="snowlPanel3b">
              <caption label="snowlPanel3b"/>
            </groupbox>
-        </tabpanel>
 
+        </tabpanel>
 
       </tabpanels>
     </tabbox>

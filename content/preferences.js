@@ -38,3 +38,52 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
+
+// modules that come with Firefox
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/URI.js");
+
+// Snowl-specific modules
+Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/twitter.js");
+
+let SnowlPreferences = {
+  // Logger
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.Service.getLogger("Snowl.Preferences");
+  },
+
+  onPaneLoad: function() {
+    // Select passed tab
+    let snowlPrefs = document.getElementById("snowlPrefs");
+    let extraArgs = window.arguments[1];
+    if (extraArgs && extraArgs["snowlTab"])
+      snowlPrefs.selectedTab = document.getElementById(extraArgs["snowlTab"]);
+
+    Subscriber.addObservers();
+    window.addEventListener("unload", function() { Subscriber.removeObservers(); }, false);
+  },
+
+  selectSubcribeDeck: function() {
+    let index = document.getElementById("subscribeRadio").selectedIndex;
+    let deck = document.getElementById("subscribeDeck");
+    deck.setAttribute("selectedIndex", index);
+    this.clearFields();
+  },
+
+  clearFields: function() {
+    document.getElementById("locationTextbox").value = "";
+    document.getElementById("nameTextbox").value = "";
+    document.getElementById("twitterUsername").value = "";
+    document.getElementById("twitterPassword").value = "";
+    Subscriber.setStatus("none", "");
+  },
+
+}

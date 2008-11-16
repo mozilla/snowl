@@ -251,13 +251,11 @@ let Snowl = {
   },
 
   onSubscribe: function() {
-    gBrowser.selectedTab =
-      gBrowser.addTab("chrome://snowl/content/subscribe.xul");
+    openPreferences("paneSnowl", { "snowlTab" : "snowlPrefsTabSubscribe" });
   },
 
   onImportOPML: function() {
-    gBrowser.selectedTab =
-      gBrowser.addTab("chrome://snowl/content/subscribe.xul?tab=opml");
+    Subscriber.importOPML();
   },
 
   onExportOPML: function() {

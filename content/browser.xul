@@ -45,6 +45,9 @@
          id="snowlBrowserOverlay">
 
   <script type="application/javascript" src="chrome://snowl/content/browser.js"/>
+  <!-- Include strands.js and subscribe.js for onImportOPML -->
+  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/subscribe.js"/>
 
   <menupopup id="viewSidebarMenu">
     <menuitem observes="viewSnowlList" label="&listViewSidebarMenuItem.label;"

@@ -412,23 +412,25 @@ let SnowlDatastore = {
 
   get _selectHasSourceStatement() {
     let statement = this.createStatement(
-      "SELECT 1 FROM sources WHERE machineURI = :machineURI"
+      "SELECT name FROM sources WHERE machineURI = :machineURI"
     );
     this.__defineGetter__("_selectHasSourceStatement", function() { return statement });
     return this._selectHasSourceStatement;
   },
 
   selectHasSource: function(aMachineURI) {
+    let name;
+
     try {
       this._selectHasSourceStatement.params.machineURI = aMachineURI;
       if (this._selectHasSourceStatement.step())
-        return true;
+        name = this._selectHasSourceStatement.row["name"];
     }
     finally {
       this._selectHasSourceStatement.reset();
     }
 
-    return false;
+    return name;
   },
 
   get _selectHasMessageStatement() {

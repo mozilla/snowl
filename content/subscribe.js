@@ -34,30 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
-
-// modules that come with Firefox
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
-
-// modules that are generic
-Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/Observers.js");
-Cu.import("resource://snowl/modules/URI.js");
-
-// Snowl-specific modules
-Cu.import("resource://snowl/modules/service.js");
-Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/feed.js");
-Cu.import("resource://snowl/modules/twitter.js");
-
-window.addEventListener("load", function() { Subscriber.init() }, false);
-
 function SubscriptionListener(subject, topic, data) {
   // FIXME: figure out why the SubscriptionListener hangs around and gets called
   // sometimes after the page has been unloaded and Subscriber is not defined.
+  // XXX: onunload added to subscribe.xul and preferences.xul, should fix this
   if (typeof Subscriber == "undefined") {
     Log4Moz.Service.getLogger("Snowl.SubscriptionListener").warn(
       "called without Subscriber; subject: " + subject + "; topic: " + topic +
@@ -71,77 +51,80 @@ function SubscriptionListener(subject, topic, data) {
   if (subject != source)
     return;
 
-  let statusBox = document.getElementById("statusBox");
-  let statusMessage = document.getElementById("statusMessage");
-
-  function setStatus(code, message) {
-    statusBox.setAttribute("status", code);
-
-    while (statusMessage.hasChildNodes())
-      statusMessage.removeChild(statusMessage.firstChild);
-
-    // Append a child node so it wraps if it's too long to fit on one line.
-    // XXX Is there something we can do so the UI doesn't resize midstream?
-    statusMessage.appendChild(document.createTextNode(message));
-  }
-
-  let identity = source.name ||
-                 (source.humanURI ? source.humanURI.spec : null) ||
-                 (source.machineURI ? source.machineURI.spec : null) ||
-                 "unnamed source";
+    let code, message;
+    // If blank, fine
+    let identity = source.name;
+    let stringBundle = document.getElementById("snowlStringBundle");
 
   switch(topic) {
     case "snowl:subscribe:connect:start":
-      setStatus("active", "Connecting to " + identity);
+      code = "active";
+      message = stringBundle.getString("messageConnecting");
       break;
     case "snowl:subscribe:connect:end":
-      let code, message;
-
-      if (data == "duplicate") {
+      if (data.split(":")[0] == "duplicate") {
         code = "error";
-        message = "Already subscribed to " + identity;
+        message = stringBundle.getString("messageDuplicate");
+        identity = data.split(":")[1];
+      }
+      else if (data == "invalid") {
+        code = "error";
+        message = stringBundle.getString("messageInvalid");
       }
       else if (data < 200 || data > 299) {
         code = "error";
-        message = "Error connecting to " + identity;
-        if (data == 401) {
-          message += ": your credentials were not accepted.  Please check " +
-                    "your username and password and try again.";
-        }
+        message = stringBundle.getString("messageConnectionError");
+        if (data == 401)
+          message = stringBundle.getString("messagePassword");
       }
       else {
         // Under most circumstances, this message will be replaced immediately
         // by the "getting messages" message.
         code = "complete";
-        message = "Connected to " + identity;
+        message = stringBundle.getString("messageConnected");
       }
-
-      setStatus(code, message);
       break;
     case "snowl:subscribe:get:start":
-      setStatus("active", "Getting messages for " + identity);
+      code = "active";
+      message = stringBundle.getString("messageGettingMessages");
       break;
     case "snowl:subscribe:get:progress":
+      return;
       break;
     case "snowl:subscribe:get:end":
-      setStatus("complete", "You have subscribed to " + identity);
+      code = "complete";
+      message = stringBundle.getString("messageSuccess");
       break;
   }
+  Subscriber.setStatus(code, message, identity);
 }
 
 let Subscriber = {
-  _log: Log4Moz.Service.getLogger("Snowl.Subscriber"),
+  // Logger
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.Service.getLogger("Snowl.Subscribe");
+  },
+
+  setStatus: function(code, message, identity) {
+    let nameBox = document.getElementById("nameTextbox");
+    nameBox.setAttribute("value", identity);
+    let statusIcon = document.getElementById("statusIcon");
+    let statusMessage = document.getElementById("statusMessage");
+    statusIcon.setAttribute("status", code);
+
+    while (statusMessage.hasChildNodes())
+      statusMessage.removeChild(statusMessage.firstChild);
+
+    statusMessage.appendChild(document.createTextNode(message));
+  },
 
 
   //**************************************************************************//
   // Initialization & Destruction
 
   init: function() {
-    Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
+    this.addObservers();
 
     // Parse URL parameters
     let paramString = window.location.search.substr(1);
@@ -156,23 +139,19 @@ let Subscriber = {
 
     if (params.feed) {
       document.getElementById("locationTextbox").value = params.feed;
-      this.subscribeFeed();
-    }
-    else if (params.tab) {
-      let tabbox = document.getElementById("tabbox");
-      switch (params.tab) {
-        // The feed tab is selected by default.
-        case "twitter":
-          tabbox.selectedTab = document.getElementById("twitterTab");
-          break;
-        case "opml":
-          tabbox.selectedTab = document.getElementById("opmlTab");
-          break;
-      }
+      this.subscribeFeed(params.feed);
     }
   },
 
-  destroy: function() {
+  addObservers: function() {
+    Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
+    Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
+},
+
+  removeObservers: function() {
     Observers.remove(SubscriptionListener, "snowl:subscribe:connect:start");
     Observers.remove(SubscriptionListener, "snowl:subscribe:connect:end");
     Observers.remove(SubscriptionListener, "snowl:subscribe:get:start");
@@ -184,8 +163,15 @@ let Subscriber = {
   //**************************************************************************//
   // Event Handlers
 
-  subscribeFeed: function() {
-    let uri = URI.get(document.getElementById("locationTextbox").value);
+  subscribeFeed: function(url) {
+    let uri, typedUri;
+    if (!url)
+      // Url from user input in Options
+      uri = URI.get(document.getElementById("locationTextbox").value);
+    else
+      // Url passed from feedparser
+      uri = URI.get(url);
+
     let feed = new SnowlFeed(null, null, null, uri);
     this._subscribe(feed);
   },
@@ -235,6 +221,14 @@ let Subscriber = {
     // FIXME: call this "source" instead of "feed".
     this.feed = twitter;
 
+    // XXX: Multiple twitter subsciptions allowed? How are they differentiated?
+    // For now disallow since the database can be filled with bad records..
+//    let name = SnowlService.hasSource(twitter.machineURI.spec)
+//    if (name) {
+//      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" + name);
+//      return;
+//    }
+
     twitter.subscribe(credentials);
   },
 
@@ -273,8 +267,14 @@ let Subscriber = {
     // so the progress listener can filter out events for some other feed.
     this.feed = feed;
 
-    if (SnowlService.hasSource(feed.machineURI.spec)) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate");
+    if (!feed.machineURI) {
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "invalid");
+      return;
+    }
+
+    let name = SnowlService.hasSource(feed.machineURI.spec)
+    if (name) {
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" + name);
       return;
     }
 
