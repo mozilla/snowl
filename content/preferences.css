@@ -78,7 +78,7 @@ radio[pane="paneSnowl"]:active {
 /******************************************************************************/
 /* Subscribe page */
 
-content {
+#content {
   border: 1px solid threedshadow;
   padding: 1em;
   -moz-border-radius: 10px;
