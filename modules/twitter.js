@@ -239,8 +239,7 @@ SnowlTwitter.prototype = {
     // request.responseText should be: {"authorized":true}
     this._log.info("onSubscribeLoad: " + request.responseText);
 
-    // If the request failed, let the error handler handle it.
-    // XXX Do we need this?  Don't such failures call the error handler directly?
+    // The load event can fire even with a non 2xx code, so handle as error
     if (request.status < 200 || request.status > 299) {
       this.onSubscribeError(event);
       return;
@@ -274,11 +273,8 @@ SnowlTwitter.prototype = {
     this._log.info("onSubscribeError: " + request.responseText);
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
-    let statusText = "";
-    try {
-      statusText = request.statusText;
-    }
-    catch(ex) {}
+    let statusText;
+    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
 
@@ -315,8 +311,7 @@ SnowlTwitter.prototype = {
   onRefreshLoad: function(event) {
     let request = event.target;
 
-    // If the request failed, let the error handler handle it.
-    // XXX Do we need this?  Don't such failures call the error handler directly?
+    // The load event can fire even with a non 2xx code, so handle as error
     if (request.status < 200 || request.status > 299) {
       this.onRefreshError(event);
       return;
@@ -340,12 +335,9 @@ SnowlTwitter.prototype = {
   onRefreshError: function(event) {
     let request = event.target;
 
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE
-    let statusText = "";
-    try {
-      statusText = request.statusText;
-    }
-    catch(ex) {}
+    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
+    let statusText;
+    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },

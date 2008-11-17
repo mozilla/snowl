@@ -347,11 +347,12 @@ this._log.info("unsubscribing source: "+selectedSource.name);
 
     selectedSourceIDs.push(selectedSource.groupID);
 
-    // Delete loop here
+    // Delete loop here, if multiple selections..
     for (let i = 0; i < selectedSourceIDs.length; ++i) {
       sourceID = selectedSourceIDs[i];
       SnowlDatastore.dbConnection.beginTransaction();
       try {
+        // Delete messages
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
             "WHERE messageID IN " +
             "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
@@ -360,6 +361,13 @@ this._log.info("unsubscribing source: "+selectedSource.name);
             "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
             "WHERE sourceID = " + sourceID);
+        // Delete people/identities
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
+            "WHERE id IN " +
+            "(SELECT personId FROM identities WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
+            "WHERE sourceID = " + sourceID);
+        // Finally, delete the source
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources " +
             "WHERE id = " + sourceID);
         SnowlDatastore.dbConnection.commitTransaction();

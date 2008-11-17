@@ -200,8 +200,7 @@ SnowlFeed.prototype = {
   onRefreshLoad: function(aEvent) {
     let request = aEvent.target;
 
-    // If the request failed, let the error handler handle it.
-    // XXX Do we need this?  Don't such failures call the error handler directly?
+    // The load event can fire even with a non 2xx code, so handle as error
     if (request.status < 200 || request.status > 299) {
       this.onRefreshError(aEvent);
       return;
@@ -228,12 +227,9 @@ SnowlFeed.prototype = {
   onRefreshError: function(aEvent) {
     let request = aEvent.target;
 
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE
-    let statusText = "";
-    try {
-      statusText = request.statusText;
-    }
-    catch(ex) {}
+    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
+    let statusText;
+    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
   },
@@ -548,8 +544,7 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
   onSubscribeLoad: function(aEvent) {
     let request = aEvent.target;
 
-    // If the request failed, let the error handler handle it.
-    // XXX Do we need this?  Don't such failures call the error handler directly?
+    // The load event can fire even with a non 2xx code, so handle as error
     if (request.status < 200 || request.status > 299) {
       this.onSubscribeError(aEvent);
       return;
@@ -577,7 +572,12 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
 
   onSubscribeError: function(aEvent) {
     let request = aEvent.target;
-    this._log.error("onSubscribeError: " + request.status + " (" + request.statusText + ")");
+
+    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
+    let statusText;
+    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
+
+    this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
     Observers.notify(this, "snowl:subscribe:connect:end", request.status);
     if (this._subscribeCallback)
       this._subscribeCallback();

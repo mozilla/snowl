@@ -176,6 +176,40 @@ let Subscriber = {
     this._subscribe(feed);
   },
 
+  showTwitterPassword: function() {
+    if (document.getElementById("showTwitterPassword").checked)
+      document.getElementById("twitterPassword").removeAttribute("type");
+    else
+      document.getElementById("twitterPassword").setAttribute("type", "password");
+  },
+
+  subscribeTwitter: function() {
+    let credentials = {
+      username: document.getElementById("twitterUsername").value,
+      password: document.getElementById("twitterPassword").value,
+      remember: document.getElementById("rememberTwitterPassword").checked
+    };
+
+    let twitter = new SnowlTwitter();
+
+    // FIXME: call this "source" instead of "feed".
+    this.feed = twitter;
+
+    // XXX: Multiple twitter subsciptions allowed? How are they differentiated?
+    // For now disallow since the database becomes filled with bad records..
+    let name = SnowlService.hasSource(twitter.machineURI.spec)
+    if (name) {
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" + name);
+      return;
+    }
+
+    twitter.subscribe(credentials);
+  },
+
+
+  //**************************************************************************//
+  // OPML Import
+
   importOPML: function() {
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
     fp.init(window, "Import OPML", Ci.nsIFilePicker.modeOpen);
@@ -202,40 +236,6 @@ let Subscriber = {
     this._importOutline(outline);
   },
 
-  showTwitterPassword: function() {
-    if (document.getElementById("showTwitterPassword").checked)
-      document.getElementById("twitterPassword").removeAttribute("type");
-    else
-      document.getElementById("twitterPassword").setAttribute("type", "password");
-  },
-
-  subscribeTwitter: function() {
-    let credentials = {
-      username: document.getElementById("twitterUsername").value,
-      password: document.getElementById("twitterPassword").value,
-      remember: document.getElementById("rememberTwitterPassword").checked
-    };
-
-    let twitter = new SnowlTwitter();
-
-    // FIXME: call this "source" instead of "feed".
-    this.feed = twitter;
-
-    // XXX: Multiple twitter subsciptions allowed? How are they differentiated?
-    // For now disallow since the database can be filled with bad records..
-//    let name = SnowlService.hasSource(twitter.machineURI.spec)
-//    if (name) {
-//      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" + name);
-//      return;
-//    }
-
-    twitter.subscribe(credentials);
-  },
-
-
-  //**************************************************************************//
-  // OPML Import
-
   _importOutline: strand(function(aOutline) {
     // If this outline represents a feed, subscribe the user to the feed.
     let uri = URI.get(aOutline.getAttribute("xmlUrl"));
@@ -261,6 +261,10 @@ let Subscriber = {
       }
     }
   }),
+
+
+  //**************************************************************************//
+  // Subscribe
 
   _subscribe: strand(function(feed, callback) {
     // Store a reference to the feed to which we are currently subscribing
