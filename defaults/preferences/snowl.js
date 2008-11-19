@@ -5,4 +5,4 @@ pref("extensions.snowl.collection.hierarchicalView", 0);
 
 pref("extensions.snowl.log.logger.root.level",        "All");
 pref("extensions.snowl.log.appender.console.level",   "Warn");
-pref("extensions.snowl.log.appender.dump.level",      "All");
+pref("extensions.snowl.log.appender.dump.level",      "Debug");
