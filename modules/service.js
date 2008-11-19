@@ -120,7 +120,7 @@ let SnowlService = {
 
   _initLogging: function() {
     let root = Log4Moz.repository.rootLogger;
-    root.level = Log4Moz.Level[this._prefs.get("log.root.level")];
+    root.level = Log4Moz.Level[this._prefs.get("log.logger.root.level")];
 
     let formatter = new Log4Moz.BasicFormatter();
 
