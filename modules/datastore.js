@@ -41,6 +41,15 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that come with Firefox
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+// modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
+
+// modules that are Snowl-specific
+
+
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
 
@@ -253,8 +262,7 @@ let SnowlDatastore = {
             dbConnection.lastErrorString + " - " + ex);
     }
 
-    var wrappedStatement = Cc["@mozilla.org/storage/statement-wrapper;1"].
-                           createInstance(Ci.mozIStorageStatementWrapper);
+    var wrappedStatement = new InstrumentedStorageStatement(aSQLString);
     wrappedStatement.initialize(statement);
     return wrappedStatement;
   },
@@ -592,5 +600,81 @@ catch(ex) {
     return this.dbConnection.lastInsertRowID;
   }
 };
+
+// FIXME: don't wrap statements in this wrapper for stable releases.
+
+/**
+ * An implementation of mozIStorageStatementWrapper that logs execution times
+ * for debugging.  Even though this implements an XPCOM interface, it isn't
+ * an XPCOM component, it's a regular JS object, so instead of instantiating it
+ * via createInstance, do |new InstrumentedStorageStatement()|.
+ *
+ * @param sqlString {string} the SQL string used to construct the statement
+ *                           (optional, but essential for useful debugging)
+ */
+function InstrumentedStorageStatement(sqlString) {
+  this._sqlString = sqlString;
+  //this._log = Log4Moz.repository.getLogger("Snowl.Statement");
+}
+
+InstrumentedStorageStatement.prototype = {
+  /**
+   * The SQL string used to construct the statement.  We log this along with
+   * the execution time when the statement is executed.
+   */
+  _sqlString: null,
+
+  /**
+   * The wrapped mozIStorageStatementWrapper (which itself wraps
+   * a mozIStorageStatement).
+   */
+  _statement: null,
+
+  get _log() {
+    let log = Log4Moz.repository.getLogger("Snowl.Statement");
+    this.__defineGetter__("_log", function() log);
+    return this._log;
+  },
+
+  // nsISupports
+  QueryInterface: XPCOMUtils.generateQI([Ci.mozIStorageStatementWrapper]),
+
+  // mozIStorageStatementWrapper
+
+  initialize: function(statement) {
+    this._statement = Cc["@mozilla.org/storage/statement-wrapper;1"].
+                      createInstance(Ci.mozIStorageStatementWrapper);
+    this._statement.initialize(statement);
+  },
+
+  get statement() { return this._statement },
+  reset: function() { return this._statement.reset() },
+
+  step: function() {
+    // We don't want to log every step, just the first one, which triggers
+    // the execution of the query and is potentially slow.
+    let log = (this._statement.statement.state != Ci.mozIStorageStatement.MOZ_STORAGE_STATEMENT_EXECUTING);
+
+    let before = new Date();
+    let rv = this._statement.step();
+    let after = new Date();
+    let time = after - before;
+    if (log)
+      this._log.trace(time + "ms to step initially " + this._sqlString);
+    return rv;
+  },
+
+  execute: function() {
+    let before = new Date();
+    let rv = this._statement.execute();
+    let after = new Date();
+    let time = after - before;
+    this._log.trace(time + "ms to execute " + this._sqlString);
+    return rv;
+  },
+  get row() { return this._statement.row },
+  get params() { return this._statement.params }
+};
+
 
 SnowlDatastore._dbInit();
