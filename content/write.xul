@@ -36,36 +36,26 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://snowl/content/toolbar.css" type"text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/write.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/toolbar.dtd">
+<!DOCTYPE page SYSTEM "chrome://snowl/locale/write.dtd">
 
-<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         id="snowlWriteOverlay">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/toolbar.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/write.js"/>
 
-  <toolbar id="snowlToolbar" persist="hidden">
-    <toolbarbutton id="snowlSubscribeButton"
-                   image="chrome://snowl/content/icons/add.png"
-                   oncommand="SnowlToolbar.subscribe()"
-                   tooltiptext="&subscribeButton.tooltip;"/>
-    <toolbarbutton id="snowlUnsubscribeButton"
-                   image="chrome://snowl/content/icons/delete.png"
-                   oncommand="SnowlToolbar.unsubscribe()"
-                   tooltiptext="&unsubscribeButton.tooltip;"/>
-    <toolbarbutton id="snowlRefreshButton"
-                   image="chrome://snowl/content/icons/arrow_refresh_small.png"
-                   oncommand="SnowlToolbar.onRefresh()"
-                   tooltiptext="&refreshButton.tooltip;"/>
-    <toolbarbutton id="snowlExportOPMLButton"
-                   image="chrome://snowl/content/icons/opml-icon-16x16.png"
-                   oncommand="SnowlToolbar.onExportOPML()"
-                   tooltiptext="&exportButton.tooltip;"/>
-    <toolbarspring/>
-    <toolbarbutton id="snowlWriteButton" type="checkbox"
-                   image="chrome://snowl/content/icons/email_add.png"
-                   oncommand="SnowlToolbar.onToggleWrite(event)"
-                   tooltiptext="&writeButton.tooltip;"/>
-  </toolbar>
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="snowlWriteBundle" src="chrome://snowl/locale/write.properties"/>
+  </stringbundleset>
+
+  <vbox id="writeForm">
+    <textbox id="writeTextbox" multiline="true" rows="3" oninput="WriteForm.onInputMessage()"/>
+    <hbox>
+      <description id="writeCounter"/>
+      <spacer flex="1"/>
+      <button id="sendButton" label="&sendButton.label;" oncommand="WriteForm.onSendMessage()"/>
+    </hbox>
+  </vbox>
 
 </overlay>

@@ -19,6 +19,10 @@ style chrome://global/content/customizeToolbar.xul chrome://snowl/content/browse
 # on exact matches of the entire URL.
 overlay chrome://snowl/content/list-sidebar.xul chrome://snowl/content/collections.xul
 
+# Add the interface for writing messages to the stream and river views.
+overlay chrome://snowl/content/stream.xul chrome://snowl/content/write.xul
+overlay chrome://snowl/content/river.xul chrome://snowl/content/write.xul
+
 # Add the toolbar to the collections and stream views.
 # XXX Should we add the toolbar directly to the list and river views
 # rather than indirectly via the collections view?

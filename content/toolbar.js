@@ -59,7 +59,7 @@ let SnowlToolbar = {
     SnowlOPML.export(window);
   },
 
-  onWriteMessage: function(event) {
-    SnowlMessageView.onWriteMessage(event);
+  onToggleWrite: function(event) {
+    SnowlMessageView.onToggleWrite(event);
   }
 };

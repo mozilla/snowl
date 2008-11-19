@@ -85,34 +85,14 @@ let SnowlMessageView = {
                               getService(Ci.nsIFaviconService);
   },
 
-  get _stringBundle() {
-    delete this._stringBundle;
-    return this._stringBundle = document.getElementById("snowlStringBundle");
+  get _writeButton() {
+    delete this._writeButton;
+    return this._writeButton = document.getElementById("snowlWriteButton");
   },
 
-  get _writeMessageButton() {
-    delete this._writeMessageButton;
-    return this._writeMessageButton = document.getElementById("snowlWriteMessageButton");
-  },
-
-  get _writeBox() {
-    delete this._writeBox;
-    return this._writeBox = document.getElementById("writeBox");
-  },
-
-  get _writeTextbox() {
-    delete this._writeTextbox;
-    return this._writeTextbox = document.getElementById("writeTextbox");
-  },
-
-  get _writeCounter() {
-    delete this._writeCounter;
-    return this._writeCounter = document.getElementById("writeCounter");
-  },
-
-  get _sendButton() {
-    delete this._sendButton;
-    return this._sendButton = document.getElementById("sendButton");
+  get _writeForm() {
+    delete this._writeForm;
+    return this._writeForm = document.getElementById("writeForm");
   },
 
   _window: null,
@@ -194,10 +174,10 @@ let SnowlMessageView = {
     gBrowserWindow.Snowl._initSnowlToolbar();
 
     // For some reason setting hidden="true" in the XUL file prevents us
-    // from showing the box later via writeBox.hidden = false, so we set it
+    // from showing the box later via writeForm.hidden = false, so we set it
     // here instead.
     // FIXME: file a bug on this abnormality.
-    this._writeBox.hidden = true;
+    this._writeForm.hidden = true;
 
     this._updateWriteButton();
   },
@@ -214,10 +194,10 @@ let SnowlMessageView = {
     window.setTimeout(function() { SnowlMessageView.onMidnight() }, msUntilMidnight);
   },
 
-  // Selectively show/hide the button for writing a message depending on
+  // Selectively enable/disable the button for writing a message depending on
   // whether or not the user has an account that supports writing.
   _updateWriteButton: function() {
-    this._writeMessageButton.disabled = (SnowlService.targets.length == 0);
+    this._writeButton.disabled = (SnowlService.targets.length == 0);
   },
 
 
@@ -282,53 +262,20 @@ let SnowlMessageView = {
   //**************************************************************************//
   // Writing and Sending Messages
 
-  // FIXME: if there is more than one target, let the user choose which one to use.
-  _target: null,
-
-  onWriteMessage: function(event) {
-    this._writeBox.hidden = !event.target.checked;
-    this._target = SnowlService.targets[0];
-    this.onInputMessage();
-  },
-
-  onInputMessage: function() {
-    // Update the counter to reflect how many characters the user can still type.
-    this._writeCounter.value =
-      this._target.maxMessageLength - this._writeTextbox.value.length;
-
-    // If the user has typed more than they can send, disable the Send button.
-    this._sendButton.disabled =
-      (this._writeTextbox.value.length > this._target.maxMessageLength);
-  },
-
-  onSendMessage: function() {
-    this._sendButton.setAttribute("state", "sending");
-    this._sendButton.label = this._stringBundle.getString("sendButton.label.sending");
-    this._sendButton.disabled = true;
-    this._writeTextbox.disabled = true;
-
-    let content = this._writeTextbox.value;
-    let callback = function() { SnowlMessageView.onMessageSent() };
-    // FIXME: pass an error callback and display a message to users on error.
-    this._target.send(content, callback);
+  onToggleWrite: function(event) {
+    if (event.target.checked) {
+      this._writeForm.hidden = false;
+      // FIXME: only do this when the user first starts to write a message,
+      // not every time they show the write form.
+      WriteForm.init();
+    }
+    else
+      this._writeForm.hidden = true;
   },
 
   onMessageSent: function() {
-    this._sendButton.setAttribute("state", "sent");
-    this._sendButton.label = this._stringBundle.getString("sendButton.label.sent");
-
-    window.setTimeout(function() { SnowlMessageView._resetWriteForm() }, 5000);
-  },
-
-  _resetWriteForm: function() {
-    this._writeBox.hidden = true;
-    this._writeMessageButton.checked = false;
-    this._sendButton.removeAttribute("state");
-    this._sendButton.label = this._stringBundle.getString("sendButton.label");
-    this._sendButton.disabled = false;
-    this._writeTextbox.disabled = false;
-    this._writeTextbox.value = "";
-    this._target = null;
+    this._writeButton.checked = false;
+    this._writeForm.hidden = true;
   },
 
 
