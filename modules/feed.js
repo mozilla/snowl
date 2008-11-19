@@ -87,7 +87,7 @@ SnowlFeed.prototype = {
 
   __proto__: SnowlSource.prototype,
 
-  _log: Log4Moz.Service.getLogger("Snowl.Feed"),
+  _log: Log4Moz.repository.getLogger("Snowl.Feed"),
 
   // If we prompt the user to authenticate, and the user asks us to remember
   // their password, we store the nsIAuthInformation in this property until

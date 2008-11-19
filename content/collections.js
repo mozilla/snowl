@@ -76,7 +76,7 @@ let CollectionsView = {
   // Initialization & Destruction
 
   init: function() {
-    this._log = Log4Moz.Service.getLogger("Snowl.Sidebar");
+    this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
     Observers.add(this, "snowl:sources:changed");
     this._getCollections();
     this._buildCollectionTree();

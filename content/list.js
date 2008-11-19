@@ -56,7 +56,7 @@ let SnowlMessageView = {
   // Logger
   get _log() {
     delete this._log;
-    return this._log = Log4Moz.Service.getLogger("Snowl.ListView");
+    return this._log = Log4Moz.repository.getLogger("Snowl.ListView");
   },
 
   // Atom Service

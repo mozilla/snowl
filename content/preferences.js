@@ -57,7 +57,7 @@ let SnowlPreferences = {
   // Logger
   get _log() {
     delete this._log;
-    return this._log = Log4Moz.Service.getLogger("Snowl.Preferences");
+    return this._log = Log4Moz.repository.getLogger("Snowl.Preferences");
   },
 
   onPaneLoad: function() {

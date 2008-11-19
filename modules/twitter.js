@@ -86,7 +86,7 @@ SnowlTwitter.prototype = {
 
   __proto__: SnowlSource.prototype,
 
-  _log: Log4Moz.Service.getLogger("Snowl.Twitter"),
+  _log: Log4Moz.repository.getLogger("Snowl.Twitter"),
 
 
   //**************************************************************************//

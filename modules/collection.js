@@ -87,7 +87,7 @@ function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
 
 SnowlCollection.prototype = {
   get _log() {
-    let log = Log4Moz.Service.getLogger("Snowl.Collection");
+    let log = Log4Moz.repository.getLogger("Snowl.Collection");
     this.__defineGetter__("_log", function() { return log });
     return this._log;
   },

@@ -40,6 +40,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that come with Firefox
+// FIXME: remove this import of XPCOMUtils, as it is no longer being used.
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
@@ -75,7 +76,7 @@ let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
 let SnowlMessageView = {
   get _log() {
     delete this._log;
-    return this._log = Log4Moz.Service.getLogger("Snowl.Stream");
+    return this._log = Log4Moz.repository.getLogger("Snowl.Stream");
   },
 
   get _faviconSvc() {

@@ -58,27 +58,91 @@ const ONE_BYTE = 1;
 const ONE_KILOBYTE = 1024 * ONE_BYTE;
 const ONE_MEGABYTE = 1024 * ONE_KILOBYTE;
 
-const Log4Moz = {};
-Log4Moz.Level = {};
-Log4Moz.Level.Fatal  = 70;
-Log4Moz.Level.Error  = 60;
-Log4Moz.Level.Warn   = 50;
-Log4Moz.Level.Info   = 40;
-Log4Moz.Level.Config = 30;
-Log4Moz.Level.Debug  = 20;
-Log4Moz.Level.Trace  = 10;
-Log4Moz.Level.All    = 0;
+let Log4Moz = {
+  Level: {
+    Fatal:  70,
+    Error:  60,
+    Warn:   50,
+    Info:   40,
+    Config: 30,
+    Debug:  20,
+    Trace:  10,
+    All:    0,
+    Desc: {
+      70: "FATAL",
+      60: "ERROR",
+      50: "WARN",
+      40: "INFO",
+      30: "CONFIG",
+      20: "DEBUG",
+      10: "TRACE",
+      0:  "ALL"
+    }
+  },
 
-Log4Moz.Level.Desc = {
-  70: "FATAL",
-  60: "ERROR",
-  50: "WARN",
-  40: "INFO",
-  30: "CONFIG",
-  20: "DEBUG",
-  10: "TRACE",
-  0:  "ALL"
+  get repository() {
+    delete Log4Moz.repository;
+    Log4Moz.repository = new LoggerRepository();
+    return Log4Moz.repository;
+  },
+  set repository(value) {
+    delete Log4Moz.repository;
+    Log4Moz.repository = value;
+  },
+
+  get LogMessage() { return LogMessage; },
+  get Logger() { return Logger; },
+  get LoggerRepository() { return LoggerRepository; },
+
+  get Formatter() { return Formatter; },
+  get BasicFormatter() { return BasicFormatter; },
+
+  get Appender() { return Appender; },
+  get DumpAppender() { return DumpAppender; },
+  get ConsoleAppender() { return ConsoleAppender; },
+  get FileAppender() { return FileAppender; },
+  get RotatingFileAppender() { return RotatingFileAppender; },
+
+  // Logging helper:
+  // let logger = Log4Moz.repository.getLogger("foo");
+  // logger.info(Log4Moz.enumerateInterfaces(someObject).join(","));
+  enumerateInterfaces: function Log4Moz_enumerateInterfaces(aObject) {
+    let interfaces = [];
+
+    for (i in Ci) {
+      try {
+        aObject.QueryInterface(Ci[i]);
+        interfaces.push(i);
+      }
+      catch(ex) {}
+    }
+
+    return interfaces;
+  },
+
+  // Logging helper:
+  // let logger = Log4Moz.repository.getLogger("foo");
+  // logger.info(Log4Moz.enumerateProperties(someObject).join(","));
+  enumerateProperties: function Log4Moz_enumerateProps(aObject,
+                                                       aExcludeComplexTypes) {
+    let properties = [];
+
+    for (p in aObject) {
+      try {
+        if (aExcludeComplexTypes &&
+            (typeof aObject[p] == "object" || typeof aObject[p] == "function"))
+          continue;
+        properties.push(p + " = " + aObject[p]);
+      }
+      catch(ex) {
+        properties.push(p + " = " + ex);
+      }
+    }
+
+    return properties;
+  }
 };
+
 
 /*
  * LogMessage
@@ -100,7 +164,7 @@ LogMessage.prototype = {
   },
 
   toString: function LogMsg_toString(){
-    return "LogMessage [" + this._date + " " + this.level + " " +
+    return "LogMessage [" + this.time + " " + this.level + " " +
       this.message + "]";
   }
 };
@@ -111,14 +175,24 @@ LogMessage.prototype = {
  */
 
 function Logger(name, repository) {
-  this._name = name;
-  this._repository = repository;
-  this._appenders = [];
+  this._init(name, repository);
 }
 Logger.prototype = {
+  _init: function Logger__init(name, repository) {
+    if (!repository)
+      repository = Log4Moz.repository;
+    this._name = name;
+    this._appenders = [];
+    this._repository = repository;
+  },
+
   QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports]),
 
   parent: null,
+
+  get name() {
+    return this._name;
+  },
 
   _level: null,
   get level() {
@@ -232,10 +306,12 @@ LoggerRepository.prototype = {
   },
 
   getLogger: function LogRep_getLogger(name) {
-    if (!(name in this._loggers)) {
-      this._loggers[name] = new Logger(name, this);
-      this._updateParents(name);
-    }
+    if (!name)
+      name = this.getLogger.caller.name;
+    if (name in this._loggers)
+      return this._loggers[name];
+    this._loggers[name] = new Logger(name, this);
+    this._updateParents(name);
     return this._loggers[name];
   }
 };
@@ -259,6 +335,8 @@ function BasicFormatter(dateFormat) {
     this.dateFormat = dateFormat;
 }
 BasicFormatter.prototype = {
+  __proto__: Formatter.prototype,
+
   _dateFormat: null,
 
   get dateFormat() {
@@ -278,7 +356,6 @@ BasicFormatter.prototype = {
       message.message + "\n";
   }
 };
-BasicFormatter.prototype.__proto__ = new Formatter();
 
 /*
  * Appenders
@@ -315,14 +392,15 @@ Appender.prototype = {
 
 function DumpAppender(formatter) {
   this._name = "DumpAppender";
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
 }
 DumpAppender.prototype = {
+  __proto__: Appender.prototype,
+
   doAppend: function DApp_doAppend(message) {
     dump(message);
   }
 };
-DumpAppender.prototype.__proto__ = new Appender();
 
 /*
  * ConsoleAppender
@@ -334,6 +412,8 @@ function ConsoleAppender(formatter) {
   this._formatter = formatter;
 }
 ConsoleAppender.prototype = {
+  __proto__: Appender.prototype,
+
   doAppend: function CApp_doAppend(message) {
     if (message.level > Log4Moz.Level.Warn) {
       Cu.reportError(message);
@@ -343,7 +423,6 @@ ConsoleAppender.prototype = {
       getService(Ci.nsIConsoleService).logStringMessage(message);
   }
 };
-ConsoleAppender.prototype.__proto__ = new Appender();
 
 /*
  * FileAppender
@@ -353,9 +432,11 @@ ConsoleAppender.prototype.__proto__ = new Appender();
 function FileAppender(file, formatter) {
   this._name = "FileAppender";
   this._file = file; // nsIFile
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
 }
 FileAppender.prototype = {
+  __proto__: Appender.prototype,
+
   __fos: null,
   get _fos() {
     if (!this.__fos)
@@ -389,9 +470,13 @@ FileAppender.prototype = {
     } catch(e) {
       dump("Error writing file:\n" + e);
     }
+  },
+
+  clear: function FApp_clear() {
+    this.closeStream();
+    this._file.remove(false);
   }
 };
-FileAppender.prototype.__proto__ = new Appender();
 
 /*
  * RotatingFileAppender
@@ -399,13 +484,21 @@ FileAppender.prototype.__proto__ = new Appender();
  */
 
 function RotatingFileAppender(file, formatter, maxSize, maxBackups) {
+  if (maxSize === undefined)
+    maxSize = ONE_MEGABYTE * 2;
+
+  if (maxBackups === undefined)
+    maxBackups = 0;
+
   this._name = "RotatingFileAppender";
   this._file = file; // nsIFile
-  this._formatter = formatter;
+  this._formatter = formatter? formatter : new BasicFormatter();
   this._maxSize = maxSize;
   this._maxBackups = maxBackups;
 }
 RotatingFileAppender.prototype = {
+  __proto__: FileAppender.prototype,
+
   doAppend: function RFApp_doAppend(message) {
     if (message === null || message.length <= 0)
       return;
@@ -436,96 +529,4 @@ RotatingFileAppender.prototype = {
 
     // Note: this._file still points to the same file
   }
-};
-RotatingFileAppender.prototype.__proto__ = new FileAppender();
-
-/*
- * LoggingService
- */
-
-function Log4MozService() {
-  this._repository = new LoggerRepository();
-}
-Log4MozService.prototype = {
-  //classDescription: "Log4moz Logging Service",
-  //contractID: "@mozilla.org/log4moz/service;1",
-  //classID: Components.ID("{a60e50d7-90b8-4a12-ad0c-79e6a1896978}"),
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsISupports]),
-
-  get rootLogger() {
-    return this._repository.rootLogger;
-  },
-
-  getLogger: function LogSvc_getLogger(name) {
-    return this._repository.getLogger(name);
-  },
-
-  newAppender: function LogSvc_newAppender(kind, formatter) {
-    switch (kind) {
-    case "dump":
-      return new DumpAppender(formatter);
-    case "console":
-      return new ConsoleAppender(formatter);
-    default:
-      dump("log4moz: unknown appender kind: " + kind);
-      return;
-    }
-  },
-
-  newFileAppender: function LogSvc_newAppender(kind, file, formatter) {
-    switch (kind) {
-    case "file":
-      return new FileAppender(file, formatter);
-    case "rotating":
-      // FIXME: hardcoded constants
-      return new RotatingFileAppender(file, formatter, ONE_MEGABYTE * 5, 0);
-    default:
-      dump("log4moz: unknown appender kind: " + kind);
-      return;
-    }
-  },
-
-  newFormatter: function LogSvc_newFormatter(kind) {
-    switch (kind) {
-    case "basic":
-      return new BasicFormatter();
-    default:
-      dump("log4moz: unknown formatter kind: " + kind);
-      return;
-    }
-  }
-};
-
-Log4Moz.Service = new Log4MozService();
-
-Log4Moz.enumerateInterfaces = function(aObject) {
-  let interfaces = [];
-
-  for (i in Ci) {
-    try {
-      aObject.QueryInterface(Ci[i]);
-      interfaces.push(i);
-    }
-    catch(ex) {}
-  }
-
-  return interfaces;
-};
-
-Log4Moz.enumerateProperties = function(aObject, aExcludeComplexTypes) {
-  let properties = [];
-
-  for (p in aObject) {
-    try {
-      if (aExcludeComplexTypes &&
-          (typeof aObject[p] == "object" || typeof aObject[p] == "function"))
-        continue;
-      properties.push(p + " = " + aObject[p]);
-    }
-    catch(ex) {
-      properties.push(p + " = " + ex);
-    }
-  }
-
-  return properties;
 };

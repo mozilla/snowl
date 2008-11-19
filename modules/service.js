@@ -46,6 +46,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Preferences.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -66,6 +67,11 @@ const SNOWL_HANDLER_TITLE = "Snowl";
 const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
 
 let SnowlService = {
+  get _prefs() {
+    delete this._prefs;
+    return this._prefs = new Preferences("extensions.snowl.");
+  },
+
   // Preferences Service
   get _prefSvc() {
     let prefSvc = Cc["@mozilla.org/preferences-service;1"].
@@ -102,7 +108,7 @@ let SnowlService = {
   _log: null,
 
   _init: function() {
-    this._initLogs();
+    this._initLogging();
     this._registerFeedHandler();
     this._initTimer();
 
@@ -123,49 +129,21 @@ let SnowlService = {
                                  Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
-  _initLogs: function() {
-    let formatter = Log4Moz.Service.newFormatter("basic");
-    let root = Log4Moz.Service.rootLogger;
-    root.level = Log4Moz.Level.Debug;
+  _initLogging: function() {
+    let root = Log4Moz.repository.rootLogger;
+    root.level = Log4Moz.Level[this._prefs.get("log.root.level")];
 
-    let capp = Log4Moz.Service.newAppender("console", formatter);
-    capp.level = Log4Moz.Level.Warn;
+    let formatter = new Log4Moz.BasicFormatter();
+
+    let capp = new Log4Moz.ConsoleAppender(formatter);
+    capp.level = Log4Moz.Level[this._prefs.get("log.appender.console.level")];
     root.addAppender(capp);
 
-    let dapp = Log4Moz.Service.newAppender("dump", formatter);
-    dapp.level = Log4Moz.Level.All;
+    let dapp = new Log4Moz.DumpAppender(formatter);
+    dapp.level = Log4Moz.Level[this._prefs.get("log.appender.dump.level")];
     root.addAppender(dapp);
 
-    let logFile = this._dirSvc.get("ProfD", Ci.nsIFile);
-
-    let brief = this._dirSvc.get("ProfD", Ci.nsIFile);
-    brief.QueryInterface(Ci.nsILocalFile);
-
-    brief.append("snowl");
-    if (!brief.exists())
-      brief.create(brief.DIRECTORY_TYPE, PERMS_DIRECTORY);
-
-    brief.append("logs");
-    if (!brief.exists())
-      brief.create(brief.DIRECTORY_TYPE, PERMS_DIRECTORY);
-
-    brief.append("brief-log.txt");
-    if (!brief.exists())
-      brief.create(brief.NORMAL_FILE_TYPE, PERMS_FILE);
-
-    let verbose = brief.parent.clone();
-    verbose.append("verbose-log.txt");
-    if (!verbose.exists())
-      verbose.create(verbose.NORMAL_FILE_TYPE, PERMS_FILE);
-
-    let fapp = Log4Moz.Service.newFileAppender("rotating", brief, formatter);
-    fapp.level = Log4Moz.Level.Info;
-    root.addAppender(fapp);
-    let vapp = Log4Moz.Service.newFileAppender("rotating", verbose, formatter);
-    vapp.level = Log4Moz.Level.Debug;
-    root.addAppender(vapp);
-
-    this._log = Log4Moz.Service.getLogger("Snowl.Service");
+    this._log = Log4Moz.repository.getLogger("Snowl.Service");
     this._log.info("initialized logging");
   },
 

@@ -39,7 +39,7 @@ function SubscriptionListener(subject, topic, data) {
   // sometimes after the page has been unloaded and Subscriber is not defined.
   // XXX: onunload added to subscribe.xul and preferences.xul, should fix this
   if (typeof Subscriber == "undefined") {
-    Log4Moz.Service.getLogger("Snowl.SubscriptionListener").warn(
+    Log4Moz.repository.getLogger("Snowl.SubscriptionListener").warn(
       "called without Subscriber; subject: " + subject + "; topic: " + topic +
       "; data: " + data);
     return;
@@ -103,7 +103,7 @@ let Subscriber = {
   // Logger
   get _log() {
     delete this._log;
-    return this._log = Log4Moz.Service.getLogger("Snowl.Subscribe");
+    return this._log = Log4Moz.repository.getLogger("Snowl.Subscribe");
   },
 
   setStatus: function(code, message, identity) {

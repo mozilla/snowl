@@ -243,7 +243,7 @@ let SnowlDateUtils = {
 
 let SnowlUtils = {
   get _log() {
-    let log = Log4Moz.Service.getLogger("Snowl.Utils");
+    let log = Log4Moz.repository.getLogger("Snowl.Utils");
     this.__defineGetter__("_log", function() { return log });
     return this._log;
   },
