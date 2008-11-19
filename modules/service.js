@@ -59,7 +59,6 @@ const PERMS_FILE      = 0644;
 const PERMS_DIRECTORY = 0755;
 
 const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
-const PREF_CONTENTHANDLERS_BRANCH = "browser.contentHandlers.types.";
 const SNOWL_HANDLER_URI = "chrome://snowl/content/subscribe.xul?feed=%s";
 const SNOWL_HANDLER_TITLE = "Snowl";
 
@@ -70,16 +69,6 @@ let SnowlService = {
   get _prefs() {
     delete this._prefs;
     return this._prefs = new Preferences("extensions.snowl.");
-  },
-
-  // Preferences Service
-  get _prefSvc() {
-    let prefSvc = Cc["@mozilla.org/preferences-service;1"].
-                  getService(Ci.nsIPrefService).
-                  QueryInterface(Ci.nsIPrefBranch).
-                  QueryInterface(Ci.nsIPrefBranch2);
-    this.__defineGetter__("_prefSvc", function() { return prefSvc });
-    return this._prefSvc;
   },
 
   get _dirSvc() {
@@ -151,40 +140,10 @@ let SnowlService = {
     if (this._converterSvc.getWebContentHandlerByURI(TYPE_MAYBE_FEED, SNOWL_HANDLER_URI))
       return;
 
-    try {
-      this._converterSvc.registerContentHandler(TYPE_MAYBE_FEED,
-                                                SNOWL_HANDLER_URI,
-                                                SNOWL_HANDLER_TITLE,
-                                                null);
-    }
-    catch(ex) {
-      // Bug 415732 hasn't been fixed yet, so work around the bug by writing
-      // preferences directly, although the handler won't be available until
-      // the user restarts the browser.
-      // Based on code in browser/components/feeds/src/WebContentConverter.js.
-      let i = 0;
-      let typeBranch = null;
-      while (true) {
-        typeBranch = this._prefSvc.getBranch(PREF_CONTENTHANDLERS_BRANCH + i + ".");
-        try {
-          let type = typeBranch.getCharPref("type");
-          let uri = typeBranch.getCharPref("uri");
-          if (type == TYPE_MAYBE_FEED && uri == SNOWL_HANDLER_URI)
-            return;
-          ++i;
-        }
-        catch (e) {
-          // No more handlers
-          break;
-        }
-      }
-      if (typeBranch) {
-        typeBranch.setCharPref("type", TYPE_MAYBE_FEED);
-        typeBranch.setCharPref("uri", SNOWL_HANDLER_URI);
-        typeBranch.setCharPref("title", SNOWL_HANDLER_TITLE);
-        this._prefSvc.savePrefFile(null);
-      }
-    }
+    this._converterSvc.registerContentHandler(TYPE_MAYBE_FEED,
+                                              SNOWL_HANDLER_URI,
+                                              SNOWL_HANDLER_TITLE,
+                                              null);
   },
 
   selectedSources: function(selectedSourceIDs) {
