@@ -173,12 +173,7 @@ let SnowlMessageView = {
 
     gBrowserWindow.Snowl._initSnowlToolbar();
 
-    // For some reason setting hidden="true" in the XUL file prevents us
-    // from showing the box later via writeForm.hidden = false, so we set it
-    // here instead.
-    // FIXME: file a bug on this abnormality.
-    this._writeForm.hidden = true;
-
+    this._initWriteForm();
     this._updateWriteButton();
   },
 
@@ -192,6 +187,14 @@ let SnowlMessageView = {
     let msUntilMidnight = SnowlDateUtils.tomorrow - now;
     this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
     window.setTimeout(function() { SnowlMessageView.onMidnight() }, msUntilMidnight);
+  },
+
+  _initWriteForm: function() {
+    // For some reason setting hidden="true" in the XUL file prevents us
+    // from showing the box later via writeForm.hidden = false, so we set it
+    // here instead.
+    // FIXME: file a bug on this abnormality.
+    this._writeForm.hidden = true;
   },
 
   // Selectively enable/disable the button for writing a message depending on

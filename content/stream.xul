@@ -53,6 +53,7 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
+  <!-- write.xul overlays a string bundle into this. -->
   <stringbundleset id="stringbundleset"/>
 
   <toolbar id="snowlToolbar"/>

@@ -53,6 +53,7 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/utils.js");
+Cu.import("resource://snowl/modules/service.js");
 
 const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -158,6 +159,16 @@ let SnowlMessageView = {
     }
   },
 
+  get _writeButton() {
+    delete this._writeButton;
+    return this._writeButton = document.getElementById("writeButton");
+  },
+
+  get _writeForm() {
+    delete this._writeForm;
+    return this._writeForm = document.getElementById("writeForm");
+  },
+
   // The set of messages to display in the view.
   _collection: null,
   
@@ -223,6 +234,9 @@ let SnowlMessageView = {
     // time to initialize itself.
     let t = this;
     window.setTimeout(function() { t._initDelayed() }, 0);
+
+    this._initWriteForm();
+    this._updateWriteButton();
   },
 
   _initDelayed: function() {
@@ -275,6 +289,20 @@ let SnowlMessageView = {
     let msUntilMidnight = SnowlDateUtils.tomorrow - now;
     this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
     window.setTimeout(function() { t.onMidnight() }, msUntilMidnight);
+  },
+
+  _initWriteForm: function() {
+    // For some reason setting hidden="true" in the XUL file prevents us
+    // from showing the box later via writeForm.hidden = false, so we set it
+    // here instead.
+    // FIXME: file a bug on this abnormality.
+    this._writeForm.hidden = true;
+  },
+
+  // Selectively enable/disable the button for writing a message depending on
+  // whether or not the user has an account that supports writing.
+  _updateWriteButton: function() {
+    this._writeButton.disabled = (SnowlService.targets.length == 0);
   },
 
 
@@ -564,6 +592,26 @@ let SnowlMessageView = {
     this._applyFilters();
     // No need to rebuild the view here, as _applyFilters will do it for us.
     // XXX Should we pull the call to rebuildView out of _applyFilters?
+  },
+
+
+  //**************************************************************************//
+  // Writing and Sending Messages
+
+  onToggleWrite: function(event) {
+    if (event.target.checked) {
+      this._writeForm.hidden = false;
+      // FIXME: only do this when the user first starts to write a message,
+      // not every time they show the write form.
+      WriteForm.init();
+    }
+    else
+      this._writeForm.hidden = true;
+  },
+
+  onMessageSent: function() {
+    this._writeButton.checked = false;
+    this._writeForm.hidden = true;
   },
 
 

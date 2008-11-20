@@ -40,9 +40,20 @@
 <?xml-stylesheet href="chrome://snowl/content/river.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/riverContent.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://snowl/locale/river.dtd">
+<!-- toolbar.dtd gives us writeButton.tooltip -->
+<!DOCTYPE page [
+  <!ENTITY % riverDTD SYSTEM "chrome://snowl/locale/river.dtd">
+  %riverDTD;
+  <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
+  %toolbarDTD;
+]>
 
+<!-- We load overlays via xul-overlay processing instructions rather than
+   - chrome.manifest instructions because manifest instructions require us
+   - to specify the exact URL to overlay, and our URL changes based on
+   - query parameters that get set in response to user searches. -->
 <?xul-overlay href="chrome://snowl/content/collections.xul"?>
+<?xul-overlay href="chrome://snowl/content/write.xul"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml"
@@ -51,6 +62,9 @@
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>
+
+  <!-- write.xul overlays a string bundle into this. -->
+  <stringbundleset id="stringbundleset"/>
 
   <keyset>
     <key id="pageLeftKey" keycode="VK_PAGE_UP" oncommand="SnowlMessageView.doPageMove(-1)" disabled="true"/>
@@ -70,20 +84,25 @@
       <toolbar id="toolbar">
         <!-- <toolbarbutton oncommand="dump(new XMLSerializer().serializeToString(document))"/> -->
 
+        <toolbarbutton id="writeButton" type="checkbox"
+                       image="chrome://snowl/content/icons/email_add.png"
+                       oncommand="SnowlMessageView.onToggleWrite(event)"
+                       tooltiptext="&writeButton.tooltip;"/>
+
         <toolbarbutton id="currentButton" type="checkbox"
-                    image="chrome://snowl/content/icons/newspaper.png"
-                    oncommand="SnowlMessageView.onCommandCurrentButton(event)"
-                    tooltiptext="&currentButton.tooltip;"/>
+                       image="chrome://snowl/content/icons/newspaper.png"
+                       oncommand="SnowlMessageView.onCommandCurrentButton(event)"
+                       tooltiptext="&currentButton.tooltip;"/>
 
         <toolbarbutton id="bodyButton" type="checkbox"
-                    image="chrome://snowl/content/icons/page_white_text.png"
-                    oncommand="SnowlMessageView.onCommandBodyButton(event)"
-                    tooltiptext="&bodyButton.tooltip;"/>
+                       image="chrome://snowl/content/icons/page_white_text.png"
+                       oncommand="SnowlMessageView.onCommandBodyButton(event)"
+                       tooltiptext="&bodyButton.tooltip;"/>
 
         <toolbarbutton id="columnsButton" type="checkbox"
-                    image="chrome://snowl/content/icons/application_view_columns.png"
-                    oncommand="SnowlMessageView.onCommandColumnsButton(event)"
-                    tooltiptext="&columnsButton.tooltip;"/>
+                       image="chrome://snowl/content/icons/application_view_columns.png"
+                       oncommand="SnowlMessageView.onCommandColumnsButton(event)"
+                       tooltiptext="&columnsButton.tooltip;"/>
 
         <menulist id="periodMenu" oncommand="SnowlMessageView.onCommandPeriodMenu(event)">
           <menupopup id="periodMenuPopup">
@@ -119,6 +138,8 @@
                  emptytext="&filterTextbox.emptytext;"
                  oncommand="SnowlMessageView.onFilter(event)"/>
       </toolbar>
+
+      <vbox id="writeForm"/>
 
       <stack id="contentStack" flex="1">
         <html:div id="contentBox"
