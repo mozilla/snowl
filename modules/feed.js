@@ -143,6 +143,16 @@ SnowlFeed.prototype = {
     SnowlSource.persist.call(this);
   },
 
+  get _addPartStatement() {
+    return SnowlSource._addPartStatement;
+  },
+
+  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
+                    aMediaType) {
+    return SnowlSource.addPart.call(this, aMessageID, aPartType, aContent,
+                                    aBaseURI, aLanguageCode, aMediaType);
+  },
+
 
   //**************************************************************************//
   // XPCOM Interface Goo
@@ -520,28 +530,6 @@ SnowlFeed.prototype = {
                                    aLink ? aLink.spec : null);
 
     return messageID;
-  },
-
-  get _addPartStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "INSERT INTO parts(messageID, partType, content, baseURI, languageCode, mediaType) \
-       VALUES (:messageID, :partType, :content, :baseURI, :languageCode, :mediaType)"
-    );
-    this.__defineGetter__("_addPartStatement", function() { return statement });
-    return this._addPartStatement;
-  },
-
-  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
-                    aMediaType) {
-    this._addPartStatement.params.messageID = aMessageID;
-    this._addPartStatement.params.partType = aPartType;
-    this._addPartStatement.params.content = aContent;
-    this._addPartStatement.params.baseURI = aBaseURI;
-    this._addPartStatement.params.languageCode = aLanguageCode;
-    this._addPartStatement.params.mediaType = aMediaType;
-    this._addPartStatement.execute();
-
-    return SnowlDatastore.dbConnection.lastInsertRowID;
   },
 
   _addMetadatum: function(aMessageID, aAttributeName, aValue) {

@@ -116,6 +116,10 @@ Cu.import("resource://snowl/modules/utils.js");
  *       SnowlSource.__lookupSetter__("delegatedSetter").call(this, newVal);
  *     }
  *   };
+ *
+ * Memoizing unary getters in this object must memoize to another getter
+ * so that subclasses can call the getters directly without causing trouble
+ * for other subclasses that access them via __lookupGetter__.
  */
 let SnowlSource = {
   init: function(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
@@ -172,15 +176,16 @@ let SnowlSource = {
 
   // Favicon Service
   get faviconSvc() {
-    delete this.faviconSvc;
-    return this.faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
-                             getService(Ci.nsIFaviconService);
+    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                     getService(Ci.nsIFaviconService);
+    this.__defineGetter__("faviconSvc", function() faviconSvc);
+    return this.faviconSvc;
   },
 
   get faviconURI() {
     if (this.humanURI) {
       try {
-        return SnowlSource.faviconSvc.getFaviconForPage(this.humanURI);
+        return this.faviconSvc.getFaviconForPage(this.humanURI);
       }
       catch(ex) { /* no known favicon; use the default */ }
     }
@@ -218,6 +223,28 @@ let SnowlSource = {
 
     // Extract the ID of the source from the newly-created database record.
     this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+  },
+
+  get _addPartStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO parts(messageID, partType, content, baseURI, languageCode, mediaType) \
+       VALUES (:messageID, :partType, :content, :baseURI, :languageCode, :mediaType)"
+    );
+    this.__defineGetter__("_addPartStatement", function() statement);
+    return this._addPartStatement;
+  },
+
+  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
+                    aMediaType) {
+    this._addPartStatement.params.messageID = aMessageID;
+    this._addPartStatement.params.partType = aPartType;
+    this._addPartStatement.params.content = aContent;
+    this._addPartStatement.params.baseURI = aBaseURI;
+    this._addPartStatement.params.languageCode = aLanguageCode;
+    this._addPartStatement.params.mediaType = aMediaType;
+    this._addPartStatement.execute();
+
+    return SnowlDatastore.dbConnection.lastInsertRowID;
   }
 
 };
