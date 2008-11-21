@@ -83,7 +83,7 @@ SnowlTwitter.prototype = {
 
 
   //**************************************************************************//
-  // Class Composition Goo
+  // Abstract Class Composition Declarations
 
   _classes: [SnowlSource, SnowlTarget],
 
