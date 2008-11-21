@@ -447,7 +447,7 @@ let Snowl = {
         // Tab closed or none, remove it
         Snowl._mainWindow.removeAttribute("snowltabindex");
     }, 200)
-  },
+  }
 
 };
 
