@@ -46,6 +46,7 @@ Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
 
@@ -218,7 +219,7 @@ SnowlMessage.prototype = {
       try {
         this._getSourceIDStatement.params.id = this.id;
         if (this._getSourceIDStatement.step())
-          this._source = SnowlSource.get(this._getSourceIDStatement.row.sourceID);
+          this._source = SnowlService.getAccount(this._getSourceIDStatement.row.sourceID);
       }
       finally {
         this._getSourceIDStatement.reset();

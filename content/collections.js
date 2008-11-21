@@ -328,7 +328,8 @@ let CollectionsView = {
 
     selectedSourceIDs.push(selectedSource.groupID);
 
-    let selectedSources = SnowlService.selectedSources(selectedSourceIDs);
+    let selectedSources = SnowlService.sources.
+      filter(function(source) selectedSourceIDs.indexOf(source.id) != -1);
     SnowlService.refreshAllSources(selectedSources);
   },
 

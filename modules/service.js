@@ -146,39 +146,6 @@ let SnowlService = {
                                               null);
   },
 
-  selectedSources: function(selectedSourceIDs) {
-    let selectedSources = [];
-//this._log.info("selected sourceIDs: "+selectedSourceIDs.toString());
-
-    for (let i = 0; i < selectedSourceIDs.length; ++i) {
-      try {
-        SnowlSource._getStatement.params.id = selectedSourceIDs[i];
-        if (SnowlSource._getStatement.step()) {
-          let row = SnowlSource._getStatement.row;
-//this._log.info("selected source name: "+row.name);
-
-          let constructor = this._accountTypeConstructors[row.type];
-          if (!constructor) {
-            this._log.error("no constructor for type " + row.type);
-            continue;
-          }
-
-          selectedSources.push(new constructor(row.id,
-                                               row.type,
-                                               row.name,
-                                               URI.get(row.machineURI),
-                                               URI.get(row.humanURI),
-                                               SnowlDateUtils.julianToJSDate(row.lastRefreshed),
-                                               row.importance));
-        }
-      }
-      finally {
-        SnowlSource._getStatement.reset();
-      }
-    }
-    return selectedSources;
-  },
-
   _accountTypeConstructors: {},
   addAccountType: function(constructor) {
     if (constructor in this._accountTypeConstructors)
@@ -187,38 +154,74 @@ let SnowlService = {
     this._accountTypeConstructors[constructor.name] = constructor;
   },
 
-  get _getAccountsStatement() {
-    delete this._getAccountsStatement;
-    return this._getAccountsStatement = SnowlDatastore.createStatement(
+  _constructAccount: function(row) {
+    let constructor = this._accountTypeConstructors[row.type];
+    if (!constructor)
+      throw "no constructor for type " + row.type;
+
+    return new constructor(row.id,
+                           row.type,
+                           row.name,
+                           URI.get(row.machineURI),
+                           URI.get(row.humanURI),
+                           SnowlDateUtils.julianToJSDate(row.lastRefreshed),
+                           row.importance);
+  },
+
+  get _getAccountStatement() {
+    delete this._getAccountStatement;
+    return this._getAccountStatement = SnowlDatastore.createStatement(
+      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
+      "FROM sources WHERE id = :id"
+    );
+  },
+
+  /**
+   * Get the account with the given ID.
+   * 
+   * @param   id  {integer}   the ID of the account to retrieve
+   */
+  getAccount: function(id) {
+    let account = null;
+
+    try {
+      this._getAccountStatement.params.id = id;
+      if (this._getAccountStatement.step())
+        account = this._constructAccount(this._getAccountStatement.row);
+    }
+    finally {
+      this._getAccountStatement.reset();
+    }
+
+    return account;
+  },
+
+  get _accountsStatement() {
+    delete this._accountsStatement;
+    return this._accountsStatement = SnowlDatastore.createStatement(
       "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
       "FROM sources"
     );
   },
 
+  /**
+   * Get all accounts.
+   */
   get accounts() {
     let accounts = [];
 
     try {
-      while (this._getAccountsStatement.step()) {
-        let row = this._getAccountsStatement.row;
-
-        let constructor = this._accountTypeConstructors[row.type];
-        if (!constructor) {
-          this._log.error("no constructor for type " + row.type);
-          continue;
+      while (this._accountsStatement.step()) {
+        try {
+          accounts.push(this._constructAccount(this._accountsStatement.row));
         }
-
-        accounts.push(new constructor(row.id,
-                                      row.type,
-                                      row.name,
-                                      URI.get(row.machineURI),
-                                      URI.get(row.humanURI),
-                                      SnowlDateUtils.julianToJSDate(row.lastRefreshed),
-                                      row.importance));
+        catch(ex) {
+          this._log.error(ex);
+        }
       }
     }
     finally {
-      this._getAccountsStatement.reset();
+      this._accountsStatement.reset();
     }
 
     return accounts;

@@ -69,22 +69,15 @@ function SnowlTwitter(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed,
   // XXX Should we append the username to the NAME const to enable users
   // to subscribe to multiple Twitter accounts?
 
-  // Call the superclasses' constructors to initialize the new instance.
-  // FIXME: use composition to inherit functionality from the superclasses.
-  SnowlSource.call(this, aID, TYPE, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
-  SnowlTarget.call(this);
+  SnowlSource.init.call(this, aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+  SnowlTarget.init.call(this);
 }
 
 SnowlTwitter.prototype = {
-  // How often to refresh sources, in milliseconds.
-  refreshInterval: 1000 * 60 * 3, // 30 minutes
-
   // The constructor property is defined automatically, but we destroy it
   // when we redefine the prototype, so we redefine it here in case we ever
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlTwitter,
-
-  __proto__: SnowlSource.prototype,
 
   _log: Log4Moz.repository.getLogger("Snowl.Twitter"),
 
@@ -97,6 +90,53 @@ SnowlTwitter.prototype = {
   implements: function(cls) {
     return (this._classes.indexOf(cls) != -1);
   },
+
+
+  //**************************************************************************//
+  // SnowlSource
+
+  refreshInterval: 1000 * 60 * 3, // 3 minutes
+
+  id: null,
+  type: null,
+  name: null,
+  machineURI: null,
+  humanURI: null,
+  _lastRefreshed: null,
+
+  get lastRefreshed() {
+    return SnowlSource.__lookupGetter__("lastRefreshed").call(this);
+  },
+
+  set lastRefreshed(newValue) {
+    return SnowlSource.__lookupSetter__("lastRefreshed").call(this, newValue);
+  },
+
+  importance: null,
+
+  get faviconSvc() {
+    return SnowlSource.faviconSvc;
+  },
+
+  get faviconURI() {
+    return SnowlSource.__lookupGetter__("faviconURI").call(this);
+  },
+
+  // refresh is defined elsewhere.
+  //refresh: function() {},
+
+  persist: function() {
+    SnowlSource.persist.call(this);
+  },
+
+
+  //**************************************************************************//
+  // SnowlTarget
+
+  maxMessageLength: 140,
+
+  // send is defined elsewhere.
+  //send: function() {},
 
 
   //**************************************************************************//
@@ -565,8 +605,6 @@ SnowlTwitter.prototype = {
 
   //**************************************************************************//
   // Sending
-
-  maxMessageLength: 140,
 
   _sendCallback: null,
 

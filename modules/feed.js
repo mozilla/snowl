@@ -53,7 +53,6 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
-Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -78,14 +77,14 @@ function stringToArray(string) {
 }
 
 function SnowlFeed(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
-  // Call the superclass's constructor to initialize the new instance.
-  SnowlSource.call(this, aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+  SnowlSource.init.call(this, aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
 }
 
 SnowlFeed.prototype = {
+  // The constructor property is defined automatically, but we destroy it
+  // when we redefine the prototype, so we redefine it here in case we ever
+  // need to check it to find out what kind of object an instance is.
   constructor: SnowlFeed,
-
-  __proto__: SnowlSource.prototype,
 
   _log: Log4Moz.repository.getLogger("Snowl.Feed"),
 
@@ -102,6 +101,46 @@ SnowlFeed.prototype = {
 
   implements: function(cls) {
     return (this._classes.indexOf(cls) != -1);
+  },
+
+
+  //**************************************************************************//
+  // SnowlSource
+
+  get refreshInterval() {
+    return SnowlSource.refreshInterval;
+  },
+
+  id: null,
+  type: null,
+  name: null,
+  machineURI: null,
+  humanURI: null,
+  _lastRefreshed: null,
+
+  get lastRefreshed() {
+    return SnowlSource.__lookupGetter__("lastRefreshed").call(this);
+  },
+
+  set lastRefreshed(newValue) {
+    return SnowlSource.__lookupSetter__("lastRefreshed").call(this, newValue);
+  },
+
+  importance: null,
+
+  get faviconSvc() {
+    return SnowlSource.faviconSvc;
+  },
+
+  get faviconURI() {
+    return SnowlSource.__lookupGetter__("faviconURI").call(this);
+  },
+
+  // refresh is defined elsewhere.
+  //refresh: function() {},
+
+  persist: function() {
+    SnowlSource.persist.call(this);
   },
 
 

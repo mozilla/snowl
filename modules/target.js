@@ -36,9 +36,19 @@
 
 let EXPORTED_SYMBOLS = ["SnowlTarget"];
 
-function SnowlTarget() {}
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
 
-SnowlTarget.prototype = {
+/**
+ * SnowlTarget: a target for messages.
+ *
+ * @see SnowlSource.
+ */
+let SnowlTarget = {
+  init: function() {},
+
   /**
    * The maximum number of characters a message can contain.
    */

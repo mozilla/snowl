@@ -48,63 +48,86 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-function SnowlSource(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
-  this.id = aID;
-  this.type = aType;
-  this.name = aName;
-  this.machineURI = aMachineURI;
-  this.humanURI = aHumanURI;
-  this._lastRefreshed = aLastRefreshed;
-  this.importance = aImportance;
-}
-
-SnowlSource.__defineGetter__("_getStatement",
-  function() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
-      "FROM sources WHERE id = :id"
-    );
-    this.__defineGetter__("_getStatement", function() { return statement });
-    return this._getStatement;
-  }
-);
-
 /**
- * Get the SnowlSource identified by the given identifier.
+ * SnowlSource: a source of messages.
+ * 
+ * This is an abstract class that should not be instantiated. Rather, objects
+ * should inherit it via one of two methods (depending on whether or not they
+ * also inherit other functionality):
  *
- * FIXME: cache instances and return the cached instance if available.
+ * Objects that only inherit SnowlSource may assign it to their prototype
+ * (or to their prototype's prototype) and then declare overridden attributes
+ * as appropriate, with the prototype chain automatically delegating other
+ * attributes to SnowlSource:
+ *
+ *   function MySource = {
+ *     SnowlSource.init.call(this, ...);
+ *     this.overriddenMethod: function(...) {...},
+ *     this.overriddenProperty: "foo",
+ *     this.__defineGetter("overriddenGetter", function() {...}),
+ *     this.__defineSetter("overriddenSetter", function(newVal) {...}),
+ *   }
+ *   MySource.prototype = SnowlSource;
+ *
+ *     -- or --
+ *
+ *   function MySource = {
+ *     SnowlSource.init.call(this, ...);
+ *   }
+ *   MySource.prototype = {
+ *     __proto__: SnowlSource,
+ *     overriddenMethod: function(...) {...},
+ *     overriddenProperty: "foo",
+ *     get overriddenGetter() {...},
+ *     set overriddenSetter(newVal) {...}
+ *   };
+ *
+ * Objects that inherit other functionality should redeclare every attribute
+ * in SnowlSource, manually delegating to SnowlSource as appropriate:
+ *
+ *   function MyThing = {
+ *     SnowlSource.init.call(this, ...);
+ *   }
+ *
+ *   MyThing.prototype = {
+ *     overriddenMethod: function(...) {...},
+ *     overriddenProperty: "foo",
+ *     get overriddenGetter() {...},
+ *     set overriddenSetter(newVal) {...}
+ *
+ *     delegatedMethod: function(...) {
+ *       SnowlSource.call(this, ...);
+ *     },
+ *
+ *     get delegatedProperty: function() {
+ *       return SnowlSource.delegatedProperty;
+ *     },
+ *
+ *     // It's dangerous to set the base class's properties; don't do this!!!
+ *     set delegatedProperty: function(newVal) {
+ *       SnowlSource.delegatedProperty = newVal;
+ *     },
+ *
+ *     get delegatedGetter: function() {
+ *       return SnowlSource.__lookupGetter__("delegatedGetter").call(this);
+ *     },
+ *
+ *     set delegatedSetter: function(newVal) {
+ *       SnowlSource.__lookupSetter__("delegatedSetter").call(this, newVal);
+ *     }
+ *   };
  */
-SnowlSource.get = function(aID) {
-  try {
-    this._getStatement.params.id = aID;
-    if (this._getStatement.step())
-      return new SnowlSource(aID,
-                             this._getStatement.row.type,
-                             this._getStatement.row.name,
-                             URI.get(this._getStatement.row.machineURI),
-                             URI.get(this._getStatement.row.humanURI),
-                             SnowlDateUtils.julianToJSDate(this._getStatement.row.lastRefreshed),
-                             this._getStatement.row.importance);
-  }
-  finally {
-    this._getStatement.reset();
-  }
+let SnowlSource = {
+  init: function(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+    this.id = aID;
+    this.type = aType;
+    this.name = aName;
+    this.machineURI = aMachineURI;
+    this.humanURI = aHumanURI;
+    this._lastRefreshed = aLastRefreshed;
+    this.importance = aImportance;
+  },
 
-  return null;
-}
-
-// Favicon Service
-SnowlSource.__defineGetter__("faviconSvc",
-  function() {
-    let faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
-                     getService(Ci.nsIFaviconService);
-    delete this.faviconSvc;
-    this.faviconSvc = faviconSvc;
-    return this.faviconSvc;
-  }
-);
-
-SnowlSource.prototype = {
   // How often to refresh sources, in milliseconds.
   refreshInterval: 1000 * 60 * 30, // 30 minutes
 
@@ -146,6 +169,13 @@ SnowlSource.prototype = {
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.
   importance: null,
+
+  // Favicon Service
+  get faviconSvc() {
+    delete this.faviconSvc;
+    return this.faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
+                             getService(Ci.nsIFaviconService);
+  },
 
   get faviconURI() {
     if (this.humanURI) {
