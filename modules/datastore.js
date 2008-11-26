@@ -458,7 +458,7 @@ let SnowlDatastore = {
     try {
       while (selectStatement.step()) {
         let plainText = selectStatement.row.content;
-  
+
         switch (selectStatement.row.mediaType) {
           case "text/html":
           case "application/xhtml+xml":
@@ -471,7 +471,7 @@ let SnowlDatastore = {
             }
             // Now that we've converted the markup to plain text, fall through
             // to the text/plain case that inserts the data into the database.
-  
+
           case "text/plain":
             // Give the fulltext record the same doc ID as the row ID of the parts
             // record so we can join them together to get the part (and thence the
@@ -480,7 +480,7 @@ let SnowlDatastore = {
             insertStatement.params.content = plainText;
             insertStatement.execute();
             break;
-  
+
           default:
             // It isn't a type we understand, so don't do anything with it.
             // XXX If it's text/*, shouldn't we fulltext index it anyway?
