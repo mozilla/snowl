@@ -276,17 +276,13 @@ let SnowlSource = {
    * @returns the ID of the part
    */
   addPart: function(messageID, content, mediaType, partType, baseURI, languageTag) {
-    // Default values for the mediaType and partType parameters.
-    mediaType = mediaType || "application/octet-stream";
-    partType = partType || PART_TYPE_CONTENT;
-
     // Insert the part into the parts table.
     this._stmtInsertPart.params.messageID     = messageID;
     this._stmtInsertPart.params.content       = content;
-    this._stmtInsertPart.params.partType      = partType;
     this._stmtInsertPart.params.mediaType     = mediaType;
+    this._stmtInsertPart.params.partType      = partType || PART_TYPE_CONTENT;
     this._stmtInsertPart.params.baseURI       = (baseURI ? baseURI.spec : null);
-    this._stmtInsertPart.params.languageTag   = languageTag;
+    this._stmtInsertPart.params.languageTag   = languageTag || null;
     this._stmtInsertPart.execute();
     let id = SnowlDatastore.dbConnection.lastInsertRowID;
 
@@ -319,7 +315,6 @@ let SnowlSource = {
         // It isn't a type we understand, so don't do anything with it.
         // XXX If it's text/*, shouldn't we fulltext index it anyway?
     }
-
   }
 
 };
