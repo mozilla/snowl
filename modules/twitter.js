@@ -475,7 +475,7 @@ SnowlTwitter.prototype = {
     let timestamp = new Date(message.created_at);
 
     // Add the message.
-    let messageID = this.addSimpleMessage(this.id, message.id, subject, authorID, timestamp, aReceived, null);
+    let messageID = this.addSimpleMessage(this.id, message.id, null, authorID, timestamp, aReceived, null);
 
     // Add the message's content.
     this.addPart(messageID, message.text, "text/plain");

@@ -149,6 +149,18 @@ SnowlMessage.prototype = {
     this._summary = newValue;
   },
 
+  get excerpt() {
+    let construct = this.content || this.summary;
+
+    if (!construct)
+      return null;
+
+    let contentText = construct.plainText();
+
+    // XXX Does an ellipsis need to be localizable?
+    return contentText.substring(0, 140) + (contentText.length > 140 ? "…" : "");
+  },
+
   get _getPartStatement() {
     let statement = SnowlDatastore.createStatement(
       "SELECT content, mediaType, baseURI, languageTag FROM parts " +

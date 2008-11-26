@@ -497,19 +497,19 @@ let SnowlMessageView = {
     //  centerColumn.appendChild(timestamp);
     //}
 
-    // content (title or short message)
+    // Content (subject or excerpt)
     let body = this._document.createElementNS(XUL_NS, "description");
     body.className = "body";
     let div = this._document.createElementNS(HTML_NS, "div");
     let a = this._document.createElementNS(HTML_NS, "a");
-    // FIXME: make this localizable.
-    let subject = message.subject || "empty message";
+
+    let content = message.subject || message.excerpt;
 
     if (message.link) {
       let a = this._document.createElementNS(HTML_NS, "a");
       this._unsafeSetURIAttribute(a, "href", message.link);
       body.className += " text-link";
-      a.appendChild(this._document.createTextNode(subject));
+      a.appendChild(this._document.createTextNode(content));
       div.appendChild(a);
     }
     else {
@@ -517,7 +517,7 @@ let SnowlMessageView = {
       // in the array of results, with the first part always being plaintext.
       // FIXME: turn this whole block into a function that other views
       // can use.
-      let parts = subject.split(this._linkifyRegex);
+      let parts = content.split(this._linkifyRegex);
       for (let i = 0; i < parts.length; i++) {
         if (i % 2 == 0)
           div.appendChild(this._document.createTextNode(parts[i]));

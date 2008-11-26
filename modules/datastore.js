@@ -67,7 +67,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 6,
+  _dbVersion: 7,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -405,7 +405,7 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * update its name every time we increase the current schema version.
    */
-  _dbMigrate0To6: function(aDBConnection) {
+  _dbMigrate0To7: function(aDBConnection) {
     this._dbCreateTables(aDBConnection);
   },
 
@@ -417,9 +417,10 @@ let SnowlDatastore = {
    * the latest version via a series of steps instead of writing one-off functions
    * like this one to do the database migration.
    */
-  _dbMigrate4To6: function(aDBConnection) {
+  _dbMigrate4To7: function(aDBConnection) {
     this._dbMigrate4To5(aDBConnection);
     this._dbMigrate5To6(aDBConnection);
+    this._dbMigrate6To7(aDBConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -493,6 +494,20 @@ let SnowlDatastore = {
 
     // Drop the old parts table.
     aDBConnection.executeSimpleSQL("DROP TABLE partsOld");
+  },
+
+  /**
+   * Migrate the database schema from version 6 to version 7.
+   *
+   * This doesn't actually change the physical database schema, it just removes
+   * subjects from Twitter messages, since it no longer makes sense to store
+   * tweets as both the subjects and the content of messages.
+   */
+  _dbMigrate6To7: function(aDBConnection) {
+    aDBConnection.executeSimpleSQL(
+      "UPDATE messages SET subject = NULL WHERE sourceID IN " +
+      "(SELECT id FROM sources WHERE type = 'SnowlTwitter')"
+    );
   },
 
   get _selectHasSourceStatement() {

@@ -129,10 +129,14 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     switch(aColumn.id) {
       case "snowlAuthorCol":
         return this._collection.messages[aRow].author;
+
       case "snowlSubjectCol":
-        return this._collection.messages[aRow].subject;
+        return this._collection.messages[aRow].subject ||
+               this._collection.messages[aRow].excerpt;
+
       case "snowlTimestampCol":
         return SnowlDateUtils._formatDate(this._collection.messages[aRow].timestamp);
+
       default:
         return null;
     }

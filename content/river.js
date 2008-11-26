@@ -850,13 +850,15 @@ let SnowlMessageView = {
       //bylineBox.appendChild(source);
 
       // Title
-      title = this._document.createElementNS(HTML_NS, "h2");
-      title.className = "title";
-      let titleLink = this._document.createElementNS(HTML_NS, "a");
-      titleLink.appendChild(this._document.createTextNode(message.subject || "untitled"));
-      if (message.link)
-        this._unsafeSetURIAttribute(titleLink, "href", message.link);
-      title.appendChild(titleLink);
+      if (message.subject) {
+        title = this._document.createElementNS(HTML_NS, "h2");
+        title.className = "title";
+        let titleLink = this._document.createElementNS(HTML_NS, "a");
+        titleLink.appendChild(this._document.createTextNode(message.subject));
+        if (message.link)
+          this._unsafeSetURIAttribute(titleLink, "href", message.link);
+        title.appendChild(titleLink);
+      }
 
       // Body
       let bodyText = message.content || message.summary;
@@ -870,12 +872,6 @@ let SnowlMessageView = {
         if (docFragment) {
           body.appendChild(docFragment);
 
-          // Generate a excerpt of the message.
-          // FIXME: use an actual ellipsis.
-          // XXX Does an ellipsis need to be localizable?
-          excerpt.appendChild(document.createTextNode(
-            body.textContent.substring(0, 140) + ((body.textContent.length > 140) ? "..." : "")));
-
           // Generate an icon representing the message.
           let firstImage = body.getElementsByTagName("img")[0];
           if (firstImage) {
@@ -885,6 +881,8 @@ let SnowlMessageView = {
             messageIcon.className = "messageIcon";
           }
         }
+
+        excerpt.appendChild(this._document.createTextNode(message.excerpt));
       }
 
       //// Timestamp
@@ -901,7 +899,8 @@ let SnowlMessageView = {
       // FIXME: implement support for enclosures.
 
       messageBox.appendChild(messageIcon);
-      messageBox.appendChild(title);
+      if (message.subject)
+        messageBox.appendChild(title);
       messageBox.appendChild(excerpt);
       messageBox.appendChild(body);
       messageBox.appendChild(bylineBox);
