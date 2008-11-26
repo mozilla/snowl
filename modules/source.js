@@ -45,6 +45,7 @@ const Cu = Components.utils;
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/utils.js");
 
@@ -225,26 +226,100 @@ let SnowlSource = {
     this.id = SnowlDatastore.dbConnection.lastInsertRowID;
   },
 
-  get _addPartStatement() {
+  get _stmtInsertPart() {
     let statement = SnowlDatastore.createStatement(
-      "INSERT INTO parts(messageID, partType, content, baseURI, languageCode, mediaType) \
-       VALUES (:messageID, :partType, :content, :baseURI, :languageCode, :mediaType)"
+      "INSERT INTO parts( messageID,  content,  mediaType,  partType,  baseURI,  languageTag) " +
+      "VALUES           (:messageID, :content, :mediaType, :partType, :baseURI, :languageTag)"
     );
-    this.__defineGetter__("_addPartStatement", function() statement);
-    return this._addPartStatement;
+    this.__defineGetter__("_stmtInsertPart", function() statement);
+    return this._stmtInsertPart;
   },
 
-  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
-                    aMediaType) {
-    this._addPartStatement.params.messageID = aMessageID;
-    this._addPartStatement.params.partType = aPartType;
-    this._addPartStatement.params.content = aContent;
-    this._addPartStatement.params.baseURI = aBaseURI;
-    this._addPartStatement.params.languageCode = aLanguageCode;
-    this._addPartStatement.params.mediaType = aMediaType;
-    this._addPartStatement.execute();
+  get _stmtInsertPartText() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO partsText( docid,  content) " +
+      "VALUES               (:docid, :content)"
+    );
+    this.__defineGetter__("_stmtInsertPartText", function() statement);
+    return this._stmtInsertPartText;
+  },
 
-    return SnowlDatastore.dbConnection.lastInsertRowID;
+  /**
+   * Add a message part (i.e. a portion of its content) to the datastore.
+   *
+   * FIXME: make a version of this method that takes an nsITextConstruct
+   * to improve performance for sources (like SnowlFeed) that get content
+   * in that form.
+   *
+   * @param messageID     {integer}
+   *        the ID of the message to which the part belongs
+   *
+   * @param content       {string}
+   *        the content of the part
+   *
+   * @param mediaType     {string}
+   *        the type of content it contains (plaintext, HTML, etc.);
+   *        must be an Internet media type (text/plain, image/png, etc.)
+   *
+   * @param partType      {integer}   [optional]
+   *        the kind of part it is (content, summary, attachment, etc.);
+   *        must be one of the PART_TYPE_* constants defined in constants.js
+   *
+   * @param baseURI       {nsIURI}    [optional]
+   *        the URI against which to resolve relative references in the content;
+   *        only matters for (X)HTML content
+   *
+   * @param languageTag   {string}    [optional]
+   *        the language in which the content is written;
+   *        must be an IETF language tag (en-US, fr, etc.)
+   *
+   * @returns the ID of the part
+   */
+  addPart: function(messageID, content, mediaType, partType, baseURI, languageTag) {
+    // Default values for the mediaType and partType parameters.
+    mediaType = mediaType || "application/octet-stream";
+    partType = partType || PART_TYPE_CONTENT;
+
+    // Insert the part into the parts table.
+    this._stmtInsertPart.params.messageID     = messageID;
+    this._stmtInsertPart.params.content       = content;
+    this._stmtInsertPart.params.partType      = partType;
+    this._stmtInsertPart.params.mediaType     = mediaType;
+    this._stmtInsertPart.params.baseURI       = (baseURI ? baseURI.spec : null);
+    this._stmtInsertPart.params.languageTag   = languageTag;
+    this._stmtInsertPart.execute();
+    let id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+    // Insert a plaintext version of the content into the partsText fulltext
+    // table, converting it to plaintext first if necessary (and possible).
+    let plainText = content;
+    switch (mediaType) {
+      case "text/html":
+      case "application/xhtml+xml":
+        // Use nsIFeedTextConstruct to convert the markup to plaintext.
+        let (construct = Cc["@mozilla.org/feed-textconstruct;1"].
+                         createInstance(Ci.nsIFeedTextConstruct)) {
+          construct.text = content;
+          construct.type = TEXT_CONSTRUCT_TYPES[mediaType];
+          plainText = construct.plainText();
+        }
+        // Now that we've converted the markup to plaintext, fall through
+        // to the text/plain case that inserts the data into the database.
+
+      case "text/plain":
+        // Give the fulltext record the same doc ID as the row ID of the parts
+        // record so we can join them together to get the part (and thence the
+        // message) when doing a fulltext search.
+        this._stmtInsertPartText.params.docid = id;
+        this._stmtInsertPartText.params.content = plainText;
+        this._stmtInsertPartText.execute();
+        break;
+
+      default:
+        // It isn't a type we understand, so don't do anything with it.
+        // XXX If it's text/*, shouldn't we fulltext index it anyway?
+    }
+
   }
 
 };

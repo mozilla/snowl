@@ -46,18 +46,10 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 
 // modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
-
-// Media type to nsIFeedTextConstruct::type mappings.
-// FIXME: get this from message.js (or from something that both message.js
-// and collection.js import).
-const textConstructTypes = {
-  "text/html": "html",
-  "application/xhtml+xml": "xhtml",
-  "text/plain": "text"
-};
 
 // FIXME: make SnowlCollection take a hash so it can have named parameters,
 // since the number of parameters it currently accepts, and the fact that they
@@ -285,7 +277,7 @@ this._log.info("got " + groups.length + " groups");
   },
 
   _getContent: function() {
-    let query = "SELECT messageID, content, mediaType, baseURI, languageCode " +
+    let query = "SELECT messageID, content, mediaType, baseURI, languageTag " +
                 "FROM parts WHERE partType = " + PART_TYPE_CONTENT +
                 " AND messageID IN (" +
                   this._messages.map(function(v) { return v.id }).join(",") +
@@ -297,9 +289,9 @@ this._log.info("got " + groups.length + " groups");
         let content = Cc["@mozilla.org/feed-textconstruct;1"].
                       createInstance(Ci.nsIFeedTextConstruct);
         content.text = statement.row.content;
-        content.type = textConstructTypes[statement.row.mediaType];
+        content.type = TEXT_CONSTRUCT_TYPES[statement.row.mediaType];
         content.base = URI.get(statement.row.baseURI);
-        content.lang = statement.row.languageCode;
+        content.lang = statement.row.languageTag;
         this._messageIndex[statement.row.messageID].content = content;
       }
     }

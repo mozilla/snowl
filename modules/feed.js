@@ -51,17 +51,13 @@ Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/service.js");
-
-// nsIFeedTextConstruct::type to media type mappings.
-const mediaTypes = { html: "text/html",
-                     xhtml: "application/xhtml+xml",
-                     text: "text/plain" };
 
 /**
  * Convert a string to an array of character codes.
@@ -143,14 +139,16 @@ SnowlFeed.prototype = {
     SnowlSource.persist.call(this);
   },
 
-  get _addPartStatement() {
-    return SnowlSource._addPartStatement;
+  get _stmtInsertPart() {
+    return SnowlSource._stmtInsertPart;
   },
 
-  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
-                    aMediaType) {
-    return SnowlSource.addPart.call(this, aMessageID, aPartType, aContent,
-                                    aBaseURI, aLanguageCode, aMediaType);
+  get _stmtInsertPartText() {
+    return SnowlSource._stmtInsertPartText;
+  },
+
+  addPart: function(messageID, content, mediaType, partType, baseURI, languageTag) {
+    return SnowlSource.addPart.call(this, messageID, content, mediaType, partType, baseURI, languageTag);
   },
 
 
@@ -400,15 +398,20 @@ SnowlFeed.prototype = {
 
     // Add parts
     if (aEntry.content) {
-      this.addPart(messageID, PART_TYPE_CONTENT, aEntry.content.text,
-                   (aEntry.content.base ? aEntry.content.base.spec : null),
-                   aEntry.content.lang, mediaTypes[aEntry.content.type]);
+      this.addPart(messageID,
+                   aEntry.content.text,
+                   INTERNET_MEDIA_TYPES[aEntry.content.type],
+                   PART_TYPE_CONTENT,
+                   aEntry.content.base,
+                   aEntry.content.lang);
     }
-
     if (aEntry.summary) {
-      this.addPart(messageID, PART_TYPE_SUMMARY, aEntry.summary.text,
-                   (aEntry.summary.base ? aEntry.summary.base.spec : null),
-                   aEntry.summary.lang, mediaTypes[aEntry.summary.type]);
+      this.addPart(messageID,
+                   aEntry.summary.text,
+                   INTERNET_MEDIA_TYPES[aEntry.summary.type],
+                   PART_TYPE_SUMMARY,
+                   aEntry.summary.base,
+                   aEntry.summary.lang);
     }
 
     // Add metadata.

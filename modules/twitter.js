@@ -51,6 +51,7 @@ Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/target.js");
@@ -129,14 +130,16 @@ SnowlTwitter.prototype = {
     SnowlSource.persist.call(this);
   },
 
-  get _addPartStatement() {
-    return SnowlSource._addPartStatement;
+  get _stmtInsertPart() {
+    return SnowlSource._stmtInsertPart;
   },
 
-  addPart: function(aMessageID, aPartType, aContent, aBaseURI, aLanguageCode,
-                    aMediaType) {
-    return SnowlSource.addPart.call(this, aMessageID, aPartType, aContent,
-                                    aBaseURI, aLanguageCode, aMediaType);
+  get _stmtInsertPartText() {
+    return SnowlSource._stmtInsertPartText;
+  },
+
+  addPart: function(messageID, content, mediaType, partType, baseURI, languageTag) {
+    return SnowlSource.addPart.call(this, messageID, content, mediaType, partType, baseURI, languageTag);
   },
 
 
@@ -475,7 +478,7 @@ SnowlTwitter.prototype = {
     let messageID = this.addSimpleMessage(this.id, message.id, subject, authorID, timestamp, aReceived, null);
 
     // Add the message's content.
-    this.addPart(messageID, PART_TYPE_CONTENT, message.text, null, null, "text/plain");
+    this.addPart(messageID, message.text, "text/plain");
 
     // Add the message's metadata.
     for (let [name, value] in Iterator(message)) {

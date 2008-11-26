@@ -276,7 +276,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (this._filter.value)
-      filters.push({ expression: "messages.id IN (SELECT messageID FROM parts WHERE content MATCH :filter)",
+      filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
                      parameters: { filter: this._filter.value } });
 
     this._collection.filters = filters;

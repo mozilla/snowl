@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["SnowlDatastore", "PART_TYPE_CONTENT", "PART_TYPE_SUMMARY"];
+let EXPORTED_SYMBOLS = ["SnowlDatastore"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -48,15 +48,10 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 
 // modules that are Snowl-specific
-
+Cu.import("resource://snowl/modules/constants.js");
 
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
-
-// XXX Should these be in here, or should they be in some Snowl-wide module
-// that all other modules include, like snowl.js?
-const PART_TYPE_CONTENT = 1;
-const PART_TYPE_SUMMARY = 2;
 
 let SnowlDatastore = {
   // FIXME: use the memoization technique for properties that aren't defined
@@ -72,7 +67,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 5,
+  _dbVersion: 6,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -129,14 +124,28 @@ let SnowlDatastore = {
       },
 
       parts: {
+        type: TABLE_TYPE_NORMAL,
+        columns: [
+          "id INTEGER PRIMARY KEY",
+          "messageID INTEGER NOT NULL REFERENCES messages(id)",
+          "content NOT NULL",
+          // The DEFAULT constraint helps when upgrading from schemas
+          // that didn't require mediaType to be NOT NULL, so it might
+          // have contained NULL values.
+          "mediaType TEXT NOT NULL DEFAULT 'application/octet-stream'",
+          "partType INTEGER NOT NULL",
+          "baseURI TEXT",
+          "languageTag TEXT"
+        ]
+      },
+
+      partsText: {
         type: TABLE_TYPE_FULLTEXT,
         columns: [
-          "messageID INTEGER NOT NULL REFERENCES messages(id)",
-          "partType INTEGER NOT NULL",
-          "content NOT NULL",
-          "mediaType TEXT",
-          "baseURI TEXT",
-          "languageCode TEXT",
+          // partsText has an implicit docid column whose value we set to the ID
+          // of the corresponding record in the parts table so we can join them
+          // to get the part (and thence message) for a fulltext search result.
+          "content"
         ]
       },
 
@@ -210,19 +219,8 @@ let SnowlDatastore = {
         ]
       }
 
-    },
+    }
 
-    fulltextTables: {
-      // FIXME: add "primary" boolean column that identifies the main content
-      // for the message (or put that into the messages table?).
-      parts:      "id INTEGER PRIMARY KEY, \
-                   messageID INTEGER NOT NULL REFERENCES messages(id), \
-                   title TEXT, \
-                   content BLOB NOT NULL, \
-                   contentType TEXT NOT NULL"
-    },
-
-    indices: {}
   },
 
   _defaultCollections: [
@@ -337,27 +335,28 @@ let SnowlDatastore = {
   },
 
   _dbCreateTables: function(aDBConnection) {
-    for (var tableName in this._dbSchema.tables) {
-      var table = this._dbSchema.tables[tableName];
-      switch (table.type) {
-        case TABLE_TYPE_FULLTEXT:
-          this._dbCreateFulltextTable(aDBConnection, tableName, table.columns);
-          break;
-        case TABLE_TYPE_NORMAL:
-        default:
-          aDBConnection.createTable(tableName, table.columns.join(", "));
-          break;
-      }
+    for (let tableName in this._dbSchema.tables) {
+      let table = this._dbSchema.tables[tableName];
+      this._dbCreateTable(aDBConnection, tableName, table);
     }
 
     aDBConnection.schemaVersion = this._dbVersion;
   },
 
-  _dbCreateFulltextTable: function(aDBConnection, aTableName, aColumns) {
-    aDBConnection.executeSimpleSQL(
-      "CREATE VIRTUAL TABLE " + aTableName +
-      " USING fts3(" + aColumns.join(", ") + ")"
-    );
+  _dbCreateTable: function(aDBConnection, tableName, table) {
+    switch (table.type) {
+      case TABLE_TYPE_FULLTEXT:
+        aDBConnection.executeSimpleSQL(
+          "CREATE VIRTUAL TABLE " + tableName +
+          " USING fts3(" + table.columns.join(", ") + ")"
+        );
+        break;
+
+      case TABLE_TYPE_NORMAL:
+      default:
+        aDBConnection.createTable(tableName, table.columns.join(", "));
+        break;
+    }
   },
 
   _dbInsertDefaultData: function(aDBConnection) {
@@ -396,14 +395,31 @@ let SnowlDatastore = {
   },
 
   /**
-   * Migrate the database schema from version 0 to version 1.  We never create
-   * a database with version 0, so the database can only have that version
-   * if the database file was created without the schema being constructed.
-   * Thus migrating the database is as simple as constructing the schema as if
-   * from scratch.
+   * Migrate the database schema from version 0 to the current version.
+   * 
+   * We never create a database with version 0, so the database can only
+   * have that version if the database file was created without the schema
+   * being constructed.  Thus migrating the database is as simple as
+   * constructing the schema as if from scratch.
+   *
+   * FIXME: special case the calling of this function so we don't have to
+   * update its name every time we increase the current schema version.
    */
-  _dbMigrate0To5: function(aDBConnection) {
+  _dbMigrate0To6: function(aDBConnection) {
     this._dbCreateTables(aDBConnection);
+  },
+
+  /**
+   * Snowl version 0.1 had database schema version 4.  This function upgrades
+   * those users to the current version.
+   *
+   * FIXME: do multi-version upgrades automatically if it's possible to get to
+   * the latest version via a series of steps instead of writing one-off functions
+   * like this one to do the database migration.
+   */
+  _dbMigrate4To6: function(aDBConnection) {
+    this._dbMigrate4To5(aDBConnection);
+    this._dbMigrate5To6(aDBConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -416,6 +432,67 @@ let SnowlDatastore = {
     aDBConnection.executeSimpleSQL(
       "ALTER TABLE messages ADD COLUMN received REAL"
     );
+  },
+
+  _dbMigrate5To6: function(aDBConnection) {
+    // Rename the old parts table.
+    aDBConnection.executeSimpleSQL("ALTER TABLE parts RENAME TO partsOld");
+
+    // Create the new parts and partsText tables.
+    this._dbCreateTable(aDBConnection, "parts", this._dbSchema.tables.parts);
+    this._dbCreateTable(aDBConnection, "partsText", this._dbSchema.tables.partsText);
+
+    // Copy the data from the old to the new parts table.  It may look like
+    // the tables are equivalent, but the old table was fulltext and didn't have
+    // an "id" column (which we don't reference here because it gets populated
+    // automagically as an AUTOINCREMENT PRIMARY KEY column).
+    aDBConnection.executeSimpleSQL(
+      "INSERT INTO parts(messageID, content, mediaType, partType, baseURI, languageTag) " +
+      "SELECT            messageID, content, mediaType, partType, baseURI, languageCode " +
+      "FROM partsOld"
+    );
+
+    // Insert data into the new partsText table.
+    let selectStatement = this.createStatement("SELECT id, content, mediaType FROM parts", aDBConnection);
+    let insertStatement = this.createStatement("INSERT INTO partsText (docid, content) VALUES (:docid, :content)", aDBConnection);
+    try {
+      while (selectStatement.step()) {
+        let plainText = selectStatement.row.content;
+  
+        switch (selectStatement.row.mediaType) {
+          case "text/html":
+          case "application/xhtml+xml":
+            // Use nsIFeedTextConstruct to convert the markup to plaintext.
+            let (construct = Cc["@mozilla.org/feed-textconstruct;1"].
+                             createInstance(Ci.nsIFeedTextConstruct)) {
+              construct.text = selectStatement.row.content;
+              construct.type = TEXT_CONSTRUCT_TYPES[selectStatement.row.mediaType];
+              plainText = construct.plainText();
+            }
+            // Now that we've converted the markup to plain text, fall through
+            // to the text/plain case that inserts the data into the database.
+  
+          case "text/plain":
+            // Give the fulltext record the same doc ID as the row ID of the parts
+            // record so we can join them together to get the part (and thence the
+            // message) when doing a fulltext search.
+            insertStatement.params.docid = selectStatement.row.id;
+            insertStatement.params.content = plainText;
+            insertStatement.execute();
+            break;
+  
+          default:
+            // It isn't a type we understand, so don't do anything with it.
+            // XXX If it's text/*, shouldn't we fulltext index it anyway?
+        }
+      }
+    }
+    finally {
+      selectStatement.reset();
+    }
+
+    // Drop the old parts table.
+    aDBConnection.executeSimpleSQL("DROP TABLE partsOld");
   },
 
   get _selectHasSourceStatement() {
