@@ -70,7 +70,7 @@ function SnowlTwitter(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed,
   // XXX Should we append the username to the NAME const to enable users
   // to subscribe to multiple Twitter accounts?
 
-  SnowlSource.init.call(this, aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+  SnowlSource.init.call(this, aID, aType, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
   SnowlTarget.init.call(this);
 }
 
