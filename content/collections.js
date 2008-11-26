@@ -357,8 +357,12 @@ this._log.info("unsubscribing source: "+selectedSource.name);
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
             "WHERE messageID IN " +
             "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
+            "WHERE docid IN " +
+            "(SELECT id FROM parts WHERE messageID IN " +
+            "(SELECT id FROM messages WHERE sourceID = " + sourceID + "))");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
-            "WHERE messageID IN" +
+            "WHERE messageID IN " +
             "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
             "WHERE sourceID = " + sourceID);
