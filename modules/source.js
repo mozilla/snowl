@@ -123,12 +123,12 @@ Cu.import("resource://snowl/modules/utils.js");
  * for other subclasses that access them via __lookupGetter__.
  */
 let SnowlSource = {
-  init: function(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
+  init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
     this.id = aID;
-    this.type = aType;
     this.name = aName;
     this.machineURI = aMachineURI;
     this.humanURI = aHumanURI;
+    this.username = aUsername;
     this._lastRefreshed = aLastRefreshed;
     this.importance = aImportance;
   },
@@ -137,8 +137,6 @@ let SnowlSource = {
   refreshInterval: 1000 * 60 * 30, // 30 minutes
 
   id: null,
-
-  type: null,
 
   name: null,
 
@@ -151,6 +149,9 @@ let SnowlSource = {
   // provided by the source.  For a feed source, this is the website that
   // publishes the feed; for an email source, it might be the webmail interface.
   humanURI: null,
+
+  // The username with which the user gets authorized to access the account.
+  username: null,
 
   // A JavaScript Date object representing the last time this source
   // was checked for updates to its set of messages.
@@ -204,18 +205,40 @@ let SnowlSource = {
    */
   refresh: function() {},
 
+  /**
+   * Insert a record for this source into the database, or update an existing
+   * record.
+   *
+   * FIXME: move this to a SnowlAccount interface.
+   */
   persist: function() {
-    let statement =
-      SnowlDatastore.createStatement(
-        "INSERT INTO sources (name, type, machineURI, humanURI) " +
-        "VALUES (:name, :type, :machineURI, :humanURI)"
+    let statement;
+    if (this.id) {
+      statement = SnowlDatastore.createStatement(
+        "UPDATE sources " +
+        "SET     name = :name,       " +
+        "        type = :type,       " +
+        "  machineURI = :machineURI, " +
+        "    humanURI = :humanURI,   " +
+        "    username = :username    " +
+        "WHERE     id = :id"
       );
+    }
+    else {
+      statement = SnowlDatastore.createStatement(
+        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username) " +
+        "VALUES              (:name, :type, :machineURI, :humanURI, :username)"
+      );
+    }
 
     try {
       statement.params.name = this.name;
       statement.params.type = this.constructor.name;
       statement.params.machineURI = this.machineURI.spec;
       statement.params.humanURI = this.humanURI.spec;
+      statement.params.username = this.username;
+      if (this.id)
+        statement.params.id = this.id;
       statement.step();
     }
     finally {
@@ -223,7 +246,8 @@ let SnowlSource = {
     }
 
     // Extract the ID of the source from the newly-created database record.
-    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    if (!this.id)
+      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
   },
 
   get _stmtInsertPart() {

@@ -172,7 +172,9 @@ let Subscriber = {
       // Url passed from feedparser
       uri = URI.get(url);
 
-    let feed = new SnowlFeed(null, null, null, uri);
+    // FIXME: fix the API so I don't have to pass a bunch of null and undefined
+    // values (that undefined value, incidentally, can probably be null).
+    let feed = new SnowlFeed(null, null, uri, undefined, null);
     this._subscribe(feed);
   },
 
@@ -194,14 +196,6 @@ let Subscriber = {
 
     // FIXME: call this "source" instead of "feed".
     this.feed = twitter;
-
-    // XXX: Multiple twitter subsciptions allowed? How are they differentiated?
-    // For now disallow since the database becomes filled with bad records..
-    let name = SnowlService.hasSource(twitter.machineURI.spec)
-    if (name) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" + name);
-      return;
-    }
 
     twitter.subscribe(credentials);
   },
@@ -241,7 +235,9 @@ let Subscriber = {
     let uri = URI.get(aOutline.getAttribute("xmlUrl"));
     if (uri) {
       let name = aOutline.getAttribute("title") || aOutline.getAttribute("text");
-      let feed = new SnowlFeed(null, name || "untitled", uri);
+      // FIXME: fix the API so I don't have to pass a bunch of null and undefined
+      // values (that undefined value, incidentally, can probably be null).
+      let feed = new SnowlFeed(null, name || "untitled", uri, undefined, null);
 
       let future = new Future();
       this._subscribe(feed, future.fulfill);

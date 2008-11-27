@@ -67,7 +67,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 7,
+  _dbVersion: 8,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -93,6 +93,7 @@ let SnowlDatastore = {
           // locations, not names (and thus never URNs)?
           "machineURI TEXT NOT NULL",
           "humanURI TEXT",
+          "username TEXT",
           "lastRefreshed REAL",
           "importance INTEGER"
         ]
@@ -405,7 +406,7 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * update its name every time we increase the current schema version.
    */
-  _dbMigrate0To7: function(aDBConnection) {
+  _dbMigrate0To8: function(aDBConnection) {
     this._dbCreateTables(aDBConnection);
   },
 
@@ -417,10 +418,11 @@ let SnowlDatastore = {
    * the latest version via a series of steps instead of writing one-off functions
    * like this one to do the database migration.
    */
-  _dbMigrate4To7: function(aDBConnection) {
+  _dbMigrate4To8: function(aDBConnection) {
     this._dbMigrate4To5(aDBConnection);
     this._dbMigrate5To6(aDBConnection);
     this._dbMigrate6To7(aDBConnection);
+    this._dbMigrate7To8(aDBConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -508,6 +510,13 @@ let SnowlDatastore = {
       "UPDATE messages SET subject = NULL WHERE sourceID IN " +
       "(SELECT id FROM sources WHERE type = 'SnowlTwitter')"
     );
+  },
+
+  /**
+   * Migrate the database schema from version 7 to version 8.
+   */
+  _dbMigrate7To8: function(aDBConnection) {
+    aDBConnection.executeSimpleSQL("ALTER TABLE sources ADD COLUMN username TEXT");
   },
 
   get _selectHasSourceStatement() {

@@ -72,8 +72,8 @@ function stringToArray(string) {
   return array;
 }
 
-function SnowlFeed(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
-  SnowlSource.init.call(this, aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance);
+function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
+  SnowlSource.init.call(this, aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance);
 }
 
 SnowlFeed.prototype = {
@@ -112,6 +112,7 @@ SnowlFeed.prototype = {
   name: null,
   machineURI: null,
   humanURI: null,
+  username: null,
   _lastRefreshed: null,
 
   get lastRefreshed() {

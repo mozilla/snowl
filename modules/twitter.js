@@ -66,11 +66,8 @@ const MACHINE_URI = URI.get("https://twitter.com");
 // XXX Should this be simply http://twitter.com ?
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
-function SnowlTwitter(aID, aType, aName, aMachineURI, aHumanURI, aLastRefreshed, aImportance) {
-  // XXX Should we append the username to the NAME const to enable users
-  // to subscribe to multiple Twitter accounts?
-
-  SnowlSource.init.call(this, aID, aType, NAME, MACHINE_URI, HUMAN_URI, aLastRefreshed, aImportance);
+function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
+  SnowlSource.init.call(this, aID, NAME, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance);
   SnowlTarget.init.call(this);
 }
 
@@ -103,6 +100,7 @@ SnowlTwitter.prototype = {
   name: null,
   machineURI: null,
   humanURI: null,
+  username: null,
   _lastRefreshed: null,
 
   get lastRefreshed() {
@@ -162,11 +160,9 @@ SnowlTwitter.prototype = {
   // the request succeeds, at which point we store it with the login manager.
   _authInfo: null,
 
-  // Logins from the login manager that we try in turn until we run out of them
-  // or one of them works.
-  // XXX Should we only try the username the user entered when they originally
-  // subscribed to the source?  After all, different usernames could result in
-  // different content, and it might not be what the user expects.
+  // Logins from the login manager that match the username associated with
+  // the account.  We try each in turn until one of them works or we run out
+  // of them.  If we run out of them, we prompt the user to enter one.
   _logins: null,
   _loginIndex: 0,
 
@@ -183,14 +179,16 @@ SnowlTwitter.prototype = {
   // nsIAuthPrompt2
 
   promptAuth: function(channel, level, authInfo) {
-    // Check saved logins before prompting the user.  We get them
-    // from the login manager and try each in turn until one of them works
-    // or we run out of them.
+    // Check saved logins before prompting the user.  We get them from the login
+    // manager and try each in turn until one of them works or we run out of them.
     if (!this._logins) {
       let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
       // XXX Should we be using channel.URI.prePath in case the old URI
       // redirects us to a new one at a different hostname?
-      this._logins = lm.findLogins({}, this.machineURI.prePath, null, authInfo.realm);
+      // Set a local variable because we can't use "this" in the filter function.
+      let username = this.username;
+      this._logins = lm.findLogins({}, this.machineURI.prePath, null, authInfo.realm).
+                     filter(function(login) login.username == username);
     }
 
     let login = this._logins[this._loginIndex];
@@ -208,11 +206,12 @@ SnowlTwitter.prototype = {
     args.AppendElement(authInfo);
 
     // |result| is how the dialog passes information back to us.  It sets two
-    // properties on the object: |proceed|, which we return from this function,
-    // and which determines whether or not authentication can proceed using
-    // the values entered by the user; and |remember|, which determines whether
-    // or not we save the user's login with the login manager once the request
-    // succeeds.
+    // properties on the object:
+    //   |proceed|, which we return from this function, and which determines
+    //     whether or not authentication can proceed using the value(s) entered
+    //     by the user;
+    //   |remember|, which determines whether or not we save the user's login
+    //     with the login manager once the request succeeds.
     let result = {};
     args.AppendElement({ wrappedJSObject: result });
 
@@ -241,6 +240,9 @@ SnowlTwitter.prototype = {
   subscribe: function(credentials) {
     Observers.notify(this, "snowl:subscribe:connect:start", null);
 
+    this.username = credentials.username;
+    this.name = NAME + " " + this.username;
+
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
     request.QueryInterface(Ci.nsIDOMEventTarget);
@@ -250,7 +252,8 @@ SnowlTwitter.prototype = {
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
 
-    request.open("GET", this.machineURI.spec + "/account/verify_credentials.json", true);
+    request.open("GET", "https://" + this.username + "@twitter.com" +
+                 "/account/verify_credentials.json", true);
 
     // We could just set the Authorization request header here, but then
     // we wouldn't get an nsIAuthInformation object through our notification
@@ -353,7 +356,8 @@ SnowlTwitter.prototype = {
     // FIXME: use the count parameter to retrieve more messages at once.
     // FIXME: use the since or since_id parameter to retrieve only new messages.
     // http://groups.google.com/group/twitter-development-talk/web/api-documentation
-    request.open("GET", this.machineURI.spec + "/statuses/friends_timeline.json", true);
+    request.open("GET", "https://" + this.username + "@twitter.com" +
+                 "/statuses/friends_timeline.json", true);
 
     // Register a listener for notification callbacks so we handle authentication.
     request.channel.notificationCallbacks = this;
@@ -553,7 +557,10 @@ SnowlTwitter.prototype = {
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   },
 
-  // FIXME: factor this out with the identical function in feed.js.
+  // XXX Perhaps factor this out with the identical function in feed.js,
+  // although this function supports multiple accounts with the same server
+  // and doesn't allow the user to change their username, so maybe that's
+  // not possible (or perhaps we can reconcile those differences).
   _saveLogin: function() {
     let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
 
@@ -575,14 +582,13 @@ SnowlTwitter.prototype = {
     let logins = lm.findLogins({}, this.machineURI.prePath, null, this._authInfo.realm);
 
     // Try to figure out if we should replace one of the existing logins.
-    // If there's only one existing login, we replace it.  Otherwise, if
-    // there's a login with the same username, we replace that.  Otherwise,
-    // we add the new login instead of replacing an existing one.
+    // If there's a login with the same username, we replace it.
+    // Otherwise, we add the new login instead of replacing an existing one.
     let oldLogin;
-    if (logins.length == 1)
-      oldLogin = logins[0];
-    else if (logins.length > 1)
-      oldLogin = logins.filter(function(v) v.username == this._authInfo.username)[0];
+    // Set a local variable because we can't use "this" in the filter function.
+    let authInfo = this._authInfo;
+    if (logins.length > 0)
+      oldLogin = logins.filter(function(v) v.username == authInfo.username)[0];
 
     if (oldLogin)
       lm.modifyLogin(oldLogin, newLogin);
@@ -616,7 +622,8 @@ SnowlTwitter.prototype = {
     }
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("POST", this.machineURI.spec + "/statuses/update.json", true);
+    request.open("POST", "https://" + this.username + "@twitter.com" +
+                 "/statuses/update.json", true);
     request.channel.notificationCallbacks = this;
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send(data);

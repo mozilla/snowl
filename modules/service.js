@@ -160,10 +160,10 @@ let SnowlService = {
       throw "no constructor for type " + row.type;
 
     return new constructor(row.id,
-                           row.type,
                            row.name,
                            URI.get(row.machineURI),
                            URI.get(row.humanURI),
+                           row.username,
                            SnowlDateUtils.julianToJSDate(row.lastRefreshed),
                            row.importance);
   },
@@ -171,7 +171,7 @@ let SnowlService = {
   get _getAccountStatement() {
     delete this._getAccountStatement;
     return this._getAccountStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
+      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance " +
       "FROM sources WHERE id = :id"
     );
   },
@@ -199,7 +199,7 @@ let SnowlService = {
   get _accountsStatement() {
     delete this._accountsStatement;
     return this._accountsStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, lastRefreshed, importance " +
+      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance " +
       "FROM sources"
     );
   },

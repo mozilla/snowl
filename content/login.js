@@ -56,8 +56,13 @@ function doOnLoad() {
 
   document.getElementById("realm").value = authInfo.realm;
 
-  document.getElementById("username").value = authInfo.username;
+  document.getElementById("username").value = source.username || authInfo.username;
   document.getElementById("password").value = authInfo.password;
+
+  if (source.username) {
+    document.getElementById("username").readOnly = true;
+    document.getElementById("password").focus();
+  }
 
   // FIXME: handle authInfo.flags (i.e. don't prompt for username if it's
   // already available, and prompt for domain if necessary).
