@@ -39,8 +39,14 @@ Cu.import("resource://snowl/modules/opml.js");
 
 let SnowlToolbar = {
   subscribe: function(event) {
+    // The subscriptions interface has been moved to the options dialog,
+    // so open the options dialog when the user presses the subscribe button.
+    // Note: even though we open this in a tab, it will cause the Preferences
+    // dialog to open.  Ultimately the subscriptions interface will be in its
+    // own dialog and we'll directly open that dialog here (see the code
+    // in options.xul for how to open it).
     gBrowserWindow.gBrowser.selectedTab =
-      gBrowserWindow.gBrowser.addTab("chrome://snowl/content/subscribe.xul");
+      gBrowserWindow.gBrowser.addTab("chrome://snowl/content/options.xul");
   },
 
   // FIXME: make this work again.
