@@ -34,10 +34,16 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
+// On Mac, these constants already exist.  On Windows and Linux they don't.
+// So we have to conditionally define them (and thus make them variables).
+if (typeof Cc == "undefined")
+  var Cc = Components.classes;
+if (typeof Ci == "undefined")
+  var Ci = Components.interfaces;
+if (typeof Cr == "undefined")
+  var Cr = Components.results;
+if (typeof Cu == "undefined")
+  var Cu = Components.utils;
 
 // modules that come with Firefox
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
