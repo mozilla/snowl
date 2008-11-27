@@ -411,8 +411,7 @@ let SnowlDatastore = {
   },
 
   /**
-   * Snowl version 0.1 had database schema version 4.  This function upgrades
-   * those users to the current version.
+   * Upgrade database schema from version 4 (0.1, 0.1.1) to current version.
    *
    * FIXME: do multi-version upgrades automatically if it's possible to get to
    * the latest version via a series of steps instead of writing one-off functions
@@ -420,6 +419,15 @@ let SnowlDatastore = {
    */
   _dbMigrate4To8: function(aDBConnection) {
     this._dbMigrate4To5(aDBConnection);
+    this._dbMigrate5To6(aDBConnection);
+    this._dbMigrate6To7(aDBConnection);
+    this._dbMigrate7To8(aDBConnection);
+  },
+
+  /**
+   * Upgrade database schema from version 5 (0.2pre1, 0.2pre2) to current version.
+   */
+  _dbMigrate5To8: function(aDBConnection) {
     this._dbMigrate5To6(aDBConnection);
     this._dbMigrate6To7(aDBConnection);
     this._dbMigrate7To8(aDBConnection);
@@ -503,7 +511,8 @@ let SnowlDatastore = {
    *
    * This doesn't actually change the physical database schema, it just removes
    * subjects from Twitter messages, since it no longer makes sense to store
-   * tweets as both the subjects and the content of messages.
+   * tweets as both the subjects and the content of messages now that the views
+   * support messages that don't necessarily have subjects.
    */
   _dbMigrate6To7: function(aDBConnection) {
     aDBConnection.executeSimpleSQL(
