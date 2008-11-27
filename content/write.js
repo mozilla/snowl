@@ -67,22 +67,40 @@ let WriteForm = {
   },
 
   get _stringBundle() {
-dump('document.getElementById("snowlWriteBundle"): ' + document.getElementById("snowlWriteBundle") + "\n");
     delete this._stringBundle;
     return this._stringBundle = document.getElementById("snowlWriteBundle");
   },
 
+  get _targetMenu() {
+    delete this._targetMenu;
+    return this._targetMenu = document.getElementById("targetMenu");
+  },
+
   // FIXME: if there is more than one target, let the user choose which one to use.
-  _target: null,
+  get _target() {
+    return this._targetMenu.selectedItem.target;
+  },
 
   init: function() {
-    this._target = SnowlService.targets[0];
+    for each (let target in SnowlService.targets) {
+      let targetItem = this._targetMenu.appendItem(target.name);
+      targetItem.target = target;
+    }
+    // FIXME: reselect the last target through which the user sent a message.
+    this._targetMenu.selectedIndex = 0;
 
     // Set the initial state of the length counter and send button.
     this.onInputMessage();
   },
 
+  onSelectTarget: function() {
+    // Update the length counter and the Send button's state.
+    this.onInputMessage();
+  },
+
   onInputMessage: function() {
+    // FIXME: accommodate targets that don't have a maximum message length.
+
     // Update the counter to reflect how many characters the user can still type.
     this._writeCounter.value =
       this._target.maxMessageLength - this._writeTextbox.value.length;
@@ -97,6 +115,7 @@ dump('document.getElementById("snowlWriteBundle"): ' + document.getElementById("
     this._sendButton.label = this._stringBundle.getString("sendButton.label.sending");
     this._sendButton.disabled = true;
     this._writeTextbox.disabled = true;
+    this._targetMenu.disabled = true;
 
     let content = this._writeTextbox.value;
     let callback = function() { WriteForm.onMessageSent() };
@@ -116,6 +135,8 @@ dump('document.getElementById("snowlWriteBundle"): ' + document.getElementById("
     this._sendButton.label = this._stringBundle.getString("sendButton.label");
     this._sendButton.disabled = false;
     this._writeTextbox.disabled = false;
+    this._targetMenu.disabled = false;
+    this._targetMenu.removeAllItems();
     this._writeTextbox.value = "";
     this._target = null;
 

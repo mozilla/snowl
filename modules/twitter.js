@@ -67,7 +67,7 @@ const MACHINE_URI = URI.get("https://twitter.com");
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
-  SnowlSource.init.call(this, aID, NAME, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance);
+  SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance);
   SnowlTarget.init.call(this);
 }
 

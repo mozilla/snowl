@@ -50,6 +50,9 @@
   </stringbundleset>
 
   <vbox id="writeForm">
+    <menulist id="targetMenu" oncommand="WriteForm.onSelectTarget()">
+      <menupopup/>
+    </menulist>
     <textbox id="writeTextbox" multiline="true" rows="3" oninput="WriteForm.onInputMessage()"/>
     <hbox>
       <description id="writeCounter"/>
