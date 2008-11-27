@@ -102,31 +102,31 @@
             persist="selectedIndex">
 
       <tabs id="snowlPrefsTabs">
-        <tab id="snowlPrefsTabGeneral"
-             label="&generalTab.label;"
-             XXXhelpTopic="prefs-snowl-general"/>
+        <!--<tab id="snowlPrefsTabGeneral"-->
+        <!--     label="&generalTab.label;"-->
+        <!--     XXXhelpTopic="prefs-snowl-general"/>-->
         <tab id="snowlPrefsTabSubscribe"
              label="&subscribeTab.label;"
              XXXhelpTopic="prefs-snowl-subscribe"/>
-        <tab id="snowlPrefsTabOrganize"
-             label="&organizeTab.label;"
-             disabled="true"
-             XXXhelpTopic="prefs-snowl-organize"/>
+        <!--<tab id="snowlPrefsTabOrganize"-->
+        <!--     label="&organizeTab.label;"-->
+        <!--     disabled="true"-->
+        <!--     XXXhelpTopic="prefs-snowl-organize"/>-->
       </tabs>
 
       <tabpanels id="snowlPrefsPanels" flex="1">
 
         <!-- General -->
-        <tabpanel id="snowlPrefsGeneralPanel" orient="vertical">
+        <!--<tabpanel id="snowlPrefsGeneralPanel" orient="vertical">-->
           <!-- Layouts -->
-          <groupbox id="snowlPanel1a" align="start">
-            <caption label="Layouts"/>
-          </groupbox>
+          <!--<groupbox id="snowlPanel1a" align="start">-->
+          <!--  <caption label="Layouts"/>-->
+          <!--</groupbox>-->
           <!-- Browsing -->
-          <groupbox id="snowlPanel1b" align="start">
-            <caption label="Other"/>
-          </groupbox>
-        </tabpanel>
+        <!--  <groupbox id="snowlPanel1b" align="start">-->
+        <!--    <caption label="Other"/>-->
+        <!--  </groupbox>-->
+        <!--</tabpanel>-->
 
         <!-- Subscribe -->
         <tabpanel id="snowlPrefsSubscribePanel" orient="vertical">
@@ -233,18 +233,18 @@
         </tabpanel>
 
         <!-- Organize -->
-        <tabpanel id="snowlPrefsOrganizePanel" orient="vertical">
+        <!--<tabpanel id="snowlPrefsOrganizePanel" orient="vertical">-->
            <!--  -->
-           <groupbox id="snowlPanel3a">
-             <caption label="snowlPanel3a"/>
-           </groupbox>
+           <!--<groupbox id="snowlPanel3a">-->
+           <!--  <caption label="snowlPanel3a"/>-->
+           <!--</groupbox>-->
 
            <!--  -->
-           <groupbox id="snowlPanel3b">
-             <caption label="snowlPanel3b"/>
-           </groupbox>
-
-        </tabpanel>
+        <!--   <groupbox id="snowlPanel3b">-->
+        <!--     <caption label="snowlPanel3b"/>-->
+        <!--   </groupbox>-->
+        <!---->
+        <!--</tabpanel>-->
 
       </tabpanels>
     </tabbox>
