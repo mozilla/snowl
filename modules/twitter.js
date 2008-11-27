@@ -241,7 +241,7 @@ SnowlTwitter.prototype = {
     Observers.notify(this, "snowl:subscribe:connect:start", null);
 
     this.username = credentials.username;
-    this.name = NAME + " " + this.username;
+    this.name = NAME + " - " + this.username;
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -383,8 +383,19 @@ SnowlTwitter.prototype = {
     // _authInfo only gets set if we prompted the user to authenticate
     // and the user checked the "remember password" box.  Since we're here,
     // it means the request succeeded, so we save the login.
-    if (this._authInfo)
+    if (this._authInfo) {
+      // Fix the name and username attributes of Twitter accounts from earlier
+      // versions of Snowl that didn't support multiple accounts (i.e. anything
+      // before 0.2pre3).
+      if (!this.username) {
+        this.username = this._authInfo.username;
+        this.name = NAME + " - " + this._authInfo.username;
+        this.persist();
+        Observers.notify(null, "snowl:sources:changed", null);
+      }
+
       this._saveLogin();
+    }
 
     this._processRefresh(request.responseText);
   },
