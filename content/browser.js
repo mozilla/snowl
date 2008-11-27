@@ -96,38 +96,30 @@ let Snowl = {
   //**************************************************************************//
   // Menu Popups
 
-  onToolsMenuPopupShowing: function(event) {
-    // Reuse popup
-    let popup = document.getElementById("snowlMenuPopup");
-    let element = document.getElementById("snowlMenu");
-    document.popupNode = element;
-    popup.hidden = false;
-    popup.openPopup(element, "end_before", -3);
-  },
-
-  onToolsMenuPopupHiding: function(event) {
-    // Hide it manually, no idea why .hidePopup doesn't work..
-    let popup = document.getElementById("snowlMenuPopup");
-    //popup.hidePopup();
-    popup.hidden = true;
-  },
-
   onSnowlMenuPopupShowing: function(event) {
     // River view menuitem checkstate is off if its tab is not selected+focused
     let rivermenuitem = document.getElementById("viewSnowlRiver");
     let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
     rivermenuitem.setAttribute("checked", isRiverTab);
+  },
 
-    if (event.target.id == "snowlMenuPopup")
-      if (document.popupNode.localName == "toolbarbutton")
-        document.popupNode.setAttribute("open", true);
+  onSnowlButtonMouseDown: function(event) {
+    // Jumping thru hoops to reuse popup for menupopup and button..
+    let popup = document.getElementById("snowlMenuPopup");
+    event.target.appendChild(popup);
   },
 
   onSnowlMenuPopupHiding: function(event) {
-    event.target.hidden = false;
+    // Jumping thru hoops to reuse popup for menupopup and button..
+
+    // Move the popup back to the Tools menu (if it isn't there already).
+    // Note: we move it back after a timeout to give the toolbarbutton time
+    // to react to the hiding of the popup.  Otherwise, it would never see
+    // the popuphidden event it uses to changes its appearance from open
+    // to closed because the popup would already have been moved out from under
+    // the toolbarbutton).
     if (event.target.id == "snowlMenuPopup")
-      if (document.popupNode.localName == "toolbarbutton")
-        document.popupNode.removeAttribute("open");
+      window.setTimeout(function() document.getElementById("snowlMenu").appendChild(event.target), 0);
   },
 
   layoutName: ["classic", "vertical", "widemessage", "widethread", "stacked"],
@@ -177,12 +169,6 @@ let Snowl = {
         (!lchecked && !schecked) ? true : false);
     document.getElementById("snowlViewToolbarMenuitem").setAttribute("disabled",
         (!lchecked) ? true : false)
-  },
-
-  onSnowlButtonMouseDown: function(event) {
-    // Jumping thru hoops to reuse popup for menupopup and button..
-    let popup = document.getElementById("snowlMenuPopup");
-    popup.hidden = false;
   },
 
   // Correct state of button based on message in current tab

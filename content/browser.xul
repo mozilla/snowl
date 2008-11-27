@@ -84,143 +84,133 @@
           label="&snowlMenu.label;"
           accesskey="&snowlMenu.accesskey;"
           insertafter="menu_openAddons">
-      <menupopup id="snowlToolsMenuPopup"
-          style="visibility: collapse"
-          onpopupshowing="Snowl.onToolsMenuPopupShowing(event)"
-          onpopuphiding="Snowl.onToolsMenuPopupHiding(event)"/>
+      <menupopup id="snowlMenuPopup"
+                 onpopupshowing="Snowl.onSnowlMenuPopupShowing(event)"
+                 onpopuphiding="Snowl.onSnowlMenuPopupHiding(event)">
+        <menuitem observes="viewSnowlList" label="&listView.label;"
+                  accesskey="&listView.accesskey;"/>
+        <menuitem observes="viewSnowlStream" label="&streamView.label;"
+                  accesskey="&streamView.accesskey;"/>
+        <menuseparator/>
+        <menuitem observes="viewSnowlRiver"
+                  label="&riverView.label;"
+                  accesskey="&riverView.accesskey;"/>
+        <menuseparator/>
+        <menuitem label="&checkForNewMessages.label;"
+                  accesskey="&checkForNewMessages.accesskey;"
+                  oncommand="Snowl.onCheckForNewMessages()"/>
+        <menuseparator/>
+        <menu id="snowlLayoutMenu"
+              label="&snowlLayoutMenu.label;"
+              popup="snowlLayoutPopup"
+              accesskey="&snowlLayoutMenu.accesskey;">
+  
+          <menupopup id="snowlLayoutPopup"
+                     onpopupshowing="Snowl.onLayoutPopupShowing(event)">
+            <menuitem id="snowlLayoutMenuitemClassic"
+                      label="&layoutClassic.label;"
+                      type="radio"
+                      checked="true"
+                      accesskey="&layoutClassic.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kClassicLayout)"/>
+            <menuitem id="snowlLayoutMenuitemVertical"
+                      label="&layoutVertical.label;"
+                      type="radio"
+                      accesskey="&layoutVertical.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kVerticalLayout)"/>
+            <menuitem id="snowlLayoutMenuitemWideMessage"
+                      label="&layoutWideMessage.label;"
+                      type="radio"
+                      accesskey="&layoutWideMessage.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideMessageLayout)"/>
+            <menuitem id="snowlLayoutMenuitemWideThread"
+                      label="&layoutWideThread.label;"
+                      type="radio"
+                      accesskey="&layoutWideThread.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideThreadLayout)"/>
+            <menuitem id="snowlLayoutMenuitemStacked"
+                      label="&layoutStacked.label;"
+                      type="radio"
+                      accesskey="&layoutStacked.accesskey;"
+                      name="snowlLayoutMenuitemGroup"
+                      oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kStackedLayout)"/>
+            <menuseparator/>
+            <menuitem id="snowlHeaderMenuitemNone"
+                      label="&headerNone.label;"
+                      type="radio"
+                      accesskey="&headerNone.accesskey;"
+                      name="snowlHeaderMenuitemGroup"
+                      headerType="Snowl.kNoHeader"
+                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuitem id="snowlHeaderMenuitemBrief"
+                      label="&headerBrief.label;"
+                      type="radio"
+                      accesskey="&headerBrief.accesskey;"
+                      name="snowlHeaderMenuitemGroup"
+                      headerType="Snowl.kBriefHeader"
+                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuitem id="snowlHeaderMenuitemFull"
+                      label="&headerFull.label;"
+                      type="radio"
+                      accesskey="&headerFull.accesskey;"
+                      name="snowlHeaderMenuitemGroup"
+                      headerType="Snowl.kFullHeader"
+                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuseparator/>
+            <menuitem id="snowlHierarchyOffMenuitem"
+                      label="&hierarchyOff.label;"
+                      type="radio"
+                      accesskey="&hierarchyOff.accesskey;"
+                      name="snowlHierarchyMenuitemGroup"
+                      oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOff)"/>
+            <menuitem id="snowlHierarchyOnMenuitem"
+                      label="&hierarchyOn.label;"
+                      type="radio"
+                      accesskey="&hierarchyOn.accesskey;"
+                      name="snowlHierarchyMenuitemGroup"
+                      oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOn)"/>
+            <menuseparator/>
+            <menuitem id="snowlToolbarMenuitem"
+                      label="&toolbar.label;"
+                      type="checkbox"
+                      accesskey="&toolbar.accesskey;"
+                      name="snowlToolbar"
+                      oncommand="Snowl._toggleToolbar(event)"/>
+            <menuitem id="snowlViewToolbarMenuitem"
+                      label="&viewtoolbar.label;"
+                      type="checkbox"
+                      checked="true"
+                      persist="checked"
+                      accesskey="&viewtoolbar.accesskey;"
+                      name="snowlViewToolbar"
+                      oncommand="Snowl._toggleToolbar(event)"/>
+          </menupopup>
+  
+        </menu>
+        <menuseparator/>
+        <menuitem label="&subscribe.label;" accesskey="&subscribe.accesskey;"
+                  oncommand="Snowl.onSubscribe()"/>
+        <menuitem label="&importOPML.label;" accesskey="&importOPML.accesskey;"
+                  oncommand="Snowl.onImportOPML()"/>
+        <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
+                  oncommand="Snowl.onExportOPML()"/>
+        <menuseparator/>
+        <menuitem label="&options.label;" accesskey="&options.accesskey;"
+                  oncommand="openPreferences('paneSnowl');"/>
+      </menupopup>
     </menu>
   </menupopup>
-
-  <popupset id="mainPopupSet">
-    <popup id="snowlMenuPopup"
-               position="after_start"
-               onpopupshowing="Snowl.onSnowlMenuPopupShowing(event)"
-               onpopuphiding="Snowl.onSnowlMenuPopupHiding(event)">
-      <menuitem observes="viewSnowlList" label="&listView.label;"
-                accesskey="&listView.accesskey;"/>
-      <menuitem observes="viewSnowlStream" label="&streamView.label;"
-                accesskey="&streamView.accesskey;"/>
-      <menuseparator/>
-      <menuitem observes="viewSnowlRiver"
-                label="&riverView.label;"
-                accesskey="&riverView.accesskey;"/>
-      <menuseparator/>
-      <menuitem label="&checkForNewMessages.label;"
-                accesskey="&checkForNewMessages.accesskey;"
-                oncommand="Snowl.onCheckForNewMessages()"/>
-      <menuseparator/>
-      <menu id="snowlLayoutMenu"
-            label="&snowlLayoutMenu.label;"
-            popup="snowlLayoutPopup"
-            accesskey="&snowlLayoutMenu.accesskey;">
-
-        <menupopup id="snowlLayoutPopup"
-                   onpopupshowing="Snowl.onLayoutPopupShowing(event)">
-          <menuitem id="snowlLayoutMenuitemClassic"
-                    label="&layoutClassic.label;"
-                    type="radio"
-                    checked="true"
-                    accesskey="&layoutClassic.accesskey;"
-                    name="snowlLayoutMenuitemGroup"
-                    oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kClassicLayout)"/>
-          <menuitem id="snowlLayoutMenuitemVertical"
-                    label="&layoutVertical.label;"
-                    type="radio"
-                    accesskey="&layoutVertical.accesskey;"
-                    name="snowlLayoutMenuitemGroup"
-                    oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kVerticalLayout)"/>
-          <menuitem id="snowlLayoutMenuitemWideMessage"
-                    label="&layoutWideMessage.label;"
-                    type="radio"
-                    accesskey="&layoutWideMessage.accesskey;"
-                    name="snowlLayoutMenuitemGroup"
-                    oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideMessageLayout)"/>
-          <menuitem id="snowlLayoutMenuitemWideThread"
-                    label="&layoutWideThread.label;"
-                    type="radio"
-                    accesskey="&layoutWideThread.accesskey;"
-                    name="snowlLayoutMenuitemGroup"
-                    oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kWideThreadLayout)"/>
-          <menuitem id="snowlLayoutMenuitemStacked"
-                    label="&layoutStacked.label;"
-                    type="radio"
-                    accesskey="&layoutStacked.accesskey;"
-                    name="snowlLayoutMenuitemGroup"
-                    oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kStackedLayout)"/>
-          <menuseparator/>
-          <menuitem id="snowlHeaderMenuitemNone"
-                    label="&headerNone.label;"
-                    type="radio"
-                    accesskey="&headerNone.accesskey;"
-                    name="snowlHeaderMenuitemGroup"
-                    headerType="Snowl.kNoHeader"
-                    oncommand="Snowl._toggleHeader(event)"/>
-          <menuitem id="snowlHeaderMenuitemBrief"
-                    label="&headerBrief.label;"
-                    type="radio"
-                    accesskey="&headerBrief.accesskey;"
-                    name="snowlHeaderMenuitemGroup"
-                    headerType="Snowl.kBriefHeader"
-                    oncommand="Snowl._toggleHeader(event)"/>
-          <menuitem id="snowlHeaderMenuitemFull"
-                    label="&headerFull.label;"
-                    type="radio"
-                    accesskey="&headerFull.accesskey;"
-                    name="snowlHeaderMenuitemGroup"
-                    headerType="Snowl.kFullHeader"
-                    oncommand="Snowl._toggleHeader(event)"/>
-          <menuseparator/>
-          <menuitem id="snowlHierarchyOffMenuitem"
-                    label="&hierarchyOff.label;"
-                    type="radio"
-                    accesskey="&hierarchyOff.accesskey;"
-                    name="snowlHierarchyMenuitemGroup"
-                    oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOff)"/>
-          <menuitem id="snowlHierarchyOnMenuitem"
-                    label="&hierarchyOn.label;"
-                    type="radio"
-                    accesskey="&hierarchyOn.accesskey;"
-                    name="snowlHierarchyMenuitemGroup"
-                    oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOn)"/>
-          <menuseparator/>
-          <menuitem id="snowlToolbarMenuitem"
-                    label="&toolbar.label;"
-                    type="checkbox"
-                    accesskey="&toolbar.accesskey;"
-                    name="snowlToolbar"
-                    oncommand="Snowl._toggleToolbar(event)"/>
-          <menuitem id="snowlViewToolbarMenuitem"
-                    label="&viewtoolbar.label;"
-                    type="checkbox"
-                    checked="true"
-                    persist="checked"
-                    accesskey="&viewtoolbar.accesskey;"
-                    name="snowlViewToolbar"
-                    oncommand="Snowl._toggleToolbar(event)"/>
-        </menupopup>
-
-      </menu>
-      <menuseparator/>
-      <menuitem label="&subscribe.label;" accesskey="&subscribe.accesskey;"
-                oncommand="Snowl.onSubscribe()"/>
-      <menuitem label="&importOPML.label;" accesskey="&importOPML.accesskey;"
-                oncommand="Snowl.onImportOPML()"/>
-      <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
-                oncommand="Snowl.onExportOPML()"/>
-      <menuseparator/>
-      <menuitem label="&options.label;" accesskey="&options.accesskey;"
-                oncommand="openPreferences('paneSnowl');"/>
-    </popup>
-
-  </popupset>
 
   <toolbarpalette id="BrowserToolbarPalette">
     <toolbarbutton id="snowlToolbarButton"
                    type="menu"
                    class="toolbarbutton-1"
-                   popup="snowlMenuPopup"
                    label="&snowlMenu.label;"
-                   onmouseover="Snowl.onSnowlButtonMouseDown(event)"
+                   onmousedown="Snowl.onSnowlButtonMouseDown(event)"
                    tooltiptext="&snowlMenu.label;"/>
 
     <toolbarbutton id="snowlToggleListButton"
@@ -261,8 +251,7 @@
     <statusbarpanel id="snowlStatusbarButton"
                     class="statusbarpanel-menu-iconic"
                     label="&snowlMenu.label;"
-                    popup="snowlMenuPopup"
-                    onmouseover="Snowl.onSnowlButtonMouseDown(event)"
+                    onmousedown="Snowl.onSnowlButtonMouseDown(event)"
                     insertbefore="statusbar-display">
     </statusbarpanel>
   </statusbar>
