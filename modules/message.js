@@ -158,7 +158,8 @@ SnowlMessage.prototype = {
     let contentText = construct.plainText();
 
     // XXX Does an ellipsis need to be localizable?
-    return contentText.substring(0, 140) + (contentText.length > 140 ? "…" : "");
+    // FIXME: use a real ellipsis character (…, a.k.a. &hellip;).
+    return contentText.substring(0, 140) + (contentText.length > 140 ? "..." : "");
   },
 
   get _getPartStatement() {
