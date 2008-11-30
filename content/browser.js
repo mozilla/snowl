@@ -84,11 +84,11 @@ let Snowl = {
 
     this._prefs.set("lastVersion", this._version);
 
-    // Init tab listeners
-    this._initTabListeners();
-
-    // Init river tab 
-    setTimeout(function() { Snowl._initSnowlRiverTab() }, 100);
+    // Init tab listeners and river tab 
+    setTimeout(function() {
+      Snowl._initTabListeners();
+      Snowl._initSnowlRiverTab();
+    }, 500);
 
   },
 
@@ -106,7 +106,9 @@ let Snowl = {
   onSnowlButtonMouseDown: function(event) {
     // Jumping thru hoops to reuse popup for menupopup and button..
     let popup = document.getElementById("snowlMenuPopup");
-    event.target.appendChild(popup);
+    if (event.target.id == "snowlToolbarButton" ||
+        event.target.id == "snowlStatusbarButton")
+      event.target.appendChild(popup);
   },
 
   onSnowlMenuPopupHiding: function(event) {
@@ -237,7 +239,30 @@ let Snowl = {
   },
 
   onSubscribe: function() {
-    openPreferences("paneSnowl", { "snowlTab" : "snowlPrefsTabSubscribe" });
+    return this.openSnowlPreferences("subscribe");
+  },
+
+  openSnowlPreferences: function(paneID, extraArgs) {
+//    let instantApply = getBoolPref("browser.preferences.instantApply", false);
+    let instantApply = true;
+    let features = "chrome,titlebar,toolbar,resizable=yes"
+        + (instantApply ? ",dialog=no" : ",modal");
+
+    let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
+    let win = wm.getMostRecentWindow("Snowl:Preferences");
+    if (win) {
+      win.focus();
+      if (paneID) {
+        var pane = win.document.getElementById(paneID);
+        win.document.documentElement.showPane(pane);
+      }
+
+      return win;
+    }
+
+    return openDialog("chrome://snowl/content/preferences.xul",
+                      "SnowlPreferences", features, paneID, extraArgs);
   },
 
   onImportOPML: function() {
