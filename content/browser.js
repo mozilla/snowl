@@ -106,7 +106,9 @@ let Snowl = {
   onSnowlButtonMouseDown: function(event) {
     // Jumping thru hoops to reuse popup for menupopup and button..
     let popup = document.getElementById("snowlMenuPopup");
-    event.target.appendChild(popup);
+    if (event.target.id == "snowlToolbarButton" ||
+        event.target.id == "snowlStatusbarButton")
+      event.target.appendChild(popup);
   },
 
   onSnowlMenuPopupHiding: function(event) {
