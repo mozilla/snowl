@@ -377,6 +377,25 @@ let SnowlDatastore = {
     }
   },
 
+  /**
+   * Migrate the database schema from one version to another.  Calls out to
+   * version pair specific migrator functions below.  Handles migrations from
+   * all older to newer versions of Snowl per this Snowl to DB version map:
+   *   0.1      : 4
+   *   0.1.1    : 4
+   *   0.2pre1  : 5
+   *   0.2pre2  : 5
+   *   0.2pre3  : 8
+   *   0.2pre3.1: 8
+   *
+   * Also handles migrations from each version to the next higher one for folks
+   * tracking development releases or the repository.  And might handle migrations
+   * between other version pairs on occasion as warranted.
+   *
+   * FIXME: do multi-version upgrades automatically if it's possible to get to
+   * the latest version via a series of steps instead of writing one-off
+   * functions to do the database migration for every combination of versions.
+   */
   _dbMigrate: function(aDBConnection, aOldVersion, aNewVersion) {
     if (this["_dbMigrate" + aOldVersion + "To" + aNewVersion]) {
       aDBConnection.beginTransaction();
@@ -400,23 +419,17 @@ let SnowlDatastore = {
    * 
    * We never create a database with version 0, so the database can only
    * have that version if the database file was created without the schema
-   * being constructed.  Thus migrating the database is as simple as
-   * constructing the schema as if from scratch.
+   * being constructed (f.e. because the disk was out of space and let us
+   * create the file but not populate it with any data).  Thus, migrating
+   * the database is as simple as constructing the schema from scratch.
    *
    * FIXME: special case the calling of this function so we don't have to
-   * update its name every time we increase the current schema version.
+   * rename it every time we increase the schema version.
    */
   _dbMigrate0To8: function(aDBConnection) {
     this._dbCreateTables(aDBConnection);
   },
 
-  /**
-   * Upgrade database schema from version 4 (0.1, 0.1.1) to current version.
-   *
-   * FIXME: do multi-version upgrades automatically if it's possible to get to
-   * the latest version via a series of steps instead of writing one-off functions
-   * like this one to do the database migration.
-   */
   _dbMigrate4To8: function(aDBConnection) {
     this._dbMigrate4To5(aDBConnection);
     this._dbMigrate5To6(aDBConnection);
@@ -424,11 +437,13 @@ let SnowlDatastore = {
     this._dbMigrate7To8(aDBConnection);
   },
 
-  /**
-   * Upgrade database schema from version 5 (0.2pre1, 0.2pre2) to current version.
-   */
   _dbMigrate5To8: function(aDBConnection) {
     this._dbMigrate5To6(aDBConnection);
+    this._dbMigrate6To7(aDBConnection);
+    this._dbMigrate7To8(aDBConnection);
+  },
+
+  _dbMigrate6To8: function(aDBConnection) {
     this._dbMigrate6To7(aDBConnection);
     this._dbMigrate7To8(aDBConnection);
   },
