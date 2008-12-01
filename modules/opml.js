@@ -39,17 +39,18 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that are generic
+Cu.import("resource://snowl/modules/StringBundle.js");
+
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/service.js");
 
 let EXPORTED_SYMBOLS = ["SnowlOPML"];
 
 let SnowlOPML = {
-  get _stringBundle() {
-    let service = Cc["@mozilla.org/intl/stringbundle;1"].
-                  getService(Ci.nsIStringBundleService);
-    delete this._stringBundle;
-    return this._stringBundle =
-      service.createBundle("chrome://snowl/locale/opml.properties");
+  get _strings() {
+    delete this._strings;
+    return this._strings = new StringBundle("chrome://snowl/locale/opml.properties");
   },
 
   //**************************************************************************//
@@ -58,12 +59,10 @@ let SnowlOPML = {
 
   export: function(window) {
     let fp = Cc["@mozilla.org/filepicker;1"].createInstance(Ci.nsIFilePicker);
-    fp.init(window,
-            this._stringBundle.GetStringFromName("filePickerTitle"),
-            Ci.nsIFilePicker.modeSave);
-    fp.appendFilter(this._stringBundle.GetStringFromName("opmlFilterTitle"), "*.opml");
+    fp.init(window, this._strings.get("filePickerTitle"), Ci.nsIFilePicker.modeSave);
+    fp.appendFilter(this._strings.get("opmlFilterTitle"), "*.opml");
     fp.appendFilters(Ci.nsIFilePicker.filterXML | Ci.nsIFilePicker.filterAll);
-    fp.defaultString = this._stringBundle.GetStringFromName("defaultFilename");
+    fp.defaultString = this._strings.get("defaultFilename");
     fp.defaultExtension = "opml";
 
     let rv = fp.show();
@@ -98,7 +97,7 @@ let SnowlOPML = {
 
     let title = doc.createElement("title");
     head.appendChild(title);
-    title.appendChild(doc.createTextNode(this._stringBundle.GetStringFromName("documentTitle")));
+    title.appendChild(doc.createTextNode(this._strings.get("documentTitle")));
 
     let dt = doc.createElement("dateCreated");
     head.appendChild(dt);

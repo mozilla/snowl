@@ -41,9 +41,17 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-//modules that are generic
+// modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/StringBundle.js");
 
+let strings = new StringBundle("chrome://snowl/locale/utils.properties");
+
+/**
+ * Utilities for manipulating dates.
+ *
+ * FIXME: replace this with Datejs <http://www.datejs.com/>.
+ */
 let SnowlDateUtils = {
   get msInHour() 1000 * 60 * 60,
 
@@ -81,15 +89,14 @@ let SnowlDateUtils = {
                          getService(Ci.nsIScriptableDateFormat);
   },
 
-  // FIXME: make this localizable.
   days: {
-    0: "Sunday",
-    1: "Monday",
-    2: "Tuesday",
-    3: "Wednesday",
-    4: "Thursday",
-    5: "Friday",
-    6: "Saturday"
+    0: strings.get("sunday"),
+    1: strings.get("monday"),
+    2: strings.get("tuesday"),
+    3: strings.get("wednesday"),
+    4: strings.get("thursday"),
+    5: strings.get("friday"),
+    6: strings.get("saturday")
   },
 
   // FIXME: accommodate daylight savings time (DST), which could cause
@@ -182,9 +189,8 @@ let SnowlDateUtils = {
    * @returns a human-readable string representing the date
    */
   _formatDate: function(date) {
-    // FIXME: make this localizable.
     if (!date)
-      return "unknown date";
+      return strings.get("unknownDate");
 
     let day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     let now = new Date();
@@ -219,14 +225,13 @@ let SnowlDateUtils = {
                                     null);
 
     // If it's yesterday, show "Yesterday" plus the time.
-    // FIXME: make this localizable.
     if (day.getTime() == yesterday.getTime())
-      return "Yesterday " +
-             this._dfSvc.FormatTime("",
-                                    Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
-                                    date.getHours(),
-                                    date.getMinutes(),
-                                    null);
+      return strings.get("yesterdayTime",
+                         [this._dfSvc.FormatTime("",
+                                                 Ci.nsIScriptableDateFormat.timeFormatNoSeconds,
+                                                 date.getHours(),
+                                                 date.getMinutes(),
+                                                 null)]);
 
     // It's two to six days ago, so show the day of the week plus the time.
     return this._dfSvc.FormatDateTime("",
