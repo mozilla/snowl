@@ -131,7 +131,7 @@ let SnowlMessageView = {
       case "last7days":
         return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.sixDaysAgo.epoch);
       case "last4weeks":
-        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.twentySevenDaysAgo.epoch);
+        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.fourWeeksAgo.epoch);
       case "all":
       default:
         return 0;
