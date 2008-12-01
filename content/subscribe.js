@@ -34,17 +34,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-function SubscriptionListener(subject, topic, data) {
-  // FIXME: figure out why the SubscriptionListener hangs around and gets called
-  // sometimes after the page has been unloaded and Subscriber is not defined.
-  // XXX: onunload added to subscribe.xul and preferences.xul, should fix this
-  if (typeof Subscriber == "undefined") {
-    Log4Moz.repository.getLogger("Snowl.SubscriptionListener").warn(
-      "called without Subscriber; subject: " + subject + "; topic: " + topic +
-      "; data: " + data);
-    return;
-  }
+let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIWebNavigation).
+                     QueryInterface(Ci.nsIDocShellTreeItem).
+                     rootTreeItem.
+                     QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIDOMWindow);
 
+function SubscriptionListener(subject, topic, data) {
   let source = Subscriber.feed;
 
   // Don't track the status of subscriptions happening in other windows/tabs.
@@ -70,6 +67,10 @@ function SubscriptionListener(subject, topic, data) {
       else if (data == "invalid") {
         code = "error";
         message = stringBundle.getString("messageInvalid");
+      }
+      else if (data == "logindata") {
+        code = "error";
+        message = stringBundle.getString("messageInvalidLoginData");
       }
       else if (data < 200 || data > 299) {
         code = "error";
@@ -123,7 +124,7 @@ let Subscriber = {
   //**************************************************************************//
   // Initialization & Destruction
 
-  init: function() {
+  onLoad: function() {
     this.addObservers();
 
     // Parse URL parameters
@@ -141,6 +142,10 @@ let Subscriber = {
       document.getElementById("locationTextbox").value = params.feed;
       this.subscribeFeed(params.feed);
     }
+  },
+
+  onUnload: function() {
+    this.removeObservers();
   },
 
   addObservers: function() {
@@ -196,6 +201,11 @@ let Subscriber = {
 
     // FIXME: call this "source" instead of "feed".
     this.feed = twitter;
+
+    if (!credentials.username || !credentials.password) {
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "logindata");
+      return;
+    }
 
     twitter.subscribe(credentials);
   },
@@ -286,6 +296,12 @@ let Subscriber = {
 
     if (callback)
       callback();
-  })
+  }),
+
+  // Dismiss subscribe page, don't close tab. It would be nice to remove
+  // the page from session history, but it doesn't seem there's a way..
+  subscribeClose: function() {
+    gBrowserWindow.BrowserBack();
+  }
 
 };

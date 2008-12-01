@@ -48,8 +48,8 @@
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       pack="center"
       align="center"
-      onload="Subscriber.init()"
-      onunload="Subscriber.removeObservers()">
+      onload="Subscriber.onLoad()"
+      onunload="Subscriber.onUnload()">
 
   <script type="application/x-javascript" src="chrome://snowl/content/preferences.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
@@ -97,7 +97,9 @@
 
     <hbox>
       <spacer flex="1"/>
-      <button label="&closeButton.label;" oncommand="window.close()"/>
+      <button label="&closeButton.label;"
+              accesskey="&closeButton.accesskey;"
+              oncommand="Subscriber.subscribeClose()"/>
     </hbox>
 
   </vbox>

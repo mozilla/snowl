@@ -50,8 +50,9 @@ radio[pane="paneSnowl"]:active {
   -moz-image-region: rect(0px, 0px, 0px, 0px)
 }
 
-/* pinstripe */
-#paneSnowl description {
+/* pinstripe description */
+#statusMessage{
+  margin-bottom: 2px;
   font: -moz-dialog;
 }
 

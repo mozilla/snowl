@@ -171,9 +171,11 @@
                     <box/>
                     <hbox pack="start">
                       <button label="&subscribeButton.label;" default="true"
+                              accesskey="&subscribeButton.accesskey;"
                               oncommand="Subscriber.subscribeFeed()"/>
                       <spacer flex="1"/>
                       <button label="&clearButton.label;"
+                              accesskey="&clearButton.accesskey;"
                               oncommand="SnowlPreferences.clearFields()"/>
                     </hbox>
                   </row>
@@ -211,9 +213,11 @@
                     <box/>
                     <hbox >
                       <button label="&subscribeButton.label;" default="true"
+                              accesskey="&subscribeButton.accesskey;"
                               oncommand="Subscriber.subscribeTwitter()"/>
                       <spacer flex="1"/>
                       <button label="&clearButton.label;"
+                              accesskey="&clearButton.accesskey;"
                               oncommand="SnowlPreferences.clearFields()"/>
                     </hbox>
                   </row>

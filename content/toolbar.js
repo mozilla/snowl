@@ -45,18 +45,14 @@ let SnowlToolbar = {
     // dialog to open.  Ultimately the subscriptions interface will be in its
     // own dialog and we'll directly open that dialog here (see the code
     // in options.xul for how to open it).
-    gBrowserWindow.gBrowser.selectedTab =
-      gBrowserWindow.gBrowser.addTab("chrome://snowl/content/options.xul");
+    openPreferences("paneSnowl", { "snowlTab" : "snowlPrefsTabSubscribe" });
   },
 
-  // FIXME: make this work again.
   // FIXME: make this not be specific to the tree in the collections view.
   unsubscribe: function(aEvent) {
     CollectionsView.unsubscribe();
   },
 
-  // FIXME: make this be context-specific, so if we're viewing a single source
-  // it only refreshes that source, etc.
   onRefresh: function() {
     SnowlService.refreshAllSources();
   },

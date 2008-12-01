@@ -20,8 +20,11 @@
 <!ENTITY location.label               "Location:">
 <!ENTITY name.label                   "Name:">
 <!ENTITY subscribeButton.label        "Subscribe">
-<!ENTITY closeButton.label            "Close">
+<!ENTITY subscribeButton.accesskey    "S">
+<!ENTITY closeButton.label            "Back">
+<!ENTITY closeButton.accesskey        "B">
 <!ENTITY clearButton.label            "Clear">
+<!ENTITY clearButton.accesskey        "C">
 
 <!-- Organize tab -->
 <!ENTITY organizeTab.label            "Organize">
