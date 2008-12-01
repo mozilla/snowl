@@ -392,17 +392,7 @@ let SnowlMessageView = {
 
     this._contentSandbox.messages = contentBox;
 
-    let groups = [
-      { name: "The Future", epoch: Number.MAX_VALUE },
-      { name: "Today", epoch: SnowlDateUtils.today },
-      { name: "Yesterday", epoch: SnowlDateUtils.yesterday },
-      { name: SnowlDateUtils.twoDaysAgo.name, epoch: SnowlDateUtils.twoDaysAgo.epoch },
-      { name: SnowlDateUtils.threeDaysAgo.name, epoch: SnowlDateUtils.threeDaysAgo.epoch },
-      { name: SnowlDateUtils.fourDaysAgo.name, epoch: SnowlDateUtils.fourDaysAgo.epoch },
-      { name: SnowlDateUtils.fiveDaysAgo.name, epoch: SnowlDateUtils.fiveDaysAgo.epoch },
-      { name: SnowlDateUtils.sixDaysAgo.name, epoch: SnowlDateUtils.sixDaysAgo.epoch },
-      { name: "Older", epoch: 0 }
-    ];
+    let groups = SnowlDateUtils.periods.last7days;
 
     let groupIndex = 0;
 

@@ -166,7 +166,8 @@ let SnowlDateUtils = {
 
   twentySevenDaysAgo: {
     get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 27)) },
-    get name() { return "Twenty Seven Days Ago" }
+    // FIXME: remove this since we never use it.
+    get name() { return strings.get("twentySevenDaysAgo") }
   },
 
   evening: function(date) {
@@ -179,6 +180,62 @@ let SnowlDateUtils = {
 
   morning: function(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6);
+  },
+
+  /**
+   * Various time periods broken up into subperiods.  Used by views to organize
+   * messages into groups.
+   * 
+   * I wonder if it makes more sense to specify start/end times rather than
+   * epochs (which are essentially start times). Among other benefits, we could
+   * potentially eliminate unused epochs like "The Future" and (in some cases)
+   * "Older" while fixing the bug that epochs never reached don't appear in views.
+   *
+   * XXX Can this code be consolidated with the today, yesterday, etc. getters
+   * it references?
+   */
+  periods: {
+    today: [
+      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
+      { name: strings.get("evening"),   get epoch() { return SnowlDateUtils.evening(SnowlDateUtils.today) } },
+      { name: strings.get("afternoon"), get epoch() { return SnowlDateUtils.afternoon(SnowlDateUtils.today) } },
+      { name: strings.get("morning"),   get epoch() { return SnowlDateUtils.morning(SnowlDateUtils.today) } },
+      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.today } },
+      { name: strings.get("older"),     epoch: 0 }
+    ],
+    yesterday: [
+      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
+      { name: strings.get("evening"),   get epoch() { return SnowlDateUtils.evening(SnowlDateUtils.yesterday) } },
+      { name: strings.get("afternoon"), get epoch() { return SnowlDateUtils.afternoon(SnowlDateUtils.yesterday) } },
+      { name: strings.get("morning"),   get epoch() { return SnowlDateUtils.morning(SnowlDateUtils.yesterday) } },
+      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.yesterday } },
+      { name: strings.get("older"),     epoch: 0 }
+    ],
+    last7days: [
+      { name: strings.get("future"),                            epoch: Number.MAX_VALUE },
+      { name: strings.get("today"),                             get epoch() { return SnowlDateUtils.today } },
+      { name: strings.get("yesterday"),                         get epoch() { return SnowlDateUtils.yesterday } },
+      { get name() { return SnowlDateUtils.twoDaysAgo.name },   get epoch() { return SnowlDateUtils.twoDaysAgo.epoch } },
+      { get name() { return SnowlDateUtils.threeDaysAgo.name }, get epoch() { return SnowlDateUtils.threeDaysAgo.epoch } },
+      { get name() { return SnowlDateUtils.fourDaysAgo.name },  get epoch() { return SnowlDateUtils.fourDaysAgo.epoch } },
+      { get name() { return SnowlDateUtils.fiveDaysAgo.name },  get epoch() { return SnowlDateUtils.fiveDaysAgo.epoch } },
+      { get name() { return SnowlDateUtils.sixDaysAgo.name },   get epoch() { return SnowlDateUtils.sixDaysAgo.epoch } },
+      { name: strings.get("older"),                             epoch: 0 }
+    ],
+    last4weeks: [
+      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
+      { name: strings.get("weekOne"),   get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 7) } },
+      { name: strings.get("weekTwo"),   get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 14) } },
+      { name: strings.get("weekThree"), get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 21) } },
+      { name: strings.get("weekFour"),  get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28) } },
+      { name: strings.get("older"),     epoch: 0 }
+    ],
+    all: [
+      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
+      { name: strings.get("today"),     get epoch() { return SnowlDateUtils.today } },
+      { name: strings.get("yesterday"), get epoch() { return SnowlDateUtils.yesterday } },
+      { name: strings.get("older"),     epoch: 0 }
+    ]
   },
 
   /**
