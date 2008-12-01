@@ -164,10 +164,12 @@ let SnowlDateUtils = {
     get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
   },
 
-  twentySevenDaysAgo: {
-    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 27)) },
-    // FIXME: remove this since we never use it.
-    get name() { return strings.get("twentySevenDaysAgo") }
+  fourWeeksAgo: {
+    // We calculate four weeks from the beginning of the day tomorrow
+    // so that we include today in the four weeks.
+    get epoch() { return new Date(SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28)) },
+    // XXX This name getter is actually never used, so maybe we should remove it.
+    get name() { return SnowlDateUtils._formatDate(this.epoch) }
   },
 
   evening: function(date) {
@@ -262,6 +264,7 @@ let SnowlDateUtils = {
 
     // If it's in the future or more than six days in the past, format it
     // as a full date/time string, i.e.: 2008-05-13 15:37:42.
+    // FIXME: if it's at time 00:00:00, then leave off the time.
     if (day > today || day < sixDaysAgo)
       return this._dfSvc.FormatDateTime("",
                                         Ci.nsIScriptableDateFormat.dateFormatShort,
@@ -300,7 +303,7 @@ let SnowlDateUtils = {
                                       date.getHours(),
                                       date.getMinutes(),
                                       date.getSeconds());
-  },
+  }
 };
 
 let SnowlUtils = {
