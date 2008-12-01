@@ -207,6 +207,14 @@ let Subscriber = {
       return;
     }
 
+    let [name, username] = SnowlService.hasSourceUsername(
+        twitter.machineURI.spec, credentials.username)
+    if (name && credentials.username == username) {
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" +
+          username);
+      return;
+    }
+
     twitter.subscribe(credentials);
   },
 
@@ -284,7 +292,8 @@ let Subscriber = {
 
     let name = SnowlService.hasSource(feed.machineURI.spec)
     if (name) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" + name);
+      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" +
+          name);
       return;
     }
 

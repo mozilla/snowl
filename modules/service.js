@@ -284,10 +284,25 @@ let SnowlService = {
    *
    * @param aMachineURI {string}  the URI to check
    *
-   * @returns {boolean} whether or not the datastore contains the URI
+   * @returns {string} the name of the source if found otherwise null
    */
   hasSource: function(aMachineURI) {
     return SnowlDatastore.selectHasSource(aMachineURI);
+  },
+
+  /**
+   * Determine whether or not the datastore contains a source with the given URI
+   * also username for multiple subscriptions per URI. Use hasSource() for URI
+   * only check.
+   *
+   * @param aMachineURI {string}  the URI to check
+   * @param aUsername {string}  the username to check
+   *
+   * @returns {object} the [name, username] of the source and username if found
+   *                   otherwise nulls
+   */
+  hasSourceUsername: function(aMachineURI, aUsername) {
+    return SnowlDatastore.selectHasSourceUsername(aMachineURI, aUsername);
   }
 
 };
