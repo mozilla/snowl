@@ -42,7 +42,6 @@
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/x-javascript" src="chrome://browser/content/utilityOverlay.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/toolbar.js"/>
 
   <toolbar id="snowlToolbar" persist="hidden">

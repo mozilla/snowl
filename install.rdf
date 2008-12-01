@@ -10,7 +10,7 @@
     <em:description>conversations redelivered</em:description>
     <em:creator>Myk Melez</em:creator>
     <em:homepageURL>http://labs.mozilla.com/projects/snowl/</em:homepageURL>
-    <em:optionsURL>chrome://snowl/content/options.xul</em:optionsURL>
+    <em:optionsURL>chrome://snowl/content/preferences.xul</em:optionsURL>
     <em:aboutURL>chrome://snowl/content/about.xul</em:aboutURL>
 
     <!-- Firefox -->

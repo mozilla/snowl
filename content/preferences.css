@@ -36,17 +36,26 @@
 
 
 /******************************************************************************/
-/* Preferences dialog button */
+/* Preferences dialog */
+
+#SnowlPreferences {
+  width: 30em;
+  min-height: 32em;
+}
+
+#SnowlPreferences radio[pane] {
+  padding: 5px 3px 1px;
+}
 
 /* XXX make a png, maybe also activity images */
-#BrowserPreferences radio[pane="paneSnowl"] {
+#SnowlPreferences radio[pane="subscribe"] {
   list-style-image: url("chrome://snowl/content/icons/snowl-40.jpg");
 }
 
-radio[pane="paneSnowl"],
-radio[pane="paneSnowl"]:hover,
-radio[pane="paneSnowl"][selected="true"],
-radio[pane="paneSnowl"]:active {
+radio[pane="subscribe"],
+radio[pane="subscribe"]:hover,
+radio[pane="subscribe"][selected="true"],
+radio[pane="subscribe"]:active {
   -moz-image-region: rect(0px, 0px, 0px, 0px)
 }
 
@@ -57,12 +66,16 @@ radio[pane="paneSnowl"]:active {
 }
 
 /* gnomestripe */
-#paneSnowl {
+#subscribe {
   padding-bottom: 10px;
 }
 
+#resizerBox {
+  margin-top: -14px;
+}
+
 /******************************************************************************/
-/* Subscribe tab */
+/* Preferences dialog Subscribe pane */
 
 #statusIcon[status="active"] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png");
@@ -77,7 +90,7 @@ radio[pane="paneSnowl"]:active {
 }
 
 /******************************************************************************/
-/* Subscribe page */
+/* Feed Subscribe page */
 
 #content {
   border: 1px solid threedshadow;

@@ -193,14 +193,14 @@
         </menu>
         <menuseparator/>
         <menuitem label="&subscribe.label;" accesskey="&subscribe.accesskey;"
-                  oncommand="Snowl.onSubscribe()"/>
+                  oncommand="Snowl.openSnowlPreferences('subscribe');"/>
         <menuitem label="&importOPML.label;" accesskey="&importOPML.accesskey;"
                   oncommand="Snowl.onImportOPML()"/>
         <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
                   oncommand="Snowl.onExportOPML()"/>
         <menuseparator/>
         <menuitem label="&options.label;" accesskey="&options.accesskey;"
-                  oncommand="openPreferences('paneSnowl');"/>
+                  oncommand="Snowl.openSnowlPreferences();"/>
       </menupopup>
     </menu>
   </menupopup>

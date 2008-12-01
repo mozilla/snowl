@@ -34,18 +34,19 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIWebNavigation).
+                     QueryInterface(Ci.nsIDocShellTreeItem).
+                     rootTreeItem.
+                     QueryInterface(Ci.nsIInterfaceRequestor).
+                     getInterface(Ci.nsIDOMWindow);
+
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/opml.js");
 
 let SnowlToolbar = {
-  subscribe: function(event) {
-    // The subscriptions interface has been moved to the options dialog,
-    // so open the options dialog when the user presses the subscribe button.
-    // Note: even though we open this in a tab, it will cause the Preferences
-    // dialog to open.  Ultimately the subscriptions interface will be in its
-    // own dialog and we'll directly open that dialog here (see the code
-    // in options.xul for how to open it).
-    openPreferences("paneSnowl", { "snowlTab" : "snowlPrefsTabSubscribe" });
+  subscribe: function() {
+    gBrowserWindow.Snowl.onSubscribe();
   },
 
   // FIXME: make this not be specific to the tree in the collections view.

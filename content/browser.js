@@ -239,7 +239,30 @@ let Snowl = {
   },
 
   onSubscribe: function() {
-    openPreferences("paneSnowl", { "snowlTab" : "snowlPrefsTabSubscribe" });
+    return this.openSnowlPreferences("subscribe");
+  },
+
+  openSnowlPreferences: function(paneID, extraArgs) {
+//    let instantApply = getBoolPref("browser.preferences.instantApply", false);
+    let instantApply = true;
+    let features = "chrome,titlebar,toolbar,resizable=yes" +
+        (instantApply ? ",dialog=no" : ",modal");
+
+    let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator);
+    let win = wm.getMostRecentWindow("Snowl:Preferences");
+    if (win) {
+      win.focus();
+      if (paneID) {
+        var pane = win.document.getElementById(paneID);
+        win.document.documentElement.showPane(pane);
+      }
+
+      return win;
+    }
+
+    return openDialog("chrome://snowl/content/preferences.xul",
+                      "SnowlPreferences", features, paneID, extraArgs);
   },
 
   onImportOPML: function() {
