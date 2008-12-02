@@ -2,9 +2,6 @@
 <!ENTITY prefWindow.title             "Snowl Options">
 <!ENTITY page.title                   "Snowl: Subscribe to Message Sources">
 
-<!-- General pane -->
-<!ENTITY general.title                "General">
-
 <!-- Subscribe pane -->
 <!ENTITY subscribe.title              "Subscribe">
 <!ENTITY source.label                 "Subscribe to a Message Source">
@@ -12,10 +9,6 @@
 <!ENTITY feeds.accesskey              "F">
 <!ENTITY twitter.label                "Twitter">
 <!ENTITY twitter.accesskey            "T">
-<!ENTITY mail.label                   "Mail">
-<!ENTITY mail.accesskey               "M">
-<!ENTITY newsgroup.label              "Newsgroup">
-<!ENTITY newsgroup.accesskey          "N">
 <!ENTITY location.label               "Location:">
 <!ENTITY name.label                   "Name:">
 <!ENTITY subscribeButton.label        "Subscribe">
@@ -25,8 +18,19 @@
 <!ENTITY clearButton.label            "Clear">
 <!ENTITY clearButton.accesskey        "C">
 
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. -->
+
+<!--<!ENTITY mail.label                   "Mail">-->
+<!--<!ENTITY mail.accesskey               "M">-->
+<!--<!ENTITY newsgroup.label              "Newsgroup">-->
+<!--<!ENTITY newsgroup.accesskey          "N">-->
+
+<!-- General pane -->
+<!--<!ENTITY general.title                "General">-->
+
 <!-- Subscriptions pane -->
-<!ENTITY subscriptions.title          "Subscriptions">
+<!--<!ENTITY subscriptions.title          "Subscriptions">-->
 
 <!-- Organize pane -->
-<!ENTITY organize.title               "Organize">
+<!--<!ENTITY organize.title               "Organize">-->

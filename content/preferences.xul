@@ -86,10 +86,10 @@
                accesskey="&feeds.accesskey;"/>
         <radio label="&twitter.label;"
                accesskey="&twitter.accesskey;"/>
-        <radio label="&mail.label;" disabled="true"
-               accesskey="&mail.accesskey;"/>
-        <radio label="&newsgroup.label;" disabled="true"
-               accesskey="&newsgroup.accesskey;"/>
+        <!--<radio label="&mail.label;" disabled="true"-->
+        <!--       accesskey="&mail.accesskey;"/>-->
+        <!--<radio label="&newsgroup.label;" disabled="true"-->
+        <!--       accesskey="&newsgroup.accesskey;"/>-->
       </radiogroup>
       <separator class="groove-thin"/>
 
@@ -181,22 +181,22 @@
   </prefpane>
   
   <!-- Subscriptions -->
-  <prefpane id="subscriptions"
-          label="&subscriptions.title;"
-          XXXonpaneload="SnowlPreferences.onPaneLoad();">
-    <groupbox>
-      <caption label="Subscriptions"/>
-    </groupbox>
-  </prefpane>
+  <!--<prefpane id="subscriptions"-->
+  <!--        label="&subscriptions.title;"-->
+  <!--        XXXonpaneload="SnowlPreferences.onPaneLoad();">-->
+  <!--  <groupbox>-->
+  <!--    <caption label="Subscriptions"/>-->
+  <!--  </groupbox>-->
+  <!--</prefpane>-->
 
   <!-- Organize -->
-  <prefpane id="organize"
-          label="&organize.title;"
-          XXXonpaneload="SnowlPreferences.onPaneLoad();">
-    <groupbox>
-      <caption label="Organize"/>
-    </groupbox>
-  </prefpane>
+  <!--<prefpane id="organize"-->
+  <!--        label="&organize.title;"-->
+  <!--        XXXonpaneload="SnowlPreferences.onPaneLoad();">-->
+  <!--  <groupbox>-->
+  <!--    <caption label="Organize"/>-->
+  <!--  </groupbox>-->
+  <!--</prefpane>-->
 
   <hbox id="resizerBox" flex="1">
     <spacer flex="1"/>
