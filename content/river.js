@@ -83,13 +83,6 @@ let SnowlMessageView = {
     return this._faviconSvc;
   },
 
-  get _currentButton() {
-    let currentButton = document.getElementById("currentButton");
-    delete this._currentButton;
-    this._currentButton = currentButton;
-    return this._currentButton;
-  },
-
   get _bodyButton() {
     let bodyButton = document.getElementById("bodyButton");
     delete this._bodyButton;
@@ -323,9 +316,6 @@ let SnowlMessageView = {
       this._params[name] = value;
     }
 
-    if ("current" in this._params)
-      this._currentButton.checked = true;
-
     if ("body" in this._params) {
       this._bodyButton.checked = true;
       this._setBody(true);
@@ -379,16 +369,8 @@ let SnowlMessageView = {
     this._applyFilters();
   },
 
-  onCommandCurrentButton: function(aEvent) {
-    this._updateURI();
-    this._applyFilters();
-  },
-
   _applyFilters: function() {
     let filters = [];
-
-    if (this._currentButton.checked)
-      filters.push({ expression: "current = 1", parameters: {} });
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
@@ -454,9 +436,6 @@ let SnowlMessageView = {
 
   _updateURI: function() {
     let params = [];
-
-    if (this._currentButton.checked)
-      params.push("current");
 
     if (this._bodyButton.checked)
       params.push("body");

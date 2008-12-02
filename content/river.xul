@@ -89,11 +89,6 @@
                        oncommand="SnowlMessageView.onToggleWrite(event)"
                        tooltiptext="&writeButton.tooltip;"/>
 
-        <toolbarbutton id="currentButton" type="checkbox"
-                       image="chrome://snowl/content/icons/newspaper.png"
-                       oncommand="SnowlMessageView.onCommandCurrentButton(event)"
-                       tooltiptext="&currentButton.tooltip;"/>
-
         <toolbarbutton id="bodyButton" type="checkbox"
                        image="chrome://snowl/content/icons/page_white_text.png"
                        oncommand="SnowlMessageView.onCommandBodyButton(event)"

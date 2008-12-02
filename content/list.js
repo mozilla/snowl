@@ -97,11 +97,6 @@ let SnowlMessageView = {
     return this._snowlSidebar = document.getElementById("snowlSidebar");
   },
 
-  get _currentButton() {
-    delete this._currentButton;
-    return this._currentButton = document.getElementById("snowlCurrentButton");
-  },
-
   get _unreadButton() {
     delete this._unreadButton;
     return this._unreadButton = document.getElementById("snowlUnreadButton");
@@ -257,10 +252,6 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     this._applyFilters();
   },
 
-  onCommandCurrentButton: function(aEvent) {
-    this._applyFilters();
-  },
-
   onCommandUnreadButton: function(aEvent) {
     // XXX Instead of rebuilding from scratch each time, when going from
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
@@ -270,9 +261,6 @@ this._log.info("get rowCount: " + this._collection.messages.length);
 
   _applyFilters: function() {
     let filters = [];
-
-    if (this._currentButton.checked)
-      filters.push({ expression: "current = 1", parameters: {} });
 
     if (this._unreadButton.checked)
       filters.push({ expression: "read = 0", parameters: {} });

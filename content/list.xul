@@ -88,12 +88,6 @@
                pack="end"
                align="center"
                persist="hidden">
-        <toolbarbutton id="snowlCurrentButton" class="snowlToolbarButton"
-                       type="checkbox"
-                       image="chrome://snowl/content/icons/newspaper.png"
-                       oncommand="SnowlMessageView.onCommandCurrentButton(event)"
-                       tooltiptext="&currentButton.tooltip;"/>
-
         <toolbarbutton id="snowlUnreadButton" class="snowlToolbarButton"
                        type="checkbox"
                        image="chrome://snowl/content/icons/new.png"
