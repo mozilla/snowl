@@ -46,9 +46,12 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/StringBundle.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
+
+let strings = new StringBundle("chrome://snowl/locale/datastore.properties");
 
 const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
@@ -225,12 +228,12 @@ let SnowlDatastore = {
   },
 
   _defaultCollections: [
-    { name:               "All",
+    { name:               strings.get("allCollectionName"),
       iconURL:            "chrome://snowl/content/icons/rainbow.png",
       orderKey:           1,
       grouped:            false },
 
-    { name: "Sources",
+    { name:               strings.get("sourcesCollectionName"),
       iconURL:            "chrome://browser/skin/feeds/feedIcon16.png",
       orderKey:           2,
       grouped:            true,
@@ -238,7 +241,7 @@ let SnowlDatastore = {
       groupNameColumn:    "sources.name",
       groupHomeURLColumn: "sources.humanURI" },
 
-    { name:               "Authors",
+    { name:               strings.get("authorsCollectionName"),
       iconURL:            "chrome://snowl/content/icons/user.png",
       orderKey:           3,
       grouped:            true,
