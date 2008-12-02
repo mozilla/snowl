@@ -49,12 +49,7 @@
 
   <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
 
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/about.properties"/>
-  </stringbundleset>
-
-  <!-- FIXME: retrieve and display the version number programmatically. -->
-  <label value="&version;"/>
+  <label id="version"/>
 
   <description>
     <html:div id="attributionDiv"/>

@@ -34,36 +34,47 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let stringBundle = document.getElementById("snowlStringBundle");
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
 
-let silkIconSetName = stringBundle.getString("silkIconSetName");
-let silkIconSetURL = stringBundle.getString("silkIconSetURL");
-let silkIconSet = '<html:a href="" link="' + silkIconSetURL +
-                  '" onclick="visitLink(event)">' + silkIconSetName +
-                  '</html:a>';
+// modules that are generic
+Cu.import("resource://snowl/modules/StringBundle.js");
 
-let ccA25LicenseName = stringBundle.getString("ccA25LicenseName");
-let ccA25LicenseURL = stringBundle.getString("ccA25LicenseURL");
-let ccA25License = '<html:a href="" link="' + ccA25LicenseURL +
-                   '" onclick="visitLink(event)">' + ccA25LicenseName +
-                   '</html:a>';
+let strings = new StringBundle("chrome://snowl/locale/about.properties");
 
-let opmlIconProjectName = stringBundle.getString("opmlIconProjectName");
-let opmlIconProjectURL = stringBundle.getString("opmlIconProjectURL");
-let opmlIconProject = '<html:a href="" link="' + opmlIconProjectURL +
-                      '" onclick="visitLink(event)">' + opmlIconProjectName +
+
+// First, generate links for each of the projects and licenses we reference.
+
+let silkIconSet     = '<html:a href="" link="' + strings.get("silkIconSetURL") +
+                      '" onclick="visitLink(event)">' + strings.get("silkIconSetName") +
                       '</html:a>';
 
-let ccASA25LicenseName = stringBundle.getString("ccASA25LicenseName");
-let ccASA25LicenseURL = stringBundle.getString("ccASA25LicenseURL");
-let ccASA25License = '<html:a href="" link="' + ccASA25LicenseURL +
-                     '" onclick="visitLink(event)">' + ccASA25LicenseName +
-                     '</html:a>';
+let ccA25License    = '<html:a href="" link="' + strings.get("ccA25LicenseURL") +
+                      '" onclick="visitLink(event)">' + strings.get("ccA25LicenseName") +
+                      '</html:a>';
 
-let attribution =
-  stringBundle.getFormattedString("attribution", [silkIconSet,
-                                                  ccA25License,
-                                                  opmlIconProject,
-                                                  ccASA25License]);
+let opmlIconProject = '<html:a href="" link="' + strings.get("opmlIconProjectURL") +
+                      '" onclick="visitLink(event)">' + strings.get("opmlIconProjectName") +
+                      '</html:a>';
 
-document.getElementById("attributionDiv").innerHTML = attribution;
+let ccASA25License  = '<html:a href="" link="' + strings.get("ccASA25LicenseURL") +
+                      '" onclick="visitLink(event)">' + strings.get("ccASA25LicenseName") +
+                      '</html:a>';
+
+
+// Then insert the links into the attribution statement that references them.
+
+document.getElementById("attributionDiv").innerHTML =
+  strings.get("attribution", [silkIconSet, ccA25License, opmlIconProject, ccASA25License]);
+
+
+// Finally, add the extension's version to the dialog.
+
+let version = Cc["@mozilla.org/extensions/manager;1"].
+              getService(Ci.nsIExtensionManager).
+              getItemForID("snowl@mozilla.org").
+              version;
+
+document.getElementById("version").value = strings.get("version", [version]);
