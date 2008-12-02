@@ -39,7 +39,12 @@
 
 <?xml-stylesheet href="chrome://snowl/content/list.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/list.dtd">
+<!DOCTYPE overlay [
+  <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
+  %listDTD;
+  <!ENTITY % filterTextboxDTD SYSTEM "chrome://snowl/locale/filterTextbox.dtd">
+  %filterTextboxDTD;
+]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlOverlay">
@@ -94,7 +99,10 @@
                        oncommand="SnowlMessageView.onCommandUnreadButton(event)"
                        tooltiptext="&unreadButton.tooltip;"/>
 
+        <!-- FIXME: change type="timed" to type="search" once we no longer
+           - support Firefox 3.0. -->
         <textbox id="snowlFilter" type="timed" timeout="200"
+                 emptytext="&filterTextbox.emptytext;"
                  oncommand="SnowlMessageView.onFilter()"/>
       </toolbar>
 

@@ -46,6 +46,8 @@
   %riverDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
   %toolbarDTD;
+  <!ENTITY % filterTextboxDTD SYSTEM "chrome://snowl/locale/filterTextbox.dtd">
+  %filterTextboxDTD;
 ]>
 
 <!-- We load overlays via xul-overlay processing instructions rather than
@@ -128,10 +130,10 @@
         <spacer flex="1"/>
 
         <!-- FIXME: change type="timed" to type="search" once we no longer
-           - support Firefox 3.0 -->
+           - support Firefox 3.0. -->
         <textbox id="filterTextbox" type="timed" timeout="200"
                  emptytext="&filterTextbox.emptytext;"
-                 oncommand="SnowlMessageView.onFilter(event)"/>
+                 oncommand="SnowlMessageView.onFilter()"/>
       </toolbar>
 
       <vbox id="writeForm"/>

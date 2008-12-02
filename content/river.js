@@ -364,7 +364,7 @@ let SnowlMessageView = {
 
   },
 
-  onFilter: function(aEvent) {
+  onFilter: function() {
     this._updateURI();
     this._applyFilters();
   },
