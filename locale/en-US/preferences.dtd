@@ -1,6 +1,3 @@
-<!-- Snowl Options -->
-<!ENTITY prefWindow.title             "Snowl Options">
-
 <!-- Subscribe pane -->
 <!ENTITY subscribe.title              "Subscribe">
 <!ENTITY source.label                 "Subscribe to a Message Source">

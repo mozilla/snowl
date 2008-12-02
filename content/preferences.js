@@ -51,6 +51,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/StringBundle.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // Snowl-specific modules
@@ -64,6 +65,34 @@ let SnowlPreferences = {
   get _log() {
     delete this._log;
     return this._log = Log4Moz.repository.getLogger("Snowl.Preferences");
+  },
+
+  get _strings() {
+    delete this._strings;
+    return this._strings =
+      new StringBundle("chrome://snowl/locale/preferences.properties");
+  },
+
+  onLoad: function() {
+    this._setTitle();
+  },
+
+  /**
+   * Set the window title programmatically so it reflects the correct name for
+   * preferences on the user's OS (Options on Windows, Preferences elsewhere).
+   */
+  _setTitle: function() {
+    let title;
+    switch(Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime).OS) {
+      case "WINNT":
+        title = this._strings.get("titleWindows");
+        break;
+      case "Linux":
+      case "Darwin":
+      default:
+        title = this._strings.get("title");
+    }
+    document.documentElement.setAttribute("title", title);
   },
 
   onPaneLoad: function() {

@@ -52,8 +52,8 @@
             type="prefwindow"
             windowtype="Snowl:Preferences"
             XXXondialoghelp="openPrefsHelp()"
-            title="&prefWindow.title;"
-            persist="width height screenX screenY lastSelected sizemode">
+            persist="width height screenX screenY lastSelected sizemode"
+            onload="SnowlPreferences.onLoad()">
 
   <script type="application/x-javascript" src="chrome://snowl/content/preferences.js"/>
   <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
