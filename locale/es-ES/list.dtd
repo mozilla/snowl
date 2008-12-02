@@ -1,0 +1,6 @@
+<!ENTITY placementButton.tooltip "Cambiar de lugar.">
+<!ENTITY currentButton.tooltip "Mostrar sólo mensajes actuales.">
+<!ENTITY unreadButton.tooltip "Mostrar sólo mensajes no leídos.">
+<!ENTITY authorCol.label "Autor">
+<!ENTITY subjectCol.label "Tema">
+<!ENTITY timestampCol.label "Fecha">

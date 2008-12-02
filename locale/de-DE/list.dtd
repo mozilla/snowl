@@ -1,0 +1,6 @@
+<!ENTITY placementButton.tooltip "Platzierung tauschen.">
+<!ENTITY currentButton.tooltip "Nur aktuelle Nachrichten anzeigen.">
+<!ENTITY unreadButton.tooltip "Nur ungelesene Nachrichten anzeigen.">
+<!ENTITY authorCol.label "Autor">
+<!ENTITY subjectCol.label "Betreff">
+<!ENTITY timestampCol.label "Datum">

@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Authentification requise">
+<!ENTITY realm.label "La source a dit :">
+<!ENTITY username.label "Nom d&apos;utilisateur :">
+<!ENTITY password.label "Mot de passe :">
+<!ENTITY showPassword.label "Afficher le mot de passe">
+<!ENTITY rememberPassword.label "Se souvenir de ce mot de passe, s&apos;il est correct">

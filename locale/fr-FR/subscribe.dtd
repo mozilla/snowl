@@ -1,0 +1,8 @@
+<!ENTITY page.title "Snowl : s&apos;abonner aux sources de messages">
+<!ENTITY feedsTab.label "Flux">
+<!ENTITY twitterTab.label "Twitter">
+<!ENTITY opmlTab.label "OPML">
+<!ENTITY location.label "Adresse :">
+<!ENTITY subscribeButton.label "S&apos;abonner">
+<!ENTITY importOPMLButton.label "Importer un fichier OPML…">
+<!ENTITY closeButton.label "Fermer">

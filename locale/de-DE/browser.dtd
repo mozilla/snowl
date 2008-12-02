@@ -1,0 +1,5 @@
+<!ENTITY riverView.label "Nachrichtenverlauf">
+<!ENTITY riverView.accesskey "v">
+<!ENTITY listView.label "Nachrichtenliste">
+<!ENTITY listView.accesskey "m">
+<!ENTITY sidebar.label "Snowl">

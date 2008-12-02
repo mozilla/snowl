@@ -1,0 +1,6 @@
+<!ENTITY placementButton.tooltip "Inverser l&apos;emplacement.">
+<!ENTITY currentButton.tooltip "Ne voir que les messages en cours.">
+<!ENTITY unreadButton.tooltip "Ne voir que les messages non lus.">
+<!ENTITY authorCol.label "Auteur">
+<!ENTITY subjectCol.label "Sujet">
+<!ENTITY timestampCol.label "Date">

@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "Nome">
+<!ENTITY subscribeButton.tooltip "Cadastrar fontes de mensagem.">
+<!ENTITY unsubscribeButton.tooltip "Descadastrar fontes de mensagem.">
+<!ENTITY refreshButton.tooltip "Atualizar fontes de mensagens.">
+<!ENTITY exportButton.tooltip "Exportar fontes de mensagem como OPML.">

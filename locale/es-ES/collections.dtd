@@ -1,0 +1,5 @@
+<!ENTITY nameCol.label "Nombre">
+<!ENTITY subscribeButton.tooltip "Suscribirse a fuente de mensajes.">
+<!ENTITY unsubscribeButton.tooltip "Darse de baja de fuente de mensajes.">
+<!ENTITY refreshButton.tooltip "Refrescar fuente de mensajes.">
+<!ENTITY exportButton.tooltip "Exportar fuente de mensajes como OPML.">
