@@ -7,7 +7,7 @@
 
 <!-- Subscribe pane -->
 <!ENTITY subscribe.title              "Subscribe">
-<!ENTITY source.label                 "New Source">
+<!ENTITY source.label                 "Subscribe to a Message Source">
 <!ENTITY feeds.label                  "Feed">
 <!ENTITY feeds.accesskey              "F">
 <!ENTITY twitter.label                "Twitter">
