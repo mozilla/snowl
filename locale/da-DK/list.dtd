@@ -4,10 +4,3 @@
 <!ENTITY authorCol.label "Ophavsmand">
 <!ENTITY subjectCol.label "Emne">
 <!ENTITY timestampCol.label "Dato">
-
-<!ENTITY layoutClassic.label          "Classic">
-<!ENTITY layoutVertical.label         "Vertical">
-<!ENTITY layoutWideMessage.label      "Wide Message">
-<!ENTITY layoutWideThread.label       "Wide Thread">
-<!ENTITY layoutStacked.label          "Stacked">
-
