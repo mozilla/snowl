@@ -66,6 +66,7 @@
 
   <!-- Subscribe -->
   <prefpane id="subscribe"
+            flex="1"
             label="&subscribe.title;"
             onpaneload="SnowlPreferences.onPaneLoad();">
 
@@ -180,14 +181,14 @@
     </hbox>
   </prefpane>
   
-  <!-- Subscriptions -->
-  <!--<prefpane id="subscriptions"-->
-  <!--        label="&subscriptions.title;"-->
-  <!--        XXXonpaneload="SnowlPreferences.onPaneLoad();">-->
-  <!--  <groupbox>-->
-  <!--    <caption label="Subscriptions"/>-->
-  <!--  </groupbox>-->
-  <!--</prefpane>-->
+  <!-- Subscriptions
+  <prefpane id="subscriptions"
+            label="&subscriptions.title;"
+            XXXonpaneload="SnowlPreferences.onPaneLoad();">
+      <groupbox>
+        <caption label="Subscriptions"/>
+      </groupbox>
+  </prefpane> -->
 
   <!-- Organize -->
   <!--<prefpane id="organize"-->
