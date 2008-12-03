@@ -261,24 +261,8 @@ let SnowlMessageView = {
     event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
   },
 
-
-  //**************************************************************************//
-  // Writing and Sending Messages
-
   onToggleWrite: function(event) {
-    if (event.target.checked) {
-      this._writeForm.hidden = false;
-      // FIXME: only do this when the user first starts to write a message,
-      // not every time they show the write form.
-      WriteForm.init();
-    }
-    else
-      this._writeForm.hidden = true;
-  },
-
-  onMessageSent: function() {
-    this._writeButton.checked = false;
-    this._writeForm.hidden = true;
+    this._writeForm.hidden = !event.target.checked;
   },
 
 

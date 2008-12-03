@@ -38,11 +38,6 @@
 /******************************************************************************/
 /* Preferences dialog */
 
-#SnowlPreferences {
-  width: 30em;
-  min-height: 32em;
-}
-
 #SnowlPreferences radio[pane] {
   padding: 5px 3px 1px;
 }
@@ -63,6 +58,12 @@ radio[pane="subscribe"]:active {
 #statusMessage{
   margin-bottom: 2px;
   font: -moz-dialog;
+
+  /* Make it large enough to accommodate up to two lines of status.  We need
+   * to do this here because there is no status message by default, and we want
+   * Gecko to take the space a message will take up in the future into account
+   * when choosing an initial size for the window. */
+  height: 2.4em;
 }
 
 /* gnomestripe */
