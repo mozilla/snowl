@@ -36,10 +36,15 @@
 
 /* The following styles are for the Mac, which doesn't have a native style
  * for toolbarbuttons using -moz-appearance:toolbarbutton and also doesn't have
- * any styles for hover and active state.  Because Windows and Linux both use
- * -moz-appearance: toolbarbutton, these styles are ignored on those platforms,
- * so it's ok that we've placed them in this global stylesheet, but long term
- * we should move them to a Mac-specific stylesheet. */
+ * any styles for hover and active state.
+ *
+ * Because Windows and Linux both use -moz-appearance: toolbarbutton,
+ * these styles are ignored on those platforms, so it's ok that we've placed
+ * them in this global stylesheet, but long term we should move them to a Mac-
+ * specific stylesheet.
+ *
+ * These style rules are adapted from similar style rules in
+ * toolkit/themes/winstripe/global/toolbarbutton.css. */
 
 #snowlToolbar > toolbarbutton {
   /* Make the padding an even one pixel all around so the buttons (which sport
