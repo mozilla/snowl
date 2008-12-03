@@ -43,6 +43,7 @@
 // modules that come with Firefox
 
 // modules that are generic
+Cu.import("resource://snowl/modules/Observers.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/service.js");
@@ -51,6 +52,9 @@ Cu.import("resource://snowl/modules/service.js");
  * The controller for the write message form.
  */
 let WriteForm = {
+  //**************************************************************************//
+  // Convenience Getters
+
   get _writeTextbox() {
     delete this._writeTextbox;
     return this._writeTextbox = document.getElementById("writeTextbox");
@@ -76,44 +80,49 @@ let WriteForm = {
     return this._targetMenu = document.getElementById("targetMenu");
   },
 
-  // FIXME: if there is more than one target, let the user choose which one to use.
   get _target() {
-    return this._targetMenu.selectedItem.target;
+    return this._targetMenu.selectedItem ? this._targetMenu.selectedItem.target : null;
   },
 
-  init: function() {
-    for each (let target in SnowlService.targets) {
-      let targetItem = this._targetMenu.appendItem(target.name);
-      targetItem.target = target;
-    }
-    // FIXME: reselect the last target through which the user sent a message.
-    this._targetMenu.selectedIndex = 0;
 
-    // Set the initial state of the length counter and send button.
-    this.onInputMessage();
+  //**************************************************************************//
+  // Event & Notification Handlers
+
+  onLoad: function() {
+    Observers.add(this, "snowl:sources:changed");
+    this._rebuildTargetsMenu();
+    this._updateFormState();
+  },
+
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "snowl:sources:changed":
+        this._onSourcesChanged();
+        break;
+    }
+  },
+
+  _onSourcesChanged: function() {
+    this._rebuildTargetsMenu();
+    this._updateFormState();
   },
 
   onSelectTarget: function() {
-    // Update the length counter and the Send button's state.
-    this.onInputMessage();
+    this._maybeResetSendStatus();
+    this._updateFormState();
   },
 
   onInputMessage: function() {
-    // FIXME: accommodate targets that don't have a maximum message length.
-
-    // Update the counter to reflect how many characters the user can still type.
-    this._writeCounter.value =
-      this._target.maxMessageLength - this._writeTextbox.value.length;
-
-    // If the user has typed more than they can send, disable the Send button.
-    this._sendButton.disabled =
-      (this._writeTextbox.value.length > this._target.maxMessageLength);
+    this._maybeResetSendStatus();
+    this._updateFormState();
   },
 
   onSendMessage: function() {
     this._sendButton.setAttribute("state", "sending");
     this._sendButton.label = this._stringBundle.getString("sendButton.label.sending");
     this._sendButton.disabled = true;
+
     this._writeTextbox.disabled = true;
     this._targetMenu.disabled = true;
 
@@ -127,21 +136,96 @@ let WriteForm = {
     this._sendButton.setAttribute("state", "sent");
     this._sendButton.label = this._stringBundle.getString("sendButton.label.sent");
 
-    window.setTimeout(function() { WriteForm.reset() }, 5000);
+    this._writeTextbox.disabled = false;
+    this._targetMenu.disabled = false;
+
+    this._writeTextbox.value = "";
+
+    this._resetSendStatusTimeoutID =
+      window.setTimeout(function() { WriteForm.resetSendStatus() }, 5000);
   },
 
-  reset: function() {
+
+  //**************************************************************************//
+  // Everything Else
+
+  _rebuildTargetsMenu: function() {
+    // Save the ID of the selected item so we can restore the selection
+    // after rebuilding the menu.
+    let selectedItem = this._targetMenu.selectedItem;
+    let selectedItemID = selectedItem ? selectedItem.value : null;
+
+    this._targetMenu.removeAllItems();
+
+    for each (let target in SnowlService.targets) {
+      let targetItem = this._targetMenu.appendItem(target.name, target.id);
+      targetItem.target = target;
+    }
+
+    // Select a target from the list if possible.
+    if (this._targetMenu.itemCount > 0) {
+      this._targetMenu.selectedIndex = 0;
+
+      // Restore the selection if it remains in the menu after the rebuild.
+      if (selectedItemID) {
+        for (let i = 0; i < this._targetMenu.itemCount; i++) {
+          if (this._targetMenu.getItemAtIndex(i).id == selectedItemID) {
+            this._targetMenu.selectedIndex = i;
+            break;
+          }
+        }
+      }
+    }
+  },
+
+  /**
+   * Update the value of the "remaining characters" counter and the disabled
+   * status of the Send button based on the selected target and the amount
+   * of content the user has entered.
+   */
+  _updateFormState: function() {
+    if (this._target && this._target.maxMessageLength) {
+      // Update the counter to show how many more characters the user can type.
+      this._writeCounter.value =
+        this._target.maxMessageLength - this._writeTextbox.value.length;
+
+      // If the user has typed more than they can send, disable the Send button.
+      this._sendButton.disabled =
+        (this._writeTextbox.value.length > this._target.maxMessageLength);
+    }
+    else if (this._target) {
+      this._writeCounter.value = "";
+      this._sendButton.disabled = false;
+    }
+    else {
+      this._writeCounter.value = "";
+      this._sendButton.disabled = true;
+    }
+  },
+
+  /**
+   * If the send status is scheduled to reset, then reset it immediately
+   * instead of waiting for the timeout to expire.  We do this if the user
+   * starts using the form while the send status reset is pending so they can
+   * send a message immediately instead of having to wait for the timeout
+   * to reset the Send button (which doubles as the status indicator).
+   */
+  _maybeResetSendStatus: function() {
+    if (!this._resetSendStatusTimeoutID)
+      return;
+
+    window.clearTimeout(this._resetSendStatusTimeoutID);
+    this.resetSendStatus();
+  },
+
+  resetSendStatus: function() {
+    this._resetSendStatusTimeoutID = null;
+
     this._sendButton.removeAttribute("state");
     this._sendButton.label = this._stringBundle.getString("sendButton.label");
     this._sendButton.disabled = false;
-    this._writeTextbox.disabled = false;
-    this._targetMenu.disabled = false;
-    this._targetMenu.removeAllItems();
-    this._writeTextbox.value = "";
-    this._target = null;
-
-    // Let the view know the message was sent so it can do any necessary cleanup.
-    SnowlMessageView.onMessageSent();
   }
 
 };
+
+window.addEventListener("load", function() { WriteForm.onLoad() }, false);
