@@ -34,11 +34,54 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* FIXME: make these specific to the Snowl toolbar. */
-toolbarbutton {
-  -moz-appearance: none;
+/* The following styles are for the Mac, which doesn't have a native style
+ * for toolbarbuttons using -moz-appearance:toolbarbutton and also doesn't have
+ * any styles for hover and active state.  Because Windows and Linux both use
+ * -moz-appearance: toolbarbutton, these styles are ignored on those platforms,
+ * so it's ok that we've placed them in this global stylesheet, but long term
+ * we should move them to a Mac-specific stylesheet. */
+
+#snowlToolbar > toolbarbutton {
+  /* Make the padding an even one pixel all around so the buttons (which sport
+   * square icons) don't look too tall relative to their width. */
+  padding: 1px;
+
+  /* Give the buttons a little breathing room inside the toolbar. */
+  margin-top: 1px;
+  margin-bottom: 1px;
 }
 
-.toolbarbutton-icon {
+/* Specify border colors for the various states. */
+
+/* Make the top and bottom borders show up on Mac. */
+#snowlToolbar > toolbarbutton {
+  border: 1px solid transparent;
+}
+
+#snowlToolbar > toolbarbutton:hover,
+#snowlToolbar > toolbarbutton[buttonover="true"] {
+  border-color: ThreeDHighlight ThreeDShadow ThreeDShadow ThreeDHighlight;
+}
+
+#snowlToolbar > toolbarbutton:hover:active,
+#snowlToolbar > toolbarbutton[open="true"] {
+  border-color: ThreeDShadow ThreeDHighlight ThreeDHighlight ThreeDShadow;
+  background-color: rgb(221, 221, 221);
+}
+
+#snowlToolbar > toolbarbutton[disabled="true"],
+#snowlToolbar > toolbarbutton[disabled="true"]:hover,
+#snowlToolbar > toolbarbutton[disabled="true"]:hover:active,
+#snowlToolbar > toolbarbutton[disabled="true"][open="true"] {
+  border-color: transparent;
+}
+
+
+/* Remove the margins around the label and between the icon and the label,
+ * since these toolbarbuttons don't have labels. */
+#snowlToolbar > toolbarbutton > .toolbarbutton-icon {
   -moz-margin-end: 0;
+}
+#snowlToolbar > toolbarbutton > .toolbarbutton-text {
+  margin: 0;
 }
