@@ -34,47 +34,76 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
+if (typeof Cu == "undefined")
+  var Cu = Components.utils;
 
 // modules that are generic
 Cu.import("resource://snowl/modules/StringBundle.js");
 
-let strings = new StringBundle("chrome://snowl/locale/about.properties");
+let SnowlAbout = {
+  HTML_NS: "http://www.w3.org/1999/xhtml",
 
+  // From loadHomepage() behavior
+  visitLink: function (aEvent) {
+    window.close();
+    window.opener.openURL(aEvent.target.getAttribute("link"));
+  },
 
-// First, generate links for each of the projects and licenses we reference.
+  // This onload follows the generic About dialog init, so that any install.rdf
+  // based values are created first. We want to add links to various attributions
+  // so use the methods below to append to the generic dialog in the relevant
+  // structure already created.
+  onLoad: function() {
+    gExtensionID = window.arguments[0];
+    if (gExtensionID != "urn:mozilla:item:snowl@mozilla.org")
+      return;
 
-let silkIconSet     = '<html:a href="" link="' + strings.get("silkIconSetURL") +
-                      '" onclick="visitLink(event)">' + strings.get("silkIconSetName") +
-                      '</html:a>';
+    let strings = new StringBundle("chrome://snowl/locale/about.properties");
 
-let ccA25License    = '<html:a href="" link="' + strings.get("ccA25LicenseURL") +
-                      '" onclick="visitLink(event)">' + strings.get("ccA25LicenseName") +
-                      '</html:a>';
+    // First, generate links for each of the projects and licenses we reference.
+//    let babelzilla      = '<html:a href="" link="' +
+//                          strings.get("babelzillaURL") +
+//                          '" onclick="SnowlAbout.visitLink(event)" class="text-link">' +
+//                          strings.get("babelzillaName") +
+//                          '</html:a>';
 
-let opmlIconProject = '<html:a href="" link="' + strings.get("opmlIconProjectURL") +
-                      '" onclick="visitLink(event)">' + strings.get("opmlIconProjectName") +
-                      '</html:a>';
+    let silkIconSet     = '<html:a href="" link="' +
+                          strings.get("silkIconSetURL") +
+                          '" onclick="SnowlAbout.visitLink(event)" class="text-link">' +
+                          strings.get("silkIconSetName") +
+                          '</html:a>';
 
-let ccASA25License  = '<html:a href="" link="' + strings.get("ccASA25LicenseURL") +
-                      '" onclick="visitLink(event)">' + strings.get("ccASA25LicenseName") +
-                      '</html:a>';
+    let ccA25License    = '<html:a href="" link="' +
+                          strings.get("ccA25LicenseURL") +
+                          '" onclick="SnowlAbout.visitLink(event)" class="text-link">' +
+                          strings.get("ccA25LicenseName") +
+                          '</html:a>';
 
+    let opmlIconProject = '<html:a href="" link="' +
+                          strings.get("opmlIconProjectURL") +
+                          '" onclick="SnowlAbout.visitLink(event)" class="text-link">' +
+                          strings.get("opmlIconProjectName") +
+                          '</html:a>';
 
-// Then insert the links into the attribution statement that references them.
+    let ccASA25License  = '<html:a href="" link="' +
+                          strings.get("ccASA25LicenseURL") +
+                          '" onclick="SnowlAbout.visitLink(event)" class="text-link">' +
+                          strings.get("ccASA25LicenseName") +
+                          '</html:a>';
 
-document.getElementById("attributionDiv").innerHTML =
-  strings.get("attribution", [silkIconSet, ccA25License, opmlIconProject, ccASA25License]);
+    // Translators:
+//    let tBox = document.getElementById("translatorsBox");
+//    tBox.appendChild(document.createElementNS(this.HTML_NS, "html:div"));
+//    tBox.lastChild.innerHTML = strings.get("translators1", [babelzilla]);
+//    document.getElementById("extensionTranslators").removeAttribute("hidden");
 
-
-// Finally, add the extension's version to the dialog.
-
-let version = Cc["@mozilla.org/extensions/manager;1"].
-              getService(Ci.nsIExtensionManager).
-              getItemForID("snowl@mozilla.org").
-              version;
-
-document.getElementById("version").value = strings.get("version", [version]);
+    // Contributors:
+    let cBox = document.getElementById("contributorsBox");
+    cBox.appendChild(document.createElementNS(this.HTML_NS, "html:div"));
+    cBox.lastChild.innerHTML = strings.get("contributors1",
+        [silkIconSet, ccA25License, opmlIconProject, ccASA25License]);
+//    cBox.appendChild(document.createElementNS(this.HTML_NS, "html:div"));
+//    cBox.lastChild.innerHTML = strings.get("contributors2", [opmlIconProject, ccASA25License]);
+    document.getElementById("extensionContributors").removeAttribute("hidden");
+  }
+}

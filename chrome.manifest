@@ -11,6 +11,9 @@ overlay chrome://browser/content/browser.xul chrome://snowl/content/list.xul
 # For Customize to display our buttons correctly.
 style chrome://global/content/customizeToolbar.xul chrome://snowl/content/browser.css
 
+# For our About dialog.
+overlay chrome://mozapps/content/extensions/about.xul chrome://snowl/content/about.xul
+
 # Note: we overlay the river view via xul-overlay processing instructions
 # because chrome.manifest instructions require exact URLs, and the river view's
 # URL varies because of query params in response to user searches.

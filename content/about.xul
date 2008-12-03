@@ -36,24 +36,15 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/about.css" type"text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/about.css" type="text/css"?>
 
-<!DOCTYPE dialog SYSTEM "chrome://snowl/locale/about.dtd">
-
-<dialog xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:html="http://www.w3.org/1999/xhtml"
-        windowtype="Snowl:About"
-        title="&dialog.title;"
-        buttons="accept">
-
-  <script type="application/x-javascript" src="chrome://global/content/globalOverlay.js"/>
-
-  <label id="version"/>
-
-  <description>
-    <html:div id="attributionDiv"/>
-  </description>
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+         id="snowlAboutOverlay">
 
   <script type="application/x-javascript" src="chrome://snowl/content/about.js"/>
-</dialog>
+
+  <dialog id="genericAbout"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          onload="init(); SnowlAbout.onLoad();"/>
+
+</overlay>

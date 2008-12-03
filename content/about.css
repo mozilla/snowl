@@ -34,7 +34,24 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-dialog { width: 280px }
+@namespace url(http://www.w3.org/1999/xhtml);
+/* Use same properties as xul text-link class */
+.text-link {
+  color: -moz-nativehyperlinktext;
+  text-decoration: underline;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
 
-a { text-decoration: underline }
+.text-link {
+  color: red;
+  border: 1px dotted -moz-DialogText;
+}
 
+.text-link:hover:active {
+  color: red;
+}
+
+.text-link[visited="true"] {
+  color: purple;
+}
