@@ -9,6 +9,8 @@
     <em:version>0.2pre</em:version>
     <em:description>conversations redelivered</em:description>
     <em:creator>Myk Melez</em:creator>
+    <em:developer>alta88</em:developer>
+    <em:developer>Atul Varma</em:developer>
     <em:homepageURL>http://labs.mozilla.com/projects/snowl/</em:homepageURL>
     <em:optionsURL>chrome://snowl/content/preferences.xul</em:optionsURL>
     <!-- <em:aboutURL>chrome://snowl/content/about.xul</em:aboutURL> -->
