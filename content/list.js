@@ -144,8 +144,6 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   isContainer: function(aRow) { return false },
   isSeparator: function(aRow) { return false },
   isSorted: function() { return false },
-  canDrop: function() {return false},
-  drop: function() {},
   getLevel: function(aRow) { return 0 },
   getImageSrc: function(aRow, aColumn) { return null },
   getRowProperties: function (aRow, aProperties) {},

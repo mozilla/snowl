@@ -121,8 +121,6 @@ let CollectionsView = {
 
   isSeparator: function(row)         { return false },
   isSorted: function()               { return false },
-  canDrop: function() {return false},
-  drop: function() {},
 
   // FIXME: make this return true for collection names that are editable,
   // and then implement name editing on the new architecture.
