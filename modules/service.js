@@ -248,24 +248,17 @@ let SnowlService = {
 
   refreshAllSources: function(sources) {
     let allSources = sources ? sources : this.sources;
-    for each (let source in allSources)
-      this._refreshSource(source);
-  },
-
-  _refreshSource: function(source) {
+    // We specify the same refresh time when refreshing sources so that all
+    // new messages have the same received time, which makes messages sorted by
+    // received, then published times look better (more mixed together by
+    // publication time, not clumped up by source based on the received time)
+    // when retrieved in the same refresh (f.e. when the user starts their
+    // browser in the morning after leaving it off overnight).
+    let refreshTime = new Date();
+    for each (let source in allSources) {
       this._log.info("refreshing source " + source.name);
-
-      source.refresh();
-
-      // We reset the last refreshed timestamp here even though the refresh
-      // is asynchronous, so we don't yet know whether it has succeeded.
-      // The upside of this approach is that we don't keep trying to refresh
-      // a source that isn't responding, but the downside is that it takes
-      // a long time for us to refresh a source that is only down for a short
-      // period of time.  We should instead keep trying when a source fails,
-      // but with a progressively longer interval (up to the standard one).
-      // FIXME: implement the approach described above.
-      source.lastRefreshed = new Date();
+      source.refresh(refreshTime);
+    }
   },
 
   /**

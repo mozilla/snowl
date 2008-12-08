@@ -134,7 +134,7 @@ SnowlFeed.prototype = {
   },
 
   // refresh is defined elsewhere.
-  //refresh: function() {},
+  //refresh: function(refreshTime) {},
 
   persist: function() {
     SnowlSource.persist.call(this);
@@ -223,26 +223,38 @@ SnowlFeed.prototype = {
     throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
 
-  refresh: function() {
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+  _refreshTime: null,
 
+  refresh: function(refreshTime) {
+    // Cache the refresh time so we can use it as the received time when adding
+    // messages to the datastore.
+    this._refreshTime = refreshTime;
+
+    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
     request.QueryInterface(Ci.nsIDOMEventTarget);
     let t = this;
     request.addEventListener("load", function(e) { t.onRefreshLoad(e) }, false);
     request.addEventListener("error", function(e) { t.onRefreshError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-
     // The feed processor is going to parse the XML, so override the MIME type
     // in order to turn off parsing by XMLHttpRequest itself.
     request.overrideMimeType("text/plain");
-
     request.open("GET", this.machineURI.spec, true);
-
     // Register a listener for notification callbacks so we handle authentication.
     request.channel.notificationCallbacks = this;
 
     request.send(null);
+
+    // We set the last refreshed timestamp here even though the refresh
+    // is asynchronous, so we don't yet know whether it has succeeded.
+    // The upside of this approach is that we don't keep trying to refresh
+    // a source that isn't responding, but the downside is that it takes
+    // a long time for us to refresh a source that is only down for a short
+    // period of time.  We should instead keep trying when a source fails,
+    // but with a progressively longer interval (up to the standard one).
+    // FIXME: implement the approach described above.
+    this.lastRefreshed = refreshTime;
   },
 
   onRefreshLoad: function(aEvent) {
@@ -270,6 +282,8 @@ SnowlFeed.prototype = {
                  createInstance(Ci.nsIFeedProcessor);
     parser.listener = { t: this, handleResult: function(r) { this.t.onRefreshResult(r) } };
     parser.parseFromString(request.responseText, request.channel.URI);
+
+    this._refreshTime = null;
   },
 
   onRefreshError: function(aEvent) {
@@ -280,6 +294,8 @@ SnowlFeed.prototype = {
     try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
+
+    this._refreshTime = null;
   },
 
   onRefreshResult: function(aResult) {
@@ -288,10 +304,6 @@ SnowlFeed.prototype = {
     // since this method also gets called during periodically on feeds to which
     // the user is already subscribed.
     Observers.notify(this, "snowl:subscribe:get:start", null);
-
-    // Now that we know we successfully downloaded the feed and obtained
-    // a result from it, update the "last refreshed" timestamp.
-    this.lastRefreshed = new Date();
 
     // FIXME: handle the case where this throws |aResult.doc is null|
     // because the feed processor couldn't parse the feed file
@@ -328,7 +340,7 @@ SnowlFeed.prototype = {
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(feed, entry, externalID, this.lastRefreshed);
+        internalID = this._addMessage(feed, entry, externalID, this._refreshTime);
         currentMessageIDs.push(internalID);
       }
 

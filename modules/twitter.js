@@ -122,7 +122,7 @@ SnowlTwitter.prototype = {
   },
 
   // refresh is defined elsewhere.
-  //refresh: function() {},
+  //refresh: function(refreshTime) {},
 
   persist: function() {
     SnowlSource.persist.call(this);
@@ -319,7 +319,7 @@ SnowlTwitter.prototype = {
     this.persist();
     this.subscribed = true;
 
-    this.refresh();
+    this.refresh(new Date());
   },
 
   onSubscribeError: function(event) {
@@ -341,8 +341,14 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Refreshment
 
-  refresh: function() {
+  _refreshTime: null,
+
+  refresh: function(refreshTime) {
     Observers.notify(this, "snowl:subscribe:get:start", null);
+
+    // Cache the refresh time so we can use it as the received time when adding
+    // messages to the datastore.
+    this._refreshTime = refreshTime;
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -363,6 +369,16 @@ SnowlTwitter.prototype = {
     request.channel.notificationCallbacks = this;
 
     request.send(null);
+
+    // We set the last refreshed timestamp here even though the refresh
+    // is asynchronous, so we don't yet know whether it has succeeded.
+    // The upside of this approach is that we don't keep trying to refresh
+    // a source that isn't responding, but the downside is that it takes
+    // a long time for us to refresh a source that is only down for a short
+    // period of time.  We should instead keep trying when a source fails,
+    // but with a progressively longer interval (up to the standard one).
+    // FIXME: implement the approach described above.
+    this.lastRefreshed = refreshTime;
   },
 
   onRefreshLoad: function(event) {
@@ -398,6 +414,8 @@ SnowlTwitter.prototype = {
     }
 
     this._processRefresh(request.responseText);
+
+    this._refreshTime = null;
   },
 
   onRefreshError: function(event) {
@@ -408,13 +426,11 @@ SnowlTwitter.prototype = {
     try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
+
+    this._refreshTime = null;
   },
 
   _processRefresh: function(responseText) {
-    // Now that we know we successfully downloaded the source and obtained
-    // a result from it, update the "last refreshed" timestamp.
-    this.lastRefreshed = new Date();
-
     var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     let messages = JSON.decode(responseText);
 
@@ -433,7 +449,7 @@ SnowlTwitter.prototype = {
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(message, this.lastRefreshed);
+        internalID = this._addMessage(message, this._refreshTime);
         currentMessages.push(internalID);
       }
 

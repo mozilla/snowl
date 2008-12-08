@@ -202,8 +202,17 @@ let SnowlSource = {
    * Check for new messages and update the local store of messages to reflect
    * the latest updates available from the source.  This method is a stub that
    * is expected to be overridden by subclass implementations.
+   *
+   * @param   refreshTime   {Date}
+   *          the time at which a refresh currently in progress began
+   *          Note: we use this as the received time when adding messages to
+   *          the datastore.  We get it from the caller instead of generating it
+   *          ourselves to allow the caller to synchronize received times
+   *          across refreshes of multiple sources, which makes message views
+   *          sorted by received, then published look better for messages
+   *          received in the same refresh cycle.
    */
-  refresh: function() {},
+  refresh: function(refreshTime) {},
 
   /**
    * Insert a record for this source into the database, or update an existing
