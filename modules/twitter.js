@@ -66,6 +66,8 @@ const MACHINE_URI = URI.get("https://twitter.com");
 // XXX Should this be simply http://twitter.com ?
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
+// This module is based on the API documented at http://apiwiki.twitter.com/.
+
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
   SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance);
   SnowlTarget.init.call(this);
@@ -351,6 +353,37 @@ SnowlTwitter.prototype = {
 
   _refreshTime: null,
 
+  get _stmtGetMaxExternalID() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT MAX(externalID) AS maxID FROM messages WHERE sourceID = :sourceID"
+    );
+    this.__defineGetter__("_stmtGetMaxExternalID", function() statement);
+    return this._stmtGetMaxExternalID;
+  },
+
+  /**
+   * Get the maximum external ID of the messages received from this source.
+   * Newer messages always have larger integer IDs, so we can query for only
+   * new messages by specifying since_id=[max ID] in the refresh request.
+   *
+   * @returns  {Number}
+   *           the maximum external ID, if any
+   */
+  _getMaxExternalID: function() {
+    let maxID = null;
+
+    try {
+      this._stmtGetMaxExternalID.params.sourceID = this.id;
+      if (this._stmtGetMaxExternalID.step())
+        maxID = this._stmtGetMaxExternalID.row["maxID"];
+    }
+    finally {
+      this._stmtGetMaxExternalID.reset();
+    }
+
+    return maxID;
+  },
+
   refresh: function(refreshTime) {
     Observers.notify(this, "snowl:subscribe:get:start", null);
 
@@ -367,11 +400,20 @@ SnowlTwitter.prototype = {
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
 
-    // FIXME: use the count parameter to retrieve more messages at once.
-    // FIXME: use the since or since_id parameter to retrieve only new messages.
-    // http://groups.google.com/group/twitter-development-talk/web/api-documentation
+    // URL parameters that modify the return value of the request
+    let params = [];
+    // Retrieve up to 200 messages, the maximum we're allowed to retrieve
+    // in one request.
+    params.push("count=200");
+    // Retrieve only messages newer than the most recent one we've previously
+    // retrieved.
+    let (maxID = this._getMaxExternalID()) {
+      if (maxID)
+        params.push("since_id=" + maxID);
+    }
+
     request.open("GET", "https://" + this.username + "@twitter.com" +
-                 "/statuses/friends_timeline.json?count=200", true);
+                 "/statuses/friends_timeline.json?" + params.join("&"), true);
 
     // Register a listener for notification callbacks so we handle authentication.
     request.channel.notificationCallbacks = this;
