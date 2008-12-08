@@ -70,20 +70,30 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 8,
+  _dbVersion: 9,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
 
-    // Note: the externalID is a unique identifier established by the source
-    // of the message which remains constant across message transfer points
-    // and destinations.  For feeds this is the entry ID; for email messages
-    // it's the message ID.
+    // FIXME: establish a universalID property of messages that is unique
+    // across sources for cases in which multiple sources provide the same
+    // message, they identify it via an ID that is unique across sources,
+    // and we don't want to duplicate the message.
 
     // FIXME: make the datastore support multiple authors.
+
     // FIXME: support labeling the subject as HTML or another content type.
-    // FIXME: index by externalID to make lookups (f.e. when checking if we
-    // already have a message) and updates (f.e. when setting current) faster.
+
+    // FIXME: define TABLE_TYPE_FULLTEXT tables in a separate fulltextTables
+    // property and create them via a separate _dbCreateFulltextTables function
+    // just as we define indexes in a separate indexes property and create them
+    // via a separate _dbCreateIndexes function.
+
+    // FIXME: make the tables property an array of tables just as the indexes
+    // property is an array of indexes so we can create them in a specific order
+    // that respects their (currently only advisory) foreign key constraints.
+    
+    // FIXME: make columns be objects with name, type, & constraint properties.
 
     tables: {
       sources: {
@@ -107,13 +117,25 @@ let SnowlDatastore = {
         columns: [
           "id INTEGER PRIMARY KEY",
           "sourceID INTEGER NOT NULL REFERENCES sources(id)",
-          "externalID TEXT",
+
+          // externalID is a unique identifier provided by the source
+          // of the message which is constant across message transfer points
+          // and destinations.  For feeds, it's the entry ID; for email,
+          // it's the message ID; for tweets, it's the tweet ID.
+          //
+          // externalID is a BLOB because some sources (like Twitter) give
+          // messages integer IDs, and if it were TEXT, then we'd have to
+          // CAST(externalID AS INTEGER) to get it as an integer in order to
+          // do things like get the MAX(externalID) for a given Twitter source
+          // so we can retrieve only messages since_id=<the max ID>.
+          "externalID BLOB",
+
           "subject TEXT",
           "authorID INTEGER REFERENCES people(id)",
 
           // timestamp represents the date/time assigned to the message by its
           // source.  It can have multiple meanings, including when the message
-          // was 'sent' by its author, when it was published, and when it was
+          // was "sent" by its author, when it was published, and when it was
           // last updated.
           "timestamp REAL",
 
@@ -222,8 +244,18 @@ let SnowlDatastore = {
           "groupIconURLColumn TEXT"
         ]
       }
+    },
 
-    }
+    indexes: [
+      // Index the sourceID and externalID columns in the messages table
+      // to speed up checking if a message we're receiving from a source
+      // is already in the datastore.
+      {
+           name:  "messages_sourceID_externalID",
+          table:  "messages",
+        columns:  ["sourceID", "externalID"]
+      }
+    ]
 
   },
 
@@ -286,7 +318,8 @@ let SnowlDatastore = {
     var dbConnection;
 
     if (!dbFile.exists()) {
-      dbConnection = this._dbCreate(dbService, dbFile);
+      dbConnection = dbService.openUnsharedDatabase(dbFile);
+      this._dbCreate(dbConnection);
     }
     else {
       try {
@@ -311,7 +344,8 @@ let SnowlDatastore = {
         if (ex.result == Cr.NS_ERROR_FILE_CORRUPTED) {
           // Remove the corrupted file, then recreate it.
           dbFile.remove(false);
-          dbConnection = this._dbCreate(dbService, dbFile);
+          dbConnection = dbService.openUnsharedDatabase(dbFile);
+          this._dbCreate(dbConnection);
         }
         else
           throw ex;
@@ -321,12 +355,12 @@ let SnowlDatastore = {
     this.dbConnection = dbConnection;
   },
 
-  _dbCreate: function(aDBService, aDBFile) {
-    var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
-
+  _dbCreate: function(dbConnection) {
     dbConnection.beginTransaction();
     try {
       this._dbCreateTables(dbConnection);
+      this._dbCreateIndexes(dbConnection);
+      dbConnection.schemaVersion = this._dbVersion;
       this._dbInsertDefaultData(dbConnection);
       dbConnection.commitTransaction();
     }
@@ -334,8 +368,6 @@ let SnowlDatastore = {
       dbConnection.rollbackTransaction();
       throw ex;
     }
-
-    return dbConnection;
   },
 
   _dbCreateTables: function(aDBConnection) {
@@ -343,8 +375,6 @@ let SnowlDatastore = {
       let table = this._dbSchema.tables[tableName];
       this._dbCreateTable(aDBConnection, tableName, table);
     }
-
-    aDBConnection.schemaVersion = this._dbVersion;
   },
 
   _dbCreateTable: function(aDBConnection, tableName, table) {
@@ -361,6 +391,18 @@ let SnowlDatastore = {
         aDBConnection.createTable(tableName, table.columns.join(", "));
         break;
     }
+  },
+
+  _dbCreateIndexes: function(dbConnection) {
+    for each (let index in this._dbSchema.indexes)
+      this._dbCreateIndex(dbConnection, index);
+  },
+
+  _dbCreateIndex: function(dbConnection, index) {
+    dbConnection.executeSimpleSQL(
+      "CREATE INDEX " + index.name + " ON " + index.table +
+      "(" + index.columns.join(", ") + ")"
+    );
   },
 
   _dbInsertDefaultData: function(aDBConnection) {
@@ -429,26 +471,34 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * rename it every time we increase the schema version.
    */
-  _dbMigrate0To8: function(aDBConnection) {
-    this._dbCreateTables(aDBConnection);
+  _dbMigrate0To9: function(dbConnection) {
+    this._dbCreate(dbConnection);
   },
 
-  _dbMigrate4To8: function(aDBConnection) {
-    this._dbMigrate4To5(aDBConnection);
-    this._dbMigrate5To6(aDBConnection);
-    this._dbMigrate6To7(aDBConnection);
-    this._dbMigrate7To8(aDBConnection);
+  _dbMigrate4To9: function(dbConnection) {
+    this._dbMigrate4To5(dbConnection);
+    this._dbMigrate5To6(dbConnection);
+    this._dbMigrate6To7(dbConnection);
+    this._dbMigrate7To8(dbConnection);
+    this._dbMigrate8To9(dbConnection);
   },
 
-  _dbMigrate5To8: function(aDBConnection) {
-    this._dbMigrate5To6(aDBConnection);
-    this._dbMigrate6To7(aDBConnection);
-    this._dbMigrate7To8(aDBConnection);
+  _dbMigrate5To9: function(dbConnection) {
+    this._dbMigrate5To6(dbConnection);
+    this._dbMigrate6To7(dbConnection);
+    this._dbMigrate7To8(dbConnection);
+    this._dbMigrate8To9(dbConnection);
   },
 
-  _dbMigrate6To8: function(aDBConnection) {
-    this._dbMigrate6To7(aDBConnection);
-    this._dbMigrate7To8(aDBConnection);
+  _dbMigrate6To9: function(dbConnection) {
+    this._dbMigrate6To7(dbConnection);
+    this._dbMigrate7To8(dbConnection);
+    this._dbMigrate8To9(dbConnection);
+  },
+
+  _dbMigrate7To9: function(dbConnection) {
+    this._dbMigrate7To8(dbConnection);
+    this._dbMigrate8To9(dbConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -546,6 +596,42 @@ let SnowlDatastore = {
     aDBConnection.executeSimpleSQL("ALTER TABLE sources ADD COLUMN username TEXT");
   },
 
+  /**
+   * Migrate the database schema from version 8 to version 9.
+   */
+  _dbMigrate8To9: function(dbConnection) {
+    // Move the old messages table out of the way.
+    dbConnection.executeSimpleSQL("ALTER TABLE messages RENAME TO messagesOld");
+
+    // Create the new messages table and its index.
+    this._dbCreateTable(dbConnection, "messages", this._dbSchema.tables.messages);
+    this._dbCreateIndex(dbConnection, this._dbSchema.indexes[0]);
+
+    // Copy messages that aren't from Twitter.
+    dbConnection.executeSimpleSQL(
+      "INSERT INTO messages(id, sourceID, externalID, subject, authorID, " +
+      "                     timestamp, received, link, current, read) " +
+      "SELECT      messagesOld.id, sourceID, externalID, subject, " +
+      "            authorID, timestamp, received, link, current, read " +
+      "FROM        messagesOld JOIN sources ON messagesOld.sourceID = sources.id " +
+      "WHERE       sources.type != 'SnowlTwitter'"
+    );
+
+    // Copy messages that are from Twitter, converting their externalIDs
+    // to integers in the process.
+    dbConnection.executeSimpleSQL(
+      "INSERT INTO messages(id, sourceID, externalID, subject, authorID, " +
+      "                     timestamp, received, link, current, read) " +
+      "SELECT      messagesOld.id, sourceID, CAST(externalID AS INTEGER), subject, " +
+      "            authorID, timestamp, received, link, current, read " +
+      "FROM        messagesOld JOIN sources ON messagesOld.sourceID = sources.id " +
+      "WHERE       sources.type = 'SnowlTwitter'"
+    );
+
+    // Drop the old messages table.
+    dbConnection.executeSimpleSQL("DROP TABLE messagesOld");
+  },
+
   get _selectHasSourceStatement() {
     let statement = this.createStatement(
       "SELECT name FROM sources WHERE machineURI = :machineURI"
@@ -616,29 +702,6 @@ let SnowlDatastore = {
     }
 
     return false;
-  },
-
-  get _selectInternalIDForExternalIDStatement() {
-    let statement = this.createStatement(
-      "SELECT id FROM messages WHERE externalID = :externalID"
-    );
-    this.__defineGetter__("_selectInternalIDForExternalIDStatement", function() { return statement });
-    return this._selectInternalIDForExternalIDStatement;
-  },
-
-  selectInternalIDForExternalID: function(aExternalID) {
-    let internalID;
-
-    try {
-      this._selectInternalIDForExternalIDStatement.params.externalID = aExternalID;
-      if (this._selectInternalIDForExternalIDStatement.step())
-        internalID = this._selectInternalIDForExternalIDStatement.row["id"];
-    }
-    finally {
-      this._selectInternalIDForExternalIDStatement.reset();
-    }
-
-    return internalID;
   },
 
   get _insertMessageStatement() {

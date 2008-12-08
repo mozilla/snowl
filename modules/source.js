@@ -85,6 +85,7 @@ Cu.import("resource://snowl/modules/utils.js");
  *
  * Objects that inherit other functionality should redeclare every attribute
  * in SnowlSource, manually delegating to SnowlSource as appropriate:
+ * FIXME: make it possible to import attributes instead of redeclaring them.
  *
  *   function MyThing = {
  *     SnowlSource.init.call(this, ...);
@@ -257,6 +258,40 @@ let SnowlSource = {
     // Extract the ID of the source from the newly-created database record.
     if (!this.id)
       this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+  },
+
+  get _stmtGetInternalIDForExternalID() {
+    let statement = this.createStatement(
+      "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
+    );
+    this.__defineGetter__("_stmtGetInternalIDForExternalID", function() statement);
+    return this._stmtGetInternalIDForExternalID;
+  },
+
+  /**
+   * Get the internal ID of the message with the given external ID.
+   *
+   * @param    externalID   {String}
+   *           the external ID of the message
+   *
+   * @returns  {Number}
+   *           the internal ID of the message, or undefined if the message
+   *           doesn't exist
+   */
+  _getInternalIDForExternalID: function(externalID) {
+    let internalID;
+
+    try {
+      this._stmtGetInternalIDForExternalID.params.sourceID = this.id;
+      this._stmtGetInternalIDForExternalID.params.externalID = externalID;
+      if (this._stmtGetInternalIDForExternalID.step())
+        internalID = this._stmtGetInternalIDForExternalID.row["id"];
+    }
+    finally {
+      this._stmtGetInternalIDForExternalID.reset();
+    }
+
+    return internalID;
   },
 
   get _stmtInsertPart() {

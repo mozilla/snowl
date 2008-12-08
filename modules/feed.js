@@ -140,6 +140,14 @@ SnowlFeed.prototype = {
     SnowlSource.persist.call(this);
   },
 
+  get _stmtGetInternalIDForExternalID() {
+    return SnowlSource._stmtGetInternalIDForExternalID;
+  },
+
+  _getInternalIDForExternalID: function(externalID) {
+    return SnowlSource._getInternalIDForExternalID.call(this, externalID);
+  },
+
   get _stmtInsertPart() {
     return SnowlSource._stmtInsertPart;
   },
@@ -506,20 +514,6 @@ SnowlFeed.prototype = {
 
   // FIXME: Make the rest of this stuff be part of a superclass from which
   // this class is derived.
-
-  /**
-   * Get the internal ID of the message with the given external ID.
-   *
-   * @param    aExternalID {string}
-   *           the external ID of the message
-   *
-   * @returns  {number}
-   *           the internal ID of the message, or undefined if the message
-   *           doesn't exist
-   */
-  _getInternalIDForExternalID: function(aExternalID) {
-    return SnowlDatastore.selectInternalIDForExternalID(aExternalID);
-  },
 
   /**
    * Add a message with a single part to the datastore.
