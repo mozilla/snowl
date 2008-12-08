@@ -363,7 +363,7 @@ SnowlTwitter.prototype = {
     // FIXME: use the since or since_id parameter to retrieve only new messages.
     // http://groups.google.com/group/twitter-development-talk/web/api-documentation
     request.open("GET", "https://" + this.username + "@twitter.com" +
-                 "/statuses/friends_timeline.json", true);
+                 "/statuses/friends_timeline.json?count=200", true);
 
     // Register a listener for notification callbacks so we handle authentication.
     request.channel.notificationCallbacks = this;
