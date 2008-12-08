@@ -261,7 +261,7 @@ let SnowlSource = {
   },
 
   get _stmtGetInternalIDForExternalID() {
-    let statement = this.createStatement(
+    let statement = SnowlDatastore.createStatement(
       "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
     );
     this.__defineGetter__("_stmtGetInternalIDForExternalID", function() statement);
