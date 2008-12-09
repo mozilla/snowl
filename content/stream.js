@@ -164,7 +164,19 @@ let SnowlMessageView = {
       parameters: {}
     });
 
-    this._collection.sortProperties = ["received", "timestamp"];
+    // We sort by ID in order to do an implicit sort on received time
+    // (so that we show messages in the order they are received) while making
+    // sure that we always show messages in the same order even when their
+    // received times are the same.
+    //
+    // We could instead sort by received and timestamp, to show messages
+    // as they are received, with messages received at the same time being
+    // sorted by timestamp; but since we add messages to the view as they
+    // are received, regardless of their timestamp, doing that would cause
+    // there to be a difference between what the user sees when they leave
+    // the view open (and messages accumulate in it over time) versus what
+    // they see when they open it anew.
+    this._collection.sortProperties = ["id"];
     this._collection.sortOrder = -1;
     this._collection.sort();
     this._rebuildView();
