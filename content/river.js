@@ -50,10 +50,10 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
-Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
-Cu.import("resource://snowl/modules/utils.js");
+Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 const XML_NS = "http://www.w3.org/XML/1998/namespace"
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -376,7 +376,7 @@ let SnowlMessageView = {
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (this._filterTextbox.value)
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: this._filterTextbox.value } });
+                     parameters: { filter: SnowlUtils.appendAsterisks(this._filterTextbox.value) } });
 
     if (this._periodMenu.selectedItem)
       filters.push({ expression: "received >= :startTime AND received < :endTime",

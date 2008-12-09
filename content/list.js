@@ -47,9 +47,9 @@ Cu.import("resource://snowl/modules/Preferences.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
-Cu.import("resource://snowl/modules/service.js");
-Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
+Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 let SnowlMessageView = {
@@ -269,7 +269,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (this._filter.value)
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: this._filter.value } });
+                     parameters: { filter: SnowlUtils.appendAsterisks(this._filter.value) } });
 
     this._collection.filters = filters;
     this._collection.invalidate();

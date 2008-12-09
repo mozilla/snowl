@@ -416,6 +416,63 @@ this._log.info("row: "+ row.value + " is not selected");
     // when navigating via the keyboard or the toolbar buttons *after*
     // the context menu has been dismissed.
     this.gRightMouseButtonDown = false;
+  },
+
+  // FIXME: put the following function into a generic SnowlMessageView
+  // pure virtual class (i.e. an object rather than a function with a prototype)
+  // from which SnowlMessageView instances inherit this functionality.
+
+  /**
+   * Append asterisks to the ends of words that don't already have one
+   * appended to them to produce better results from a fulltext search.
+   *
+   * This implementation is naive because \w and \b only match ASCII words
+   * and boundaries (bug 258974).  But SQLite's fulltext implementation
+   * only supports ASCII at the moment anyway, so that's not a significant
+   * limitation at the moment.
+   *
+   * There are two approaches here, one that appends asterisks to every word
+   * and one that only appends them to unquoted words.  It's not clear to me
+   * which one is better, since quoted strings are "phrase searches", and I
+   * don't know whether users expect such searches to do exact matches (i.e.
+   * "foo bar" only matches that exact string) or subword searches (i.e. it
+   * also matches "foodies bartending").
+   *
+   * Or perhaps there's an even better third way, where we only append
+   * an asterisk to the last word of a quoted string, so we don't match
+   * "foodies bartending" but do match "foo bartholemew".  The reasoning
+   * here is that we're doing a substring match, although we still can't
+   * do a complete substring match because we can't prepend an asterisk
+   * to the beginning of the first word (we could use LIKE, but that's
+   * really expensive, because it does a full table scan).
+   *
+   * Then again, currently quotes are the only way to turn off subword
+   * matches, so perhaps we should really preserve their current behavior
+   * so that remains a possibility (and users can always append an asterisk
+   * themselves inside a quoted string if they really want that behavior,
+   * although it's not very discoverable).
+   *
+   * For the moment I'll append asterisks only to unquoted words but watch
+   * for user feedback on possible improvements.
+   */
+  appendAsterisks: function(string) {
+    let wordEnds = /\w\b(?!\*)/g;
+    let asterisk = "$&*";
+
+    // This version appends asterisks to every word.
+    //return string.replace(wordEnds, asterisk);
+
+    // This version appends asterisks to only unquoted words.  It does so
+    // by searching for sequences of an optional quoted string followed by
+    // an optional unquoted string followed by another optional quoted string,
+    // i.e. (broken down into its three constituent components):
+    //   ("[^"]*")?   // an optional quoted string
+    //   ([^"]+)?     // an optional unquoted string 
+    //   ("[^"]*")?   // another optional quoted string
+    // It then calls a function on the search results that appends asterisks
+    // to just the words in the unquoted string (if any).
+    return string.replace(/("[^"]*")?([^"]+)?("[^"]*")?/g,
+                          function(str, p1, p2, p3) p1 + p2.replace(wordEnds, asterisk) + p3);
   }
 
 };
