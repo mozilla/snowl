@@ -37,24 +37,31 @@
 /* Import OS-specific style. */
 @import url("chrome://snowl/skin/stream.css");
 
-/* This goes at the beginning of the file because we update it dynamically
- * as the width of the sidebar changes, and we access it by its index
- * in the array of rules in this stylesheet, and this way its index doesn't
- * change as this stylesheet gets updated as long as the updates don't change
- * anything above this rule.
- */
-.body > * {
-  /* This box must be flexible or have an explicit width or maximum width
-   * in order for it to wrap.  In theory, the best option would be a flexible
-   * width, but Mozilla doesn't wrap URLs in text until the path portion
-   * of the URL, which makes the middle column too wide when we use a flexible
-   * width and one of the messages contains a URL with a long hostname,
-   * so instead we specify an explicit width that we update dynamically
-   * as the width of the sidebar changes. */
-  /* XXX Could we insert breaking zero-width spaces between each of the
-   * characters in URLs (or other long strings) to force wrapping? */
-  width: 0;
-}
+/* START RULES WE UPDATE DYNAMICALLY BY INDEX */
+
+/* Put nothing above this comment without updating the hardcoded indexes
+ * referencing these rules in stream.js. */
+
+/* This box must be flexible or have an explicit width or maximum width
+ * in order for its content to wrap.  In theory, the best option would be
+ * a flexible width, but Mozilla doesn't wrap URLs in text until the path
+ * portion of the URL, which makes the middle column too wide when we use
+ * a flexible width and one of the messages contains a URL with a long hostname,
+ * so instead we specify an explicit width that we update dynamically
+ * as the width of the sidebar changes. */
+.body {}
+
+/* This box must be the same width as its container or it'll remain as wide
+ * as the width of its widest word, creating uneven widths between messages
+ * once the sidebar becomes narrower than the width of any word. */
+.body > div {}
+
+/* We don't have to update this box's width dynamically, but if we don't,
+ * then it might be a pixel or so off depending on the width of its content. */
+.centerColumn {}
+
+
+/* END RULES WE UPDATE DYNAMICALLY BY INDEX */
 
 #contentBox {
   -moz-user-focus: normal;
@@ -73,26 +80,29 @@
   overflow-x: hidden;
 }
 
+/* Separate each adjacent message from the one before it. */
 .message + .message {
+  margin-top: 6px;
   border-top: 1px solid lightgrey;
-  padding-top: 5px;
+  padding-top: 3px;
 }
 
 .leftColumn {
   width: 24px;
   -moz-box-align: center;
+  margin-right: 4px;
 }
 
-.centerColumn {
-  /* This constrains the center column to the dynamically specified width
-   * of the body. Otherwise it would size itself to the widest content
-   * in the body, which can be wider than the specified width when Gecko
-   * can't wrap some content. */
-  max-width: 0;
+/* The content in the center column shouldn't have its own margins,
+ * as that'll mess up the spacing between the center column and the nodes
+ * around it. */
+.centerColumn > description {
+  margin: 0;
 }
 
 .rightColumn {
   width: 16px;
+  margin-left: 2px;
 }
 
 .author {
@@ -133,6 +143,20 @@
 }
 
 /* Border styles to clarify the structure for debugging purposes. */
+
+/*
+.leftColumn {
+  border: 1px solid red;
+}
+
+.centerColumn {
+  border: 1px solid green;
+}
+
+.rightColumn {
+  border: 1px solid blue;
+}
+*/
 
 /*
 #contentBox {

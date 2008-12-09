@@ -229,12 +229,26 @@ let SnowlMessageView = {
    * FIXME: file a bug on the problem that necessitates this hack.
    */
   onResize: function() {
+    const LEFT_COLUMN_WIDTH  =  24 + 4; // 24px width + 4px right margin
+    const RIGHT_COLUMN_WIDTH =  16 + 2; // 16px width + 2px left margin
+
+    // Calculate the width of the middle column and set it (along with some
+    // of its contents to that width).  See the comments in stream.css
+    // for more info on why we set each of these rules.
+
     // We anticipate that there will be a scrollbar, so we include it
-    // in the calculation.  Perhaps we should instead wait to include
-    // the scrollbar until the content actually overflows.
-    // XXX Why do we have to subtract *double* the width of the scrollbar???
-    let width = window.innerWidth - (this.scrollbarWidth * 2) - 24 - 16;
-    this._updateRule(1, ".body > * { width: " + width + "px }");
+    // in the calculation.  Perhaps we should instead wait to include it
+    // until the content actually overflows.
+
+    // window.innerWidth == document.documentElement.boxObject.width == document.documentElement.clientWidth,
+    // and I know of no reason to prefer one over the other, except that
+    // clientWidth only works in Firefox 3.1+, and we support Firefox 3.0,
+    // so one of the others is better.
+
+    let width = window.innerWidth - this.scrollbarWidth - LEFT_COLUMN_WIDTH - RIGHT_COLUMN_WIDTH;
+    this._updateRule(1, ".body { min-width: " + width + "px; max-width: " + width + "px }");
+    this._updateRule(2, ".body > div { min-width: " + width + "px; max-width: " + width + "px }");
+    this._updateRule(3, ".centerColumn { min-width: " + width + "px; max-width: " + width + "px }");
   },
 
   _onMessageAdded: function(message) {
