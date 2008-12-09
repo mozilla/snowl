@@ -1,5 +1,3 @@
-content snowl content/
-
 # Generic browser chrome integration points: an icon in the status bar,
 # a menu in the Tools menu, View > Sidebar entries, etc.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
@@ -33,7 +31,21 @@ overlay chrome://snowl/content/stream.xul chrome://snowl/content/toolbar.xul
 # Add preferences to the main Options dialog.
 overlay chrome://browser/content/preferences/preferences.xul chrome://snowl/content/preferences.xul
 
+# Register a resource: protocol alias so we can refer to extension modules
+# via resource://snowl/modules/[module name] URLs.
 resource snowl ./
+
+# Register the content directory, which contains the chrome of the extension.
+# Note: chrome in this case includes cross-OS style (skin).  OS-specific style
+# should go into OS-specific subdirectories of the skin directory, as defined
+# below.
+content snowl   content/
+
+# Register separate skins for each primary platform so we can fit personas
+# into each one's very different skin.
+skin    snowl   classic/1.0   skin/windows/   os=WINNT
+skin    snowl   classic/1.0   skin/mac/       os=Darwin
+skin    snowl   classic/1.0   skin/linux/     os=Linux
 
 # localizations in alphabetical order
 locale  snowl   ca-AD   locale/ca-AD/

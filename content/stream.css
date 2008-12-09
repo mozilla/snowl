@@ -34,11 +34,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/* Import OS-specific style. */
+@import url("chrome://snowl/skin/stream.css");
+
 /* This goes at the beginning of the file because we update it dynamically
  * as the width of the sidebar changes, and we access it by its index
  * in the array of rules in this stylesheet, and this way its index doesn't
- * change as this stylesheet gets updated as long as we don't put anything
- * above this rule.
+ * change as this stylesheet gets updated as long as the updates don't change
+ * anything above this rule.
  */
 .body > * {
   /* This box must be flexible or have an explicit width or maximum width
@@ -48,6 +51,8 @@
    * width and one of the messages contains a URL with a long hostname,
    * so instead we specify an explicit width that we update dynamically
    * as the width of the sidebar changes. */
+  /* XXX Could we insert breaking zero-width spaces between each of the
+   * characters in URLs (or other long strings) to force wrapping? */
   width: 0;
 }
 
@@ -104,25 +109,16 @@
   max-height: 24px;
 }
 
+
+/******************************************************************************/
+/* Group Header - modifies <checkbox> style                                   */
+/* OS-specific styles for this node are in the OS-specific stream.css files.  */
+
 .groupHeader {
-  -moz-appearance: none;
   background-color: darkgrey;
   color: white;
 }
 
-.groupHeader > .checkbox-spacer-box {
-  -moz-appearance: none;
-}
-
-.groupHeader > .checkbox-spacer-box > .checkbox-check {
-  -moz-appearance: treetwisty;
-  background-image: none;
-  border: none;
-}
-
-.groupHeader[checked="true"] > .checkbox-spacer-box > .checkbox-check {
-  -moz-appearance: treetwistyopen;
-}
 
 #sendButton {
   list-style-image: url(chrome://snowl/content/icons/email_go.png);

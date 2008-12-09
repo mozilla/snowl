@@ -234,7 +234,7 @@ let SnowlMessageView = {
     // the scrollbar until the content actually overflows.
     // XXX Why do we have to subtract *double* the width of the scrollbar???
     let width = window.innerWidth - (this.scrollbarWidth * 2) - 24 - 16;
-    this._updateRule(0, ".body > * { width: " + width + "px }");
+    this._updateRule(1, ".body > * { width: " + width + "px }");
   },
 
   _onMessageAdded: function(message) {
