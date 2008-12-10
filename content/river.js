@@ -47,6 +47,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -217,8 +218,7 @@ let SnowlMessageView = {
   // Initialization
 
   init: function() {
-    // FIXME: use the Observers module to observe message change
-    // or message added notifications and rebuild the view when they happen.
+    Observers.add(this, "snowl:messages:changed");
 
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
@@ -488,7 +488,25 @@ let SnowlMessageView = {
 
 
   //**************************************************************************//
-  // Event Handlers
+  // Event & Notification Handlers
+
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "snowl:messages:changed":
+        this._onMessagesChanged();
+        break;
+    }
+  },
+
+  _onMessagesChanged: function() {
+    // FIXME: make the collection listen for message changes and invalidate
+    // itself, then rebuild the view in a timeout to give the collection time
+    // to do so.
+    this._collection.invalidate();
+
+    this.rebuildView();
+  },
 
   onMidnight: function() {
     this._setMidnightTimout();
