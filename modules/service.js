@@ -46,6 +46,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/Preferences.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -101,6 +102,8 @@ let SnowlService = {
     this._registerFeedHandler();
     this._initTimer();
 
+    Observers.add(this, "snowl:sources:changed");
+
     // FIXME: refresh stale sources on startup in a way that doesn't hang
     // the UI thread.
     //this.refreshStaleSources();
@@ -145,6 +148,28 @@ let SnowlService = {
                                               SNOWL_HANDLER_TITLE,
                                               null);
   },
+
+
+  //**************************************************************************//
+  // Event & Notification Handlers
+
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "snowl:sources:changed":
+        this._onSourcesChanged();
+        break;
+    }
+  },
+
+  _onSourcesChanged: function() {
+    // Invalidate the cache of sources indexed by ID.
+    this._sourcesByID = null;
+  },
+
+
+  //**************************************************************************//
+  // Accounts, Sources, Targets
 
   _accountTypeConstructors: {},
   addAccountType: function(constructor) {
@@ -229,6 +254,17 @@ let SnowlService = {
 
   get sources() {
     return this.accounts.filter(function(acct) acct.implements(SnowlSource));
+  },
+
+  _sourcesByID: null,
+  get sourcesByID() {
+    if (!this._sourcesByID) {
+      this._sourcesByID = {};
+      for each (let source in this.sources)
+        this._sourcesByID[source.id] = source;
+    }
+
+    return this._sourcesByID;
   },
 
   get targets() {

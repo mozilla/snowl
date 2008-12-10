@@ -51,49 +51,43 @@ Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-function SnowlMessage(aID, aSubject, aAuthor, aLink, aTimestamp, aRead, aAuthorIcon, aReceived) {
-  this.id = aID;
-  this.subject = aSubject;
-  this.author = aAuthor;
-  this.link = aLink;
-  this.timestamp = aTimestamp;
-  this._read = aRead;
-  this.authorIcon = aAuthorIcon;
-  this.received = aReceived;
+function SnowlMessage(props) {
+  // The way this currently works requires instantiators to pass the value
+  // of the read property via its private name _read, which seems wrong.
+  // FIXME: make it so callers can pass read via its public name.
+  for (let name in props)
+    this[name] = props[name];
 }
 
-SnowlMessage.get = function(aID) {
+// FIXME: refactor this with the similar code in the SnowlCollection::messages getter.
+// FIXME: retrieve an author object instead of just specific properties of the author.
+// FIXME: retrieve all basic properties of the message in a single query.
+SnowlMessage.get = function(id) {
   let message;
 
   let statement = SnowlDatastore.createStatement(
-    "SELECT subject, authors.name AS author, link, timestamp, read, " +
+    "SELECT sourceID, subject, authors.name AS author, link, timestamp, read, " +
     "       authors.iconURL AS authorIcon, received " +
     "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
     "WHERE messages.id = :id"
   );
 
   try {
-    statement.params.id = aID;
+    statement.params.id = id;
     if (statement.step()) {
-      message = new SnowlMessage(aID,
-                                 statement.row.subject,
-                                 statement.row.author,
-                                 statement.row.link,
-                                 SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-                                 (statement.row.read ? true : false),
-                                 statement.row.authorIcon,
-                                 SnowlDateUtils.julianToJSDate(statement.row.received));
+      message = new SnowlMessage({ id: id,
+                             sourceID: statement.row.sourceID,
+                              subject: statement.row.subject,
+                               author: statement.row.author,
+                                 link: statement.row.link,
+                            timestamp: SnowlDateUtils.julianToJSDate(statement.row.timestamp),
+                                _read: (statement.row.read ? true : false),
+                           authorIcon: statement.row.authorIcon,
+                             received: SnowlDateUtils.julianToJSDate(statement.row.received) });
     }
     else {
       // Message not there, create structure anyway
-      message = new SnowlMessage(null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null,
-                                 null);
+      message = new SnowlMessage({});
     }
   }
   finally {
@@ -209,29 +203,8 @@ SnowlMessage.prototype = {
     return this._notfound;
   },
 
-  // FIXME: for performance, make this a class property rather than an instance
-  // property?
-  get _getSourceIDStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT sourceID FROM messages WHERE id = :id"
-    );
-    this.__defineGetter__("_getSourceIDStatement", function() { return statement });
-    return this._getSourceIDStatement;
-  },
-
   get source() {
-    if (!this._source) {
-      try {
-        this._getSourceIDStatement.params.id = this.id;
-        if (this._getSourceIDStatement.step())
-          this._source = SnowlService.getAccount(this._getSourceIDStatement.row.sourceID);
-      }
-      finally {
-        this._getSourceIDStatement.reset();
-      }
-    }
-
-    return this._source;
-  },
+    return SnowlService.sourcesByID[this.sourceID];
+  }
 
 };
