@@ -105,8 +105,10 @@ toolbarbutton {
   /* This gets set programmatically on load, since setting it in CSS doesn't work. */
   height: 0;
 
-  /* We need this in order for content to wrap in non-columns mode. */
-  -moz-box-flex: 1;
+  /* For some reason we need a min-width (any value > 0 will do) or else
+   * the box will stretch wider than the window to fit wide content instead of
+   * overflowing it via a scrollbar when we aren't in columns mode. */
+  min-width: 1px;
 
   overflow: auto;
 }
