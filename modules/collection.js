@@ -241,18 +241,28 @@ this._log.info("got " + groups.length + " groups");
     this._messageIndex = {};
 
     let statement = this._generateStatement();
-    let message;
+    let content, message;
     try {
       while (statement.step()) {
-        message = new SnowlMessage({ id: statement.row.id,
-                               sourceID: statement.row.sourceID,
-                                subject: statement.row.subject,
-                                 author: statement.row.author,
-                                   link: statement.row.link,
-                              timestamp: SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-                                  _read: (statement.row.read ? true : false),
-                             authorIcon: statement.row.authorIcon,
-                               received: SnowlDateUtils.julianToJSDate(statement.row.received) });
+        content = Cc["@mozilla.org/feed-textconstruct;1"].
+                  createInstance(Ci.nsIFeedTextConstruct);
+        content.text = statement.row.content;
+        content.type = TEXT_CONSTRUCT_TYPES[statement.row.mediaType];
+        content.base = URI.get(statement.row.baseURI);
+        content.lang = statement.row.languageTag;
+
+        message = new SnowlMessage({
+          id:         statement.row.id,
+          sourceID:   statement.row.sourceID,
+          subject:    statement.row.subject,
+          author:     statement.row.author,
+          link:       statement.row.link,
+          timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
+          _read:      (statement.row.read ? true : false),
+          authorIcon: statement.row.authorIcon,
+          received:   SnowlDateUtils.julianToJSDate(statement.row.received),
+          content:    content
+        });
         this._messages.push(message);
         this._messageIndex[message.id] = message;
       }
@@ -263,12 +273,6 @@ this._log.info("got " + groups.length + " groups");
 
     this.sort();
 
-    // A bug in SQLite breaks relating a virtual table via a LEFT JOIN, so we
-    // can't pull content with our initial query.  Instead we do it here.
-    // FIXME: stop doing this once we upgrade to a version of SQLite that does
-    // not have this problem (i.e. 3.5.6+).
-    this._getContent();
-
     this._log.info("Retrieved " + this._messages.length + " messages.");
 
     return this._messages;
@@ -278,40 +282,22 @@ this._log.info("got " + groups.length + " groups");
     this._messages = null;
   },
 
-  _getContent: function() {
-    let query = "SELECT messageID, content, mediaType, baseURI, languageTag " +
-                "FROM parts WHERE partType = " + PART_TYPE_CONTENT +
-                " AND messageID IN (" +
-                  this._messages.map(function(v) { return v.id }).join(",") +
-                ")";
-    let statement = SnowlDatastore.createStatement(query);
-
-    try {
-      while (statement.step()) {
-        let content = Cc["@mozilla.org/feed-textconstruct;1"].
-                      createInstance(Ci.nsIFeedTextConstruct);
-        content.text = statement.row.content;
-        content.type = TEXT_CONSTRUCT_TYPES[statement.row.mediaType];
-        content.base = URI.get(statement.row.baseURI);
-        content.lang = statement.row.languageTag;
-        this._messageIndex[statement.row.messageID].content = content;
-      }
-    }
-    finally {
-      statement.reset();
-    }
-  },
-
   _generateStatement: function() {
-    let columns = ["messages.id",
-                   "sourceID",
-                   "subject",
-                   "authors.name AS author",
-                   "link",
-                   "timestamp",
-                   "read",
-                   "authors.iconURL AS authorIcon",
-                   "received"];
+    let columns = [
+      "messages.id",
+      "messages.sourceID",
+      "messages.subject",
+      "messages.link",
+      "messages.timestamp",
+      "messages.read",
+      "messages.received",
+      "authors.name AS author",
+      "authors.iconURL AS authorIcon",
+      "parts.content",
+      "parts.mediaType",
+      "parts.baseURI",
+      "parts.languageTag"
+    ];
 
     if (this.groupIDColumn) {
       columns.push(this.groupIDColumn + " AS groupID");
@@ -319,14 +305,14 @@ this._log.info("got " + groups.length + " groups");
     }
 
     let query = 
-      //"SELECT subject, author, link, timestamp, content \
-      // FROM sources JOIN messages ON sources.id = messages.sourceID \
-      // LEFT JOIN parts on messages.id = parts.messageID";
       "SELECT " + columns.join(", ") + " " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
-      "LEFT JOIN people AS authors ON messages.authorID = authors.id";
+      "LEFT JOIN people AS authors ON messages.authorID = authors.id " +
+      "LEFT JOIN parts AS parts ON messages.id = parts.messageID";
 
     let conditions = [];
+
+    conditions.push("parts.partType = " + PART_TYPE_CONTENT);
 
     for each (let condition in this.constraints)
       conditions.push(condition.expression);

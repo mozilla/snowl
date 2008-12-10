@@ -75,15 +75,17 @@ SnowlMessage.get = function(id) {
   try {
     statement.params.id = id;
     if (statement.step()) {
-      message = new SnowlMessage({ id: id,
-                             sourceID: statement.row.sourceID,
-                              subject: statement.row.subject,
-                               author: statement.row.author,
-                                 link: statement.row.link,
-                            timestamp: SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-                                _read: (statement.row.read ? true : false),
-                           authorIcon: statement.row.authorIcon,
-                             received: SnowlDateUtils.julianToJSDate(statement.row.received) });
+      message = new SnowlMessage({
+        id:         id,
+        sourceID:   statement.row.sourceID,
+        subject:    statement.row.subject,
+        author:     statement.row.author,
+        link:       statement.row.link,
+        timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
+        _read:      (statement.row.read ? true : false),
+        authorIcon: statement.row.authorIcon,
+        received:   SnowlDateUtils.julianToJSDate(statement.row.received)
+      });
     }
     else {
       // Message not there, create structure anyway

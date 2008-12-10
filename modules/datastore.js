@@ -70,7 +70,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 9,
+  _dbVersion: 10,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -254,6 +254,14 @@ let SnowlDatastore = {
            name:  "messages_sourceID_externalID",
           table:  "messages",
         columns:  ["sourceID", "externalID"]
+      },
+
+      // Index the messageID column in the parts table to speed up retrieval
+      // of content for a specific message, which we do a lot.
+      {
+           name:  "parts_messageID",
+          table:  "parts",
+        columns:  ["messageID"]
       }
     ]
 
@@ -471,34 +479,43 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * rename it every time we increase the schema version.
    */
-  _dbMigrate0To9: function(dbConnection) {
+  _dbMigrate0To10: function(dbConnection) {
     this._dbCreate(dbConnection);
   },
 
-  _dbMigrate4To9: function(dbConnection) {
+  _dbMigrate4To10: function(dbConnection) {
     this._dbMigrate4To5(dbConnection);
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
+    this._dbMigrate9To10(dbConnection);
   },
 
-  _dbMigrate5To9: function(dbConnection) {
+  _dbMigrate5To10: function(dbConnection) {
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
+    this._dbMigrate9To10(dbConnection);
   },
 
-  _dbMigrate6To9: function(dbConnection) {
+  _dbMigrate6To10: function(dbConnection) {
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
+    this._dbMigrate9To10(dbConnection);
   },
 
-  _dbMigrate7To9: function(dbConnection) {
+  _dbMigrate7To10: function(dbConnection) {
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
+    this._dbMigrate9To10(dbConnection);
+  },
+
+  _dbMigrate8To10: function(dbConnection) {
+    this._dbMigrate8To9(dbConnection);
+    this._dbMigrate9To10(dbConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -630,6 +647,14 @@ let SnowlDatastore = {
 
     // Drop the old messages table.
     dbConnection.executeSimpleSQL("DROP TABLE messagesOld");
+  },
+
+  /**
+   * Migrate the database schema from version 9 to version 10.
+   */
+  _dbMigrate9To10: function(dbConnection) {
+    // Create the index on the messageID column in the parts table.
+    this._dbCreateIndex(dbConnection, this._dbSchema.indexes[1]);
   },
 
   get _selectHasSourceStatement() {
