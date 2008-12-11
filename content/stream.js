@@ -183,8 +183,6 @@ let SnowlMessageView = {
 
     this._setMidnightTimout();
 
-    gBrowserWindow.Snowl._initSnowlToolbar();
-
     this._initWriteForm();
     this._updateWriteButton();
   },
@@ -285,6 +283,10 @@ let SnowlMessageView = {
 
   onToggleGroup: function(event) {
     event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
+  },
+
+  onRefresh: function() {
+    SnowlService.refreshAllSources();
   },
 
   onToggleWrite: function(event) {

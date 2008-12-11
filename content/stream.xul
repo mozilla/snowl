@@ -39,24 +39,41 @@
 <?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/stream.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://snowl/locale/stream.dtd">
+<!DOCTYPE page [
+  <!ENTITY % streamDTD SYSTEM "chrome://snowl/locale/stream.dtd">
+  %streamDTD;
+  <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
+  %toolbarDTD;
+]>
 
 <page id="snowlStreamView"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="&page.title;"
       onload="SnowlMessageView.onLoad()"
       onunload="SnowlMessageView.onunLoad()"
-      onclick="return window.parent.contentAreaClick(event, true);"
+      onclick="return window.parent.contentAreaClick(event, true)"
       onresize="try { SnowlMessageView.onResize() }
                 catch(ex) { /* before script loaded */ }">
+    <!-- FIXME: set the onresize handler in stream.js so we don't have to catch this exception -->
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
   <!-- write.xul overlays a string bundle into this. -->
+  <!-- FIXME: use the StringBundle module instead. -->
   <stringbundleset id="stringbundleset"/>
 
-  <toolbar id="snowlToolbar"/>
+  <toolbar>
+    <toolbarbutton id="snowlRefreshButton"
+                   image="chrome://snowl/content/icons/arrow_refresh_small.png"
+                   oncommand="SnowlMessageView.onRefresh()"
+                   tooltiptext="&refreshButton.tooltip;"/>
+    <toolbarspring/>
+    <toolbarbutton id="snowlWriteButton" type="checkbox"
+                   image="chrome://snowl/content/icons/email_add.png"
+                   oncommand="SnowlMessageView.onToggleWrite(event)"
+                   tooltiptext="&writeButton.tooltip;"/>
+  </toolbar>
 
   <vbox id="writeForm"/>
 
