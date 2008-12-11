@@ -59,10 +59,6 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
-  <!-- write.xul overlays a string bundle into this. -->
-  <!-- FIXME: use the StringBundle module instead. -->
-  <stringbundleset id="stringbundleset"/>
-
   <toolbar>
     <toolbarbutton id="snowlRefreshButton"
                    image="chrome://snowl/content/icons/arrow_refresh_small.png"

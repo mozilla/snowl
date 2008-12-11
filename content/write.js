@@ -44,6 +44,7 @@
 
 // modules that are generic
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/StringBundle.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/service.js");
@@ -53,7 +54,12 @@ Cu.import("resource://snowl/modules/service.js");
  */
 let WriteForm = {
   //**************************************************************************//
-  // Convenience Getters
+  // Shortcuts
+
+  get _strings() {
+    delete this._strings;
+    return this._strings = new StringBundle("chrome://snowl/locale/write.properties");
+  },
 
   get _writeTextbox() {
     delete this._writeTextbox;
@@ -68,11 +74,6 @@ let WriteForm = {
   get _sendButton() {
     delete this._sendButton;
     return this._sendButton = document.getElementById("sendButton");
-  },
-
-  get _stringBundle() {
-    delete this._stringBundle;
-    return this._stringBundle = document.getElementById("snowlWriteBundle");
   },
 
   get _targetMenu() {
@@ -120,7 +121,7 @@ let WriteForm = {
 
   onSendMessage: function() {
     this._sendButton.setAttribute("state", "sending");
-    this._sendButton.label = this._stringBundle.getString("sendButton.label.sending");
+    this._sendButton.label = this._strings.get("sendButton.label.sending");
     this._sendButton.disabled = true;
 
     this._writeTextbox.disabled = true;
@@ -134,7 +135,7 @@ let WriteForm = {
 
   onMessageSent: function() {
     this._sendButton.setAttribute("state", "sent");
-    this._sendButton.label = this._stringBundle.getString("sendButton.label.sent");
+    this._sendButton.label = this._strings.get("sendButton.label.sent");
 
     this._writeTextbox.disabled = false;
     this._targetMenu.disabled = false;
@@ -222,7 +223,7 @@ let WriteForm = {
     this._resetSendStatusTimeoutID = null;
 
     this._sendButton.removeAttribute("state");
-    this._sendButton.label = this._stringBundle.getString("sendButton.label");
+    this._sendButton.label = this._strings.get("sendButton.label");
     this._sendButton.disabled = false;
   }
 

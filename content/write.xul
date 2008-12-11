@@ -45,10 +45,6 @@
 
   <script type="application/javascript" src="chrome://snowl/content/write.js"/>
 
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="snowlWriteBundle" src="chrome://snowl/locale/write.properties"/>
-  </stringbundleset>
-
   <vbox id="writeForm">
     <menulist id="targetMenu" oncommand="WriteForm.onSelectTarget()">
       <menupopup/>

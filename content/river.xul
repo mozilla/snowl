@@ -65,9 +65,6 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>
 
-  <!-- write.xul overlays a string bundle into this. -->
-  <stringbundleset id="stringbundleset"/>
-
   <keyset>
     <key id="pageLeftKey" keycode="VK_PAGE_UP" oncommand="SnowlMessageView.doPageMove(-1)" disabled="true"/>
     <key id="pageRightKey" keycode="VK_PAGE_DOWN" oncommand="SnowlMessageView.doPageMove(1)" disabled="true"/>
