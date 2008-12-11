@@ -663,17 +663,25 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Sending
 
-  _sendCallback: null,
+  _successCallback: null,
+  _errorCallback: null,
 
-  send: function(content, callback) {
+  send: function(content, successCallback, errorCallback) {
     Observers.notify(this, "snowl:send:start", null);
 
     let data = "status=" + encodeURIComponent(content);
     //          + "&in_reply_to_status_id=" + encodeURIComponent(inReplyToID);
 
-    this._sendCallback = callback;
+    this._successCallback = successCallback;
+    this._errorCallback   = errorCallback;
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
+
+    // FIXME: make a TwitterRequest (or plain Request) object that caches
+    // references to the callbacks and the SnowlTwitter instance so we don't
+    // have to cache them in the object itself, which could cause problems
+    // if we were to persist the instance and send multiple messages through
+    // it simultaneously.
 
     request.QueryInterface(Ci.nsIDOMEventTarget);
     let (t = this) {
@@ -709,11 +717,6 @@ SnowlTwitter.prototype = {
       return;
     }
 
-    if (this._sendCallback) {
-      this._sendCallback();
-      this._sendCallback = null;
-    }
-
     this._log.info("onSendLoad: " + request.responseText);
 
     // _authInfo only gets set if we prompted the user to authenticate
@@ -723,6 +726,11 @@ SnowlTwitter.prototype = {
       this._saveLogin();
 
     this._processSend(request.responseText);
+
+    if (this._successCallback)
+      this._successCallback();
+
+    this._resetSend();
   },
 
   onSendError: function(event) {
@@ -730,20 +738,26 @@ SnowlTwitter.prototype = {
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE
     let statusText = "";
-    try {
-      statusText = request.statusText;
-    }
-    catch(ex) {}
+    try { statusText = request.statusText } catch(ex) {}
     
     this._log.error("onSendError: " + request.status + " (" + statusText + ")");
+
+    if (this._errorCallback)
+      this._errorCallback();
+
+    this._resetSend();
   },
 
   _processSend: function(responseText) {
     let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     let response = JSON.decode(responseText);
     this._addMessage(response, new Date());
-  }
+  },
 
+  _resetSend: function() {
+    this._successCallback = null;
+    this._errorCallback = null;
+  }
 };
 
 SnowlService.addAccountType(SnowlTwitter);
