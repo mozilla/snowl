@@ -130,18 +130,7 @@
 }
 
 
-#sendButton {
-  list-style-image: url(chrome://snowl/content/icons/email_go.png);
-}
-
-#sendButton[state="sending"] {
-  list-style-image: url(chrome://global/skin/icons/loading_16.png);
-}
-
-#writeCounter {
-  font-size: 200%;
-}
-
+/******************************************************************************/
 /* Border styles to clarify the structure for debugging purposes. */
 
 /*

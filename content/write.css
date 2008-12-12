@@ -34,14 +34,14 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* Import OS-specific style. */
-@import url("chrome://snowl/skin/toolbarbutton.css");
-
-/* Remove the margins around the label and between the icon and the label,
- * since these toolbarbuttons don't have labels. */
-#snowlToolbar > toolbarbutton > .toolbarbutton-icon {
-  -moz-margin-end: 0;
+#sendButton {
+  list-style-image: url(chrome://snowl/content/icons/email_go.png);
 }
-#snowlToolbar > toolbarbutton > .toolbarbutton-text {
-  margin: 0;
+
+#sendButton[state="sending"] {
+  list-style-image: url(chrome://global/skin/icons/loading_16.png);
+}
+
+#writeCounter {
+  font-size: 200%;
 }
