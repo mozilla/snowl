@@ -36,8 +36,8 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/preferences.css" type"text/css"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/preferences.css" type="text/css"?>
 
 <!DOCTYPE page [
   <!ENTITY % subscribeDTD SYSTEM "chrome://snowl/locale/sources.dtd">

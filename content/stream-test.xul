@@ -36,7 +36,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/" type"text/css"?>
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/stream.css" type="text/css"?>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
