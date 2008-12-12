@@ -316,6 +316,18 @@ let CollectionsView = {
       SnowlUtils.RestoreSelectionWithoutContentLoad(this._tree);
   },
 
+  onSubscribe: function() {
+    gBrowserWindow.Snowl.onSubscribe();
+  },
+
+  onUnsubscribe: function() {
+    this.unsubscribe();
+  },
+
+  onRefresh: function() {
+    SnowlService.refreshAllSources();
+  },
+
   refreshSource: function() {
     let selectedSourceIDs = [];
 

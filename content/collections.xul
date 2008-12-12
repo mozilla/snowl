@@ -36,9 +36,15 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://snowl/content/collections.css" type"text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/collections.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/toolbar.css"     type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/collections.dtd">
+<!DOCTYPE overlay [
+  <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">
+  %collectionsDTD;
+  <!ENTITY % toolbarDTD     SYSTEM "chrome://snowl/locale/toolbar.dtd">
+  %toolbarDTD;
+]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -74,7 +80,22 @@
                     onmousedown="CollectionsView.onCollectionsTreeMouseDown(event)"/>
     </tree>
 
-    <toolbar id="snowlToolbar"/>
+    <toolbar id="snowlToolbar" persist="hidden">
+      <toolbarbutton id="snowlSubscribeButton"
+                     image="chrome://snowl/content/icons/add.png"
+                     oncommand="CollectionsView.onSubscribe()"
+                     tooltiptext="&subscribeButton.tooltip;"/>
+      <toolbarbutton id="snowlUnsubscribeButton"
+                     image="chrome://snowl/content/icons/delete.png"
+                     oncommand="CollectionsView.onUnsubscribe()"
+                     tooltiptext="&unsubscribeButton.tooltip;"/>
+      <toolbarspring/>
+      <toolbarbutton id="snowlRefreshButton"
+                     image="chrome://snowl/content/icons/arrow_refresh_small.png"
+                     oncommand="CollectionsView.onRefresh()"
+                     tooltiptext="&refreshButton.tooltip;"/>
+    </toolbar>
+
   </vbox>
 
 </overlay>
