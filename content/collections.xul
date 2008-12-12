@@ -36,8 +36,8 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://snowl/content/collections.css" type="text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/toolbar.css"     type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/collections.css"   type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
 
 <!DOCTYPE overlay [
   <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">

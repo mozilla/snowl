@@ -36,9 +36,9 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://global/skin/"                  type="text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/stream.css"      type="text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/toolbar.css"     type="text/css"?>
+<?xml-stylesheet href="chrome://global/skin/"                    type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/stream.css"        type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
 
 <!DOCTYPE page [
   <!ENTITY % streamDTD  SYSTEM "chrome://snowl/locale/stream.dtd">

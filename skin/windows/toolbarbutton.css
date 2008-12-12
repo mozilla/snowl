@@ -1,0 +1,2 @@
+/* Toolbar buttons on Windows and Linux use -moz-appearance: toolbarbutton,
+ * which styles them just fine, so they don't need anything special here. */
