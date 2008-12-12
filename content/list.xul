@@ -49,7 +49,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlOverlay">
 
-  <script type="application/x-javascript" src="list.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/list.js"/>
 
   <window id="main-window"
           persist="screenX screenY width height sizemode

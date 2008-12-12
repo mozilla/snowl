@@ -41,7 +41,7 @@
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlAboutOverlay">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/about.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/about.js"/>
 
   <dialog id="genericAbout"
           xmlns:html="http://www.w3.org/1999/xhtml"

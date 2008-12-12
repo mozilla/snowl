@@ -46,7 +46,7 @@
         ondialogaccept="return doOK()"
         ondialogcancel="return doCancel()">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/login.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/login.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/login.properties"/>

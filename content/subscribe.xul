@@ -51,9 +51,9 @@
       onload="Subscriber.onLoad()"
       onunload="Subscriber.onUnload()">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/preferences.js"/>
-  <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
-  <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/preferences.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/subscribe.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="snowlStringBundle"

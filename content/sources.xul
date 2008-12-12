@@ -51,8 +51,8 @@
       pack="center"
       align="center">
 
-  <script type="application/x-javascript" src="chrome://snowl/content/strands.js"/>
-  <script type="application/x-javascript" src="chrome://snowl/content/subscribe.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/subscribe.js"/>
 
   <vbox id="content">
     <label flex="1" value="&page.title;" class="header"/>
