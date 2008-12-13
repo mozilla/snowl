@@ -1,8 +1,0 @@
-<!ENTITY page.title "Snowl: 订阅该信息源">
-<!ENTITY feedsTab.label "收取点">
-<!ENTITY twitterTab.label "Twitter">
-<!ENTITY opmlTab.label "OPML">
-<!ENTITY location.label "地址：">
-<!ENTITY subscribeButton.label "订阅">
-<!ENTITY importOPMLButton.label "导入OPML文件...">
-<!ENTITY closeButton.label "关闭">
