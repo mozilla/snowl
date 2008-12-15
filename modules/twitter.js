@@ -66,6 +66,50 @@ const MACHINE_URI = URI.get("https://twitter.com");
 // XXX Should this be simply http://twitter.com ?
 const HUMAN_URI = URI.get("http://twitter.com/home");
 
+/**
+ * The HTTP authentication realm under which to save credentials via the login
+ * manager.  We save them under a realm whose name we define instead of the one
+ * that Twitter provides (currently "Twitter API") because we set our own
+ * Authorization header, and that happens before we get a response from Twitter,
+ * so we can't depend on the value Twitter sets when it responds, because
+ * we don't know it yet.
+ *
+ * Using our own realm also has the beneficial side effect that users browsing
+ * their saved credentials in preferences will see our realm next to
+ * the credentials that were saved by Snowl, which seems a better explanation
+ * of where the credentials come from than the one Twitter provides.
+ *
+ * The reason we set our own Authorization header is that Necko assumes users
+ * will only be logged into a single account for a given authentication realm
+ * in any given session, so it caches credentials and reuses them for all
+ * requests to the same realm.  Setting the Authorization header ourselves
+ * ensures that we determine the credentials being used for our requests,
+ * which is necessary to support multiple Twitter accounts.
+ *
+ * We could have theoretically worked around the problem by putting the username
+ * into the URL (i.e. https://username@twitter.com...) and falling back on our
+ * notification callback to get the saved credentials, by which point we'd know
+ * the authentication realm.
+ *
+ * But experimentation showed that only worked for serialized requests;
+ * concurrent requests (like when we refresh two Twitter accounts at the same
+ * time asynchronously) cause Necko to again use the same credentials for both
+ * refreshes, even though we've specified different usernames in the URLs
+ * for those refreshes.
+ *
+ * And it had the side-effect that Necko stopped saving credentials at all
+ * after the requests completed, so a user with a single account who didn't save
+ * their credentials was prompted to enter them every time we refreshed.
+ *
+ * FIXME: file a bug on this bad behavior of Necko during concurrent requests.
+ *
+ * We could have also worked around the problem by also injecting the password
+ * into the request URLs (i.e. https://username:password@twitter.com...),
+ * but then we'd be putting passwords into URLs, which is considered harmful
+ * because URLs leak into visible places (like the Error Console).
+ */
+const AUTH_REALM = "Snowl";
+
 // This module is based on the API documented at http://apiwiki.twitter.com/.
 
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
@@ -170,11 +214,34 @@ SnowlTwitter.prototype = {
   // the request succeeds, at which point we store it with the login manager.
   _authInfo: null,
 
-  // Logins from the login manager that match the username associated with
-  // the account.  We try each in turn until one of them works or we run out
-  // of them.  If we run out of them, we prompt the user to enter one.
-  _logins: null,
-  _loginIndex: 0,
+  get _loginManager() {
+    let loginManager = Cc["@mozilla.org/login-manager;1"].
+                       getService(Ci.nsILoginManager);
+    this.__defineGetter__("_loginManager", function() loginManager);
+    return this._loginManager;
+  },
+
+  /**
+   * The saved credentials for this Twitter account, if any.
+   * FIXME: we memoize this and never refresh it, which won't do once we have
+   * long-lived account objects, so don't memoize this at all (attach it to
+   * its request and kill it once the request is done) or invalidate it when
+   * the set of credentials changes.
+   */
+  get _savedLogin() {
+    // Alias this.username to a local variable because we can't use "this"
+    // in the lambda expression we pass to the filter method below due to
+    // bug 469609.
+    let username = this.username;
+
+    // XXX Should we be using channel.URI.prePath instead of
+    // this.machineURI.prePath in case the old URI redirects us to a new one
+    // at a different hostname?
+    return this._loginManager.
+           findLogins({}, this.machineURI.prePath, null, AUTH_REALM).
+           filter(function(login) login.username == username)
+           [0];
+  },
 
   // nsISupports
 
@@ -189,28 +256,9 @@ SnowlTwitter.prototype = {
   // nsIAuthPrompt2
 
   promptAuth: function(channel, level, authInfo) {
-    // Check saved logins before prompting the user.  We get them from the login
-    // manager and try each in turn until one of them works or we run out of them.
-    if (!this._logins) {
-      let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-      // XXX Should we be using channel.URI.prePath in case the old URI
-      // redirects us to a new one at a different hostname?
-      // Set a local variable because we can't use "this" in the filter function.
-      let username = this.username;
-      this._logins = lm.findLogins({}, this.machineURI.prePath, null, authInfo.realm).
-                     filter(function(login) login.username == username);
-    }
+    this._log.debug("promptAuth: this.name = " + this.name + "; this.username = " + this.username);
+    this._log.debug("promptAuth: this.name = " + this.name + "; authInfo.realm = " + authInfo.realm);
 
-    let login = this._logins[this._loginIndex];
-    if (login) {
-      authInfo.username = login.username;
-      authInfo.password = login.password;
-      ++this._loginIndex;
-      return true;
-    }
-
-    // If we've made it this far, none of the saved logins worked, so we prompt
-    // the user to provide one.
     let args = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
     args.AppendElement({ wrappedJSObject: this });
     args.AppendElement(authInfo);
@@ -234,6 +282,8 @@ SnowlTwitter.prototype = {
 
     if (result.remember)
       this._authInfo = authInfo;
+    else
+      this._authInfo = null;
 
     return result.proceed;
   },
@@ -253,49 +303,27 @@ SnowlTwitter.prototype = {
     this.username = credentials.username;
     this.name = NAME + " - " + this.username;
 
+    // credentials isn't a real nsIAuthInfo, but it's close enough for what
+    // we do with it, which is to retrieve the username and password from it
+    // and save them via the login manager if the user asked us to remember
+    // their credentials.
+    if (credentials.remember)
+      this._authInfo = credentials;
+
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
+    // Add load and error callbacks.
     request.QueryInterface(Ci.nsIDOMEventTarget);
     let t = this;
     request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
     request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-
-    request.open("GET", "https://" + this.username + "@twitter.com" +
-                 "/account/verify_credentials.json", true);
-
-    // We could just set the Authorization request header here, but then
-    // we wouldn't get an nsIAuthInformation object through our notification
-    // callbacks, so we'd have to parse the WWW-Authenticate header ourselves
-    // to extract the realm to use when saving the credentials to the login
-    // manager, and WWW-Authenticate header parsing is said to be tricky.
-
-    // So instead we define notification callbacks that fill in (and persist)
-    // an nsIAuthInformation object the first time they are called (subsequent
-    // attempts fail, though, to avoid an infinite loop with a server that keeps
-    // rejecting our credentials along with a Mozilla that keeps prompting
-    // for them).
-    request.channel.notificationCallbacks = {
-      QueryInterface: XPCOMUtils.generateQI([Ci.nsIAuthPrompt2]),
-      getInterface: function(iid) { return this.QueryInterface(iid) },
-      _firstAttempt: true,
-      promptAuth: function(channel, level, authInfo) {
-        if (!this._firstAttempt) {
-          if (credentials.remember)
-            this._authInfo = null;
-          return false;
-        }
-        authInfo.username = credentials.username;
-        authInfo.password = credentials.password;
-        if (credentials.remember)
-          this._authInfo = authInfo;
-        this._firstAttempt = false;
-        return true;
-      },
-      asyncPromptAuth: function() { throw Cr.NS_ERROR_NOT_IMPLEMENTED }
-    };
-
+    request.open("GET", "https://twitter.com/account/verify_credentials.json", true);
+    request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
+                                                              ":" +
+                                                              credentials.password));
+    request.channel.notificationCallbacks = this;
     request.send(null);
   },
 
@@ -323,11 +351,13 @@ SnowlTwitter.prototype = {
     // and the user checked the "remember password" box.  Since we're here,
     // it means the request succeeded, so we save the login.
     if (this._authInfo)
-      this._saveLogin();
+      this._saveLogin(this._authInfo);
 
     // Save the source to the database.
     this.persist();
     this.subscribed = true;
+
+    this._resetSubscribeRequest();
 
     this.refresh(new Date());
   },
@@ -343,13 +373,22 @@ SnowlTwitter.prototype = {
     try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
-
     Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+    this._resetSubscribeRequest();
+  },
+
+  _resetSubscribeRequest: function() {
+    this._authInfo = null;
   },
 
 
   //**************************************************************************//
   // Refreshment
+
+  // FIXME: create a refresher object that encapsulates the functionality
+  // provided by this code, since it creates properties that are essentially
+  // global variables (like _authInfo and _refreshTime)
+  // and will create concurrency problems with long-lived account objects.
 
   _refreshTime: null,
 
@@ -412,10 +451,22 @@ SnowlTwitter.prototype = {
         params.push("since_id=" + maxID);
     }
 
-    request.open("GET", "https://" + this.username + "@twitter.com" +
-                 "/statuses/friends_timeline.json?" + params.join("&"), true);
+    let url = "https://twitter.com/statuses/friends_timeline.json?" + params.join("&");
+    this._log.debug("refresh: this.name = " + this.name + "; url = " + url);
+    request.open("GET", url, true);
 
-    // Register a listener for notification callbacks so we handle authentication.
+    // If the login manager has saved credentials for this account, provide them
+    // to the server.  Otherwise, no worries, Necko will automatically call our
+    // notification callback, which will prompt the user to enter their credentials.
+    if (this._savedLogin) {
+      let credentials = btoa(this.username + ":" + this._savedLogin.password);
+      request.setRequestHeader("Authorization", "Basic " + credentials);
+    }
+
+    // Register a callback for notifications to handle authentication failures.
+    // We do this whether or not we're providing credentials to the server via
+    // the Authorization header, as the credentials we provide via that header
+    // might be wrong, so we might need this in any case.
     request.channel.notificationCallbacks = this;
 
     request.send(null);
@@ -460,12 +511,11 @@ SnowlTwitter.prototype = {
         Observers.notify(null, "snowl:sources:changed", null);
       }
 
-      this._saveLogin();
+      this._saveLogin(this._authInfo);
     }
 
     this._processRefresh(request.responseText);
-
-    this._refreshTime = null;
+    this._resetRefreshRequest();
   },
 
   onRefreshError: function(event) {
@@ -473,14 +523,15 @@ SnowlTwitter.prototype = {
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
     let statusText;
-    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
+    try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
-
-    this._refreshTime = null;
+    this._resetRefreshRequest();
   },
 
   _processRefresh: function(responseText) {
+    this._log.debug("_processRefresh: this.name = " + this.name + "; responseText = " + responseText);
+
     var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     let messages = JSON.decode(responseText);
 
@@ -532,6 +583,11 @@ SnowlTwitter.prototype = {
     // FIXME: if we added people, refresh the collections view too.
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
+  },
+
+  _resetRefreshRequest: function() {
+    this._refreshTime = null;
+    this._authInfo = null;
   },
 
   _addMessage: function(message, aReceived) {
@@ -621,9 +677,7 @@ SnowlTwitter.prototype = {
   // although this function supports multiple accounts with the same server
   // and doesn't allow the user to change their username, so maybe that's
   // not possible (or perhaps we can reconcile those differences).
-  _saveLogin: function() {
-    let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
+  _saveLogin: function(authInfo) {
     // Create a new login with the auth information we obtained from the user.
     let LoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1",
                                                Ci.nsILoginInfo,
@@ -632,31 +686,18 @@ SnowlTwitter.prototype = {
     // redirects us to a new one at a different hostname?
     let newLogin = new LoginInfo(this.machineURI.prePath,
                                  null,
-                                 this._authInfo.realm,
-                                 this._authInfo.username,
-                                 this._authInfo.password,
+                                 AUTH_REALM,
+                                 authInfo.username,
+                                 authInfo.password,
                                  "",
                                  "");
 
-    // Get existing logins that have the same hostname and realm.
-    let logins = lm.findLogins({}, this.machineURI.prePath, null, this._authInfo.realm);
-
-    // Try to figure out if we should replace one of the existing logins.
-    // If there's a login with the same username, we replace it.
-    // Otherwise, we add the new login instead of replacing an existing one.
-    let oldLogin;
-    // Set a local variable because we can't use "this" in the filter function.
-    let authInfo = this._authInfo;
-    if (logins.length > 0)
-      oldLogin = logins.filter(function(v) v.username == authInfo.username)[0];
-
-    if (oldLogin)
-      lm.modifyLogin(oldLogin, newLogin);
+    // If there are credentials with the same username, we replace them.
+    // Otherwise, we add the new credentials.
+    if (this._savedLogin)
+      this._loginManager.modifyLogin(this._savedLogin, newLogin);
     else
-      lm.addLogin(newLogin);
-
-    // Now that we've saved the login, we don't need the auth info anymore.
-    this._authInfo = null;
+      this._loginManager.addLogin(newLogin);
   },
 
 
@@ -690,8 +731,14 @@ SnowlTwitter.prototype = {
     }
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("POST", "https://" + this.username + "@twitter.com" +
-                 "/statuses/update.json", true);
+    request.open("POST", "https://twitter.com/statuses/update.json", true);
+    // If the login manager has saved credentials for this account, provide them
+    // to the server.  Otherwise, no worries, Necko will automatically call our
+    // notification callback, which will prompt the user to enter their credentials.
+    if (this._savedLogin) {
+      let credentials = btoa(this.username + ":" + this._savedLogin.password);
+      request.setRequestHeader("Authorization", "Basic " + credentials);
+    }
     request.channel.notificationCallbacks = this;
     request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     request.send(data);
@@ -723,7 +770,7 @@ SnowlTwitter.prototype = {
     // and the user checked the "remember password" box.  Since we're here,
     // it means the request succeeded, so we save the login.
     if (this._authInfo)
-      this._saveLogin();
+      this._saveLogin(this._authInfo);
 
     this._processSend(request.responseText);
 
@@ -757,6 +804,7 @@ SnowlTwitter.prototype = {
   _resetSend: function() {
     this._successCallback = null;
     this._errorCallback = null;
+    this._authInfo = null;
   }
 };
 
