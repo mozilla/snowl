@@ -1,4 +1,9 @@
 <!ENTITY page.title "Snowl: Meddelelses flod">
-<!ENTITY currentButton.tooltip "Vis kun nuværende meddelelser.">
 <!ENTITY bodyButton.tooltip "Vis sammendrag/indhold.">
 <!ENTITY orderButton.tooltip "Omvend ordenen">
+<!ENTITY columnsButton.tooltip "Vis meddelelserne i kolumner.">
+<!ENTITY periodAnytime.label "Når som helst">
+<!ENTITY periodToday.label "I dag">
+<!ENTITY periodYesterday.label "I går">
+<!ENTITY periodLast7Days.label "Sidste 7 dage">
+<!ENTITY periodLast4Weeks.label "Sidste 4 uger">

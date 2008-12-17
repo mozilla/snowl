@@ -1,2 +1,22 @@
-<!ENTITY prefwindow.title "Snowl Indstillinger">
-<!ENTITY noPreferences.message "Snowl har ingen indstillinger endnu.">
+<!ENTITY subscribe.title "Abonner">
+<!ENTITY source.label "Abonner kilde">
+<!ENTITY feeds.label "Feed">
+<!ENTITY feeds.accesskey "F">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Sted:">
+<!ENTITY name.label "Navn">
+<!ENTITY subscribeButton.label "Abonner">
+<!ENTITY subscribeButton.accesskey "A">
+<!ENTITY closeButton.label "Tilbage">
+<!ENTITY closeButton.accesskey "T">
+<!ENTITY clearButton.label "Ryd">
+<!ENTITY clearButton.accesskey "R">
+<!ENTITY page.title "Snowl: Abonner kilde">
+<!ENTITY mail.label "Mail">
+<!ENTITY mail.accesskey "M">
+<!ENTITY newsgroup.label "Nyhedsgruppe">
+<!ENTITY newsgroup.accesskey "N">
+<!ENTITY general.title "Generel">
+<!ENTITY subscriptions.title "Abonnementer">
+<!ENTITY organize.title "Organiser">
