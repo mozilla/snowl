@@ -158,9 +158,9 @@ let SnowlMessageView = {
 
     this._collection = new SnowlCollection();
 
-    // Only show a week's worth of messages.
+    // Only show today's messages.
     this._collection.constraints.push({
-      expression: "received > (julianday('now', 'start of day') - 6)",
+      expression: "received >= (julianday('now', 'start of day'))",
       parameters: {}
     });
 
@@ -404,7 +404,7 @@ let SnowlMessageView = {
 
     this._contentSandbox.messages = contentBox;
 
-    let groups = SnowlDateUtils.periods.last7days;
+    let groups = SnowlDateUtils.periods.today;
 
     let groupIndex = 0;
 
@@ -436,10 +436,9 @@ let SnowlMessageView = {
       let codeStr = "messages.appendChild(messageBox)";
       Cu.evalInSandbox(codeStr, this._contentSandbox);
 
-      // Sleep after every tenth message so we don't hork the UI thread and users
+      // Sleep a bit after every message so we don't hork the UI thread and users
       // can immediately start reading messages while we finish writing them.
-      if (!(i % 10))
-        yield this._sleepRebuildView(0);
+      yield this._sleepRebuildView(0);
     }
 
     this._contentSandbox.messages = null;
