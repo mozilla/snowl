@@ -835,10 +835,39 @@ let SnowlMessageView = {
       let codeStr = "messages.appendChild(messageBox)";
       Cu.evalInSandbox(codeStr, this._contentSandbox);
 
-      // Sleep after every tenth message so we don't hork the UI thread and users
-      // can immediately start reading messages while we finish writing them.
-      if (!(i % 10))
-        yield this._sleepWriteMessages(0);
+      // Calculate the distance between the content currently being displayed
+      // in the content box and the content at the end of the box.  This tells
+      // us how close the user is to the end of the content, which we can use
+      // to determine how quickly to append more content to the box (the closer
+      // the user is to the end, the quicker we append more content to it, so
+      // they don't run out of stuff to read).
+      let totalPixels, scrolledPixels, boxExtent;
+      if (this._columnsButton.checked) {
+        totalPixels = contentBox.scrollWidth;
+        scrolledPixels = contentBox.scrollLeft;
+        boxExtent = contentBox.clientWidth;
+      }
+      else {
+        totalPixels = contentBox.scrollHeight;
+        scrolledPixels = contentBox.scrollTop;
+        boxExtent = contentBox.clientHeight;
+      }
+
+      // Subtracting the box extent from the total pixels gives us
+      // the distance from the current position to the beginning rather than
+      // the end of the last page of content.
+      let distance = totalPixels - boxExtent - scrolledPixels;
+
+      // Sleep to give the UI thread time to do other things.  We sleep longer
+      // the farther away the user is from the end of the page, and we also
+      // sleep longer if we're displaying full content, since it takes longer
+      // to display.  Our rough algorithm is to divide the distance from the end
+      // of the page by some divisor, limiting the output to a certain ceiling.
+      let timeout = distance / 25;
+      let ceiling = this._bodyButton.checked ? 300 : 25;
+      if (timeout > ceiling)
+        timeout = ceiling;
+      yield this._sleepWriteMessages(timeout);
     }
 
     this._contentSandbox.messages = null;
