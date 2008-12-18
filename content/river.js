@@ -329,6 +329,9 @@ let SnowlMessageView = {
       if (item)
         this._periodMenu.selectedItem = item;
     }
+    // By default, show one week.
+    else
+      this._periodMenu.selectedIndex = 3;
 
     if ("columns" in this._params) {
       this._columnsButton.checked = true;
