@@ -144,9 +144,10 @@ toolbarbutton {
 /* FIXME: factor this out with the almost identical code in stream.css. */
 .groupHeader {
   -moz-appearance: none;
-  background-color: darkgrey;
-  color: white;
-  width: 99%;
+  margin: 0;
+  width: 100%;
+  border-top: 1px solid grey;
+  border-left: 1px solid grey;
 }
 
 .groupHeader > .checkbox-spacer-box {
