@@ -1,4 +1,9 @@
 <!ENTITY page.title "Snowl: Rzeka wiadmości">
-<!ENTITY currentButton.tooltip "Wyświetlaj tylko aktualne wiadomości.">
 <!ENTITY bodyButton.tooltip "Wyświetlaj podsumowania/zawartość wiadomości.">
 <!ENTITY orderButton.tooltip "Odwróć kolejność wiadomości.">
+<!ENTITY columnsButton.tooltip "Wyświetlaj wiadomości w kolumnach.">
+<!ENTITY periodAnytime.label "Kiedykolwiek">
+<!ENTITY periodToday.label "Dzisiaj">
+<!ENTITY periodYesterday.label "Wczoraj">
+<!ENTITY periodLast7Days.label "W ciągu ostatnich 7 dni">
+<!ENTITY periodLast4Weeks.label "W ciągu ostatnich 4 tygodni">

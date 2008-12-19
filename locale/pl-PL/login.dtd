@@ -1,5 +1,5 @@
 <!ENTITY dialog.title "Żądanie autoryzacji">
-<!ENTITY realm.label "Wiadomość ze źródła:">
+<!ENTITY realm.label "Wiadomość od źródła:">
 <!ENTITY username.label "Nazwa użytkownika:">
 <!ENTITY password.label "Hasło:">
 <!ENTITY showPassword.label "Wyświetlaj wpisywane hasło">
