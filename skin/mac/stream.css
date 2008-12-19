@@ -37,6 +37,7 @@
 
 /******************************************************************************/
 /* Group Header - modifies <checkbox> style                                   */
+/* FIXME: make this apply to the headers in the river view */
 
 .groupHeader {
   -moz-appearance: none;

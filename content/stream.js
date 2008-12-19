@@ -158,9 +158,9 @@ let SnowlMessageView = {
 
     this._collection = new SnowlCollection();
 
-    // Only show today's messages.
+    // Show the last day's worth of messages.
     this._collection.constraints.push({
-      expression: "received >= (julianday('now', 'start of day'))",
+      expression: "received >= julianday('now') - 1",
       parameters: {}
     });
 
@@ -265,8 +265,7 @@ let SnowlMessageView = {
     //dump("_onMessageAdded: " + (message ? message.subject : "null message") + "\n");
     //Cu.reportError("_onMessageAdded: " + (message ? message.subject : "null message"));
 
-    this._contentSandbox.messages = this._document.getElementById("contentBox").
-                                    getElementsByClassName("groupBox")[0];
+    this._contentSandbox.messages = this._document.getElementById("contentBox");
     this._contentSandbox.messageBox = this._buildMessageView(message);
 
     let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
@@ -404,30 +403,8 @@ let SnowlMessageView = {
 
     this._contentSandbox.messages = contentBox;
 
-    let groups = SnowlDateUtils.periods.today;
-
-    let groupIndex = 0;
-
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
-
-      while (message.received < groups[groupIndex].epoch) {
-        ++groupIndex;
-
-        let header = this._document.createElementNS(XUL_NS, "checkbox");
-        header.className = "groupHeader";
-        header.setAttribute("label", groups[groupIndex].name);
-        header.setAttribute("checked", "true");
-        let listener = function(evt) { SnowlMessageView.onToggleGroup(evt) };
-        header.addEventListener("command", listener, false);
-
-        let container = this._document.createElementNS(XUL_NS, "vbox");
-        container.className = "groupBox";
-        this._contentSandbox.messages = container;
-
-        contentBox.appendChild(header);
-        contentBox.appendChild(container);
-      }
 
       let messageBox = this._buildMessageView(message);
 

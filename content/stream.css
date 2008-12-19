@@ -35,6 +35,8 @@
  * ***** END LICENSE BLOCK ***** */
 
 /* Import OS-specific style. */
+/* FIXME: remove this, as we no longer use it, but make sure we update
+ * the indexes that reference the rules below. */
 @import url("chrome://snowl/skin/stream.css");
 
 /* START RULES WE UPDATE DYNAMICALLY BY INDEX */
@@ -117,16 +119,6 @@
 .icon {
   max-width: 24px;
   max-height: 24px;
-}
-
-
-/******************************************************************************/
-/* Group Header - modifies <checkbox> style                                   */
-/* OS-specific styles for this node are in the OS-specific stream.css files.  */
-
-.groupHeader {
-  background-color: darkgrey;
-  color: white;
 }
 
 
