@@ -424,6 +424,7 @@ SnowlTwitter.prototype = {
   },
 
   refresh: function(refreshTime) {
+this._log.info("refresh " + this.name);
     Observers.notify(this, "snowl:subscribe:get:start", null);
 
     // Cache the refresh time so we can use it as the received time when adding
@@ -459,6 +460,7 @@ SnowlTwitter.prototype = {
     // to the server.  Otherwise, no worries, Necko will automatically call our
     // notification callback, which will prompt the user to enter their credentials.
     if (this._savedLogin) {
+this._log.info("refresh " + this.name + " with username " + this.username);
       let credentials = btoa(this.username + ":" + this._savedLogin.password);
       request.setRequestHeader("Authorization", "Basic " + credentials);
     }
