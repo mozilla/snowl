@@ -86,7 +86,11 @@ SnowlFeed.prototype = {
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlFeed,
 
-  _log: Log4Moz.repository.getLogger("Snowl.Feed"),
+  get _log() {
+    let logger = Log4Moz.repository.getLogger("Snowl.Feed " + this.name);
+    this.__defineGetter__("_log", function() logger);
+    return this._log;
+  },
 
   // If we prompt the user to authenticate, and the user asks us to remember
   // their password, we store the nsIAuthInformation in this property until
@@ -364,7 +368,7 @@ SnowlFeed.prototype = {
 
       // Add the message.
       messagesChanged = true;
-      this._log.info(this.name + " adding message " + externalID);
+      this._log.info("adding message " + externalID);
       internalID = this._addMessage(feed, entry, externalID, message.timestamp, this._refreshTime);
       currentMessageIDs.push(internalID);
 
