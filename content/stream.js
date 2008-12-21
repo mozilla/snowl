@@ -158,16 +158,6 @@ let SnowlMessageView = {
 
     this._collection = new SnowlCollection();
 
-    // Show the last couple hundred messages.
-    // We used to show all messages within a certain time period, like the last
-    // week or the last day, but the purpose of the stream view is to let users
-    // glance at recent activity as it scrolls by, not browse messages over long
-    // periods of time, and a week's worth of messages is too many to usefully
-    // browse in the view.  And a day's worth of messages means that if you start
-    // your browser after not having used it for a day, you'll see nothing
-    // in the view when you first open it, which is confusing and unexpected.
-    this._collection.limit = 250;
-
     // We sort by ID in order to do an implicit sort on received time
     // (so that we show messages in the order they are received) while making
     // sure that we always show messages in the same order even when their
@@ -180,9 +170,18 @@ let SnowlMessageView = {
     // there to be a difference between what the user sees when they leave
     // the view open (and messages accumulate in it over time) versus what
     // they see when they open it anew.
-    this._collection.sortProperties = ["id"];
-    this._collection.sortOrder = -1;
-    this._collection.sort();
+    this._collection.order = "messages.id DESC";
+
+    // Show the last couple hundred messages.
+    // We used to show all messages within a certain time period, like the last
+    // week or the last day, but the purpose of the stream view is to let users
+    // glance at recent activity as it scrolls by, not browse messages over long
+    // periods of time, and a week's worth of messages is too many to usefully
+    // browse in the view.  And a day's worth of messages means that if you start
+    // your browser after not having used it for a day, you'll see nothing
+    // in the view when you first open it, which is confusing and unexpected.
+    this._collection.limit = 250;
+
     this._rebuildView();
 
     this._initWriteForm();
