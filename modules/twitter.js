@@ -537,6 +537,15 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
     let messages = JSON.decode(responseText);
 
+    // Sort the messages by date, so we insert them from oldest to newest,
+    // which makes them show up in the correct order in views that expect
+    // messages to be inserted in that order and sort messages by their IDs.
+    // For performance, we pre-generate the dates before sorting the messages.
+    messages = messages.map(function(v) { return { message: v, timestamp: new Date(v.created_at) } });
+    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                 a.timestamp > b.timestamp ?  1 : 0);
+    messages = messages.map(function(v) v.message);
+
     let currentMessages = [];
     let messagesChanged = false;
 
@@ -611,10 +620,10 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     //identity.updateProperties(this.machineURI, message.user);
     let authorID = identity.personID;
 
-    let timestamp = new Date(message.created_at);
-
     // Add the message.
-    let messageID = this.addSimpleMessage(this.id, message.id, null, authorID, timestamp, aReceived, null);
+    let messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
+                                          new Date(message.created_at), aReceived,
+                                          null);
 
     // Add the message's content.
     this.addPart(messageID, message.text, "text/plain");
@@ -799,8 +808,8 @@ this._log.info("refresh " + this.name + " with username " + this.username);
 
   _processSend: function(responseText) {
     let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-    let response = JSON.decode(responseText);
-    this._addMessage(response, new Date());
+    let message = JSON.decode(responseText);
+    this._addMessage(message, new Date());
   },
 
   _resetSend: function() {

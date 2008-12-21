@@ -321,16 +321,29 @@ SnowlFeed.prototype = {
     let currentMessageIDs = [];
     let messagesChanged = false;
 
+    // Sort the messages by date, so we insert them from oldest to newest,
+    // which makes them show up in the correct order in views that expect
+    // messages to be inserted in that order and sort messages by their IDs.
+    let messages = [];
+    for (let i = 0; i < feed.items.length; i++) {
+      let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
+      let timestamp =   entry.updated        ? new Date(entry.updated)
+                      : entry.published      ? new Date(entry.published)
+                      : entry.get("dc:date") ? ISO8601DateUtils.parse(entry.get("dc:date"))
+                      : null;
+      messages.push({ entry: entry, timestamp: timestamp });
+    }
+    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                 a.timestamp > b.timestamp ?  1 : 0);
+
     SnowlDatastore.dbConnection.beginTransaction();
     try {
-      for (let i = 0; i < feed.items.length; i++) {
-        let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-        //entry.QueryInterface(Ci.nsIFeedContainer);
+      for each (let message in messages) {
+        let entry = message.entry;
 
         // Figure out the ID for the entry, then check if the entry has already
-        // been retrieved.  If we can't figure out the entry's ID, then we skip
-        // the entry, since its ID is the only way for us to know whether or not
-        // it has already been retrieved.
+        // been retrieved.  If the entry doesn't provide its own ID, we generate
+        // on for it based on its content.
         let externalID;
         try {
           externalID = entry.id || this._generateID(entry);
@@ -348,7 +361,7 @@ SnowlFeed.prototype = {
 
         messagesChanged = true;
         this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(feed, entry, externalID, this._refreshTime);
+        internalID = this._addMessage(feed, entry, externalID, message.timestamp, this._refreshTime);
         currentMessageIDs.push(internalID);
       }
 
@@ -380,9 +393,10 @@ SnowlFeed.prototype = {
    * @param aFeed         {nsIFeed}       the feed
    * @param aEntry        {nsIFeedEntry}  the entry
    * @param aExternalID   {string}        the external ID of the entry
+   * @param aTimestamp    {Date}          the message's timestamp
    * @param aReceived     {Date}          when the message was received
    */
-  _addMessage: function(aFeed, aEntry, aExternalID, aReceived) {
+  _addMessage: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
     let authorID = null;
     let authors = (aEntry.authors.length > 0) ? aEntry.authors
                   : (aFeed.authors.length > 0) ? aFeed.authors
@@ -403,19 +417,10 @@ SnowlFeed.prototype = {
       authorID = identity.personID;
     }
 
-    // Pick a timestamp, which is one of (by priority, high to low):
-    // 1. when the entry was last updated;
-    // 2. when the entry was published;
-    // 3. the Dublin Core timestamp associated with the entry;
-    let timestamp =   aEntry.updated        ? new Date(aEntry.updated)
-                    : aEntry.published      ? new Date(aEntry.published)
-                    : aEntry.get("dc:date") ? ISO8601DateUtils.parse(aEntry.get("dc:date"))
-                    : null;
-
     // FIXME: handle titles that contain markup or are missing.
     let messageID = this.addSimpleMessage(this.id, aExternalID,
                                           aEntry.title.text, authorID,
-                                          timestamp, aReceived, aEntry.link);
+                                          aTimestamp, aReceived, aEntry.link);
 
     // Add parts
     if (aEntry.content) {
