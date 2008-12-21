@@ -125,9 +125,13 @@ SnowlMessage.prototype = {
                                                  " WHERE id = " + this.id);
   },
 
-  _content: null,
+  /**
+   * The content of the message.  If undefined, we haven't retrieved it from
+   * the datastore.  If null, on the other hand, the message has no content.
+   */
+  _content: undefined,
   get content() {
-    if (!this._content)
+    if (typeof this._content == "undefined")
       this._content = this._getPart(PART_TYPE_CONTENT);
     return this._content;
   },
@@ -135,9 +139,13 @@ SnowlMessage.prototype = {
     this._content = newValue;
   },
 
-  _summary: null,
+  /**
+   * The summary of the message.  If undefined, we haven't retrieved it from
+   * the datastore.  If null, on the other hand, the message has no summary.
+   */
+  _summary: undefined,
   get summary() {
-    if (!this._summary)
+    if (typeof this._summary == "undefined")
       this._summary = this._getPart(PART_TYPE_SUMMARY);
     return this._summary;
   },
@@ -168,7 +176,7 @@ SnowlMessage.prototype = {
   },
 
   _getPart: function(aPartType) {
-    let part;
+    let part = null;
 
     try {
       this._getPartStatement.params.messageID = this.id;

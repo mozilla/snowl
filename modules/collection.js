@@ -250,15 +250,18 @@ this._log.info("got " + groups.length + " groups");
     let content, message;
     try {
       while (statement.step()) {
-        content = Cc["@mozilla.org/feed-textconstruct;1"].
-                  createInstance(Ci.nsIFeedTextConstruct);
-        content.text = statement.row.content;
-        content.type = TEXT_CONSTRUCT_TYPES[statement.row.mediaType];
-        content.base = URI.get(statement.row.baseURI);
-        content.lang = statement.row.languageTag;
+        content = null;
+        if (statement.row.partID) {
+          content = Cc["@mozilla.org/feed-textconstruct;1"].
+                    createInstance(Ci.nsIFeedTextConstruct);
+          content.text = statement.row.content;
+          content.type = TEXT_CONSTRUCT_TYPES[statement.row.mediaType];
+          content.base = URI.get(statement.row.baseURI);
+          content.lang = statement.row.languageTag;
+        }
 
         message = new SnowlMessage({
-          id:         statement.row.id,
+          id:         statement.row.messageID,
           sourceID:   statement.row.sourceID,
           subject:    statement.row.subject,
           author:     statement.row.author,
@@ -269,6 +272,7 @@ this._log.info("got " + groups.length + " groups");
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           content:    content
         });
+
         this._messages.push(message);
         this._messageIndex[message.id] = message;
       }
@@ -288,7 +292,7 @@ this._log.info("got " + groups.length + " groups");
 
   _generateStatement: function() {
     let columns = [
-      "messages.id",
+      "messages.id AS messageID",
       "messages.sourceID",
       "messages.subject",
       "messages.link",
@@ -297,6 +301,7 @@ this._log.info("got " + groups.length + " groups");
       "messages.received",
       "authors.name AS author",
       "authors.iconURL AS authorIcon",
+      "parts.id AS partID",
       "parts.content",
       "parts.mediaType",
       "parts.baseURI",
