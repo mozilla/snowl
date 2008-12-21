@@ -312,11 +312,15 @@ this._log.info("got " + groups.length + " groups");
       "SELECT " + columns.join(", ") + " " +
       "FROM sources JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id " +
-      "LEFT JOIN parts AS parts ON messages.id = parts.messageID";
+      "LEFT JOIN parts AS parts ON messages.id = parts.messageID " +
+
+      // This partType condition has to be in the constraint for the LEFT JOIN
+      // to the parts table because if it was in the WHERE clause it would
+      // exclude messages without a content part, whereas we want to retrieve
+      // all messages whether or not they have a content part.
+      "AND parts.partType = " + PART_TYPE_CONTENT;
 
     let conditions = [];
-
-    conditions.push("parts.partType = " + PART_TYPE_CONTENT);
 
     for each (let condition in this.constraints)
       conditions.push(condition.expression);
