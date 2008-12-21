@@ -262,9 +262,6 @@ let SnowlMessageView = {
   },
 
   _onMessageAdded: function(message) {
-    //dump("_onMessageAdded: " + (message ? message.subject : "null message") + "\n");
-    //Cu.reportError("_onMessageAdded: " + (message ? message.subject : "null message"));
-
     this._contentSandbox.messages = this._document.getElementById("contentBox");
     this._contentSandbox.messageBox = this._buildMessageView(message);
 
