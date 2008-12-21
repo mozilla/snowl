@@ -181,8 +181,6 @@ let SnowlMessageView = {
     this._collection.sort();
     this._rebuildView();
 
-    this._setMidnightTimout();
-
     this._initWriteForm();
     this._updateWriteButton();
   },
@@ -190,13 +188,6 @@ let SnowlMessageView = {
   onunLoad: function() {
     Observers.remove(this, "snowl:message:added");
     Observers.remove(this, "snowl:sources:changed");
-  },
-
-  _setMidnightTimout: function() {
-    let now = new Date();
-    let msUntilMidnight = SnowlDateUtils.tomorrow - now;
-    this._log.info("setting midnight timeout for " + new Date(now.getTime() + msUntilMidnight));
-    window.setTimeout(function() { SnowlMessageView.onMidnight() }, msUntilMidnight);
   },
 
   _initWriteForm: function() {
@@ -227,11 +218,6 @@ let SnowlMessageView = {
         this._onSourcesChanged();
         break;
     }
-  },
-
-  onMidnight: function() {
-    this._setMidnightTimout();
-    this._rebuildView();
   },
 
   /**
