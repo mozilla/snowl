@@ -60,6 +60,10 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/service.js");
 
+// FIXME: make strands.js into a module.
+let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
+loader.loadSubScript("chrome://snowl/content/strands.js");
+
 const TYPE = "SnowlTwitter";
 const NAME = "Twitter";
 const MACHINE_URI = URI.get("https://twitter.com");
@@ -531,55 +535,55 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     this._resetRefreshRequest();
   },
 
-  _processRefresh: function(responseText) {
-    this._log.debug("_processRefresh: this.name = " + this.name + "; responseText = " + responseText);
+  _processRefresh: strand(function(responseText) {
+    //this._log.debug("_processRefresh: this.name = " + this.name + "; responseText = " + responseText);
 
-    var JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+    // FIXME: make this work in Firefox 3.0 using the same technique as Personas.
+    let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
+
     let messages = JSON.decode(responseText);
 
-    // Sort the messages by date, so we insert them from oldest to newest,
-    // which makes them show up in the correct order in views that expect
-    // messages to be inserted in that order and sort messages by their IDs.
-    // For performance, we pre-generate the dates before sorting the messages.
-    messages = messages.map(function(v) { return { message: v, timestamp: new Date(v.created_at) } });
-    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
-                                 a.timestamp > b.timestamp ?  1 : 0);
-    messages = messages.map(function(v) v.message);
+    // Sort the messages by date.
+    // We do this before adding them to the datastore so that we add them
+    // from oldest to newest, which makes them display in that order in views
+    // that display messages by the order in which they are received.
+    messages.sort(function(a, b) new Date(a.created_at) < new Date(b.created_at) ? -1 :
+                                 new Date(a.created_at) > new Date(b.created_at) ?  1 : 0);
 
-    let currentMessages = [];
+    let currentMessageIDs = [];
     let messagesChanged = false;
 
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      for each (let message in messages) {
-        let externalID = message.id;
-        let internalID = this._getInternalIDForExternalID(externalID);
-        if (internalID) {
-          currentMessages.push(internalID);
-          continue;
-        }
-
-        messagesChanged = true;
-        this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(message, this._refreshTime);
-        currentMessages.push(internalID);
+    for each (let message in messages) {
+      // Ignore the message if we've already added it.
+      let externalID = message.id;
+      let internalID = this._getInternalIDForExternalID(externalID);
+      if (internalID) {
+        currentMessageIDs.push(internalID);
+        continue;
       }
 
-      // Update the current flag.
-      // XXX Should this affect whether or not messages have changed?
-      SnowlDatastore.dbConnection.executeSimpleSQL(
-        "UPDATE messages SET current = 0 " +
-        "WHERE sourceID = " + this.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL(
-        "UPDATE messages SET current = 1 " +
-        "WHERE id IN (" + currentMessages.join(", ") + ")");
+      // Add the message.
+      messagesChanged = true;
+      this._log.info(this.name + " adding message " + externalID);
+      internalID = this._addMessage(message, this._refreshTime);
+      currentMessageIDs.push(internalID);
 
-      SnowlDatastore.dbConnection.commitTransaction();
+      // Sleep for a bit to give other sources that are being refreshed
+      // at the same time the opportunity to insert messages themselves,
+      // so the messages appear mixed together in views that display messages
+      // by the order in which they are received, which is more pleasing
+      // than if the messages were clumped together by source.
+      // As a side effect, this might reduce horkage of the UI thread
+      // during refreshes.
+      yield sleep(50);
     }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      throw ex;
-    }
+
+    // Update the current flag.
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE messages SET current = (CASE WHEN id IN " +
+      "(" + currentMessageIDs.join(", ") + ")" +
+      " THEN 1 ELSE 0 END) WHERE sourceID = " + this.id
+    );
 
     if (messagesChanged)
       Observers.notify(null, "snowl:messages:changed", this.id);
@@ -594,7 +598,7 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     // FIXME: if we added people, refresh the collections view too.
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
-  },
+  }),
 
   _resetRefreshRequest: function() {
     this._refreshTime = null;
@@ -602,43 +606,47 @@ this._log.info("refresh " + this.name + " with username " + this.username);
   },
 
   _addMessage: function(message, aReceived) {
-    // We store the message text as both the subject and the content so that
-    // the content shows up in the Subject column of the list view.
-    // FIXME: make the list view automatically display some of the content
-    // if the subject is missing so we don't have to duplicate storage here.
-    let subject = message.text;
+    let messageID;
 
-    // Get an existing identity or create a new one.  Creating an identity
-    // automatically creates a person record with the provided name.
-    let identity = SnowlIdentity.get(this.id, message.user.id) ||
-                   SnowlIdentity.create(this.id,
-                                        message.user.id,
-                                        message.user.screen_name,
-                                        message.user.url,
-                                        message.user.profile_image_url);
-    // FIXME: update the identity record with the latest info about the person.
-    //identity.updateProperties(this.machineURI, message.user);
-    let authorID = identity.personID;
+    SnowlDatastore.dbConnection.beginTransaction();
+    try {
+      // Get an existing identity or create a new one.  Creating an identity
+      // automatically creates a person record with the provided name.
+      let identity = SnowlIdentity.get(this.id, message.user.id) ||
+                     SnowlIdentity.create(this.id,
+                                          message.user.id,
+                                          message.user.screen_name,
+                                          message.user.url,
+                                          message.user.profile_image_url);
+      // FIXME: update the identity record with the latest info about the person.
+      //identity.updateProperties(this.machineURI, message.user);
+      let authorID = identity.personID;
+  
+      // Add the message.
+      messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
+                                        new Date(message.created_at), aReceived,
+                                        null);
 
-    // Add the message.
-    let messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
-                                          new Date(message.created_at), aReceived,
-                                          null);
+      // Add the message's content.
+      this.addPart(messageID, message.text, "text/plain");
 
-    // Add the message's content.
-    this.addPart(messageID, message.text, "text/plain");
+      // Add the message's metadata.
+      for (let [name, value] in Iterator(message)) {
+        // Ignore properties we have already handled specially.
+        // XXX Should we add them anyway?  It's redundant info but would let
+        // others access them who may know about the properties but don't know
+        // about how we handle them specially.
+        if (["user", "created_at", "text"].indexOf(name) != -1)
+          continue;
+        // FIXME: populate a "recipient" field with in_reply_to_user_id.
+        this._addMetadatum(messageID, name, value);
+      }
 
-    // Add the message's metadata.
-    for (let [name, value] in Iterator(message)) {
-      // Ignore properties we have already handled specially.
-      // XXX Should we add them anyway, which is redundant info but lets others
-      // (who don't know about our special treatment) access them?
-      if (["user", "created_at", "text"].indexOf(name) != -1)
-        continue;
-
-      // FIXME: populate a "recipient" field with in_reply_to_user_id.
-
-      this._addMetadatum(messageID, name, value);
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      this._log.error("couldn't add " + message.id + ": " + ex);
     }
 
     Observers.notify(SnowlMessage.get(messageID), "snowl:message:added", null);

@@ -59,6 +59,10 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/service.js");
 
+// FIXME: make strands.js into a module.
+let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
+loader.loadSubScript("chrome://snowl/content/strands.js");
+
 /**
  * Convert a string to an array of character codes.
  *
@@ -306,7 +310,7 @@ SnowlFeed.prototype = {
     this._refreshTime = null;
   },
 
-  onRefreshResult: function(aResult) {
+  onRefreshResult: strand(function(aResult) {
     // FIXME: Make this be "snowl:refresh:start" or move it into the subscribing
     // caller so it makes sense that it's called "snowl:subscribe:get:start",
     // since this method also gets called during periodically on feeds to which
@@ -336,56 +340,56 @@ SnowlFeed.prototype = {
     messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
                                  a.timestamp > b.timestamp ?  1 : 0);
 
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      for each (let message in messages) {
-        let entry = message.entry;
+    for each (let message in messages) {
+      let entry = message.entry;
 
-        // Figure out the ID for the entry, then check if the entry has already
-        // been retrieved.  If the entry doesn't provide its own ID, we generate
-        // on for it based on its content.
-        let externalID;
-        try {
-          externalID = entry.id || this._generateID(entry);
-        }
-        catch(ex) {
-          this._log.warn("couldn't retrieve a message: " + ex);
-          continue;
-        }
-
-        let internalID = this._getInternalIDForExternalID(externalID);
-        if (internalID) {
-          currentMessageIDs.push(internalID);
-          continue;
-        }
-
-        messagesChanged = true;
-        this._log.info(this.name + " adding message " + externalID);
-        internalID = this._addMessage(feed, entry, externalID, message.timestamp, this._refreshTime);
-        currentMessageIDs.push(internalID);
+      // Figure out the ID for the entry, then check if the entry has already
+      // been retrieved.  If the entry doesn't provide its own ID, we generate
+      // one for it based on its content.
+      let externalID;
+      try {
+        externalID = entry.id || this._generateID(entry);
+      }
+      catch(ex) {
+        this._log.warn("couldn't get an ID for a message: " + ex);
+        continue;
       }
 
-      // Update the current flag.
-      // XXX Should this affect whether or not messages have changed?
-      SnowlDatastore.dbConnection.executeSimpleSQL(
-        "UPDATE messages SET current = 0 " +
-        "WHERE sourceID = " + this.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL("" +
-        "UPDATE messages SET current = 1 " +
-        "WHERE id IN (" + currentMessageIDs.join(", ") + ")");
+      // Ignore the message if we've already added it.
+      let internalID = this._getInternalIDForExternalID(externalID);
+      if (internalID) {
+        currentMessageIDs.push(internalID);
+        continue;
+      }
 
-      SnowlDatastore.dbConnection.commitTransaction();
+      // Add the message.
+      messagesChanged = true;
+      this._log.info(this.name + " adding message " + externalID);
+      internalID = this._addMessage(feed, entry, externalID, message.timestamp, this._refreshTime);
+      currentMessageIDs.push(internalID);
+
+      // Sleep for a bit to give other sources that are being refreshed
+      // at the same time the opportunity to insert messages themselves,
+      // so the messages appear mixed together in views that display messages
+      // by the order in which they are received, which is more pleasing
+      // than if the messages were clumped together by source.
+      // As a side effect, this might reduce horkage of the UI thread
+      // during refreshes.
+      yield sleep(50);
     }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      throw ex;
-    }
+
+    // Update the current flag.
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE messages SET current = (CASE WHEN id IN " +
+      "(" + currentMessageIDs.join(", ") + ")" +
+      " THEN 1 ELSE 0 END) WHERE sourceID = " + this.id
+    );
 
     if (messagesChanged)
       Observers.notify(null, "snowl:messages:changed", this.id);
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
-  },
+  }),
 
   /**
    * Add a message to the datastore for the given feed entry.
@@ -397,102 +401,113 @@ SnowlFeed.prototype = {
    * @param aReceived     {Date}          when the message was received
    */
   _addMessage: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
-    let authorID = null;
-    let authors = (aEntry.authors.length > 0) ? aEntry.authors
-                  : (aFeed.authors.length > 0) ? aFeed.authors
-                  : null;
-    if (authors && authors.length > 0) {
-      let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
-      // The external ID for an author is her email address, if provided
-      // (many feeds don't); otherwise it's her name.  For the name, on the
-      // other hand, we use the name, if provided, but fall back to the
-      // email address if a name is not provided (which it probably was).
-      let externalID = author.email || author.name;
-      let name = author.name || author.email;
+    let messageID;
 
-      // Get an existing identity or create a new one.  Creating an identity
-      // automatically creates a person record with the provided name.
-      identity = SnowlIdentity.get(this.id, externalID) ||
-                 SnowlIdentity.create(this.id, externalID, name);
-      authorID = identity.personID;
-    }
+    SnowlDatastore.dbConnection.beginTransaction();
+    try {
+      let authorID = null;
+      let authors = (aEntry.authors.length > 0) ? aEntry.authors
+                    : (aFeed.authors.length > 0) ? aFeed.authors
+                    : null;
+      if (authors && authors.length > 0) {
+        let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
+        // The external ID for an author is her email address, if provided
+        // (many feeds don't); otherwise it's her name.  For the name, on the
+        // other hand, we use the name, if provided, but fall back to the
+        // email address if a name is not provided (which it probably was).
+        let externalID = author.email || author.name;
+        let name = author.name || author.email;
 
-    // FIXME: handle titles that contain markup or are missing.
-    let messageID = this.addSimpleMessage(this.id, aExternalID,
-                                          aEntry.title.text, authorID,
-                                          aTimestamp, aReceived, aEntry.link);
-
-    // Add parts
-    if (aEntry.content) {
-      this.addPart(messageID,
-                   aEntry.content.text,
-                   INTERNET_MEDIA_TYPES[aEntry.content.type],
-                   PART_TYPE_CONTENT,
-                   aEntry.content.base,
-                   aEntry.content.lang);
-    }
-    if (aEntry.summary) {
-      this.addPart(messageID,
-                   aEntry.summary.text,
-                   INTERNET_MEDIA_TYPES[aEntry.summary.type],
-                   PART_TYPE_SUMMARY,
-                   aEntry.summary.base,
-                   aEntry.summary.lang);
-    }
-
-    // Add metadata.
-    let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
-                 fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
-    while (fields.hasMoreElements()) {
-      let field = fields.getNext().QueryInterface(Ci.nsIProperty);
-
-      // FIXME: create people records for these.
-      if (field.name == "authors") {
-        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-        while (values.hasMoreElements()) {
-          let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
-          // FIXME: store people records in a separate table with individual
-          // columns for each person attribute (i.e. name, email, url)?
-          this._addMetadatum(messageID,
-                             "atom:author",
-                             value.name && value.email ? value.name + "<" + value.email + ">"
-                                                       : value.name ? value.name : value.email);
-        }
+        // Get an existing identity or create a new one.  Creating an identity
+        // automatically creates a person record with the provided name.
+        identity = SnowlIdentity.get(this.id, externalID) ||
+                   SnowlIdentity.create(this.id, externalID, name);
+        authorID = identity.personID;
       }
 
-      else if (field.name == "links") {
-        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-        while (values.hasMoreElements()) {
-          let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-          // FIXME: store link records in a separate table with individual
-          // colums for each link attribute (i.e. href, type, rel, title)?
-          this._addMetadatum(messageID,
-                             "atom:link_" + value.get("rel"),
-                             value.get("href"));
-        }
+      // FIXME: handle titles that contain markup or are missing.
+      messageID = this.addSimpleMessage(this.id, aExternalID,
+                                        aEntry.title.text, authorID,
+                                        aTimestamp, aReceived, aEntry.link);
+
+      // Add parts
+      if (aEntry.content) {
+        this.addPart(messageID,
+                     aEntry.content.text,
+                     INTERNET_MEDIA_TYPES[aEntry.content.type],
+                     PART_TYPE_CONTENT,
+                     aEntry.content.base,
+                     aEntry.content.lang);
+      }
+      if (aEntry.summary) {
+        this.addPart(messageID,
+                     aEntry.summary.text,
+                     INTERNET_MEDIA_TYPES[aEntry.summary.type],
+                     PART_TYPE_SUMMARY,
+                     aEntry.summary.base,
+                     aEntry.summary.lang);
       }
 
-      // For some reason, the values of certain simple fields (like RSS2 guid)
-      // are property bags containing the value instead of the value itself.
-      // For those, we need to unwrap the extra layer. This strange behavior
-      // has been filed as bug 427907.
-      else if (typeof field.value == "object") {
-        if (field.value instanceof Ci.nsIPropertyBag2) {
-          let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
-          this._addMetadatum(messageID, field.name, value);
-        }
-        else if (field.value instanceof Ci.nsIArray) {
+      // Add metadata.
+      let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
+                   fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
+      while (fields.hasMoreElements()) {
+        let field = fields.getNext().QueryInterface(Ci.nsIProperty);
+
+        // FIXME: create people records for these.
+        if (field.name == "authors") {
           let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
           while (values.hasMoreElements()) {
-            // FIXME: values might not always have this interface.
-            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            this._addMetadatum(messageID, field.name, value.get(field.name));
+            let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
+            // FIXME: store people records in a separate table with individual
+            // columns for each person attribute (i.e. name, email, url)?
+            this._addMetadatum(messageID,
+                               "atom:author",
+                               value.name && value.email ? value.name + "<" + value.email + ">"
+                                                         : value.name ? value.name : value.email);
           }
         }
+
+        else if (field.name == "links") {
+          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+          while (values.hasMoreElements()) {
+            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
+            // FIXME: store link records in a separate table with individual
+            // colums for each link attribute (i.e. href, type, rel, title)?
+            this._addMetadatum(messageID,
+                               "atom:link_" + value.get("rel"),
+                               value.get("href"));
+          }
+        }
+
+        // For some reason, the values of certain simple fields (like RSS2 guid)
+        // are property bags containing the value instead of the value itself.
+        // For those, we need to unwrap the extra layer. This strange behavior
+        // has been filed as bug 427907.
+        else if (typeof field.value == "object") {
+          if (field.value instanceof Ci.nsIPropertyBag2) {
+            let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
+            this._addMetadatum(messageID, field.name, value);
+          }
+          else if (field.value instanceof Ci.nsIArray) {
+            let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+            while (values.hasMoreElements()) {
+              // FIXME: values might not always have this interface.
+              let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
+              this._addMetadatum(messageID, field.name, value.get(field.name));
+            }
+          }
+        }
+
+        else
+          this._addMetadatum(messageID, field.name, field.value);
       }
 
-      else
-        this._addMetadatum(messageID, field.name, field.value);
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      this._log.error("couldn't add " + aExternalID + ": " + ex);
     }
 
     Observers.notify(SnowlMessage.get(messageID), "snowl:message:added", null);
