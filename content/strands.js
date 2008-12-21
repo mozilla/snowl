@@ -446,3 +446,31 @@ strand = strands.js17 ? eval("(function(func) {\r\n"+
 	}
 }
 temp();
+
+if (!setTimeout) {
+  /**
+   * Set a timer, simulating the API for the window.setTimeout call.
+   * This only simulates the API for the version of the call that accepts
+   * a function as its first argument and no additional parameters,
+   * and it doesn't return the timeout ID.
+   *
+   * @param func {Function}
+   *        the function to call after the delay
+   * @param delay {Number}
+   *        the number of milliseconds to wait
+   */
+  var setTimeout = function(func, delay) {
+    let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let callback = {
+      _func: func,
+      notify: function(timer) {
+        // We call the function without "this." in front of it so that "this"
+        // inside the function is the global object, just as it would be
+        // with window.setTimeout.
+        let func = this._func;
+        func();
+      }
+    }
+    timer.initWithCallback(callback, delay, Ci.nsITimer.TYPE_ONE_SHOT);
+  }
+}
