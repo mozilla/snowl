@@ -60,7 +60,7 @@ Cu.import("resource://snowl/modules/utils.js");
  */
 function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
                          groupIDColumn, groupNameColumn, groupHomeURLColumn,
-                         groupIconURLColumn, filters) {
+                         groupIconURLColumn, filters, limit) {
   this.id = id;
   this.name = name;
   this.iconURL = iconURL;
@@ -73,6 +73,8 @@ function SnowlCollection(id, name, iconURL, constraints, parent, grouped,
   this.groupHomeURLColumn = groupHomeURLColumn;
   this.groupIconURLColumn = groupIconURLColumn;
   this._filters = filters || [];
+  if (limit)
+    this.limit = limit;
 
   this.sortProperties = ["timestamp"];
 }
@@ -83,6 +85,8 @@ SnowlCollection.prototype = {
     this.__defineGetter__("_log", function() { return log });
     return this._log;
   },
+
+  limit: null,
 
   _filters: null,
 
@@ -192,6 +196,9 @@ this._log.info("got " + groups.length + " groups");
       query += " WHERE " + conditions.join(" AND ");
 
     query += " ORDER BY " + this.groupNameColumn;
+
+    if (this.limit)
+      query += " LIMIT " + this.limit;
 
     this._log.info(this.name + " group query: " + query);
 
@@ -322,6 +329,9 @@ this._log.info("got " + groups.length + " groups");
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
+
+    if (this.limit)
+      query += " LIMIT " + this.limit;
 
     this._log.info(query);
 
