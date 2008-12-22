@@ -150,7 +150,11 @@ SnowlTwitter.prototype = {
   refreshInterval: 1000 * 60 * 3, // 3 minutes
 
   id: null,
+
+  // FIXME: remove "type", as it is no longer being used (we use the constructor
+  // instead to identify what type of source this is).
   type: null,
+
   name: null,
   machineURI: null,
   humanURI: null,

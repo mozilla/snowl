@@ -108,16 +108,27 @@ let SnowlOPML = {
     root.appendChild(body);
 
     // Populate the <body> element with <outline> elements.
+    // FIXME: export all accounts, not just sources but also targets.
     for each (let source in SnowlService.sources) {
       let outline = doc.createElement("outline");
-      // XXX Should we specify the |type| attribute, and should we specify
-      // type="atom" for Atom feeds or just type="rss" for all feeds?
+
+      // FIXME: delegate construction of the outline to the account itself,
+      // so accounts can set account-specific attributes like username
+      // without having to hack this code.
+      if (source.constructor.name == "SnowlTwitter") {
+        outline.setAttribute("type",      "twitter");
+        outline.setAttribute("username",  source.username);
+      }
+
+      // XXX Should we set the |type| attribute for feeds, and should
+      // we set type="atom" for Atom feeds or just type="rss" for all feeds?
       // This document says the latter but is three years old:
       // http://www.therssweblog.com/?guid=20051003145153
-      //outline.setAttribute("type", "rss");
-      outline.setAttribute("text", source.name);
-      outline.setAttribute("url", source.humanURI.spec);
-      outline.setAttribute("xmlUrl", source.machineURI.spec);
+
+      outline.setAttribute("text",    source.name);
+      outline.setAttribute("url",     source.humanURI.spec);
+      outline.setAttribute("xmlUrl",  source.machineURI.spec);
+
       body.appendChild(outline);
     }
 
