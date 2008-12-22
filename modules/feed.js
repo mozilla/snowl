@@ -294,12 +294,19 @@ SnowlFeed.prototype = {
     if (this._authInfo)
       this._saveLogin();
 
+    // Use the built-in feed processor to parse the response synchronously
+    // (but we process the result asynchronously using a coroutine).
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);
-    parser.listener = { t: this, handleResult: function(r) { this.t.onRefreshResult(r) } };
+    parser.listener = {
+      self: this,
+      handleResult: function(result) {
+        this.self._processRefresh(result, this.self._refreshTime);
+      }
+    };
     parser.parseFromString(request.responseText, request.channel.URI);
 
-    this._refreshTime = null;
+    this._resetRefresh();
   },
 
   onRefreshError: function(aEvent) {
@@ -311,10 +318,10 @@ SnowlFeed.prototype = {
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
 
-    this._refreshTime = null;
+    this._resetRefresh();
   },
 
-  onRefreshResult: strand(function(aResult) {
+  _processRefresh: strand(function(aResult, refreshTime) {
     // FIXME: Make this be "snowl:refresh:start" or move it into the subscribing
     // caller so it makes sense that it's called "snowl:subscribe:get:start",
     // since this method also gets called during periodically on feeds to which
@@ -369,7 +376,7 @@ SnowlFeed.prototype = {
       // Add the message.
       messagesChanged = true;
       this._log.info("adding message " + externalID);
-      internalID = this._addMessage(feed, entry, externalID, message.timestamp, this._refreshTime);
+      internalID = this._addMessage(feed, entry, externalID, message.timestamp, refreshTime);
       currentMessageIDs.push(internalID);
 
       // Sleep for a bit to give other sources that are being refreshed
@@ -394,6 +401,10 @@ SnowlFeed.prototype = {
 
     Observers.notify(this, "snowl:subscribe:get:end", null);
   }),
+
+  _resetRefresh: function() {
+    this._refreshTime = null;
+  },
 
   /**
    * Add a message to the datastore for the given feed entry.
@@ -656,7 +667,7 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
       this.persist();
 
       // Refresh the feed to import all its items.
-      this.onRefreshResult(aResult);
+      this._processRefresh(aResult);
 
       // Let observers know about the new source. Do it here, after messages
       // added, to avoid timing/db commit issue when refreshing collections view

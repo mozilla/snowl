@@ -127,7 +127,11 @@ SnowlTwitter.prototype = {
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlTwitter,
 
-  _log: Log4Moz.repository.getLogger("Snowl.Twitter"),
+  get _log() {
+    let logger = Log4Moz.repository.getLogger("Snowl.Twitter." + this.username);
+    this.__defineGetter__("_log", function() logger);
+    return this._log;
+  },
 
 
   //**************************************************************************//
@@ -428,7 +432,7 @@ SnowlTwitter.prototype = {
   },
 
   refresh: function(refreshTime) {
-this._log.info("refresh " + this.name);
+    this._log.info("refresh at " + refreshTime);
     Observers.notify(this, "snowl:subscribe:get:start", null);
 
     // Cache the refresh time so we can use it as the received time when adding
@@ -520,8 +524,9 @@ this._log.info("refresh " + this.name + " with username " + this.username);
       this._saveLogin(this._authInfo);
     }
 
-    this._processRefresh(request.responseText);
-    this._resetRefreshRequest();
+    this._processRefresh(request.responseText, this._refreshTime);
+
+    this._resetRefresh();
   },
 
   onRefreshError: function(event) {
@@ -532,10 +537,11 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
-    this._resetRefreshRequest();
+
+    this._resetRefresh();
   },
 
-  _processRefresh: strand(function(responseText) {
+  _processRefresh: strand(function(responseText, refreshTime) {
     //this._log.debug("_processRefresh: this.name = " + this.name + "; responseText = " + responseText);
 
     // FIXME: make this work in Firefox 3.0 using the same technique as Personas.
@@ -565,7 +571,7 @@ this._log.info("refresh " + this.name + " with username " + this.username);
       // Add the message.
       messagesChanged = true;
       this._log.info(this.name + " adding message " + externalID);
-      internalID = this._addMessage(message, this._refreshTime);
+      internalID = this._addMessage(message, refreshTime);
       currentMessageIDs.push(internalID);
 
       // Sleep for a bit to give other sources that are being refreshed
@@ -600,7 +606,7 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     Observers.notify(this, "snowl:subscribe:get:end", null);
   }),
 
-  _resetRefreshRequest: function() {
+  _resetRefresh: function() {
     this._refreshTime = null;
     this._authInfo = null;
   },
