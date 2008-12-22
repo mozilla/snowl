@@ -244,17 +244,12 @@ SnowlTwitter.prototype = {
    * the set of credentials changes.
    */
   get _savedLogin() {
-    // Alias this.username to a local variable because we can't use "this"
-    // in the lambda expression we pass to the filter method below due to
-    // bug 469609.
-    let username = this.username;
-
     // XXX Should we be using channel.URI.prePath instead of
     // this.machineURI.prePath in case the old URI redirects us to a new one
     // at a different hostname?
     return this._loginManager.
            findLogins({}, this.machineURI.prePath, null, AUTH_REALM).
-           filter(function(login) login.username == username)
+           filter(function(login) login.username == this.username, this)
            [0];
   },
 
