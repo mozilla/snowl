@@ -116,6 +116,9 @@ const AUTH_REALM = "Snowl";
 
 // This module is based on the API documented at http://apiwiki.twitter.com/.
 
+// FIXME: make the constructor accept credentials instead of passing them
+// to the subscribe function.
+
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
   SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance);
   SnowlTarget.init.call(this);
@@ -331,7 +334,7 @@ SnowlTwitter.prototype = {
     request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", "https://twitter.com/account/verify_credentials.json", true);
+    request.open("GET", "https://" + this.username + "@twitter.com/account/verify_credentials.json", true);
     request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
                                                               ":" +
                                                               credentials.password));
@@ -464,7 +467,7 @@ SnowlTwitter.prototype = {
         params.push("since_id=" + maxID);
     }
 
-    let url = "https://twitter.com/statuses/friends_timeline.json?" + params.join("&");
+    let url = "https://" + this.username + "@twitter.com/statuses/friends_timeline.json?" + params.join("&");
     this._log.debug("refresh: this.name = " + this.name + "; url = " + url);
     request.open("GET", url, true);
 
@@ -760,7 +763,7 @@ this._log.info("refresh " + this.name + " with username " + this.username);
     }
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("POST", "https://twitter.com/statuses/update.json", true);
+    request.open("POST", "https://" + this.username + "@twitter.com/statuses/update.json", true);
     // If the login manager has saved credentials for this account, provide them
     // to the server.  Otherwise, no worries, Necko will automatically call our
     // notification callback, which will prompt the user to enter their credentials.
