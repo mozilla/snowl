@@ -118,7 +118,7 @@
               <hbox pack="start">
                 <button label="&subscribeButton.label;" default="true"
                         accesskey="&subscribeButton.accesskey;"
-                        oncommand="Subscriber.subscribeFeed()"/>
+                        oncommand="SnowlPreferences.onSubscribeFeed()"/>
                 <spacer flex="1"/>
                 <button label="&clearButton.label;"
                         accesskey="&clearButton.accesskey;"
@@ -149,7 +149,7 @@
             <row align="center">
               <box/>
               <checkbox id="showTwitterPassword" label="&showPassword.label;"
-                        oncommand="Subscriber.showTwitterPassword()"/>
+                        oncommand="SnowlPreferences.onShowTwitterPassword()"/>
             </row>
             <row align="center">
               <box/>
@@ -160,7 +160,7 @@
               <hbox >
                 <button label="&subscribeButton.label;" default="true"
                         accesskey="&subscribeButton.accesskey;"
-                        oncommand="Subscriber.subscribeTwitter()"/>
+                        oncommand="SnowlPreferences.onSubscribeTwitter()"/>
                 <spacer flex="1"/>
                 <button label="&clearButton.label;"
                         accesskey="&clearButton.accesskey;"

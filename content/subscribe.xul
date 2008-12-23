@@ -99,7 +99,7 @@
       <spacer flex="1"/>
       <button label="&closeButton.label;"
               accesskey="&closeButton.accesskey;"
-              oncommand="Subscriber.subscribeClose()"/>
+              oncommand="Subscriber.onClose()"/>
     </hbox>
 
   </vbox>

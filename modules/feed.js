@@ -584,12 +584,18 @@ SnowlFeed.prototype = {
     SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   },
 
+
+  //**************************************************************************//
+  // Subscription
+
+  _subscribeCallback: null,
+
   subscribe: function(callback) {
     Observers.notify(this, "snowl:subscribe:connect:start", null);
 
     this._subscribeCallback = callback;
 
-this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">");
+    this._log.info("subscribing to " + this.machineURI.spec);
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -651,11 +657,12 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
     Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+
     if (this._subscribeCallback)
       this._subscribeCallback();
   },
 
-  onSubscribeResult: function(aResult) {
+  onSubscribeResult: strand(function(aResult) {
     try {
       let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
@@ -667,7 +674,7 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
       this.persist();
 
       // Refresh the feed to import all its items.
-      this._processRefresh(aResult);
+      yield this._processRefresh(aResult);
 
       // Let observers know about the new source. Do it here, after messages
       // added, to avoid timing/db commit issue when refreshing collections view
@@ -675,13 +682,13 @@ this._log.info("subscribing to " + this.name + " <" + this.machineURI.spec + ">"
 
     }
     catch(ex) {
-      dump("error on subscribe result: " + ex + "\n");
+      this._log.error("error on subscribe result: " + ex);
     }
     finally {
       if (this._subscribeCallback)
         this._subscribeCallback();
     }
-  },
+  }),
 
   _saveLogin: function() {
     let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);

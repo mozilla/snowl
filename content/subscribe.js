@@ -42,7 +42,7 @@ let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
 function SubscriptionListener(subject, topic, data) {
-  let source = Subscriber.feed;
+  let source = Subscriber.account;
 
   // Don't track the status of subscriptions happening in other windows/tabs.
   if (subject != source)
@@ -140,7 +140,7 @@ let Subscriber = {
 
     if (params.feed) {
       document.getElementById("locationTextbox").value = params.feed;
-      this.subscribeFeed(params.feed);
+      this.subscribeFeed(null, URI.get(params.feed));
     }
   },
 
@@ -168,54 +168,10 @@ let Subscriber = {
   //**************************************************************************//
   // Event Handlers
 
-  subscribeFeed: function(url) {
-    let uri, typedUri;
-    if (!url)
-      // Url from user input in Options
-      uri = URI.get(document.getElementById("locationTextbox").value);
-    else
-      // Url passed from feedparser
-      uri = URI.get(url);
-
-    // FIXME: fix the API so I don't have to pass a bunch of null and undefined
-    // values (that undefined value, incidentally, can probably be null).
-    let feed = new SnowlFeed(null, null, uri, undefined, null);
-    this._subscribe(feed);
-  },
-
-  showTwitterPassword: function() {
-    if (document.getElementById("showTwitterPassword").checked)
-      document.getElementById("twitterPassword").removeAttribute("type");
-    else
-      document.getElementById("twitterPassword").setAttribute("type", "password");
-  },
-
-  subscribeTwitter: function() {
-    let credentials = {
-      username: document.getElementById("twitterUsername").value,
-      password: document.getElementById("twitterPassword").value,
-      remember: document.getElementById("rememberTwitterPassword").checked
-    };
-
-    let twitter = new SnowlTwitter();
-
-    // FIXME: call this "source" instead of "feed".
-    this.feed = twitter;
-
-    if (!credentials.username || !credentials.password) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "logindata");
-      return;
-    }
-
-    let [name, username] = SnowlService.hasSourceUsername(
-        twitter.machineURI.spec, credentials.username)
-    if (name && credentials.username == username) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" +
-          username);
-      return;
-    }
-
-    twitter.subscribe(credentials);
+  // Dismiss subscribe page, don't close tab. It would be nice to remove
+  // the page from session history, but it doesn't seem there's a way..
+  onClose: function() {
+    gBrowserWindow.BrowserBack();
   },
 
 
@@ -233,7 +189,8 @@ let Subscriber = {
     if (rv != Ci.nsIFilePicker.returnOK)
       return;
 
-    // FIXME: use a file utility to open the file instead of XMLHttpRequest.
+    // FIXME: use a file utility to open the file instead of XMLHttpRequest
+    // and then use the DOM parser to parse it to XML.
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].
                   createInstance(Ci.nsIXMLHttpRequest);
     request.open("GET", fp.fileURL.spec, false);
@@ -248,22 +205,26 @@ let Subscriber = {
     this._importOutline(outline);
   },
 
-  _importOutline: strand(function(aOutline) {
-    // If this outline represents a feed, subscribe the user to the feed.
-    let uri = URI.get(aOutline.getAttribute("xmlUrl"));
-    if (uri) {
-      let name = aOutline.getAttribute("title") || aOutline.getAttribute("text");
-      // FIXME: fix the API so I don't have to pass a bunch of null and undefined
-      // values (that undefined value, incidentally, can probably be null).
-      let feed = new SnowlFeed(null, name || "untitled", uri, undefined, null);
+  _importOutline: strand(function(outline) {
+    let name = outline.getAttribute("title") || outline.getAttribute("text");
 
+    if (outline.getAttribute("type") == "twitter") {
       let future = new Future();
-      this._subscribe(feed, future.fulfill);
+      let credentials = { username: outline.getAttribute("username") };
+      this.subscribeTwitter(name, credentials, future.fulfill);
+      yield future.result();
+    }
+    // If it has an xmlUrl attribute, assume it's a feed.
+    else if (outline.hasAttribute("xmlUrl")) {
+      let machineURI = URI.get(outline.getAttribute("xmlUrl"));
+      let future = new Future();
+      this.subscribeFeed(name, machineURI, future.fulfill);
       yield future.result();
     }
 
-    if (aOutline.hasChildNodes()) {
-      let children = aOutline.childNodes;
+    // Import the outline's children.
+    if (outline.hasChildNodes()) {
+      let children = outline.childNodes;
       for (let i = 0; i < children.length; i++) {
         let child = children[i];
 
@@ -280,37 +241,71 @@ let Subscriber = {
   //**************************************************************************//
   // Subscribe
 
-  _subscribe: strand(function(feed, callback) {
-    // Store a reference to the feed to which we are currently subscribing
-    // so the progress listener can filter out events for some other feed.
-    this.feed = feed;
+  subscribeTwitter: strand(function(name, credentials, callback) {
+    this._log.info("subscribing to Twitter account " + name + " with username " + credentials.username);
 
-    if (!feed.machineURI) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "invalid");
+    this.account = new SnowlTwitter(null, name);
+
+    if (!credentials.username) {
+      this._log.info("can't subscribe to Twitter account " + name + ": no username");
+      Observers.notify(this.account, "snowl:subscribe:connect:end", "logindata");
+      // FIXME: reset this.account to null here.
       return;
     }
 
-    let name = SnowlService.hasSource(feed.machineURI.spec)
-    if (name) {
-      Observers.notify(this.feed, "snowl:subscribe:connect:end", "duplicate:" +
-          name);
+    let [name, username] = SnowlService.hasSourceUsername(this.account.machineURI.spec, credentials.username);
+    if (name && credentials.username == username) {
+      this._log.info("can't subscribe to Twitter account " + name + ": duplicate");
+      Observers.notify(this.account, "snowl:subscribe:connect:end", "duplicate:" + username);
+      // FIXME: reset this.account to null here.
       return;
     }
 
     let future = new Future();
-    feed.subscribe(future.fulfill);
+    this.account.subscribe(credentials, future.fulfill);
     yield future.result();
 
-    this.feed = null;
+    this.account = null;
 
     if (callback)
       callback();
   }),
 
-  // Dismiss subscribe page, don't close tab. It would be nice to remove
-  // the page from session history, but it doesn't seem there's a way..
-  subscribeClose: function() {
-    gBrowserWindow.BrowserBack();
-  }
+  subscribeFeed: strand(function(name, machineURI, callback) {
+    this._log.info("subscribing to feed " + name + " <" + machineURI.spec + ">");
+
+    // FIXME: fix the API so I don't have to pass a bunch of null and undefined
+    // values (that undefined value, incidentally, can probably be null).
+    this.account = new SnowlFeed(null, name, machineURI, undefined, null);
+
+    // FIXME: move this above the object instantiation above, as there's
+    // no point creating an object when we don't even have a valid URI to assign
+    // to it.  Unfortunately, this gets complicated, as the observer assumes
+    // the presence of the account property in this object (a dependency we will
+    // have to break).
+    if (!machineURI) {
+      Observers.notify(this.account, "snowl:subscribe:connect:end", "invalid");
+      this._log.error("could not subscribe to feed: no machine URI");
+      // FIXME: reset this.account to null here.
+      return;
+    }
+
+    let name = SnowlService.hasSource(machineURI.spec);
+    if (name) {
+      Observers.notify(this.account, "snowl:subscribe:connect:end", "duplicate:" + name);
+      this._log.error("could not subscribe to feed: duplicate");
+      // FIXME: reset this.account to null here.
+      return;
+    }
+
+    let future = new Future();
+    this.account.subscribe(future.fulfill);
+    yield future.result();
+
+    this.account = null;
+
+    if (callback)
+      callback();
+  })
 
 };

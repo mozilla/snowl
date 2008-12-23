@@ -307,11 +307,17 @@ SnowlTwitter.prototype = {
   // Subscription
 
   subscribed: false,
-  subscribe: function(credentials) {
+  _subscribeCallback: null,
+
+  subscribe: function(credentials, callback) {
     Observers.notify(this, "snowl:subscribe:connect:start", null);
+
+    this._subscribeCallback = callback;
 
     this.username = credentials.username;
     this.name = NAME + " - " + this.username;
+
+    this._log.info("subscribing");
 
     // credentials isn't a real nsIAuthInfo, but it's close enough for what
     // we do with it, which is to retrieve the username and password from it
@@ -328,6 +334,9 @@ SnowlTwitter.prototype = {
     request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
     request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
+    // FIXME: instead of calling verify credentials, retrieve messages,
+    // since that'll tell us if credentials were invalid just the same, and then
+    // we can process the result without having to do another request.
     request.QueryInterface(Ci.nsIXMLHttpRequest);
     request.open("GET", "https://" + this.username + "@twitter.com/account/verify_credentials.json", true);
     request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
@@ -338,38 +347,57 @@ SnowlTwitter.prototype = {
   },
 
   onSubscribeLoad: function(event) {
-    let request = event.target;
+    try {
+      let request = event.target;
 
-    // request.responseText should be: {"authorized":true}
-    this._log.info("onSubscribeLoad: " + request.responseText);
+      // request.responseText should be: {"authorized":true}
+      this._log.info("onSubscribeLoad: " + request.responseText);
 
-    // The load event can fire even with a non 2xx code, so handle as error
-    if (request.status < 200 || request.status > 299) {
-      this.onSubscribeError(event);
-      return;
+      // The load event can fire even with a non 2xx code, so handle as error
+      if (request.status < 200 || request.status > 299) {
+        this.onSubscribeError(event);
+        return;
+      }
+
+      // XXX What's the right way to handle this?
+      if (request.responseText.length == 0) {
+        this.onSubscribeError(event);
+        return;
+      }
+
+      Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+
+      // _authInfo only gets set if we prompted the user to authenticate
+      // and the user checked the "remember password" box.  Since we're here,
+      // it means the request succeeded, so we save the login.
+      if (this._authInfo)
+        this._saveLogin(this._authInfo);
+
+      // Save the source to the database.
+      this.persist();
+
+      // We let observers know about the new source after messages have been added
+      // to avoid a timing/DB commit issue when refreshing the collections view.
+      // We set the subscribed flag here to let refresh() know it follows a subscribe
+      // and should notify observers.
+      this.subscribed = true;
+
+      // FIXME: use a date provided by the subscriber so refresh times are the same
+      // for all accounts subscribed at the same time (f.e. in an OPML import).
+      this.refresh(new Date());
     }
-
-    // XXX What's the right way to handle this?
-    if (request.responseText.length == 0) {
-      this.onSubscribeError(event);
-      return;
+    catch(ex) {
+      this._log.error("error on subscribe load: " + ex);
     }
-
-    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
-
-    // _authInfo only gets set if we prompted the user to authenticate
-    // and the user checked the "remember password" box.  Since we're here,
-    // it means the request succeeded, so we save the login.
-    if (this._authInfo)
-      this._saveLogin(this._authInfo);
-
-    // Save the source to the database.
-    this.persist();
-    this.subscribed = true;
-
-    this._resetSubscribeRequest();
-
-    this.refresh(new Date());
+    finally {
+      try {
+        if (this._subscribeCallback)
+          this._subscribeCallback();
+      }
+      finally {
+        this._resetSubscribe();
+      }
+    }
   },
 
   onSubscribeError: function(event) {
@@ -384,11 +412,19 @@ SnowlTwitter.prototype = {
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
     Observers.notify(this, "snowl:subscribe:connect:end", request.status);
-    this._resetSubscribeRequest();
+
+    try {
+      if (this._subscribeCallback)
+        this._subscribeCallback();
+    }
+    finally {
+      this._resetSubscribe();
+    }
   },
 
-  _resetSubscribeRequest: function() {
+  _resetSubscribe: function() {
     this._authInfo = null;
+    this._subscribeCallback = null;
   },
 
 

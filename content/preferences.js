@@ -73,6 +73,10 @@ let SnowlPreferences = {
       new StringBundle("chrome://snowl/locale/preferences.properties");
   },
 
+
+  //**************************************************************************//
+  // Event Handlers
+
   onLoad: function() {
     this._setTitle();
   },
@@ -104,6 +108,30 @@ let SnowlPreferences = {
 
     Subscriber.addObservers();
     window.addEventListener("unload", function() { Subscriber.removeObservers(); }, false);
+  },
+
+  onSubscribeFeed: function() {
+    // FIXME: support users entering the URLs of sites (or just their hostnames,
+    // like "somesite.com", and retrieving the feeds from them automagically).
+    let machineURI = URI.get(document.getElementById("locationTextbox").value);
+    Subscriber.subscribeFeed(null, machineURI);
+  },
+
+  onSubscribeTwitter: function() {
+    let credentials = {
+      username: document.getElementById("twitterUsername").value,
+      password: document.getElementById("twitterPassword").value,
+      remember: document.getElementById("rememberTwitterPassword").checked
+    };
+
+    Subscriber.subscribeTwitter(null, credentials);
+  },
+
+  onShowTwitterPassword: function() {
+    if (document.getElementById("showTwitterPassword").checked)
+      document.getElementById("twitterPassword").removeAttribute("type");
+    else
+      document.getElementById("twitterPassword").setAttribute("type", "password");
   },
 
   selectSubcribeDeck: function() {
