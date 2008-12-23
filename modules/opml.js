@@ -112,6 +112,11 @@ let SnowlOPML = {
     for each (let source in SnowlService.sources) {
       let outline = doc.createElement("outline");
 
+      // XXX also set the title element per the OPML 2 spec?
+      // (http://www.opml.org/spec2#subscriptionLists)
+
+      outline.setAttribute("text",    source.name);
+
       // FIXME: delegate construction of the outline to the account itself,
       // so accounts can set account-specific attributes like username
       // without having to hack this code.
@@ -119,15 +124,15 @@ let SnowlOPML = {
         outline.setAttribute("type",      "twitter");
         outline.setAttribute("username",  source.username);
       }
-
-      // XXX Should we set the |type| attribute for feeds, and should
-      // we set type="atom" for Atom feeds or just type="rss" for all feeds?
-      // This document says the latter but is three years old:
-      // http://www.therssweblog.com/?guid=20051003145153
-
-      outline.setAttribute("text",    source.name);
-      outline.setAttribute("url",     source.humanURI.spec);
-      outline.setAttribute("xmlUrl",  source.machineURI.spec);
+      else {
+        // XXX Should we set the |type| attribute for feeds, and should
+        // we set type="atom" for Atom feeds or just type="rss" for all feeds?
+        // This document says the latter but is three years old:
+        // http://www.therssweblog.com/?guid=20051003145153
+        // But the OPML 2 spec also suggests they should all be type="rss".
+        outline.setAttribute("url",     source.humanURI.spec);
+        outline.setAttribute("xmlUrl",  source.machineURI.spec);
+      }
 
       body.appendChild(outline);
     }
