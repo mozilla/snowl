@@ -183,7 +183,7 @@ this._log.info("got " + groups.length + " groups");
 
     let query = 
       "SELECT " + columns.join(", ") + " " +
-      "FROM sources JOIN messages ON sources.id = messages.sourceID " +
+      "FROM sources LEFT JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
 
     let conditions = [];
