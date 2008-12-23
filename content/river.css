@@ -36,6 +36,12 @@
 
 
 /******************************************************************************/
+/* OS-specific Style */
+
+@import url("chrome://snowl/skin/twistbox.css");
+
+
+/******************************************************************************/
 /* Toolbar */
 
 #toolbar {
@@ -135,33 +141,6 @@ toolbarbutton {
 
 #contentStack[columns] > #columnResizeSplitter {
   display: -moz-box;
-}
-
-
-/******************************************************************************/
-/* Group Headers */
-
-/* FIXME: factor this out with the almost identical code in stream.css. */
-.groupHeader {
-  -moz-appearance: none;
-  margin: 0;
-  width: 100%;
-  border-top: 1px solid grey;
-  border-left: 1px solid grey;
-}
-
-.groupHeader > .checkbox-spacer-box {
-  -moz-appearance: none;
-}
-
-.groupHeader > .checkbox-spacer-box > .checkbox-check {
-  -moz-appearance: treetwisty;
-  background-image: none;
-  border: none;
-}
-
-.groupHeader[checked="true"] > .checkbox-spacer-box > .checkbox-check {
-  -moz-appearance: treetwistyopen;
 }
 
 

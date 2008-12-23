@@ -35,18 +35,22 @@
  * ***** END LICENSE BLOCK ***** */
 
 
-/******************************************************************************/
-/* Group Header - modifies <checkbox> style                                   */
-/* FIXME: make this apply to the headers in the river view */
+/* Style for a twisty with a label.  Used by the river view to put titles
+ * on groups of messages that can be hidden en masse (by pressing the twisty).
+ * Modifies a <checkbox> element to achieve the effect. */
 
-.groupHeader {
+.twistbox {
   -moz-appearance: none;
 }
 
-.groupHeader > .checkbox-check {
+.twistbox > .checkbox-spacer-box {
+  -moz-appearance: none;
+}
+
+.twistbox > .checkbox-spacer-box > .checkbox-check {
   -moz-appearance: treetwisty;
 }
 
-.groupHeader[checked="true"] > .checkbox-check {
+.twistbox[checked="true"] > .checkbox-spacer-box > .checkbox-check {
   -moz-appearance: treetwistyopen;
 }

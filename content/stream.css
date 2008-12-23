@@ -34,12 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* Import OS-specific style. */
-/* FIXME: remove this, as we no longer use it, but make sure we update
- * the indexes that reference the rules below. */
-@import url("chrome://snowl/skin/stream.css");
 
-/* START RULES WE UPDATE DYNAMICALLY BY INDEX */
+/* BEGIN RULES WE UPDATE DYNAMICALLY BY INDEX */
 
 /* Put nothing above this comment without updating the hardcoded indexes
  * referencing these rules in stream.js. */
@@ -62,8 +58,8 @@
  * then it might be a pixel or so off depending on the width of its content. */
 .centerColumn {}
 
-
 /* END RULES WE UPDATE DYNAMICALLY BY INDEX */
+
 
 #contentBox {
   -moz-user-focus: normal;

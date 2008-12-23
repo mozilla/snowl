@@ -724,7 +724,7 @@ let SnowlMessageView = {
         ++groupIndex;
 
         let header = this._document.createElementNS(XUL_NS, "checkbox");
-        header.className = "groupHeader";
+        header.className = "twistbox";
         header.setAttribute("label", groups[groupIndex].name);
         header.setAttribute("checked", "true");
         let listener = function(event) {

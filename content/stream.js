@@ -245,9 +245,9 @@ let SnowlMessageView = {
     // so one of the others is better.
 
     let width = window.innerWidth - this.scrollbarWidth - LEFT_COLUMN_WIDTH - RIGHT_COLUMN_WIDTH;
-    this._updateRule(1, ".body { min-width: " + width + "px; max-width: " + width + "px }");
-    this._updateRule(2, ".body > div { min-width: " + width + "px; max-width: " + width + "px }");
-    this._updateRule(3, ".centerColumn { min-width: " + width + "px; max-width: " + width + "px }");
+    this._updateRule(0, ".body { min-width: " + width + "px; max-width: " + width + "px }");
+    this._updateRule(1, ".body > div { min-width: " + width + "px; max-width: " + width + "px }");
+    this._updateRule(2, ".centerColumn { min-width: " + width + "px; max-width: " + width + "px }");
   },
 
   _onMessageAdded: function(message) {
