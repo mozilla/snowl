@@ -209,17 +209,15 @@ let Subscriber = {
     let name = outline.getAttribute("title") || outline.getAttribute("text");
 
     if (outline.getAttribute("type") == "twitter") {
-      let future = new Future();
       let credentials = { username: outline.getAttribute("username") };
-      this.subscribeTwitter(name, credentials, future.fulfill);
-      yield future.result();
+      this.subscribeTwitter(name, credentials);
+      yield sleep(100);
     }
     // If it has an xmlUrl attribute, assume it's a feed.
     else if (outline.hasAttribute("xmlUrl")) {
       let machineURI = URI.get(outline.getAttribute("xmlUrl"));
-      let future = new Future();
-      this.subscribeFeed(name, machineURI, future.fulfill);
-      yield future.result();
+      this.subscribeFeed(name, machineURI);
+      yield sleep(100);
     }
 
     // Import the outline's children.

@@ -503,7 +503,7 @@ SnowlTwitter.prototype = {
     // to the server.  Otherwise, no worries, Necko will automatically call our
     // notification callback, which will prompt the user to enter their credentials.
     if (this._savedLogin) {
-this._log.info("refresh " + this.name + " with username " + this.username);
+      this._log.info("setting Authorization header with username " + this.username);
       let credentials = btoa(this.username + ":" + this._savedLogin.password);
       request.setRequestHeader("Authorization", "Basic " + credentials);
     }
