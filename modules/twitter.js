@@ -334,11 +334,8 @@ SnowlTwitter.prototype = {
     request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
     request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
-    // FIXME: instead of calling verify credentials, retrieve messages,
-    // since that'll tell us if credentials were invalid just the same, and then
-    // we can process the result without having to do another request.
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", "https://" + this.username + "@twitter.com/account/verify_credentials.json", true);
+    request.open("GET", "https://" + this.username + "@twitter.com/statuses/friends_timeline.json?count=200", true);
     request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
                                                               ":" +
                                                               credentials.password));
@@ -346,11 +343,11 @@ SnowlTwitter.prototype = {
     request.send(null);
   },
 
-  onSubscribeLoad: function(event) {
+  onSubscribeLoad: strand(function(event) {
     try {
       let request = event.target;
 
-      // request.responseText should be: {"authorized":true}
+      // FIXME: don't log this huge string.
       this._log.info("onSubscribeLoad: " + request.responseText);
 
       // The load event can fire even with a non 2xx code, so handle as error
@@ -384,7 +381,7 @@ SnowlTwitter.prototype = {
 
       // FIXME: use a date provided by the subscriber so refresh times are the same
       // for all accounts subscribed at the same time (f.e. in an OPML import).
-      this.refresh(new Date());
+      yield this._processRefresh(request.responseText, new Date());
     }
     catch(ex) {
       this._log.error("error on subscribe load: " + ex);
@@ -398,7 +395,7 @@ SnowlTwitter.prototype = {
         this._resetSubscribe();
       }
     }
-  },
+  }),
 
   onSubscribeError: function(event) {
     let request = event.target;
