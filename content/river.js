@@ -170,11 +170,12 @@ let SnowlMessageView = {
   _hasHorizontalScrollbar: false,
   _hasVerticalScrollbar: false,
 
-  // the width (narrower dimension) of the vertical and horizontal scrollbars;
-  // useful for calculating the viewable size of the viewport, since window.
-  // innerWidth and innerHeight include the area taken up by the scrollbars
+  // The size of vertical and horizontal scrollbars across their narrower
+  // dimension (i.e. the width of vertical scrollbars and height of horizontal
+  // ones).  Useful for calculating the viewable size of the viewport, since
+  // window.innerWidth and innerHeight include the area taken up by scrollbars.
   // XXX Is this value correct, and does it vary by platform?
-  scrollbarWidth: 15,
+  scrollbarBreadth: 15,
 
   get contentStylesheet() {
     for (let i = 0; i < document.styleSheets.length; i++)
@@ -265,15 +266,14 @@ let SnowlMessageView = {
    */
   resizeContentBox: function() {
     let toolbarHeight = document.getElementById("toolbar").boxObject.height;
+    let writeFormHeight = document.getElementById("writeForm").boxObject.height;
 
     // We do this on load, when there isn't yet a horizontal scrollbar,
     // but we anticipate that there probably will be one, so we include it
     // in the calculation.  Perhap we should instead wait to resize
     // the content box until the content actually overflows horizontally.
-    // XXX Why do I have to subtract *double* the width of the scrollbar???
-    // Maybe it's because of the 7px padding all around the contentBox?
     this.contentHeight =
-      window.innerHeight - (this.scrollbarWidth*2) - toolbarHeight;
+      window.innerHeight - this.scrollbarBreadth - toolbarHeight - writeFormHeight;
   },
 
   _setMidnightTimout: function() {
@@ -595,6 +595,7 @@ let SnowlMessageView = {
 
   onToggleWrite: function(event) {
     this._writeForm.hidden = !event.target.checked;
+    this.resizeContentBox();
   },
 
 
