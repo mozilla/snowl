@@ -38,7 +38,15 @@
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://snowl/locale/list.dtd">
+<!-- toolbar.dtd gives us writeButton.tooltip. -->
+<!DOCTYPE page [
+  <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
+  %listDTD;
+  <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
+  %toolbarDTD;
+]>
+
+<?xul-overlay href="chrome://snowl/content/write.xul"?>
 
 <page id="snowlSidebar"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -50,5 +58,27 @@
 
   <!-- This is the overlay point for the collections view overlay. -->
   <vbox id="collectionsViewBox" flex="1"/>
+
+  <vbox id="writeForm" hidden="true"/>
+
+  <toolbar id="snowlToolbar" persist="hidden">
+    <toolbarbutton id="snowlSubscribeButton"
+                   image="chrome://snowl/content/icons/add.png"
+                   oncommand="CollectionsView.onSubscribe()"
+                   tooltiptext="&subscribeButton.tooltip;"/>
+    <toolbarbutton id="snowlUnsubscribeButton"
+                   image="chrome://snowl/content/icons/delete.png"
+                   oncommand="CollectionsView.onUnsubscribe()"
+                   tooltiptext="&unsubscribeButton.tooltip;"/>
+    <toolbarspring/>
+    <toolbarbutton id="snowlRefreshButton"
+                   image="chrome://snowl/content/icons/arrow_refresh_small.png"
+                   oncommand="CollectionsView.onRefresh()"
+                   tooltiptext="&refreshButton.tooltip;"/>
+    <toolbarbutton id="writeButton" type="checkbox"
+                   image="chrome://snowl/content/icons/email_add.png"
+                   oncommand="ListSidebar.onToggleWrite(event)"
+                   tooltiptext="&writeButton.tooltip;"/>
+  </toolbar>
 
 </page>

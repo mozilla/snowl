@@ -198,6 +198,9 @@ let SnowlMessageView = {
     // from showing the box later via writeForm.hidden = false, so we set it
     // here instead.
     // FIXME: file a bug on this abnormality.
+    // XXX Note: setting hidden="true" and then showing the box later
+    // via writeForm.hidden = false works fine in the list sidebar, so I'm
+    // not sure why it isn't working here.
     this._writeForm.hidden = true;
   },
 

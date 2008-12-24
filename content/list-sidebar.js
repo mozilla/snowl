@@ -39,7 +39,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-//modules that are Snowl-specific
+// modules that are generic
+Cu.import("resource://snowl/modules/Observers.js");
+
+// modules that are Snowl-specific
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
@@ -57,11 +61,56 @@ let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIDOMWindow);
 
 let ListSidebar = {
+
+  //**************************************************************************//
+  // Shortcuts
+
+  get _writeButton() {
+    delete this._writeButton;
+    return this._writeButton = document.getElementById("snowlWriteButton");
+  },
+
+  get _writeForm() {
+    delete this._writeForm;
+    return this._writeForm = document.getElementById("writeForm");
+  },
+
+
+  //**************************************************************************//
+  // Event & Notification Handlers
+
   onLoad: function() {
     gBrowserWindow.SnowlMessageView.show();
+    this._updateWriteButton();
+    Observers.add(this, "snowl:sources:changed");
   },
 
   onUnload: function() {
     gBrowserWindow.SnowlMessageView.hide();
+    Observers.remove(this, "snowl:sources:changed");
+  },
+
+  onToggleWrite: function(event) {
+    this._writeForm.hidden = !event.target.checked;
+  },
+
+  // nsIObserver
+  observe: function(subject, topic, data) {
+    switch (topic) {
+      case "snowl:sources:changed":
+        this._onSourcesChanged();
+        break;
+    }
+  },
+
+  _onSourcesChanged: function() {
+    this._updateWriteButton();
+  },
+
+  // Selectively enable/disable the button for writing a message depending on
+  // whether or not the user has an account that supports writing.
+  _updateWriteButton: function() {
+    this._writeButton.disabled = (SnowlService.targets.length == 0);
   }
+
 }

@@ -80,22 +80,6 @@
                     onmousedown="CollectionsView.onCollectionsTreeMouseDown(event)"/>
     </tree>
 
-    <toolbar id="snowlToolbar" persist="hidden">
-      <toolbarbutton id="snowlSubscribeButton"
-                     image="chrome://snowl/content/icons/add.png"
-                     oncommand="CollectionsView.onSubscribe()"
-                     tooltiptext="&subscribeButton.tooltip;"/>
-      <toolbarbutton id="snowlUnsubscribeButton"
-                     image="chrome://snowl/content/icons/delete.png"
-                     oncommand="CollectionsView.onUnsubscribe()"
-                     tooltiptext="&unsubscribeButton.tooltip;"/>
-      <toolbarspring/>
-      <toolbarbutton id="snowlRefreshButton"
-                     image="chrome://snowl/content/icons/arrow_refresh_small.png"
-                     oncommand="CollectionsView.onRefresh()"
-                     tooltiptext="&refreshButton.tooltip;"/>
-    </toolbar>
-
   </vbox>
 
 </overlay>

@@ -75,7 +75,29 @@
   </keyset>
 
   <hbox flex="1">
-    <vbox id="collectionsViewBox" style="width: 200px"/>
+    <vbox>
+      <vbox id="collectionsViewBox" style="width: 200px"/>
+
+      <toolbar id="snowlToolbar">
+        <toolbarbutton id="snowlSubscribeButton"
+                       image="chrome://snowl/content/icons/add.png"
+                       oncommand="CollectionsView.onSubscribe()"
+                       tooltiptext="&subscribeButton.tooltip;"/>
+        <toolbarbutton id="snowlUnsubscribeButton"
+                       image="chrome://snowl/content/icons/delete.png"
+                       oncommand="CollectionsView.onUnsubscribe()"
+                       tooltiptext="&unsubscribeButton.tooltip;"/>
+        <toolbarspring/>
+        <toolbarbutton id="snowlRefreshButton"
+                       image="chrome://snowl/content/icons/arrow_refresh_small.png"
+                       oncommand="CollectionsView.onRefresh()"
+                       tooltiptext="&refreshButton.tooltip;"/>
+        <toolbarbutton id="writeButton" type="checkbox"
+                       image="chrome://snowl/content/icons/email_add.png"
+                       oncommand="ListSidebar.onToggleWrite(event)"
+                       tooltiptext="&writeButton.tooltip;"/>
+      </toolbar>
+    </vbox>
 
     <splitter/>
 
