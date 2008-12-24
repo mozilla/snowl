@@ -75,6 +75,13 @@ tab[snowl] > image {
   opacity: .3;
 }
 
-tab[snowl] {
-  background: white;
-}
+/* Temporarily disable the river tab's background color, as it is being
+ * applied inconsistently across OSes and active/inactive tabs.  In particular,
+ * on Mac OS X it applies only to a Snowl tab that is inactive, and it's
+ * so bright that it stands out, which makes it look like the active tab
+ * rather than an inactive one.  On Ubuntu Linux it doesn't appear at all.
+ * This probably needs to be OS-specific to cope with varying -moz-appearance
+ * overrides and fit into overall OS-specific browser styling. */
+/*tab[snowl] {*/
+/*  background: white;*/
+/*}*/
