@@ -198,9 +198,12 @@
                   oncommand="Snowl.onImportOPML()"/>
         <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
                   oncommand="Snowl.onExportOPML()"/>
-        <menuseparator/>
-        <menuitem label="&options.label;" accesskey="&options.accesskey;"
-                  oncommand="Snowl.openSnowlPreferences();"/>
+        <!-- Commented out because we don't currently have any preferences
+           - (except the Subscribe pane, but users access that via another
+           - menu item). -->
+        <!--<menuseparator/>-->
+        <!--<menuitem label="&options.label;" accesskey="&options.accesskey;"-->
+        <!--          oncommand="Snowl.openSnowlPreferences();"/>-->
       </menupopup>
     </menu>
   </menupopup>
