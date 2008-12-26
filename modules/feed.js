@@ -674,7 +674,9 @@ SnowlFeed.prototype = {
       this.persist();
 
       // Refresh the feed to import all its items.
-      yield this._processRefresh(aResult);
+      // FIXME: use a date provided by the subscriber so refresh times are the same
+      // for all accounts subscribed at the same time (f.e. in an OPML import).
+      yield this._processRefresh(aResult, new Date());
 
       // Let observers know about the new source. Do it here, after messages
       // added, to avoid timing/db commit issue when refreshing collections view
