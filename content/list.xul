@@ -72,10 +72,11 @@
 
   <hbox id="browser">
     <hbox id="snowlSidebar"
+          class="chromeclass-extrachrome"
           insertbefore="sidebar-splitter"
           persist="width height hidden"/>
   </hbox>
-  
+
   <vbox id="sidebar-box"
         flex="1"/>
 
@@ -85,6 +86,7 @@
   <vbox id="appcontent">
 
     <vbox id="snowlViewContainer"
+          class="chromeclass-extrachrome"
           insertbefore="content"
           flex="1"
           persist="height width"
@@ -135,6 +137,7 @@
       </tree>
     </vbox>
 
-    <splitter id="snowlViewSplitter" insertbefore="content" persist="hidden"/>
+    <splitter id="snowlViewSplitter" class="chromeclass-extrachrome"
+              insertbefore="content" persist="hidden"/>
   </vbox>
 </overlay>
