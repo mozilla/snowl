@@ -67,7 +67,7 @@ let ListSidebar = {
 
   get _writeButton() {
     delete this._writeButton;
-    return this._writeButton = document.getElementById("snowlWriteButton");
+    return this._writeButton = document.getElementById("writeButton");
   },
 
   get _writeForm() {
