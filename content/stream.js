@@ -121,7 +121,7 @@ let SnowlMessageView = {
 
 
   // This regex is designed to match URLs in plain text.  It correctly
-  // excludes puncuation at the end of the URL, so in "See http://example.com."
+  // excludes punctuation at the end of the URL, so in "See http://example.com."
   // it matches "http://example.com", not "http://example.com.".
   // Based on http://www.perl.com/doc/FMTEYEWTK/regexps.html
   get _linkifyRegex() {
