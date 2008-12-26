@@ -57,7 +57,7 @@
   <script type="application/javascript" src="chrome://snowl/content/list-sidebar.js"/>
 
   <!-- This is the overlay point for the collections view overlay. -->
-  <vbox id="collectionsViewBox" flex="1"/>
+  <vbox id="collectionsViewBox"/>
 
   <vbox id="writeForm" hidden="true"/>
 

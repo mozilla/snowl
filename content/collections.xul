@@ -50,7 +50,7 @@
 
   <script type="application/javascript" src="chrome://snowl/content/collections.js"/>
 
-  <vbox id="collectionsViewBox">
+  <vbox id="collectionsViewBox" flex="1">
 
     <!-- Collection context -->
     <popup id="snowlCollectionContext"
