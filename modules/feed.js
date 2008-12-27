@@ -326,7 +326,7 @@ SnowlFeed.prototype = {
     // caller so it makes sense that it's called "snowl:subscribe:get:start",
     // since this method also gets called during periodically on feeds to which
     // the user is already subscribed.
-    Observers.notify(this, "snowl:subscribe:get:start", null);
+    Observers.notify("snowl:subscribe:get:start", this, null);
 
     // FIXME: handle the case where this throws |aResult.doc is null|
     // because the feed processor couldn't parse the feed file
@@ -397,9 +397,9 @@ SnowlFeed.prototype = {
     );
 
     if (messagesChanged)
-      Observers.notify(null, "snowl:messages:changed", this.id);
+      Observers.notify("snowl:messages:changed", null, this.id);
 
-    Observers.notify(this, "snowl:subscribe:get:end", null);
+    Observers.notify("snowl:subscribe:get:end", this, null);
   }),
 
   _resetRefresh: function() {
@@ -525,7 +525,7 @@ SnowlFeed.prototype = {
       this._log.error("couldn't add " + aExternalID + ": " + ex);
     }
 
-    Observers.notify(SnowlMessage.get(messageID), "snowl:message:added", null);
+    Observers.notify("snowl:message:added", SnowlMessage.get(messageID), null);
 
     return messageID;
   },
@@ -591,7 +591,7 @@ SnowlFeed.prototype = {
   _subscribeCallback: null,
 
   subscribe: function(callback) {
-    Observers.notify(this, "snowl:subscribe:connect:start", null);
+    Observers.notify("snowl:subscribe:connect:start", this, null);
 
     this._subscribeCallback = callback;
 
@@ -634,7 +634,7 @@ SnowlFeed.prototype = {
       return;
     }
 
-    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     // _authInfo only gets set if we prompted the user to authenticate
     // and the user checked the "remember password" box.  Since we're here,
@@ -656,7 +656,7 @@ SnowlFeed.prototype = {
     try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
-    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     if (this._subscribeCallback)
       this._subscribeCallback();
@@ -680,7 +680,7 @@ SnowlFeed.prototype = {
 
       // Let observers know about the new source. Do it here, after messages
       // added, to avoid timing/db commit issue when refreshing collections view
-      Observers.notify(null, "snowl:sources:changed", null);
+      Observers.notify("snowl:sources:changed", null, null);
 
     }
     catch(ex) {

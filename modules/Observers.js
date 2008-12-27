@@ -44,8 +44,14 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+/**
+ * A service for adding, removing and notifying observers of notifications.
+ * Wraps the nsIObserverService interface.
+ *
+ * @version 0.2
+ */
 let Observers = {
-  add: function(callback, topic) {
+  add: function(topic, callback) {
     let observer = new Observer(callback);
     if (!(topic in Observers._observers))
       Observers._observers[topic] = {};
@@ -54,7 +60,7 @@ let Observers = {
     return observer;
   },
 
-  remove: function(callback, topic) {
+  remove: function(topic, callback) {
     let observer = Observers._observers[topic][callback];
     if (observer) {
       Observers._service.removeObserver(observer, topic);
@@ -62,8 +68,10 @@ let Observers = {
     }
   },
 
-  notify: function(subject, topic, data) {
-    Observers._service.notifyObservers(new Subject(subject), topic, data);
+  notify: function(topic, subject, data) {
+    subject = (typeof subject == "undefined") ? null : new Subject(subject);
+       data = (typeof    data == "undefined") ? null : data;
+    Observers._service.notifyObservers(subject, topic, data);
   },
 
   _service: Cc["@mozilla.org/observer-service;1"].
@@ -88,9 +96,9 @@ Observer.prototype = {
     let unwrappedSubject = subject.wrappedJSObject || subject;
 
     if (typeof this._callback == "function")
-      this._callback(unwrappedSubject, topic, data);
+      this._callback(topic, unwrappedSubject, data);
     else
-      this._callback.observe(unwrappedSubject, topic, data);
+      this._callback.observe(topic, unwrappedSubject, data);
   }
 }
 

@@ -219,7 +219,7 @@ let SnowlMessageView = {
   // Initialization
 
   init: function() {
-    Observers.add(this, "snowl:messages:changed");
+    Observers.add("snowl:messages:changed", this);
 
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
@@ -494,7 +494,7 @@ let SnowlMessageView = {
   // Event & Notification Handlers
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:messages:changed":
         this._onMessagesChanged();

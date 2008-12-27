@@ -82,12 +82,12 @@ let ListSidebar = {
   onLoad: function() {
     gBrowserWindow.SnowlMessageView.show();
     this._updateWriteButton();
-    Observers.add(this, "snowl:sources:changed");
+    Observers.add("snowl:sources:changed", this);
   },
 
   onUnload: function() {
     gBrowserWindow.SnowlMessageView.hide();
-    Observers.remove(this, "snowl:sources:changed");
+    Observers.remove("snowl:sources:changed", this);
   },
 
   onToggleWrite: function(event) {
@@ -95,7 +95,7 @@ let ListSidebar = {
   },
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:sources:changed":
         this._onSourcesChanged();

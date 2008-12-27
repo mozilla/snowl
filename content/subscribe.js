@@ -41,7 +41,7 @@ let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
-function SubscriptionListener(subject, topic, data) {
+function SubscriptionListener(topic, subject, data) {
   let source = Subscriber.account;
 
   // Don't track the status of subscriptions happening in other windows/tabs.
@@ -149,19 +149,19 @@ let Subscriber = {
   },
 
   addObservers: function() {
-    Observers.add(SubscriptionListener, "snowl:subscribe:connect:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:connect:end");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:start");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:progress");
-    Observers.add(SubscriptionListener, "snowl:subscribe:get:end");
-},
+    Observers.add("snowl:subscribe:connect:start", SubscriptionListener);
+    Observers.add("snowl:subscribe:connect:end",   SubscriptionListener);
+    Observers.add("snowl:subscribe:get:start",     SubscriptionListener);
+    Observers.add("snowl:subscribe:get:progress",  SubscriptionListener);
+    Observers.add("snowl:subscribe:get:end",       SubscriptionListener);
+  },
 
   removeObservers: function() {
-    Observers.remove(SubscriptionListener, "snowl:subscribe:connect:start");
-    Observers.remove(SubscriptionListener, "snowl:subscribe:connect:end");
-    Observers.remove(SubscriptionListener, "snowl:subscribe:get:start");
-    Observers.remove(SubscriptionListener, "snowl:subscribe:get:progress");
-    Observers.remove(SubscriptionListener, "snowl:subscribe:get:end");
+    Observers.remove("snowl:subscribe:connect:start", SubscriptionListener);
+    Observers.remove("snowl:subscribe:connect:end",   SubscriptionListener);
+    Observers.remove("snowl:subscribe:get:start",     SubscriptionListener);
+    Observers.remove("snowl:subscribe:get:progress",  SubscriptionListener);
+    Observers.remove("snowl:subscribe:get:end",       SubscriptionListener);
   },
 
 
@@ -246,7 +246,7 @@ let Subscriber = {
 
     if (!credentials.username) {
       this._log.info("can't subscribe to Twitter account " + name + ": no username");
-      Observers.notify(this.account, "snowl:subscribe:connect:end", "logindata");
+      Observers.notify("snowl:subscribe:connect:end", this.account, "logindata");
       // FIXME: reset this.account to null here.
       return;
     }
@@ -254,7 +254,7 @@ let Subscriber = {
     let [name, username] = SnowlService.hasSourceUsername(this.account.machineURI.spec, credentials.username);
     if (name && credentials.username == username) {
       this._log.info("can't subscribe to Twitter account " + name + ": duplicate");
-      Observers.notify(this.account, "snowl:subscribe:connect:end", "duplicate:" + username);
+      Observers.notify("snowl:subscribe:connect:end", this.account, "duplicate:" + username);
       // FIXME: reset this.account to null here.
       return;
     }
@@ -282,7 +282,7 @@ let Subscriber = {
     // the presence of the account property in this object (a dependency we will
     // have to break).
     if (!machineURI) {
-      Observers.notify(this.account, "snowl:subscribe:connect:end", "invalid");
+      Observers.notify("snowl:subscribe:connect:end", this.account, "invalid");
       this._log.error("could not subscribe to feed: no machine URI");
       // FIXME: reset this.account to null here.
       return;
@@ -290,7 +290,7 @@ let Subscriber = {
 
     let name = SnowlService.hasSource(machineURI.spec);
     if (name) {
-      Observers.notify(this.account, "snowl:subscribe:connect:end", "duplicate:" + name);
+      Observers.notify("snowl:subscribe:connect:end", this.account, "duplicate:" + name);
       this._log.error("could not subscribe to feed: duplicate");
       // FIXME: reset this.account to null here.
       return;

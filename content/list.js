@@ -192,7 +192,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   show: function() {
-    Observers.add(this, "snowl:messages:changed");
+    Observers.add("snowl:messages:changed", this);
 
     this._collection = new SnowlCollection();
     this._sort();
@@ -211,7 +211,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // XXX Should we somehow destroy the view here (f.e. by setting
     // this._tree.view to null)?
 
-    Observers.remove(this, "snowl:messages:changed");
+    Observers.remove("snowl:messages:changed", this);
   },
 
 
@@ -219,7 +219,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   // Misc XPCOM Interfaces
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:messages:changed":
         // Update list view only if passed the id of the selected source

@@ -102,7 +102,7 @@ let SnowlService = {
     this._registerFeedHandler();
     this._initTimer();
 
-    Observers.add(this, "snowl:sources:changed");
+    Observers.add("snowl:sources:changed", this);
 
     // FIXME: refresh stale sources on startup in a way that doesn't hang
     // the UI thread.
@@ -154,7 +154,7 @@ let SnowlService = {
   // Event & Notification Handlers
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:sources:changed":
         this._onSourcesChanged();

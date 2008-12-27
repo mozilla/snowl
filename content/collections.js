@@ -77,7 +77,7 @@ let CollectionsView = {
 
   init: function() {
     this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
-    Observers.add(this, "snowl:sources:changed");
+    Observers.add("snowl:sources:changed", this);
     this._getCollections();
     this._buildCollectionTree();
 
@@ -230,7 +230,7 @@ let CollectionsView = {
   // Misc XPCOM Interfaces
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:sources:changed":
         this._getCollections();
@@ -397,9 +397,9 @@ this._log.info("unsubscribing source: "+selectedSource.name);
         notifyID = sourceID;
     }
 
-    Observers.notify(null, "snowl:sources:changed", null);
+    Observers.notify("snowl:sources:changed", null, null);
     // If the current selection is unsubscribed, pass its id on to list view
-    Observers.notify(null, "snowl:messages:changed", notifyID);
+    Observers.notify("snowl:messages:changed", null, notifyID);
   }
 
 };

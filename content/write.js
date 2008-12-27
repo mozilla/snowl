@@ -90,13 +90,13 @@ let WriteForm = {
   // Event & Notification Handlers
 
   onLoad: function() {
-    Observers.add(this, "snowl:sources:changed");
+    Observers.add("snowl:sources:changed", this);
     this._rebuildTargetsMenu();
     this._updateFormState();
   },
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:sources:changed":
         this._onSourcesChanged();

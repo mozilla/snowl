@@ -145,8 +145,8 @@ let SnowlMessageView = {
   // Initialization & Destruction
 
   onLoad: function() {
-    Observers.add(this, "snowl:message:added");
-    Observers.add(this, "snowl:sources:changed");
+    Observers.add("snowl:message:added", this);
+    Observers.add("snowl:sources:changed", this);
 
     this.onResize();
 
@@ -189,8 +189,8 @@ let SnowlMessageView = {
   },
 
   onunLoad: function() {
-    Observers.remove(this, "snowl:message:added");
-    Observers.remove(this, "snowl:sources:changed");
+    Observers.remove("snowl:message:added", this);
+    Observers.remove("snowl:sources:changed", this);
   },
 
   _initWriteForm: function() {
@@ -215,7 +215,7 @@ let SnowlMessageView = {
   // Event & Notification Handlers
 
   // nsIObserver
-  observe: function(subject, topic, data) {
+  observe: function(topic, subject, data) {
     switch (topic) {
       case "snowl:message:added":
         this._onMessageAdded(subject);

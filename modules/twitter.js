@@ -310,7 +310,7 @@ SnowlTwitter.prototype = {
   _subscribeCallback: null,
 
   subscribe: function(credentials, callback) {
-    Observers.notify(this, "snowl:subscribe:connect:start", null);
+    Observers.notify("snowl:subscribe:connect:start", this, null);
 
     this._subscribeCallback = callback;
 
@@ -362,7 +362,7 @@ SnowlTwitter.prototype = {
         return;
       }
 
-      Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+      Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
       // _authInfo only gets set if we prompted the user to authenticate
       // and the user checked the "remember password" box.  Since we're here,
@@ -408,7 +408,7 @@ SnowlTwitter.prototype = {
     try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
-    Observers.notify(this, "snowl:subscribe:connect:end", request.status);
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     try {
       if (this._subscribeCallback)
@@ -468,7 +468,7 @@ SnowlTwitter.prototype = {
 
   refresh: function(refreshTime) {
     this._log.info("refresh at " + refreshTime);
-    Observers.notify(this, "snowl:subscribe:get:start", null);
+    Observers.notify("snowl:subscribe:get:start", this, null);
 
     // Cache the refresh time so we can use it as the received time when adding
     // messages to the datastore.
@@ -553,7 +553,7 @@ SnowlTwitter.prototype = {
         this.username = this._authInfo.username;
         this.name = NAME + " - " + this._authInfo.username;
         this.persist();
-        Observers.notify(null, "snowl:sources:changed", null);
+        Observers.notify("snowl:sources:changed", null, null);
       }
 
       this._saveLogin(this._authInfo);
@@ -627,18 +627,18 @@ SnowlTwitter.prototype = {
     );
 
     if (messagesChanged)
-      Observers.notify(null, "snowl:messages:changed", this.id);
+      Observers.notify("snowl:messages:changed", null, this.id);
 
     // Let observers know about the new source. Do it here, after messages
     // added, to avoid timing/db commit issue when refreshing collections view
     if (this.subscribed) {
-      Observers.notify(null, "snowl:sources:changed", null);
+      Observers.notify("snowl:sources:changed", null, null);
       this.subscribed = false;
     }
 
     // FIXME: if we added people, refresh the collections view too.
 
-    Observers.notify(this, "snowl:subscribe:get:end", null);
+    Observers.notify("snowl:subscribe:get:end", this, null);
   }),
 
   _resetRefresh: function() {
@@ -690,7 +690,7 @@ SnowlTwitter.prototype = {
       this._log.error("couldn't add " + message.id + ": " + ex);
     }
 
-    Observers.notify(SnowlMessage.get(messageID), "snowl:message:added", null);
+    Observers.notify("snowl:message:added", SnowlMessage.get(messageID), null);
 
     return messageID;
   },
@@ -768,7 +768,7 @@ SnowlTwitter.prototype = {
   _errorCallback: null,
 
   send: function(content, successCallback, errorCallback) {
-    Observers.notify(this, "snowl:send:start", null);
+    Observers.notify("snowl:send:start", this, null);
 
     let data = "status=" + encodeURIComponent(content);
     //          + "&in_reply_to_status_id=" + encodeURIComponent(inReplyToID);
