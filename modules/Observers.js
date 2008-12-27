@@ -51,20 +51,50 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
  * @version 0.2
  */
 let Observers = {
-  add: function(topic, callback) {
-    let observer = new Observer(callback);
+  add: function(topic, callback, thisObject) {
+    if (typeof thisObject == "undefined")
+      thisObject = null;
+
+    if (typeof callback == "string") {
+      if (!thisObject)
+        throw "callback is a string (" + callback + ") but there is no thisObject";
+      if (typeof thisObject != "object")
+        throw "callback is a string (" + callback + ") but thisObject is a " + (typeof thisObject) + ", not an object";
+      if (!(callback in thisObject))
+        throw "callback (" + callback + ") is not in thisObject";
+      if (typeof thisObject[callback] != "function")
+        throw "callback (" + callback + ") in thisObject is not a function";
+    }
+
+    let observer = new Observer(callback, thisObject);
+
+    // Index the observer to make it easier to remove.  We index by exact
+    // combination of topic, callback, and (possibly null) thisObject,
+    // so the caller must call our remove() method with the same values
+    // in order for us to remove the observer.
     if (!(topic in Observers._observers))
       Observers._observers[topic] = {};
-    Observers._observers[topic][callback] = observer;
+    if (!(callback in Observers._observers[topic]))
+      Observers._observers[topic][callback] = {};
+    Observers._observers[topic][callback][thisObject] = observer;
+
     Observers._service.addObserver(observer, topic, true);
+
     return observer;
   },
 
-  remove: function(topic, callback) {
-    let observer = Observers._observers[topic][callback];
+  remove: function(topic, callback, thisObject) {
+    if (typeof thisObject == "undefined")
+      thisObject = null;
+
+    let observer;
+
+    if (Observers._observers[topic] && Observers._observers[topic][callback])
+      observer = Observers._observers[topic][callback][thisObject];
+
     if (observer) {
       Observers._service.removeObserver(observer, topic);
-      delete this._observers[topic][callback];
+      delete this._observers[topic][callback][thisObject];
     }
   },
 
@@ -83,8 +113,9 @@ let Observers = {
 };
 
 
-function Observer(callback) {
+function Observer(callback, thisObject) {
   this._callback = callback;
+  this._thisObject = thisObject;
 }
 
 Observer.prototype = {
@@ -95,9 +126,16 @@ Observer.prototype = {
     // using this module and those that are real XPCOM components.
     let unwrappedSubject = subject.wrappedJSObject || subject;
 
-    if (typeof this._callback == "function")
-      this._callback(topic, unwrappedSubject, data);
-    else
+    if (typeof this._callback == "function") {
+      if (this._thisObject)
+        this._callback.call(this._thisObject, topic, unwrappedSubject, data);
+      else
+        this._callback(topic, unwrappedSubject, data);
+    }
+    else if (typeof this._callback == "string") {
+      this._thisObject[this._callback](topic, unwrappedSubject, data);
+    }
+    else // typeof this._callback == "object" (nsIObserver)
       this._callback.observe(topic, unwrappedSubject, data);
   }
 }
