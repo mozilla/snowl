@@ -124,6 +124,12 @@ Observer.prototype = {
     // Pass the wrappedJSObject for subjects that have one.  Otherwise pass
     // the subject itself.  This way we support both wrapped subjects created
     // using this module and those that are real XPCOM components.
+    //
+    // FIXME: only unwrap the subject if the unwrapped subject is an instance
+    // of our Subject class, since those are the only ones that we know
+    // are created using this module for the express purpose of passing
+    // JS objects as subjects through the observer service.
+    //
     let unwrappedSubject = subject.wrappedJSObject || subject;
 
     if (typeof this._callback == "function") {
