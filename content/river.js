@@ -219,9 +219,7 @@ let SnowlMessageView = {
   // Initialization
 
   _init: function() {
-    // Note: we don't remove this observer, but Observers uses weak references,
-    // so this doesn't cause a leak.
-    Observers.add("snowl:messages:changed", this);
+    Observers.add("snowl:message:added",    this.onMessageAdded,    this);
 
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
@@ -499,22 +497,35 @@ let SnowlMessageView = {
     this._init();
   },
 
-  // nsIObserver
-  observe: function(topic, subject, data) {
-    switch (topic) {
-      case "snowl:messages:changed":
-        this._onMessagesChanged();
-        break;
+  onMessageAdded: function(topic, message) {
+    // Don't add the message if the view isn't showing the latest available
+    // messages.  Currently, that only happens when the user selects "yesterday"
+    // from the period menu.
+    let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
+    if (period == "yesterday")
+      return;
+
+    // Rebuild the view instead of adding the message if the view is showing
+    // a filtered set of messages, since we don't have a way to determine
+    // if the new message belongs to the filtered set.
+    // FIXME: figure out a way to determine that; perhaps a message could have
+    // a method that takes a filter string and returns a boolean for whether or
+    // not the message content matches the string.
+    let filter = this._filterTextbox.value;
+    if (filter != "") {
+      this._collection.invalidate();
+      this.rebuildView();
+      return;
     }
-  },
 
-  _onMessagesChanged: function() {
-    // FIXME: make the collection listen for message changes and invalidate
-    // itself, then rebuild the view in a timeout to give the collection time
-    // to do so.
-    this._collection.invalidate();
-
-    this.rebuildView();
+    // Build the message representation and add it to the view.
+    this._contentSandbox.messages = this._document.getElementById("contentBox").
+                                    getElementsByClassName("groupBox")[0];
+    this._contentSandbox.messageBox = this._buildMessageView(message);
+    let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
+    Cu.evalInSandbox(codeStr, this._contentSandbox);
+    this._contentSandbox.messages = null;
+    this._contentSandbox.messageBox = null;
   },
 
   onMidnight: function() {
@@ -747,97 +758,7 @@ let SnowlMessageView = {
         this._contentSandbox.messages = container;
       }
 
-      let messageBox = this._document.createElementNS(HTML_NS, "div");
-      messageBox.className = "message";
-      messageBox.setAttribute("index", i);
-
-      // These are the elements that will be appended to the message box.
-      let messageIcon, bylineBox, title, excerpt, body;
-
-      messageIcon = document.createElementNS(HTML_NS, "img");
-      excerpt = document.createElementNS(HTML_NS, "span");
-      excerpt.className = "excerpt";
-
-      // Byline
-      bylineBox = this._document.createElementNS(HTML_NS, "div");
-      bylineBox.className = "byline";
-
-      // Author and/or Source
-      if (message.author)
-        bylineBox.appendChild(this._document.createTextNode(message.author));
-      if (message.source) {
-        if (message.author)
-          bylineBox.appendChild(this._document.createTextNode(" - "));
-        bylineBox.appendChild(this._document.createTextNode(message.source.name));
-      }
-
-      // Source
-      //let source = this._document.createElementNS(HTML_NS, "a");
-      //source.className = "source";
-      //let sourceIcon = document.createElementNS(HTML_NS, "img");
-      //let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
-      //sourceIcon.src = this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec;
-      //source.appendChild(sourceIcon);
-      //source.appendChild(this._document.createTextNode(message.source.name));
-      //if (message.source.humanURI)
-      //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
-      //bylineBox.appendChild(source);
-
-      // Title
-      if (message.subject) {
-        title = this._document.createElementNS(HTML_NS, "h2");
-        title.className = "title";
-        let titleLink = this._document.createElementNS(HTML_NS, "a");
-        titleLink.appendChild(this._document.createTextNode(message.subject));
-        if (message.link)
-          this._unsafeSetURIAttribute(titleLink, "href", message.link);
-        title.appendChild(titleLink);
-      }
-
-      // Body
-      let bodyText = message.content || message.summary;
-      if (bodyText) {
-        body = this._document.createElementNS(HTML_NS, "div");
-        body.className = "body";
-        if (bodyText.base)
-          body.setAttributeNS(XML_NS, "base", bodyText.base.spec);
-
-        let docFragment = bodyText.createDocumentFragment(body);
-        if (docFragment) {
-          body.appendChild(docFragment);
-
-          // Generate an icon representing the message.
-          let firstImage = body.getElementsByTagName("img")[0];
-          if (firstImage) {
-            messageIcon = firstImage.cloneNode(false);
-            messageIcon.removeAttribute("width");
-            messageIcon.removeAttribute("height");
-            messageIcon.className = "messageIcon";
-          }
-        }
-
-        excerpt.appendChild(this._document.createTextNode(message.excerpt));
-      }
-
-      //// Timestamp
-      //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
-      //if (lastUpdated) {
-      //  let timestamp = this._document.createElementNS(HTML_NS, "span");
-      //  timestamp.className = "timestamp";
-      //  timestamp.appendChild(document.createTextNode(lastUpdated));
-      //  if (bylineBox.hasChildNodes())
-      //    bylineBox.appendChild(this._document.createTextNode(" - "));
-      //  bylineBox.appendChild(timestamp);
-      //}
-
-      // FIXME: implement support for enclosures.
-
-      messageBox.appendChild(messageIcon);
-      if (message.subject)
-        messageBox.appendChild(title);
-      messageBox.appendChild(excerpt);
-      messageBox.appendChild(body);
-      messageBox.appendChild(bylineBox);
+      let messageBox = this._buildMessageView(message);
 
       this._contentSandbox.messageBox = messageBox;
 
@@ -883,8 +804,102 @@ let SnowlMessageView = {
     this._contentSandbox.messageBox = null;
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
-  })
+  }),
 
+  _buildMessageView: function(message) {
+    let messageBox = this._document.createElementNS(HTML_NS, "div");
+    messageBox.className = "message";
+
+    // These are the elements that will be appended to the message box.
+    let messageIcon, bylineBox, title, excerpt, body;
+
+    messageIcon = document.createElementNS(HTML_NS, "img");
+    excerpt = document.createElementNS(HTML_NS, "span");
+    excerpt.className = "excerpt";
+
+    // Byline
+    bylineBox = this._document.createElementNS(HTML_NS, "div");
+    bylineBox.className = "byline";
+
+    // Author and/or Source
+    if (message.author)
+      bylineBox.appendChild(this._document.createTextNode(message.author));
+    if (message.source) {
+      if (message.author)
+        bylineBox.appendChild(this._document.createTextNode(" - "));
+      bylineBox.appendChild(this._document.createTextNode(message.source.name));
+    }
+
+    // Source
+    //let source = this._document.createElementNS(HTML_NS, "a");
+    //source.className = "source";
+    //let sourceIcon = document.createElementNS(HTML_NS, "img");
+    //let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
+    //sourceIcon.src = this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec;
+    //source.appendChild(sourceIcon);
+    //source.appendChild(this._document.createTextNode(message.source.name));
+    //if (message.source.humanURI)
+    //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
+    //bylineBox.appendChild(source);
+
+    // Title
+    if (message.subject) {
+      title = this._document.createElementNS(HTML_NS, "h2");
+      title.className = "title";
+      let titleLink = this._document.createElementNS(HTML_NS, "a");
+      titleLink.appendChild(this._document.createTextNode(message.subject));
+      if (message.link)
+        this._unsafeSetURIAttribute(titleLink, "href", message.link);
+      title.appendChild(titleLink);
+    }
+
+    // Body
+    let bodyText = message.content || message.summary;
+    if (bodyText) {
+      body = this._document.createElementNS(HTML_NS, "div");
+      body.className = "body";
+      if (bodyText.base)
+        body.setAttributeNS(XML_NS, "base", bodyText.base.spec);
+
+      let docFragment = bodyText.createDocumentFragment(body);
+      if (docFragment) {
+        body.appendChild(docFragment);
+
+        // Generate an icon representing the message.
+        let firstImage = body.getElementsByTagName("img")[0];
+        if (firstImage) {
+          messageIcon = firstImage.cloneNode(false);
+          messageIcon.removeAttribute("width");
+          messageIcon.removeAttribute("height");
+          messageIcon.className = "messageIcon";
+        }
+      }
+
+      excerpt.appendChild(this._document.createTextNode(message.excerpt));
+    }
+
+    //// Timestamp
+    //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
+    //if (lastUpdated) {
+    //  let timestamp = this._document.createElementNS(HTML_NS, "span");
+    //  timestamp.className = "timestamp";
+    //  timestamp.appendChild(document.createTextNode(lastUpdated));
+    //  if (bylineBox.hasChildNodes())
+    //    bylineBox.appendChild(this._document.createTextNode(" - "));
+    //  bylineBox.appendChild(timestamp);
+    //}
+
+    // FIXME: implement support for enclosures.
+
+    messageBox.appendChild(messageIcon);
+    if (message.subject)
+      messageBox.appendChild(title);
+    messageBox.appendChild(excerpt);
+    messageBox.appendChild(body);
+    messageBox.appendChild(bylineBox);
+
+    return messageBox;
+  }
 };
 
 let splitterDragObserver = {
