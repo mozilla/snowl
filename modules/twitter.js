@@ -306,7 +306,6 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Subscription
 
-  subscribed: false,
   _subscribeCallback: null,
 
   subscribe: function(credentials, callback) {
@@ -373,11 +372,7 @@ SnowlTwitter.prototype = {
       // Save the source to the database.
       this.persist();
 
-      // We let observers know about the new source after messages have been added
-      // to avoid a timing/DB commit issue when refreshing the collections view.
-      // We set the subscribed flag here to let refresh() know it follows a subscribe
-      // and should notify observers.
-      this.subscribed = true;
+      Observers.notify("snowl:sources:changed");
 
       // FIXME: use a date provided by the subscriber so refresh times are the same
       // for all accounts subscribed at the same time (f.e. in an OPML import).
@@ -628,13 +623,6 @@ SnowlTwitter.prototype = {
 
     if (messagesChanged)
       Observers.notify("snowl:messages:changed", null, this.id);
-
-    // Let observers know about the new source. Do it here, after messages
-    // added, to avoid timing/db commit issue when refreshing collections view
-    if (this.subscribed) {
-      Observers.notify("snowl:sources:changed", null, null);
-      this.subscribed = false;
-    }
 
     // FIXME: if we added people, refresh the collections view too.
 
