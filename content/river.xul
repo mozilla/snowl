@@ -60,7 +60,13 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml"
       title="&page.title;"
-      onload="SnowlMessageView.init()">
+      onload="SnowlMessageView.onLoad()">
+
+  <!-- Note: the page intentionally has no onunload handler, as onunload
+     - would suppress the bfcache, which would cause Firefox to reload the view
+     - every time the user goes back to it after following a link away from it,
+     - and we want the user to be able to return to the page without causing it
+     - to be reloaded, since a reload will lose the user's place on it. -->
 
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>

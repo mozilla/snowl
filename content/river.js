@@ -218,7 +218,9 @@ let SnowlMessageView = {
   //**************************************************************************//
   // Initialization
 
-  init: function() {
+  _init: function() {
+    // Note: we don't remove this observer, but Observers uses weak references,
+    // so this doesn't cause a leak.
     Observers.add("snowl:messages:changed", this);
 
     // FIXME: simplify the way the view gets built after the collections view
@@ -492,6 +494,10 @@ let SnowlMessageView = {
 
   //**************************************************************************//
   // Event & Notification Handlers
+
+  onLoad: function() {
+    this._init();
+  },
 
   // nsIObserver
   observe: function(topic, subject, data) {
