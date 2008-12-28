@@ -130,7 +130,9 @@ Observer.prototype = {
     // are created using this module for the express purpose of passing
     // JS objects as subjects through the observer service.
     //
-    let unwrappedSubject = subject.wrappedJSObject || subject;
+    let unwrappedSubject = subject;
+    if (subject && typeof subject == "object" && subject.wrappedJSObject)
+      unwrappedSubject = subject.wrappedJSObject;
 
     if (typeof this._callback == "function") {
       if (this._thisObject)
@@ -141,8 +143,9 @@ Observer.prototype = {
     else if (typeof this._callback == "string") {
       this._thisObject[this._callback](topic, unwrappedSubject, data);
     }
-    else // typeof this._callback == "object" (nsIObserver)
+    else { // typeof this._callback == "object" (nsIObserver)
       this._callback.observe(topic, unwrappedSubject, data);
+    }
   }
 }
 
