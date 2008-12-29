@@ -194,7 +194,7 @@ this._log.info("got " + groups.length + " groups");
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");
 
-    query += " ORDER BY " + this.groupNameColumn;
+    query += " ORDER BY " + this.groupNameColumn + " COLLATE NOCASE";
 
     if (this.limit)
       query += " LIMIT " + this.limit;
