@@ -111,10 +111,16 @@ else { // no message found with the given ID
 
 if (content) {
   let body = document.getElementById("body");
-  if (content.base)
-    body.setAttributeNS(XML_NS, "base", content.base.spec);
 
-  let docFragment = content.createDocumentFragment(body);
-  if (docFragment)
-    body.appendChild(docFragment);
+  if (content.type == "text") {
+    SnowlUtils.linkifyText(content.text, body, new Cu.Sandbox(window));
+  }
+  else { // content.type == "html" or "xhtml"
+    if (content.base)
+      body.setAttributeNS(XML_NS, "base", content.base.spec);
+
+    let docFragment = content.createDocumentFragment(body);
+    if (docFragment)
+      body.appendChild(docFragment);
+  }
 }
