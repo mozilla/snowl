@@ -87,10 +87,6 @@ SnowlMessage.get = function(id) {
         received:   SnowlDateUtils.julianToJSDate(statement.row.received)
       });
     }
-    else {
-      // Message not there, create structure anyway
-      message = new SnowlMessage({});
-    }
   }
   finally {
     statement.reset();
@@ -197,20 +193,6 @@ SnowlMessage.prototype = {
     }
 
     return part;
-  },
-
-  _notfound: null,
-  get notfound() {
-    if (!this._notfound) {
-      let part = Cc["@mozilla.org/feed-textconstruct;1"].
-                 createInstance(Ci.nsIFeedTextConstruct);
-      part.text = "notfound";
-      part.type = "html";
-      part.base = null;
-      part.lang = null;
-      this._notfound = part;
-    }
-    return this._notfound;
   },
 
   get source() {

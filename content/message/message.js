@@ -40,13 +40,13 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that are generic
+Cu.import("resource://snowl/modules/StringBundle.js");
+
 // modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
-
-const XML_NS = "http://www.w3.org/XML/1998/namespace"
-const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
@@ -69,45 +69,50 @@ for each (let param in query.split("&")) {
   params[name] = value;
 }
 
-let stringBundle = document.getElementById("snowlStringBundle");
+let strings = new StringBundle("chrome://snowl/locale/message.properties");
 
 let message = SnowlMessage.get(parseInt(params.id));
 
-let body = document.getElementById("body");
+let content;
 
-let content = message.content || message.summary || message.notfound;
+if (message) {
+  // Brief headers
+  document.getElementById("briefAuthor").value = message.author;
+  document.getElementById("briefSubject").value = message.subject;
+  document.getElementById("briefSubject").setAttribute("href", message.link);
+  document.getElementById("briefTimestamp").value = SnowlDateUtils._formatDate(message.timestamp);
+
+  // Full headers
+  document.getElementById("author").value = message.author;
+  document.getElementById("subject").value = message.subject;
+  document.documentElement.setAttribute("title", message.subject);
+  document.getElementById("timestamp").value = SnowlDateUtils._formatDate(message.timestamp);
+  document.getElementById("link").href = message.link;
+  document.getElementById("link").value = message.link;
+
+  gBrowserWindow.Snowl._toggleHeader("TabSelect");
+
+  content = message.content || message.summary;
+}
+else { // no message found with the given ID
+  document.documentElement.setAttribute("title",
+    strings.get("messageNotFoundTitle", [params.id]));
+
+  gBrowserWindow.Snowl._toggleHeader(gBrowserWindow.Snowl.kNoHeader);
+
+  content = Cc["@mozilla.org/feed-textconstruct;1"].
+            createInstance(Ci.nsIFeedTextConstruct);
+  let notFound = strings.get("messageNotFound", [params.id]);
+  content.text = "<p><strong>" + notFound + "</strong></p>";
+  content.type = "html";
+  content.base = null;
+  content.lang = null;
+}
 
 if (content) {
-  if (content.text != "notfound") {
-
-    if (content.base)
-      body.setAttributeNS(XML_NS, "base", content.base.spec);
-
-    // Brief headers
-    document.getElementById("briefAuthor").value = message.author;
-    document.getElementById("briefSubject").value = message.subject;
-    document.getElementById("briefSubject").setAttribute("href", message.link);
-    document.getElementById("briefTimestamp").value = SnowlDateUtils._formatDate(message.timestamp);
-    
-    // Full headers
-    document.getElementById("author").value = message.author;
-    document.getElementById("subject").value = message.subject;
-    document.documentElement.setAttribute("title", message.subject);
-    document.getElementById("timestamp").value = SnowlDateUtils._formatDate(message.timestamp);
-    document.getElementById("link").href = message.link;
-    document.getElementById("link").value = message.link;
-  
-    gBrowserWindow.Snowl._toggleHeader("TabSelect");
-  }
-  else {
-    // No message found
-    let notFound = stringBundle.getFormattedString("messageNotFound", [params.id]);
-    content.text = "<p><strong>" + notFound + "</strong></p>";
-    document.documentElement.setAttribute("title",
-        stringBundle.getFormattedString("messageNotFoundTitle", [params.id]));
-
-    gBrowserWindow.Snowl._toggleHeader(gBrowserWindow.Snowl.kNoHeader);
-  }
+  let body = document.getElementById("body");
+  if (content.base)
+    body.setAttributeNS(XML_NS, "base", content.base.spec);
 
   let docFragment = content.createDocumentFragment(body);
   if (docFragment)

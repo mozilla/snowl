@@ -44,11 +44,6 @@
 <!DOCTYPE page SYSTEM "chrome://snowl/locale/message.dtd">
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/message.properties"/>
-  </stringbundleset>
-
   <vbox id="head">
     <deck id="headerDeck" flex="1">
 
