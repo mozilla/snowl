@@ -51,13 +51,10 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/collection.js");
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/service.js");
-
-const XML_NS = "http://www.w3.org/XML/1998/namespace"
-const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
-const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
@@ -117,27 +114,6 @@ let SnowlMessageView = {
   _updateRule: function(position, newValue) {
     this.stylesheet.deleteRule(position);
     this.stylesheet.insertRule(newValue, position);
-  },
-
-
-  // This regex is designed to match URLs in plain text.  It correctly
-  // excludes punctuation at the end of the URL, so in "See http://example.com."
-  // it matches "http://example.com", not "http://example.com.".
-  // Based on http://www.perl.com/doc/FMTEYEWTK/regexps.html
-  get _linkifyRegex() {
-    let protocols = "(?:" + ["http", "https", "ftp"].join("|") + ")";
-    let ltrs = '\\w';
-    let gunk = '/#~:.?+=&%@!\\-';
-    let punc = '.:?\\-';
-    let any  = ltrs + gunk + punc;
-
-    let regex = new RegExp(
-      "\\b(" + protocols + ":[" + any + "]+?)(?=[" + punc + "]*[^" + any + "]|$)",
-      "gi"
-    );
-
-    delete this._linkifyRegex;
-    return this._linkifyRegex = regex;
   },
 
 
@@ -307,51 +283,6 @@ let SnowlMessageView = {
     this._contentSandbox.textNode = null;
   },
 
-  // FIXME: use this when linkifying the story title and source.
-  /**
-   * Safely sets the href attribute on an anchor tag, providing the URI 
-   * specified can be loaded according to rules.
-   *
-   * XXX Renamed from safeSetURIAttribute to unsafeSetURIAttribute to reflect
-   * that we've commented out the stuff that makes it safe.
-   *
-   * FIXME: I don't understand the security implications here, but presumably
-   * there's a reason this is here, and we should be respecting it, so make this
-   * work by giving each message in a collection have a reference to its source
-   * and then use the source's URI to create the principal with which we compare
-   * the URI.
-   * 
-   * @param   element
-   *          The element to set a URI attribute on
-   * @param   attribute
-   *          The attribute of the element to set the URI to, e.g. href or src
-   * @param   uri
-   *          The URI spec to set as the href
-   */
-  _unsafeSetURIAttribute: 
-  function FW__unsafeSetURIAttribute(element, attribute, uri) {
-/*
-    let secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
-                 getService(Ci.nsIScriptSecurityManager);    
-    const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
-    try {
-      secman.checkLoadURIStrWithPrincipal(this._feedPrincipal, uri, flags);
-      // checkLoadURIStrWithPrincipal will throw if the link URI should not be
-      // loaded, either because our feedURI isn't allowed to load it or per
-      // the rules specified in |flags|, so we'll never "linkify" the link...
-    }
-    catch (e) {
-      // Not allowed to load this link because secman.checkLoadURIStr threw
-      return;
-    }
-*/
-
-    this._contentSandbox.element = element;
-    this._contentSandbox.uri = uri;
-    let codeStr = "element.setAttribute('" + attribute + "', uri);";
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
-  },
-
 
   //**************************************************************************//
   // Content Generation
@@ -468,42 +399,20 @@ let SnowlMessageView = {
     let body = this._document.createElementNS(XUL_NS, "description");
     body.className = "body";
     let div = this._document.createElementNS(HTML_NS, "div");
+// FIXME: remove this <a> tag that is no longer being used.
     let a = this._document.createElementNS(HTML_NS, "a");
 
     let content = message.subject || message.excerpt;
 
     if (message.link) {
       let a = this._document.createElementNS(HTML_NS, "a");
-      this._unsafeSetURIAttribute(a, "href", message.link);
+      SnowlUtils.unsafelySetURIAttribute(a, "href", message.link, this._contentSandbox);
       body.className += " text-link";
       a.appendChild(this._document.createTextNode(content));
       div.appendChild(a);
     }
     else {
-      // Split the text into its plaintext and URL parts, which alternate
-      // in the array of results, with the first part always being plaintext.
-      // FIXME: turn this whole block into a function that other views
-      // can use.
-      let parts = content.split(this._linkifyRegex);
-      for (let i = 0; i < parts.length; i++) {
-        if (i % 2 == 0)
-          div.appendChild(this._document.createTextNode(parts[i]));
-        else {
-          // This is a bit hacky.  In theory, I should need either a XUL
-          // description tag of class="text-link" or an HTML a tag, but the
-          // description tag opens a new window when you click on it,
-          // and the a tag doesn't look like a link.  Using both results in
-          // the correct appearance and behavior, but it's overcomplicated.
-          // FIXME: fix this here and above, where we handle message.link.
-          let desc = this._document.createElementNS(XUL_NS, "description");
-          desc.className = "text-link";
-          let a = this._document.createElementNS(HTML_NS, "a");
-          this._unsafeSetURIAttribute(a, "href", parts[i]);
-          a.appendChild(this._document.createTextNode(parts[i]));
-          desc.appendChild(a);
-          div.appendChild(desc);
-        }
-      }
+      SnowlUtils.linkifyText(content, div, this._contentSandbox);
     }
 
     body.appendChild(div);
@@ -518,7 +427,7 @@ let SnowlMessageView = {
     //source.appendChild(sourceIcon);
     //source.appendChild(this._document.createTextNode(message.source.name));
     //if (message.source.humanURI)
-    //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
+    //  SnowlUtils.unsafelySetURIAttribute(source, "href", message.source.humanURI.spec);
     //centerColumn.appendChild(source);
 
     // right column

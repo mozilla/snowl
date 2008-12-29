@@ -37,7 +37,10 @@
 const EXPORTED_SYMBOLS = ["TEXT_CONSTRUCT_TYPES",
                           "INTERNET_MEDIA_TYPES",
                           "PART_TYPE_CONTENT",
-                          "PART_TYPE_SUMMARY"];
+                          "PART_TYPE_SUMMARY",
+                          "XML_NS",
+                          "XUL_NS",
+                          "HTML_NS"];
 
 // Internet media type to nsIFeedTextConstruct::type mappings.
 const TEXT_CONSTRUCT_TYPES = {
@@ -56,3 +59,7 @@ const INTERNET_MEDIA_TYPES = {
 // XXX Should this be a hash of types like TEXT_CONSTRUCT_TYPES above?
 const PART_TYPE_CONTENT = 1;
 const PART_TYPE_SUMMARY = 2;
+
+const XML_NS = "http://www.w3.org/XML/1998/namespace"
+const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+const HTML_NS = "http://www.w3.org/1999/xhtml";

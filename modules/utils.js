@@ -45,6 +45,9 @@ const Cu = Components.utils;
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/StringBundle.js");
 
+// modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
+
 let strings = new StringBundle("chrome://snowl/locale/utils.properties");
 
 /**
@@ -473,6 +476,105 @@ this._log.info("row: "+ row.value + " is not selected");
     // to just the words in the unquoted string (if any).
     return string.replace(/("[^"]*")?([^"]+)?("[^"]*")?/g,
                           function(str, p1, p2, p3) p1 + p2.replace(wordEnds, asterisk) + p3);
+  },
+
+
+  //**************************************************************************//
+  // Safe DOM Manipulation
+
+  /**
+   * Safely sets the URI attribute (f.e. "href") on a tag (f.e. the HTML <a>
+   * tag), providing the URI specified can be loaded according to the rules.
+   *
+   * XXX Renamed from safelySetURIAttribute to unsafelySetURIAttribute
+   * to reflect that we've temporarily commented out the stuff that makes
+   * it safe.
+   *
+   * FIXME: I don't understand the security implications here, but presumably
+   * there's a reason this is in the feed preview page, and we should be using
+   * it, so make it work by using the source's URI to create the principal
+   * with which we compare the URI.
+   * 
+   * @param   element   {Element}
+   *          the element on which to set the attribute
+   * @param   attribute {String}
+   *          the name of the attribute to set, f.e. href or src
+   * @param   uri       {String}
+   *          the URI to which to set the attribute
+   * @param   sandbox   {Sandbox}
+   *          the sandbox with which to set the attribute
+   */
+  unsafelySetURIAttribute: function(element, attribute, uri, sandbox) {
+/*
+    let secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
+                 getService(Ci.nsIScriptSecurityManager);    
+    const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
+    try {
+      secman.checkLoadURIStrWithPrincipal(this._feedPrincipal, uri, flags);
+      // checkLoadURIStrWithPrincipal will throw if the link URI should not be
+      // loaded, either because our feedURI isn't allowed to load it or per
+      // the rules specified in |flags|, so we'll never "linkify" the link...
+    }
+    catch (e) {
+      // Not allowed to load this link because secman.checkLoadURIStr threw
+      return;
+    }
+*/
+
+    sandbox.element = element;
+    sandbox.uri = uri;
+    Cu.evalInSandbox("element.setAttribute('" + attribute + "', uri)", sandbox);
+    sandbox.element = null;
+    sandbox.uri = null;
+  },
+
+  /**
+   * A regex that matches URLs in text.  It correctly excludes punctuation
+   * at the ends of URLs, so in the text "See http://example.com." it matches
+   * "http://example.com", not "http://example.com.".  It is based on the regex
+   * described in http://www.perl.com/doc/FMTEYEWTK/regexps.html.
+   */
+  get linkifyingRegex() {
+    let protocols = "(?:" + ["http", "https", "ftp"].join("|") + ")";
+    let ltrs = '\\w';
+    let gunk = '/#~:.?+=&%@!\\-';
+    let punc = '.:?\\-';
+    let any  = ltrs + gunk + punc;
+
+    let regex = new RegExp(
+      "\\b(" + protocols + ":[" + any + "]+?)(?=[" + punc + "]*[^" + any + "]|$)",
+      "gi"
+    );
+
+    delete this.linkifyingRegex;
+    return this.linkifyingRegex = regex;
+  },
+
+  /**
+   * Append text to an element, linkifying URLs embedded in it in the process.
+   */
+  linkifyText: function(text, container, sandbox) {
+    let parts = text.split(this.linkifyingRegex);
+    for (let i = 0; i < parts.length; i++) {
+      if (i % 2 == 0)
+        container.appendChild(container.ownerDocument.createTextNode(parts[i]));
+      else {
+        // This is a bit hacky.  In theory, I should need either a XUL
+        // <description> tag of class="text-link" or an HTML <a> tag, but the
+        // <description> tag opens a new window when you click on it,
+        // and the <a> tag doesn't look like a link.  Using both results in
+        // the correct appearance and behavior, although it's overcomplicated.
+        // FIXME: figure out how to simplify this while making it look
+        // and behave correctly.
+        let desc = container.ownerDocument.createElementNS(XUL_NS, "description");
+        desc.className = "text-link";
+        let a = container.ownerDocument.createElementNS(HTML_NS, "a");
+        this.unsafelySetURIAttribute(a, "href", parts[i], sandbox);
+        a.appendChild(container.ownerDocument.createTextNode(parts[i]));
+        desc.appendChild(a);
+        container.appendChild(desc);
+      }
+    }
   }
 
 };
