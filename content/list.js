@@ -402,7 +402,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     let message = this._collection.messages[row];
 
     //window.loadURI(message.link, null, null, false);
-    let url = "chrome://snowl/content/message/message.xul?id=" + message.id;
+    let url = "chrome://snowl/content/message.xul?id=" + message.id;
     window.loadURI(url, null, null, false);
 
     SnowlUtils.gListViewListIndex = row;

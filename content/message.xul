@@ -39,7 +39,7 @@
 
 <?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
 <?xml-stylesheet href="chrome://global/skin/formatting.css" type="text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/message/message.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/message.css" type="text/css"?>
 
 <!DOCTYPE page SYSTEM "chrome://snowl/locale/message.dtd">
 
@@ -129,6 +129,6 @@
 
   <vbox id="body"/>
 
-  <script type="application/x-javascript" src="chrome://snowl/content/message/message.js"/>
+  <script type="application/x-javascript" src="chrome://snowl/content/message.js"/>
 
 </page>
