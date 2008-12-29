@@ -399,8 +399,6 @@ let SnowlMessageView = {
     let body = this._document.createElementNS(XUL_NS, "description");
     body.className = "body";
     let div = this._document.createElementNS(HTML_NS, "div");
-// FIXME: remove this <a> tag that is no longer being used.
-    let a = this._document.createElementNS(HTML_NS, "a");
 
     let content = message.subject || message.excerpt;
 
