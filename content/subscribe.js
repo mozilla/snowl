@@ -151,6 +151,8 @@ let Subscriber = {
   },
 
   addObservers: function() {
+    // FIXME: integrate the subscription listener into this object
+    // as individual notification handler functions.
     Observers.add("snowl:subscribe:connect:start", SubscriptionListener);
     Observers.add("snowl:subscribe:connect:end",   SubscriptionListener);
     Observers.add("snowl:subscribe:get:start",     SubscriptionListener);

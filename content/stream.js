@@ -115,8 +115,8 @@ let SnowlMessageView = {
   // Initialization & Destruction
 
   onLoad: function() {
-    Observers.add("snowl:message:added", this);
-    Observers.add("snowl:sources:changed", this);
+    Observers.add("snowl:message:added", this.onMessageAdded, this);
+    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
 
     this.onResize();
 
@@ -159,8 +159,8 @@ let SnowlMessageView = {
   },
 
   onunLoad: function() {
-    Observers.remove("snowl:message:added", this);
-    Observers.remove("snowl:sources:changed", this);
+    Observers.remove("snowl:message:added", this.onMessageAdded, this);
+    Observers.remove("snowl:sources:changed", this.onSourcesChanged, this);
   },
 
   _initWriteForm: function() {
@@ -183,18 +183,6 @@ let SnowlMessageView = {
 
   //**************************************************************************//
   // Event & Notification Handlers
-
-  // nsIObserver
-  observe: function(topic, subject, data) {
-    switch (topic) {
-      case "snowl:message:added":
-        this._onMessageAdded(subject);
-        break;
-      case "snowl:sources:changed":
-        this._onSourcesChanged();
-        break;
-    }
-  },
 
   /**
    * Resize the content in the middle column based on the width of the viewport.
@@ -223,13 +211,13 @@ let SnowlMessageView = {
     this._updateRule(2, ".centerColumn { min-width: " + width + "px; max-width: " + width + "px }");
   },
 
-  _onMessageAdded: function(message) {
+  onMessageAdded: function(message) {
     let messages = this._document.getElementById("contentBox");
     let messageBox = this._buildMessageView(message);
     messages.insertBefore(messageBox, messages.firstChild);
   },
 
-  _onSourcesChanged: function() {
+  onSourcesChanged: function() {
     this._updateWriteButton();
     this._rebuildView();
   },

@@ -219,7 +219,7 @@ let SnowlMessageView = {
   // Initialization
 
   _init: function() {
-    Observers.add("snowl:message:added",    this.onMessageAdded,    this);
+    Observers.add("snowl:message:added", this.onMessageAdded, this);
 
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.

@@ -77,7 +77,7 @@ let CollectionsView = {
 
   init: function() {
     this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
-    Observers.add("snowl:sources:changed", this);
+    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
     this._getCollections();
     this._buildCollectionTree();
 
@@ -229,18 +229,13 @@ let CollectionsView = {
   //**************************************************************************//
   // Misc XPCOM Interfaces
 
-  // nsIObserver
-  observe: function(topic, subject, data) {
-    switch (topic) {
-      case "snowl:sources:changed":
-        this._getCollections();
-        // Rebuild the view to reflect the new collection of messages.
-        // Since the number of rows might have changed, we do this by reinitializing
-        // the view instead of merely invalidating the box object (which doesn't
-        // expect changes to the number of rows).
-        this._buildCollectionTree();
-        break;
-    }
+  onSourcesChanged: function() {
+    this._getCollections();
+    // Rebuild the view to reflect the new collection of messages.
+    // Since the number of rows might have changed, we do this by reinitializing
+    // the view instead of merely invalidating the box object (which doesn't
+    // expect changes to the number of rows).
+    this._buildCollectionTree();
   },
 
   _collections: null,

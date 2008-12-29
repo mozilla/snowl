@@ -192,7 +192,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   show: function() {
-    Observers.add("snowl:messages:changed", this);
+    Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
 
     this._collection = new SnowlCollection();
     this._sort();
@@ -211,29 +211,18 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // XXX Should we somehow destroy the view here (f.e. by setting
     // this._tree.view to null)?
 
-    Observers.remove("snowl:messages:changed", this);
-  },
-
-
-  //**************************************************************************//
-  // Misc XPCOM Interfaces
-
-  // nsIObserver
-  observe: function(topic, subject, data) {
-    switch (topic) {
-      case "snowl:messages:changed":
-        // Update list view only if passed the id of the selected source
-        if (this._collection.groupID == data)
-          this._onMessagesChanged();
-        break;
-    }
+    Observers.remove("snowl:messages:changed", this.onMessagesChanged, this);
   },
 
 
   //**************************************************************************//
   // Event & Notification Handling
 
-  _onMessagesChanged: function() {
+  onMessagesChanged: function(subject, data) {
+    // Update list view only if passed the id of the selected source
+    if (this._collection.groupID != data)
+      return;
+
     // FIXME: make the collection listen for message changes and invalidate
     // itself, then rebuild the view in a timeout to give the collection time
     // to do so.
