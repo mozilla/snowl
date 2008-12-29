@@ -262,14 +262,15 @@ let SnowlMessageView = {
   // Safe DOM Manipulation
 
   /**
-   * A sandbox in which to run DOM manipulation code on nodes that are already
-   * inserted into the content document.  Based on similar code in FeedWriter.js.
-   * It's not clear why we need to use this for DOM manipulations,
-   * but FeedWriter.js uses it, so we do as well just in case it matters.
+   * A sandbox in which to run DOM manipulation code on nodes in the document.
+   * Based on similar code in FeedWriter.js.  It's not clear why we need to use
+   * a sandbox for the kinds of DOM manipulations we do, but FeedWriter.js uses
+   * one, so we do the same.
+   * FIXME: figure out why we need to use a sandbox and explain it here.
    */
   get _sandbox() {
     delete this._sandbox;
-    return this._sandbox = new Cu.Sandbox(this._window);
+    return this._sandbox = new Cu.Sandbox("about:blank");
   },
 
   // FIXME: use this when setting story title and byline.
