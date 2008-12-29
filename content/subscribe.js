@@ -41,64 +41,66 @@ let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
-function SubscriptionListener(topic, subject, data) {
-  let source = Subscriber.account;
-
-  // Don't track the status of subscriptions happening in other windows/tabs.
-  if (subject != source)
-    return;
-
-    let code, message;
-    // If blank, fine
-    let identity = source.name;
-    let stringBundle = document.getElementById("snowlStringBundle");
-
-  switch(topic) {
-    case "snowl:subscribe:connect:start":
-      code = "active";
-      message = stringBundle.getString("messageConnecting");
-      break;
-    case "snowl:subscribe:connect:end":
-      if (data.split(":")[0] == "duplicate") {
-        code = "error";
-        message = stringBundle.getString("messageDuplicate");
-        identity = data.split(":")[1];
-      }
-      else if (data == "invalid") {
-        code = "error";
-        message = stringBundle.getString("messageInvalid");
-      }
-      else if (data == "logindata") {
-        code = "error";
-        message = stringBundle.getString("messageInvalidLoginData");
-      }
-      else if (data < 200 || data > 299) {
-        code = "error";
-        message = stringBundle.getString("messageConnectionError");
-        if (data == 401)
-          message = stringBundle.getString("messagePassword");
-      }
-      else {
-        // Under most circumstances, this message will be replaced immediately
-        // by the "getting messages" message.
-        code = "complete";
-        message = stringBundle.getString("messageConnected");
-      }
-      break;
-    case "snowl:subscribe:get:start":
-      code = "active";
-      message = stringBundle.getString("messageGettingMessages");
-      break;
-    case "snowl:subscribe:get:progress":
+let SubscriptionListener = {
+  observe: function(topic, subject, data) {
+    let source = Subscriber.account;
+  
+    // Don't track the status of subscriptions happening in other windows/tabs.
+    if (subject != source)
       return;
-      break;
-    case "snowl:subscribe:get:end":
-      code = "complete";
-      message = stringBundle.getString("messageSuccess");
-      break;
+  
+      let code, message;
+      // If blank, fine
+      let identity = source.name;
+      let stringBundle = document.getElementById("snowlStringBundle");
+  
+    switch(topic) {
+      case "snowl:subscribe:connect:start":
+        code = "active";
+        message = stringBundle.getString("messageConnecting");
+        break;
+      case "snowl:subscribe:connect:end":
+        if (data.split(":")[0] == "duplicate") {
+          code = "error";
+          message = stringBundle.getString("messageDuplicate");
+          identity = data.split(":")[1];
+        }
+        else if (data == "invalid") {
+          code = "error";
+          message = stringBundle.getString("messageInvalid");
+        }
+        else if (data == "logindata") {
+          code = "error";
+          message = stringBundle.getString("messageInvalidLoginData");
+        }
+        else if (data < 200 || data > 299) {
+          code = "error";
+          message = stringBundle.getString("messageConnectionError");
+          if (data == 401)
+            message = stringBundle.getString("messagePassword");
+        }
+        else {
+          // Under most circumstances, this message will be replaced immediately
+          // by the "getting messages" message.
+          code = "complete";
+          message = stringBundle.getString("messageConnected");
+        }
+        break;
+      case "snowl:subscribe:get:start":
+        code = "active";
+        message = stringBundle.getString("messageGettingMessages");
+        break;
+      case "snowl:subscribe:get:progress":
+        return;
+        break;
+      case "snowl:subscribe:get:end":
+        code = "complete";
+        message = stringBundle.getString("messageSuccess");
+        break;
+    }
+    Subscriber.setStatus(code, message, identity);
   }
-  Subscriber.setStatus(code, message, identity);
-}
+};
 
 let Subscriber = {
   // Logger

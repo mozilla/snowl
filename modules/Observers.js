@@ -52,106 +52,85 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
  */
 let Observers = {
   add: function(topic, callback, thisObject) {
-    if (typeof thisObject == "undefined")
-      thisObject = null;
-
-    if (typeof callback == "string") {
-      if (!thisObject)
-        throw "callback is a string (" + callback + ") but there is no thisObject";
-      if (typeof thisObject != "object")
-        throw "callback is a string (" + callback + ") but thisObject is a " + (typeof thisObject) + ", not an object";
-      if (!(callback in thisObject))
-        throw "callback (" + callback + ") is not in thisObject";
-      if (typeof thisObject[callback] != "function")
-        throw "callback (" + callback + ") in thisObject is not a function";
-    }
-
-    let observer = new Observer(callback, thisObject);
-
-    // Index the observer to make it easier to remove.  We index by exact
-    // combination of topic, callback, and (possibly null) thisObject,
-    // so the caller must call our remove() method with the same values
-    // in order for us to remove the observer.
-    if (!(topic in Observers._observers))
-      Observers._observers[topic] = {};
-    if (!(callback in Observers._observers[topic]))
-      Observers._observers[topic][callback] = {};
-    Observers._observers[topic][callback][thisObject] = observer;
-
-    Observers._service.addObserver(observer, topic, true);
+    let observer = new Observer(topic, callback, thisObject);
+    this._cache.push(observer);
+    this._service.addObserver(observer, topic, true);
 
     return observer;
   },
 
   remove: function(topic, callback, thisObject) {
-    if (typeof thisObject == "undefined")
-      thisObject = null;
-
-    let observer;
-
-    if (Observers._observers[topic] && Observers._observers[topic][callback])
-      observer = Observers._observers[topic][callback][thisObject];
-
+    // This seems fairly inefficient, but I'm not sure how much better
+    // we can make it.  We could index by topic, but we can't index by callback
+    // or thisObject, as far as I know, since the keys to JavaScript hashes
+    // (a.k.a. objects) can apparently only be primitive values.
+    let [observer] = this._cache.filter(function(v) v.topic      == topic    &&
+                                                    v.callback   == callback &&
+                                                    v.thisObject == thisObject);
     if (observer) {
-      Observers._service.removeObserver(observer, topic);
-      delete this._observers[topic][callback][thisObject];
+      this._service.removeObserver(observer, topic);
+      this._cache.splice(this._cache.indexOf(observer), 1);
     }
   },
 
   notify: function(topic, subject, data) {
     subject = (typeof subject == "undefined") ? null : new Subject(subject);
        data = (typeof    data == "undefined") ? null : data;
-    Observers._service.notifyObservers(subject, topic, data);
+    this._service.notifyObservers(subject, topic, data);
   },
 
   _service: Cc["@mozilla.org/observer-service;1"].
             getService(Ci.nsIObserverService),
 
-  // Observers indexed by callback.  This lets us get the observer
-  // to remove when a caller calls |remove|, passing it a callback.
-  _observers: {}
+  /**
+   * A cache of observers that have been added.
+   *
+   * We use this to remove observers when a caller calls |remove|.
+   *
+   * XXX This might result in reference cycles, causing memory leaks,
+   * if we hold a reference to an observer that holds a reference to us.
+   * Could we fix that by making this an independent top-level object
+   * rather than a property of this object?
+   */
+  _cache: []
 };
 
 
-function Observer(callback, thisObject) {
-  this._callback = callback;
-  this._thisObject = thisObject;
+function Observer(topic, callback, thisObject) {
+  this.topic = topic;
+  this.callback = callback;
+  this.thisObject = thisObject;
 }
 
 Observer.prototype = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver, Ci.nsISupportsWeakReference]),
   observe: function(subject, topic, data) {
-    // Pass the wrappedJSObject for subjects that have one.  Otherwise pass
-    // the subject itself.  This way we support both wrapped subjects created
+    // Extract the wrapped object for subjects that are one of our wrappers
+    // around a JS object.  This way we support both wrapped subjects created
     // using this module and those that are real XPCOM components.
-    //
-    // FIXME: only unwrap the subject if the unwrapped subject is an instance
-    // of our Subject class, since those are the only ones that we know
-    // are created using this module for the express purpose of passing
-    // JS objects as subjects through the observer service.
-    //
-    let unwrappedSubject = subject;
-    if (subject && typeof subject == "object" && subject.wrappedJSObject)
-      unwrappedSubject = subject.wrappedJSObject;
+    if (subject && typeof subject == "object" &&
+        ("wrappedJSObject" in subject) &&
+        ("observersModuleSubjectWrapper" in subject.wrappedJSObject))
+      subject = subject.wrappedJSObject.object;
 
-    if (typeof this._callback == "function") {
-      if (this._thisObject)
-        this._callback.call(this._thisObject, topic, unwrappedSubject, data);
+    if (typeof this.callback == "function") {
+      if (this.thisObject)
+        this.callback.call(this.thisObject, subject, data);
       else
-        this._callback(topic, unwrappedSubject, data);
+        this.callback(subject, data);
     }
-    else if (typeof this._callback == "string") {
-      this._thisObject[this._callback](topic, unwrappedSubject, data);
-    }
-    else { // typeof this._callback == "object" (nsIObserver)
-      this._callback.observe(topic, unwrappedSubject, data);
-    }
+    else // typeof this.callback == "object" (nsIObserver)
+      this.callback.observe(topic, subject, data);
   }
 }
 
 
 function Subject(object) {
-  this.wrappedJSObject = object;
+  // Double-wrap the object and set a property identifying the wrappedJSObject
+  // as one of our wrappers to distinguish between subjects that are one of our
+  // wrappers (which we should unwrap when notifying our observers) and those
+  // that are real JS XPCOM components (which we should pass through unaltered).
+  this.wrappedJSObject = { observersModuleSubjectWrapper: true, object: object };
 }
 
 Subject.prototype = {

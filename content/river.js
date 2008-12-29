@@ -497,7 +497,7 @@ let SnowlMessageView = {
     this._init();
   },
 
-  onMessageAdded: function(topic, message) {
+  onMessageAdded: function(message) {
     // Don't add the message if the view isn't showing the latest available
     // messages.  Currently, that only happens when the user selects "yesterday"
     // from the period menu.
