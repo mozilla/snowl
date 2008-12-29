@@ -220,6 +220,7 @@ let SnowlMessageView = {
 
   _init: function() {
     Observers.add("snowl:message:added", this.onMessageAdded, this);
+    Observers.add("snowl:source:removed", this.onSourceRemoved, this);
 
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
@@ -523,6 +524,14 @@ let SnowlMessageView = {
                    getElementsByClassName("groupBox")[0];
     let messageBox = this._buildMessageView(message);
     messages.insertBefore(messageBox, messages.firstChild);
+  },
+
+  onSourceRemoved: function() {
+    // If a source was removed, we have to remove any of its messages
+    // that we are currently displaying in the view.  Until we come up with
+    // a smarter way to do that, we simply unconditionally rebuild the view.
+    this._collection.invalidate();
+    this.rebuildView();
   },
 
   onMidnight: function() {

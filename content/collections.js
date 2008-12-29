@@ -403,6 +403,7 @@ this._log.info("unsubscribing source: "+selectedSource.name);
     Observers.notify("snowl:sources:changed");
     // If the current selection is unsubscribed, pass its id on to list view
     Observers.notify("snowl:messages:changed", notifyID);
+    Observers.notify("snowl:source:removed");
   }
 
 };
