@@ -70,7 +70,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 10,
+  _dbVersion: 11,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -479,43 +479,53 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * rename it every time we increase the schema version.
    */
-  _dbMigrate0To10: function(dbConnection) {
+  _dbMigrate0To11: function(dbConnection) {
     this._dbCreate(dbConnection);
   },
 
-  _dbMigrate4To10: function(dbConnection) {
+  _dbMigrate4To11: function(dbConnection) {
     this._dbMigrate4To5(dbConnection);
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
+    this._dbMigrate10To11(dbConnection);
   },
 
-  _dbMigrate5To10: function(dbConnection) {
+  _dbMigrate5To11: function(dbConnection) {
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
+    this._dbMigrate10To11(dbConnection);
   },
 
-  _dbMigrate6To10: function(dbConnection) {
+  _dbMigrate6To11: function(dbConnection) {
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
+    this._dbMigrate10To11(dbConnection);
   },
 
-  _dbMigrate7To10: function(dbConnection) {
+  _dbMigrate7To11: function(dbConnection) {
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
+    this._dbMigrate10To11(dbConnection);
   },
 
-  _dbMigrate8To10: function(dbConnection) {
+  _dbMigrate8To11: function(dbConnection) {
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
+    this._dbMigrate10To11(dbConnection);
+  },
+
+  _dbMigrate9To11: function(dbConnection) {
+    this._dbMigrate9To10(dbConnection);
+    this._dbMigrate10To11(dbConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -655,6 +665,18 @@ let SnowlDatastore = {
   _dbMigrate9To10: function(dbConnection) {
     // Create the index on the messageID column in the parts table.
     this._dbCreateIndex(dbConnection, this._dbSchema.indexes[1]);
+  },
+
+  /**
+   * Migrate the database schema from version 10 to version 11.
+   */
+  _dbMigrate10To11: function(dbConnection) {
+    // Update the icon URLs for the sources and authors collections.
+    // XXX There should be a better way to store and update these URLs.
+    // For example, we could generate them dynamically in code based on
+    // the type of collection.
+    dbConnection.executeSimpleSQL("UPDATE collections SET iconURL = 'chrome://snowl/skin/livemarkFolder-16.png' WHERE groupIDColumn = 'sources.id'");
+    dbConnection.executeSimpleSQL("UPDATE collections SET iconURL = 'chrome://snowl/skin/person-16.png' WHERE groupIDColumn = 'authors.id'");
   },
 
   get _selectHasSourceStatement() {
