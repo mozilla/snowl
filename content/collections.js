@@ -78,6 +78,7 @@ let CollectionsView = {
   init: function() {
     this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
     Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
     this._getCollections();
     this._buildCollectionTree();
 
@@ -227,7 +228,7 @@ let CollectionsView = {
 
 
   //**************************************************************************//
-  // Misc XPCOM Interfaces
+  // Event & Notification Handlers
 
   onSourcesChanged: function() {
     this._getCollections();
@@ -235,6 +236,13 @@ let CollectionsView = {
     // Since the number of rows might have changed, we do this by reinitializing
     // the view instead of merely invalidating the box object (which doesn't
     // expect changes to the number of rows).
+    this._buildCollectionTree();
+  },
+
+  onMessagesChanged: function() {
+    // When messages change, the list of users we display might also change,
+    // so we rebuild the view from scratch.
+    this._getCollections();
     this._buildCollectionTree();
   },
 
