@@ -875,7 +875,7 @@ let SnowlMessageView = {
         }
       }
 
-      excerpt.appendChild(this._document.createTextNode(message.excerpt));
+      SnowlUtils.linkifyText(message.excerpt, excerpt, this._contentSandbox);
     }
 
     //// Timestamp
