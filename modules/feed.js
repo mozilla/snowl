@@ -331,7 +331,7 @@ SnowlFeed.prototype = {
     // caller so it makes sense that it's called "snowl:subscribe:get:start",
     // since this method also gets called during periodically on feeds to which
     // the user is already subscribed.
-    Observers.notify("snowl:subscribe:get:start", this, null);
+    Observers.notify("snowl:subscribe:get:start", this);
 
     // FIXME: handle the case where this throws |aResult.doc is null|
     // because the feed processor couldn't parse the feed file
@@ -402,9 +402,9 @@ SnowlFeed.prototype = {
     );
 
     if (messagesChanged)
-      Observers.notify("snowl:messages:changed", null, this.id);
+      Observers.notify("snowl:messages:changed", this.id);
 
-    Observers.notify("snowl:subscribe:get:end", this, null);
+    Observers.notify("snowl:subscribe:get:end", this);
   }),
 
   _resetRefresh: function() {
@@ -530,7 +530,7 @@ SnowlFeed.prototype = {
       this._log.error("couldn't add " + aExternalID + ": " + ex);
     }
 
-    Observers.notify("snowl:message:added", SnowlMessage.get(messageID), null);
+    Observers.notify("snowl:message:added", SnowlMessage.get(messageID));
 
     return messageID;
   },
@@ -596,7 +596,7 @@ SnowlFeed.prototype = {
   _subscribeCallback: null,
 
   subscribe: function(callback) {
-    Observers.notify("snowl:subscribe:connect:start", this, null);
+    Observers.notify("snowl:subscribe:connect:start", this);
 
     this._subscribeCallback = callback;
 

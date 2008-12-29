@@ -392,9 +392,9 @@ this._log.info("unsubscribing source: "+selectedSource.name);
         notifyID = sourceID;
     }
 
-    Observers.notify("snowl:sources:changed", null, null);
+    Observers.notify("snowl:sources:changed");
     // If the current selection is unsubscribed, pass its id on to list view
-    Observers.notify("snowl:messages:changed", null, notifyID);
+    Observers.notify("snowl:messages:changed", notifyID);
   }
 
 };

@@ -314,7 +314,7 @@ SnowlTwitter.prototype = {
   _subscribeCallback: null,
 
   subscribe: function(credentials, callback) {
-    Observers.notify("snowl:subscribe:connect:start", this, null);
+    Observers.notify("snowl:subscribe:connect:start", this);
 
     this._subscribeCallback = callback;
 
@@ -468,7 +468,7 @@ SnowlTwitter.prototype = {
 
   refresh: function(refreshTime) {
     this._log.info("refresh at " + refreshTime);
-    Observers.notify("snowl:subscribe:get:start", this, null);
+    Observers.notify("snowl:subscribe:get:start", this);
 
     // Cache the refresh time so we can use it as the received time when adding
     // messages to the datastore.
@@ -553,7 +553,7 @@ SnowlTwitter.prototype = {
         this.username = this._authInfo.username;
         this.name = NAME + " - " + this._authInfo.username;
         this.persist();
-        Observers.notify("snowl:sources:changed", null, null);
+        Observers.notify("snowl:sources:changed");
       }
 
       this._saveLogin(this._authInfo);
@@ -627,11 +627,11 @@ SnowlTwitter.prototype = {
     );
 
     if (messagesChanged)
-      Observers.notify("snowl:messages:changed", null, this.id);
+      Observers.notify("snowl:messages:changed", this.id);
 
     // FIXME: if we added people, refresh the collections view too.
 
-    Observers.notify("snowl:subscribe:get:end", this, null);
+    Observers.notify("snowl:subscribe:get:end", this);
   }),
 
   _resetRefresh: function() {
@@ -683,7 +683,7 @@ SnowlTwitter.prototype = {
       this._log.error("couldn't add " + message.id + ": " + ex);
     }
 
-    Observers.notify("snowl:message:added", SnowlMessage.get(messageID), null);
+    Observers.notify("snowl:message:added", SnowlMessage.get(messageID));
 
     return messageID;
   },
@@ -761,7 +761,7 @@ SnowlTwitter.prototype = {
   _errorCallback: null,
 
   send: function(content, successCallback, errorCallback) {
-    Observers.notify("snowl:send:start", this, null);
+    Observers.notify("snowl:send:start", this);
 
     let data = "status=" + encodeURIComponent(content);
     //          + "&in_reply_to_status_id=" + encodeURIComponent(inReplyToID);

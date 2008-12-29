@@ -218,9 +218,10 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   //**************************************************************************//
   // Event & Notification Handling
 
-  onMessagesChanged: function(subject, data) {
-    // Update list view only if passed the id of the selected source
-    if (this._collection.groupID != data)
+  onMessagesChanged: function(sourceID) {
+    // Don't update the list view if the source whose messages have changed
+    // is not the one currently being displayed in the view.
+    if (this._collection.groupID && this._collection.groupID != sourceID)
       return;
 
     // FIXME: make the collection listen for message changes and invalidate
