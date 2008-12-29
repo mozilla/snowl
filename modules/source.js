@@ -141,15 +141,19 @@ let SnowlSource = {
 
   name: null,
 
-  // The URL at which to find a machine-processable representation of the data
-  // provided by the source.  For a feed source, this is the URL of its RSS/Atom
-  // document; for an email source, it's the URL of its POP/IMAP server.
+  /**
+   * The URL at which to find a machine-processable representation of the data
+   * provided by the source.  For a feed source, this is the URL of its RSS/Atom
+   * document; for an email source, it's the URL of its POP/IMAP server.
+   */
   machineURI: null,
 
-  // The codebase principal for the machine URI.  We use this to determine
-  // whether or not the source can link to the links it provides, so we can
-  // prevent sources from linking to javascript: and data: links that would
-  // run with chrome privileges if inserted into our views.
+  /**
+   * The codebase principal for the machine URI.  We use this to determine
+   * whether or not the source can link to the links it provides, so we can
+   * prevent sources from linking to javascript: and data: links that would
+   * run with chrome privileges if inserted into our views.
+   */
   get principal() {
     let securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].
                           getService(Ci.nsIScriptSecurityManager);
