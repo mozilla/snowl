@@ -519,13 +519,13 @@ let SnowlMessageView = {
     }
 
     // Build the message representation and add it to the view.
-    this._contentSandbox.messages = this._document.getElementById("contentBox").
-                                    getElementsByClassName("groupBox")[0];
-    this._contentSandbox.messageBox = this._buildMessageView(message);
+    this._sandbox.messages = this._document.getElementById("contentBox").
+                             getElementsByClassName("groupBox")[0];
+    this._sandbox.messageBox = this._buildMessageView(message);
     let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
-    this._contentSandbox.messages = null;
-    this._contentSandbox.messageBox = null;
+    Cu.evalInSandbox(codeStr, this._sandbox);
+    this._sandbox.messages = null;
+    this._sandbox.messageBox = null;
   },
 
   onMidnight: function() {
@@ -620,70 +620,27 @@ let SnowlMessageView = {
   // Safe DOM Manipulation
 
   /**
-   * Use this sandbox to run any DOM manipulation code on nodes
-   * which are already inserted into the content document.
+   * A sandbox in which to run DOM manipulation code on nodes that are already
+   * inserted into the content document.  Based on similar code in FeedWriter.js.
+   * It's not clear why we need to use this for DOM manipulations,
+   * but FeedWriter.js uses it, so we do as well just in case it matters.
    */
-  get _contentSandbox() {
-    delete this._contentSandbox;
-    return this._contentSandbox = new Cu.Sandbox(this._window);
+  get _sandbox() {
+    delete this._sandbox;
+    return this._sandbox = new Cu.Sandbox(this._window);
   },
 
   // FIXME: use this when setting story title and byline.
   _setContentText: function FW__setContentText(id, text) {
-    this._contentSandbox.element = this._document.getElementById(id);
-    this._contentSandbox.textNode = this._document.createTextNode(text);
+    this._sandbox.element = this._document.getElementById(id);
+    this._sandbox.textNode = this._document.createTextNode(text);
     let codeStr =
       "while (element.hasChildNodes()) " +
       "  element.removeChild(element.firstChild);" +
       "element.appendChild(textNode);";
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
-    this._contentSandbox.element = null;
-    this._contentSandbox.textNode = null;
-  },
-
-  // FIXME: use this when linkifying the story title and source.
-  /**
-   * Safely sets the href attribute on an anchor tag, providing the URI 
-   * specified can be loaded according to rules.
-   *
-   * XXX Renamed from safeSetURIAttribute to unsafeSetURIAttribute to reflect
-   * that we've commented out the stuff that makes it safe.
-   *
-   * FIXME: I don't understand the security implications here, but presumably
-   * there's a reason this is here, and we should be respecting it, so make this
-   * work by giving each message in a collection have a reference to its source
-   * and then use the source's URI to create the principal with which we compare
-   * the URI.
-   * 
-   * @param   element
-   *          The element to set a URI attribute on
-   * @param   attribute
-   *          The attribute of the element to set the URI to, e.g. href or src
-   * @param   uri
-   *          The URI spec to set as the href
-   */
-  _unsafeSetURIAttribute: 
-  function FW__unsafeSetURIAttribute(element, attribute, uri) {
-/*
-    let secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
-                 getService(Ci.nsIScriptSecurityManager);    
-    const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
-    try {
-      secman.checkLoadURIStrWithPrincipal(this._feedPrincipal, uri, flags);
-      // checkLoadURIStrWithPrincipal will throw if the link URI should not be
-      // loaded, either because our feedURI isn't allowed to load it or per
-      // the rules specified in |flags|, so we'll never "linkify" the link...
-    }
-    catch (e) {
-      // Not allowed to load this link because secman.checkLoadURIStr threw
-      return;
-    }
-*/
-
-    this._contentSandbox.element = element;
-    this._contentSandbox.uri = uri;
-    let codeStr = "element.setAttribute('" + attribute + "', uri);";
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
+    Cu.evalInSandbox(codeStr, this._sandbox);
+    this._sandbox.element = null;
+    this._sandbox.textNode = null;
   },
 
 
@@ -729,7 +686,7 @@ let SnowlMessageView = {
       this._futureWriteMessages.interrupt();
 
     let contentBox = this._document.getElementById("contentBox");
-    this._contentSandbox.messages = contentBox;
+    this._sandbox.messages = contentBox;
 
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
     let groups = SnowlDateUtils.periods[period];
@@ -755,15 +712,15 @@ let SnowlMessageView = {
         container.className = "groupBox";
         contentBox.appendChild(container);
 
-        this._contentSandbox.messages = container;
+        this._sandbox.messages = container;
       }
 
       let messageBox = this._buildMessageView(message);
 
-      this._contentSandbox.messageBox = messageBox;
+      this._sandbox.messageBox = messageBox;
 
       let codeStr = "messages.appendChild(messageBox)";
-      Cu.evalInSandbox(codeStr, this._contentSandbox);
+      Cu.evalInSandbox(codeStr, this._sandbox);
 
       // Calculate the distance between the content currently being displayed
       // in the content box and the content at the end of the box.  This tells
@@ -800,8 +757,8 @@ let SnowlMessageView = {
       yield this._sleepWriteMessages(timeout);
     }
 
-    this._contentSandbox.messages = null;
-    this._contentSandbox.messageBox = null;
+    this._sandbox.messages = null;
+    this._sandbox.messageBox = null;
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
   }),
@@ -839,7 +796,7 @@ let SnowlMessageView = {
     //source.appendChild(sourceIcon);
     //source.appendChild(this._document.createTextNode(message.source.name));
     //if (message.source.humanURI)
-    //  this._unsafeSetURIAttribute(source, "href", message.source.humanURI.spec);
+    //  SnowlUtils.safelySetURIAttribute(source, "href", message.source.humanURI.spec, message.source.principal, this._sandbox);
     //bylineBox.appendChild(source);
 
     // Title
@@ -849,7 +806,7 @@ let SnowlMessageView = {
       let titleLink = this._document.createElementNS(HTML_NS, "a");
       titleLink.appendChild(this._document.createTextNode(message.subject));
       if (message.link)
-        this._unsafeSetURIAttribute(titleLink, "href", message.link);
+        SnowlUtils.safelySetURIAttribute(titleLink, "href", message.link, message.source.principal, this._sandbox);
       title.appendChild(titleLink);
     }
 
@@ -860,7 +817,7 @@ let SnowlMessageView = {
       body.className = "body";
 
       if (bodyText.type == "text") {
-        SnowlUtils.linkifyText(bodyText.text, body, this._contentSandbox);
+        SnowlUtils.linkifyText(bodyText.text, body, message.source.principal, this._sandbox);
       }
       else {
         if (bodyText.base)
@@ -881,7 +838,7 @@ let SnowlMessageView = {
         }
       }
 
-      SnowlUtils.linkifyText(message.excerpt, excerpt, this._contentSandbox);
+      SnowlUtils.linkifyText(message.excerpt, excerpt, message.source.principal, this._sandbox);
     }
 
     //// Timestamp

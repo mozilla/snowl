@@ -486,40 +486,37 @@ this._log.info("row: "+ row.value + " is not selected");
    * Safely sets the URI attribute (f.e. "href") on a tag (f.e. the HTML <a>
    * tag), providing the URI specified can be loaded according to the rules.
    *
-   * XXX Renamed from safelySetURIAttribute to unsafelySetURIAttribute
-   * to reflect that we've temporarily commented out the stuff that makes
-   * it safe.
+   * In particular, this prevents us from linking to javascript: and data: URLs
+   * provided to us by untrusted sources that would run with chrome privileges
+   * in our various chrome-privileged views.
    *
-   * FIXME: I don't understand the security implications here, but presumably
-   * there's a reason this is in the feed preview page, and we should be using
-   * it, so make it work by using the source's URI to create the principal
-   * with which we compare the URI.
-   * 
+   * Based on the similar method in FeedWriter.js.
+   *
    * @param   element   {Element}
    *          the element on which to set the attribute
    * @param   attribute {String}
    *          the name of the attribute to set, f.e. href or src
    * @param   uri       {String}
    *          the URI to which to set the attribute
+   * @param   principal {nsIPrincipal}
+   *          the codebase principal for the source of the URI
    * @param   sandbox   {Sandbox}
    *          the sandbox with which to set the attribute
    */
-  unsafelySetURIAttribute: function(element, attribute, uri, sandbox) {
-/*
-    let secman = Cc["@mozilla.org/scriptsecuritymanager;1"].
-                 getService(Ci.nsIScriptSecurityManager);    
+  safelySetURIAttribute: function(element, attribute, uri, principal, sandbox) {
+    let securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].
+                          getService(Ci.nsIScriptSecurityManager);
     const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
     try {
-      secman.checkLoadURIStrWithPrincipal(this._feedPrincipal, uri, flags);
-      // checkLoadURIStrWithPrincipal will throw if the link URI should not be
-      // loaded, either because our feedURI isn't allowed to load it or per
-      // the rules specified in |flags|, so we'll never "linkify" the link...
+      securityManager.checkLoadURIStrWithPrincipal(principal, uri, flags);
+      // checkLoadURIStrWithPrincipal will throw if the URI should not be
+      // loaded, either because the source URI isn't allowed to load it or per
+      // the rules specified in |flags|.
     }
-    catch (e) {
-      // Not allowed to load this link because secman.checkLoadURIStr threw
+    catch(ex) {
+      // checkLoadURIStrWithPrincipal threw, so we don't set the attribute.
       return;
     }
-*/
 
     sandbox.element = element;
     sandbox.uri = uri;
@@ -553,7 +550,7 @@ this._log.info("row: "+ row.value + " is not selected");
   /**
    * Append text to an element, linkifying URLs embedded in it in the process.
    */
-  linkifyText: function(text, container, sandbox) {
+  linkifyText: function(text, container, principal, sandbox) {
     let parts = text.split(this.linkifyingRegex);
     for (let i = 0; i < parts.length; i++) {
       if (i % 2 == 0)
@@ -569,7 +566,7 @@ this._log.info("row: "+ row.value + " is not selected");
         let desc = container.ownerDocument.createElementNS(XUL_NS, "description");
         desc.className = "text-link";
         let a = container.ownerDocument.createElementNS(HTML_NS, "a");
-        this.unsafelySetURIAttribute(a, "href", parts[i], sandbox);
+        this.safelySetURIAttribute(a, "href", parts[i], principal, sandbox);
         a.appendChild(container.ownerDocument.createTextNode(parts[i]));
         desc.appendChild(a);
         container.appendChild(desc);

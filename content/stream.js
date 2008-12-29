@@ -230,14 +230,14 @@ let SnowlMessageView = {
   },
 
   _onMessageAdded: function(message) {
-    this._contentSandbox.messages = this._document.getElementById("contentBox");
-    this._contentSandbox.messageBox = this._buildMessageView(message);
+    this._sandbox.messages = this._document.getElementById("contentBox");
+    this._sandbox.messageBox = this._buildMessageView(message);
 
     let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
+    Cu.evalInSandbox(codeStr, this._sandbox);
 
-    this._contentSandbox.messages = null;
-    this._contentSandbox.messageBox = null;
+    this._sandbox.messages = null;
+    this._sandbox.messageBox = null;
   },
 
   _onSourcesChanged: function() {
@@ -262,25 +262,27 @@ let SnowlMessageView = {
   // Safe DOM Manipulation
 
   /**
-   * Use this sandbox to run any DOM manipulation code on nodes
-   * which are already inserted into the content document.
+   * A sandbox in which to run DOM manipulation code on nodes that are already
+   * inserted into the content document.  Based on similar code in FeedWriter.js.
+   * It's not clear why we need to use this for DOM manipulations,
+   * but FeedWriter.js uses it, so we do as well just in case it matters.
    */
-  get _contentSandbox() {
-    delete this._contentSandbox;
-    return this._contentSandbox = new Cu.Sandbox(this._window);
+  get _sandbox() {
+    delete this._sandbox;
+    return this._sandbox = new Cu.Sandbox(this._window);
   },
 
   // FIXME: use this when setting story title and byline.
   _setContentText: function FW__setContentText(id, text) {
-    this._contentSandbox.element = this._document.getElementById(id);
-    this._contentSandbox.textNode = this._document.createTextNode(text);
+    this._sandbox.element = this._document.getElementById(id);
+    this._sandbox.textNode = this._document.createTextNode(text);
     let codeStr =
       "while (element.hasChildNodes()) " +
       "  element.removeChild(element.firstChild);" +
       "element.appendChild(textNode);";
-    Cu.evalInSandbox(codeStr, this._contentSandbox);
-    this._contentSandbox.element = null;
-    this._contentSandbox.textNode = null;
+    Cu.evalInSandbox(codeStr, this._sandbox);
+    this._sandbox.element = null;
+    this._sandbox.textNode = null;
   },
 
 
@@ -321,25 +323,25 @@ let SnowlMessageView = {
     while (contentBox.hasChildNodes())
       contentBox.removeChild(contentBox.lastChild);
 
-    this._contentSandbox.messages = contentBox;
+    this._sandbox.messages = contentBox;
 
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
       let messageBox = this._buildMessageView(message);
 
-      this._contentSandbox.messageBox = messageBox;
+      this._sandbox.messageBox = messageBox;
 
       let codeStr = "messages.appendChild(messageBox)";
-      Cu.evalInSandbox(codeStr, this._contentSandbox);
+      Cu.evalInSandbox(codeStr, this._sandbox);
 
       // Sleep a bit after every message so we don't hork the UI thread and users
       // can immediately start reading messages while we finish writing them.
       yield this._sleepRebuildView(0);
     }
 
-    this._contentSandbox.messages = null;
-    this._contentSandbox.messageBox = null;
+    this._sandbox.messages = null;
+    this._sandbox.messageBox = null;
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
 
@@ -404,13 +406,13 @@ let SnowlMessageView = {
 
     if (message.link) {
       let a = this._document.createElementNS(HTML_NS, "a");
-      SnowlUtils.unsafelySetURIAttribute(a, "href", message.link, this._contentSandbox);
+      SnowlUtils.safelySetURIAttribute(a, "href", message.link, message.source.principal, this._sandbox);
       body.className += " text-link";
       a.appendChild(this._document.createTextNode(content));
       div.appendChild(a);
     }
     else {
-      SnowlUtils.linkifyText(content, div, this._contentSandbox);
+      SnowlUtils.linkifyText(content, div, message.source.principal, this._sandbox);
     }
 
     body.appendChild(div);
@@ -425,7 +427,7 @@ let SnowlMessageView = {
     //source.appendChild(sourceIcon);
     //source.appendChild(this._document.createTextNode(message.source.name));
     //if (message.source.humanURI)
-    //  SnowlUtils.unsafelySetURIAttribute(source, "href", message.source.humanURI.spec);
+    //  SnowlUtils.safelySetURIAttribute(source, "href", message.source.humanURI.spec, message.source.principal, this._sandbox);
     //centerColumn.appendChild(source);
 
     // right column

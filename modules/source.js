@@ -146,6 +146,18 @@ let SnowlSource = {
   // document; for an email source, it's the URL of its POP/IMAP server.
   machineURI: null,
 
+  // The codebase principal for the machine URI.  We use this to determine
+  // whether or not the source can link to the links it provides, so we can
+  // prevent sources from linking to javascript: and data: links that would
+  // run with chrome privileges if inserted into our views.
+  get principal() {
+    let securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].
+                          getService(Ci.nsIScriptSecurityManager);
+    let principal = securityManager.getCodebasePrincipal(this.machineURI);
+    this.__defineGetter__("principal", function() principal);
+    return this.principal;
+  },
+
   // The URL at which to find a human-readable representation of the data
   // provided by the source.  For a feed source, this is the website that
   // publishes the feed; for an email source, it might be the webmail interface.

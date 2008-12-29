@@ -160,6 +160,11 @@ SnowlTwitter.prototype = {
 
   name: null,
   machineURI: null,
+
+  get principal() {
+    return SnowlSource.__lookupGetter__("principal").call(this);
+  },
+
   humanURI: null,
   username: null,
   _lastRefreshed: null,
