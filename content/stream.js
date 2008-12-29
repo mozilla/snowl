@@ -76,12 +76,6 @@ let SnowlMessageView = {
     return this._log = Log4Moz.repository.getLogger("Snowl.Stream");
   },
 
-  get _faviconSvc() {
-    delete this._faviconSvc;
-    return this._faviconSvc = Cc["@mozilla.org/browser/favicon-service;1"].
-                              getService(Ci.nsIFaviconService);
-  },
-
   get _writeButton() {
     delete this._writeButton;
     return this._writeButton = document.getElementById("snowlWriteButton");
@@ -316,13 +310,13 @@ let SnowlMessageView = {
     leftColumn.className = "leftColumn";
     let icon = document.createElementNS(XUL_NS, "image");
     icon.className = "icon";
-    if (message.authorIcon) {
+    if (message.authorIcon)
       icon.setAttribute("src", message.authorIcon);
-    }
-    else {
-      let sourceFaviconURI = message.source.humanURI || URI.get("urn:use-default-icon");
-      icon.setAttribute("src", this._faviconSvc.getFaviconImageForPage(sourceFaviconURI).spec);
-    }
+    else if (message.source.faviconURI)
+      icon.setAttribute("src", message.source.faviconURI.spec)
+    else
+      icon.setAttribute("src", "chrome://snowl/skin/livemarkItem-16.png");
+
     leftColumn.appendChild(icon);
     messageBox.appendChild(leftColumn);
 

@@ -206,13 +206,15 @@ let SnowlSource = {
       try {
         return this.faviconSvc.getFaviconForPage(this.humanURI);
       }
-      catch(ex) { /* no known favicon; use the default */ }
+      catch(ex) { /* no known favicon */ }
     }
 
     // The default favicon for feed sources.
     // FIXME: once we support other types of sources, override this
     // with a type-specific icon.
-    return URI.get("chrome://browser/skin/feeds/feedIcon16.png");
+    //return URI.get("chrome://snowl/skin/livemarkFolder-16.png");
+
+    return null;
   },
 
   /**

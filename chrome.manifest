@@ -37,7 +37,8 @@ content snowl   content/
 
 # Register separate skins for each primary platform so we can fit personas
 # into each one's very different skin.
-skin    snowl   classic/1.0   skin/windows/   os=WINNT
+skin    snowl   classic/1.0   skin/luna/      os=WINNT    osversion<6
+skin    snowl   classic/1.0   skin/aero/      os=WINNT    osversion>=6
 skin    snowl   classic/1.0   skin/mac/       os=Darwin
 skin    snowl   classic/1.0   skin/linux/     os=Linux
 

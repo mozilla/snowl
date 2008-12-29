@@ -274,7 +274,7 @@ let SnowlDatastore = {
       grouped:            false },
 
     { name:               strings.get("sourcesCollectionName"),
-      iconURL:            "chrome://browser/skin/feeds/feedIcon16.png",
+      iconURL:            "chrome://snowl/skin/livemarkFolder-16.png",
       orderKey:           2,
       grouped:            true,
       groupIDColumn:      "sources.id",
@@ -282,7 +282,7 @@ let SnowlDatastore = {
       groupHomeURLColumn: "sources.humanURI" },
 
     { name:               strings.get("authorsCollectionName"),
-      iconURL:            "chrome://snowl/content/icons/user.png",
+      iconURL:            "chrome://snowl/skin/person-16.png",
       orderKey:           3,
       grouped:            true,
       groupIDColumn:      "authors.id",
