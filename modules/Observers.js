@@ -73,6 +73,21 @@ let Observers = {
     }
   },
 
+  /**
+   * Notify observers about something.
+   *
+   * @param topic   {String}
+   *        the topic to notify observers about
+   *
+   * @param subject {Object}
+   *        some information about the topic; can be any JS object or primitive
+   *
+   * @param data    {String}  [deprecated]
+   *        some more information about the topic; deprecated, as the subject
+   *        is sufficient to pass all needed information; if you have multiple
+   *        pieces of information, pass it inside an anonymous object, i.e.:
+   *        { foo: 1, bar: "some string", baz: myObject }
+   */
   notify: function(topic, subject, data) {
     subject = (typeof subject == "undefined") ? null : new Subject(subject);
        data = (typeof    data == "undefined") ? null : data;
