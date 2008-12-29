@@ -858,20 +858,26 @@ let SnowlMessageView = {
     if (bodyText) {
       body = this._document.createElementNS(HTML_NS, "div");
       body.className = "body";
-      if (bodyText.base)
-        body.setAttributeNS(XML_NS, "base", bodyText.base.spec);
 
-      let docFragment = bodyText.createDocumentFragment(body);
-      if (docFragment) {
-        body.appendChild(docFragment);
-
-        // Generate an icon representing the message.
-        let firstImage = body.getElementsByTagName("img")[0];
-        if (firstImage) {
-          messageIcon = firstImage.cloneNode(false);
-          messageIcon.removeAttribute("width");
-          messageIcon.removeAttribute("height");
-          messageIcon.className = "messageIcon";
+      if (bodyText.type == "text") {
+        SnowlUtils.linkifyText(bodyText.text, body, this._contentSandbox);
+      }
+      else {
+        if (bodyText.base)
+          body.setAttributeNS(XML_NS, "base", bodyText.base.spec);
+  
+        let docFragment = bodyText.createDocumentFragment(body);
+        if (docFragment) {
+          body.appendChild(docFragment);
+  
+          // Generate an icon representing the message.
+          let firstImage = body.getElementsByTagName("img")[0];
+          if (firstImage) {
+            messageIcon = firstImage.cloneNode(false);
+            messageIcon.removeAttribute("width");
+            messageIcon.removeAttribute("height");
+            messageIcon.className = "messageIcon";
+          }
         }
       }
 
