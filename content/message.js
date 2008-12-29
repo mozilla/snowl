@@ -113,7 +113,7 @@ if (content) {
   let body = document.getElementById("body");
 
   if (content.type == "text") {
-    SnowlUtils.linkifyText(content.text, body, message.source.principal, new Cu.Sandbox(window));
+    SnowlUtils.linkifyText(content.text, body, message.source.principal);
   }
   else { // content.type == "html" or "xhtml"
     if (content.base)

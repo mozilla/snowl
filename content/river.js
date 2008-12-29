@@ -84,23 +84,6 @@ let SnowlMessageView = {
     return this._faviconSvc;
   },
 
-  /**
-   * A sandbox in which to run DOM manipulation code on nodes in the document.
-   * Based on similar code in FeedWriter.js.  It's not clear why we need to use
-   * a sandbox for the kinds of DOM manipulations we do, but FeedWriter.js uses
-   * one, so we do the same.
-   *
-   * Note: FeedWriter.js says its sandbox is only for manipulating nodes that
-   * "are already inserted into the content document", and perusal of its code
-   * reveals that it indeed uses it that way, so we do the same.
-   *
-   * FIXME: figure out why we need to use a sandbox and explain it here.
-   */
-  get _sandbox() {
-    delete this._sandbox;
-    return this._sandbox = new Cu.Sandbox("about:blank");
-  },
-
   get _bodyButton() {
     let bodyButton = document.getElementById("bodyButton");
     delete this._bodyButton;
@@ -536,13 +519,10 @@ let SnowlMessageView = {
     }
 
     // Build the message representation and add it to the view.
-    this._sandbox.messages = this._document.getElementById("contentBox").
-                             getElementsByClassName("groupBox")[0];
-    this._sandbox.messageBox = this._buildMessageView(message);
-    let codeStr = "messages.insertBefore(messageBox, messages.firstChild)";
-    Cu.evalInSandbox(codeStr, this._sandbox);
-    this._sandbox.messages = null;
-    this._sandbox.messageBox = null;
+    let messages = this._document.getElementById("contentBox").
+                   getElementsByClassName("groupBox")[0];
+    let messageBox = this._buildMessageView(message);
+    messages.insertBefore(messageBox, messages.firstChild);
   },
 
   onMidnight: function() {
@@ -675,7 +655,7 @@ let SnowlMessageView = {
       this._futureWriteMessages.interrupt();
 
     let contentBox = this._document.getElementById("contentBox");
-    this._sandbox.messages = contentBox;
+    let messages = contentBox;
 
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
     let groups = SnowlDateUtils.periods[period];
@@ -701,15 +681,11 @@ let SnowlMessageView = {
         container.className = "groupBox";
         contentBox.appendChild(container);
 
-        this._sandbox.messages = container;
+        messages = container;
       }
 
       let messageBox = this._buildMessageView(message);
-
-      this._sandbox.messageBox = messageBox;
-
-      let codeStr = "messages.appendChild(messageBox)";
-      Cu.evalInSandbox(codeStr, this._sandbox);
+      messages.appendChild(messageBox);
 
       // Calculate the distance between the content currently being displayed
       // in the content box and the content at the end of the box.  This tells
@@ -745,9 +721,6 @@ let SnowlMessageView = {
         timeout = ceiling;
       yield this._sleepWriteMessages(timeout);
     }
-
-    this._sandbox.messages = null;
-    this._sandbox.messageBox = null;
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
   }),
@@ -785,7 +758,7 @@ let SnowlMessageView = {
     //source.appendChild(sourceIcon);
     //source.appendChild(this._document.createTextNode(message.source.name));
     //if (message.source.humanURI)
-    //  SnowlUtils.safelySetURIAttribute(source, "href", message.source.humanURI.spec, message.source.principal, this._sandbox);
+    //  SnowlUtils.safelySetURIAttribute(source, "href", message.source.humanURI.spec, message.source.principal);
     //bylineBox.appendChild(source);
 
     // Title
@@ -795,7 +768,7 @@ let SnowlMessageView = {
       let titleLink = this._document.createElementNS(HTML_NS, "a");
       titleLink.appendChild(this._document.createTextNode(message.subject));
       if (message.link)
-        SnowlUtils.safelySetURIAttribute(titleLink, "href", message.link, message.source.principal, this._sandbox);
+        SnowlUtils.safelySetURIAttribute(titleLink, "href", message.link, message.source.principal);
       title.appendChild(titleLink);
     }
 
@@ -806,7 +779,7 @@ let SnowlMessageView = {
       body.className = "body";
 
       if (bodyText.type == "text") {
-        SnowlUtils.linkifyText(bodyText.text, body, message.source.principal, this._sandbox);
+        SnowlUtils.linkifyText(bodyText.text, body, message.source.principal);
       }
       else {
         if (bodyText.base)
@@ -827,7 +800,7 @@ let SnowlMessageView = {
         }
       }
 
-      SnowlUtils.linkifyText(message.excerpt, excerpt, message.source.principal, this._sandbox);
+      SnowlUtils.linkifyText(message.excerpt, excerpt, message.source.principal);
     }
 
     //// Timestamp

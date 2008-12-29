@@ -482,47 +482,48 @@ this._log.info("row: "+ row.value + " is not selected");
   //**************************************************************************//
   // Safe DOM Manipulation
 
+  get _securityManager() {
+    delete this._securityManager;
+    return this._securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].
+                                   getService(Ci.nsIScriptSecurityManager);
+  },
+
   /**
    * Safely sets the URI attribute (f.e. "href") on a tag (f.e. the HTML <a>
    * tag), providing the URI specified can be loaded according to the rules.
    *
-   * In particular, this prevents us from linking to javascript: and data: URLs
-   * provided to us by untrusted sources that would run with chrome privileges
-   * in our various chrome-privileged views.
+   * In particular, this prevents sources from linking to javascript: and data:
+   * URLs that would run with chrome privileges in our various chrome-privileged
+   * views.  It also prevents sources from linking to chrome: URLs.
    *
    * Based on the similar method in FeedWriter.js.
    *
-   * @param   element   {Element}
+   * @param   element     {Element}
    *          the element on which to set the attribute
-   * @param   attribute {String}
+   *
+   * @param   attribute   {String}
    *          the name of the attribute to set, f.e. href or src
-   * @param   uri       {String}
+   *
+   * @param   uri         {String}
    *          the URI to which to set the attribute
-   * @param   principal {nsIPrincipal}
-   *          the codebase principal for the source of the URI
-   * @param   sandbox   {Sandbox}
-   *          the sandbox with which to set the attribute
+   *
+   * @param   principal   {nsIPrincipal}
+   *          the principal associated with the source of the URI
    */
-  safelySetURIAttribute: function(element, attribute, uri, principal, sandbox) {
-    let securityManager = Cc["@mozilla.org/scriptsecuritymanager;1"].
-                          getService(Ci.nsIScriptSecurityManager);
+  safelySetURIAttribute: function(element, attribute, uri, principal) {
     const flags = Ci.nsIScriptSecurityManager.DISALLOW_INHERIT_PRINCIPAL;
     try {
-      securityManager.checkLoadURIStrWithPrincipal(principal, uri, flags);
-      // checkLoadURIStrWithPrincipal will throw if the URI should not be
-      // loaded, either because the source URI isn't allowed to load it or per
-      // the rules specified in |flags|.
+      this._securityManager.checkLoadURIStrWithPrincipal(principal, uri, flags);
+      // checkLoadURIStrWithPrincipal will throw if the URI shouldn't be loaded,
+      // either because the source isn't allowed to load it or per the rules
+      // specified in |flags|.
     }
     catch(ex) {
       // checkLoadURIStrWithPrincipal threw, so we don't set the attribute.
       return;
     }
 
-    sandbox.element = element;
-    sandbox.uri = uri;
-    Cu.evalInSandbox("element.setAttribute('" + attribute + "', uri)", sandbox);
-    sandbox.element = null;
-    sandbox.uri = null;
+    element.setAttribute(attribute, uri);
   },
 
   /**
@@ -550,7 +551,7 @@ this._log.info("row: "+ row.value + " is not selected");
   /**
    * Append text to an element, linkifying URLs embedded in it in the process.
    */
-  linkifyText: function(text, container, principal, sandbox) {
+  linkifyText: function(text, container, principal) {
     let parts = text.split(this.linkifyingRegex);
     for (let i = 0; i < parts.length; i++) {
       if (i % 2 == 0)
@@ -566,7 +567,7 @@ this._log.info("row: "+ row.value + " is not selected");
         let desc = container.ownerDocument.createElementNS(XUL_NS, "description");
         desc.className = "text-link";
         let a = container.ownerDocument.createElementNS(HTML_NS, "a");
-        this.safelySetURIAttribute(a, "href", parts[i], principal, sandbox);
+        this.safelySetURIAttribute(a, "href", parts[i], principal);
         a.appendChild(container.ownerDocument.createTextNode(parts[i]));
         desc.appendChild(a);
         container.appendChild(desc);
