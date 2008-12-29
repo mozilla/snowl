@@ -84,6 +84,23 @@ let SnowlMessageView = {
     return this._faviconSvc;
   },
 
+  /**
+   * A sandbox in which to run DOM manipulation code on nodes in the document.
+   * Based on similar code in FeedWriter.js.  It's not clear why we need to use
+   * a sandbox for the kinds of DOM manipulations we do, but FeedWriter.js uses
+   * one, so we do the same.
+   *
+   * Note: FeedWriter.js says its sandbox is only for manipulating nodes that
+   * "are already inserted into the content document", and perusal of its code
+   * reveals that it indeed uses it that way, so we do the same.
+   *
+   * FIXME: figure out why we need to use a sandbox and explain it here.
+   */
+  get _sandbox() {
+    delete this._sandbox;
+    return this._sandbox = new Cu.Sandbox("about:blank");
+  },
+
   get _bodyButton() {
     let bodyButton = document.getElementById("bodyButton");
     delete this._bodyButton;
@@ -613,35 +630,6 @@ let SnowlMessageView = {
   onToggleWrite: function(event) {
     this._writeForm.hidden = !event.target.checked;
     this.resizeContentBox();
-  },
-
-
-  //**************************************************************************//
-  // Safe DOM Manipulation
-
-  /**
-   * A sandbox in which to run DOM manipulation code on nodes in the document.
-   * Based on similar code in FeedWriter.js.  It's not clear why we need to use
-   * a sandbox for the kinds of DOM manipulations we do, but FeedWriter.js uses
-   * one, so we do the same.
-   * FIXME: figure out why we need to use a sandbox and explain it here.
-   */
-  get _sandbox() {
-    delete this._sandbox;
-    return this._sandbox = new Cu.Sandbox("about:blank");
-  },
-
-  // FIXME: use this when setting story title and byline.
-  _setContentText: function FW__setContentText(id, text) {
-    this._sandbox.element = this._document.getElementById(id);
-    this._sandbox.textNode = this._document.createTextNode(text);
-    let codeStr =
-      "while (element.hasChildNodes()) " +
-      "  element.removeChild(element.firstChild);" +
-      "element.appendChild(textNode);";
-    Cu.evalInSandbox(codeStr, this._sandbox);
-    this._sandbox.element = null;
-    this._sandbox.textNode = null;
   },
 
 
