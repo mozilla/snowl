@@ -219,6 +219,7 @@ let SnowlMessageView = {
 
   onSourcesChanged: function() {
     this._updateWriteButton();
+    this._collection.invalidate();
     this._rebuildView();
   },
 
