@@ -749,6 +749,17 @@ let SnowlMessageView = {
       bylineBox.appendChild(this._document.createTextNode(message.source.name));
     }
 
+    // Timestamp
+    let timestamp = SnowlDateUtils._formatDate(message.timestamp);
+    if (timestamp) {
+      let span = this._document.createElementNS(HTML_NS, "span");
+      span.className = "timestamp";
+      span.appendChild(this._document.createTextNode(timestamp));
+      if (bylineBox.hasChildNodes())
+        bylineBox.appendChild(this._document.createTextNode(" - "));
+      bylineBox.appendChild(span);
+    }
+
     // Source
     //let source = this._document.createElementNS(HTML_NS, "a");
     //source.className = "source";
@@ -802,17 +813,6 @@ let SnowlMessageView = {
 
       SnowlUtils.linkifyText(message.excerpt, excerpt, message.source.principal);
     }
-
-    //// Timestamp
-    //let lastUpdated = SnowlDateUtils._formatDate(message.timestamp);
-    //if (lastUpdated) {
-    //  let timestamp = this._document.createElementNS(HTML_NS, "span");
-    //  timestamp.className = "timestamp";
-    //  timestamp.appendChild(document.createTextNode(lastUpdated));
-    //  if (bylineBox.hasChildNodes())
-    //    bylineBox.appendChild(this._document.createTextNode(" - "));
-    //  bylineBox.appendChild(timestamp);
-    //}
 
     // FIXME: implement support for enclosures.
 
