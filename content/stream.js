@@ -115,8 +115,9 @@ let SnowlMessageView = {
   // Initialization & Destruction
 
   onLoad: function() {
-    Observers.add("snowl:message:added", this.onMessageAdded, this);
-    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.add("snowl:message:added",    this.onMessageAdded,    this);
+    Observers.add("snowl:sources:changed",  this.onSourcesChanged,  this);
+    Observers.add("snowl:source:removed",   this.onSourceRemoved,   this);
 
     this.onResize();
 
@@ -159,8 +160,9 @@ let SnowlMessageView = {
   },
 
   onunLoad: function() {
-    Observers.remove("snowl:message:added", this.onMessageAdded, this);
-    Observers.remove("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.remove("snowl:message:added",   this.onMessageAdded,    this);
+    Observers.remove("snowl:sources:changed", this.onSourcesChanged,  this);
+    Observers.remove("snowl:source:removed",  this.onSourceRemoved,   this);
   },
 
   _initWriteForm: function() {
@@ -219,6 +221,11 @@ let SnowlMessageView = {
 
   onSourcesChanged: function() {
     this._updateWriteButton();
+  },
+
+  onSourceRemoved: function() {
+    // We don't currently have a way to remove just the messages
+    // from the removed source, so rebuild the entire view.
     this._collection.invalidate();
     this._rebuildView();
   },
