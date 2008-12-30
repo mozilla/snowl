@@ -255,8 +255,10 @@ let SnowlMessageView = {
     this._document = this._window.document;
 
     //this._collection = new SnowlCollection();
+    // _updateToolbar selects a collection, which triggers a view rebuild,
+    // so we don't have to call rebuildView here.  This is pretty convoluted,
+    // though.  We should make this simpler and clearer.
     this._updateToolbar();
-    //this.writeContent();
 
     this._setMidnightTimout();
   },
@@ -507,7 +509,7 @@ let SnowlMessageView = {
       return;
 
     // Rebuild the view instead of adding the message if the view is showing
-    // a filtered set of messages, since we don't have a way to determine
+    // a filtered set of messages, since we don't yet have code to determine
     // if the new message belongs to the filtered set.
     // FIXME: figure out a way to determine that; perhaps a message could have
     // a method that takes a filter string and returns a boolean for whether or
@@ -625,45 +627,44 @@ let SnowlMessageView = {
   //**************************************************************************//
   // Content Generation
 
-  rebuildView: function() {
-    let contentBox = this._document.getElementById("contentBox");
-    while (contentBox.hasChildNodes())
-      contentBox.removeChild(contentBox.lastChild);
-
-    this.writeContent();
-  },
-
   /**
-   * A JavaScript Strands Future with which we pause the writing of messages
-   * so as not to hork the UI thread.
+   * A JavaScript Strands Future with which we pause the rebuilding of the view
+   * for a bit after each message so as not to hork the UI thread.
    */
-  _futureWriteMessages: null,
+  _futureRebuildView: null,
 
   /**
    * Sleep the specified number of milliseconds before continuing at the point
    * in the caller where this function was called.  For the most part, this is
    * a generic sleep routine like the one provided by JavaScript Strands,
-   * but we store the Future this function creates in the _futureWriteMessages
-   * property so we can interrupt it when writeMessages gets called again
-   * while it is currently writing messages.
+   * but we store the Future this function creates in the _futureRebuildView
+   * property so we can interrupt it when rebuildView gets called again
+   * while it is currently running.
    */
-  _sleepWriteMessages: strand(function(millis) {
-    this._futureWriteMessages = new Future();
-    setTimeout(this._futureWriteMessages.fulfill, millis);
-    yield this._futureWriteMessages.result();
+  _sleepRebuildView: strand(function(millis) {
+    this._futureRebuildView = new Future();
+    setTimeout(this._futureRebuildView.fulfill, millis);
+    yield this._futureRebuildView.result();
   }),
 
-  writeContent: strand(function() {
+  rebuildView: strand(function() {
     let begin = new Date();
 
-    // Interrupt a strand currently writing messages so we don't both try
-    // to write messages at the same time.
+    let contentBox = this._document.getElementById("contentBox");
+
+    // Reset the view by removing all its groups and messages.
+    // XXX Since contentBox is an HTML div, could we do this more quickly
+    // by setting innerHTML to an empty string?
+    while (contentBox.hasChildNodes())
+      contentBox.removeChild(contentBox.lastChild);
+
+    // Interrupt a strand currently rebuilding the view so we don't both try
+    // to rebuild the view at the same time.
     // FIXME: figure out how to suppress the exception this throws to the error
     // console, since this interruption is expected and normal behavior.
-    if (this._futureWriteMessages)
-      this._futureWriteMessages.interrupt();
+    if (this._futureRebuildView)
+      this._futureRebuildView.interrupt();
 
-    let contentBox = this._document.getElementById("contentBox");
     let messages = contentBox;
 
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
@@ -728,7 +729,7 @@ let SnowlMessageView = {
       let ceiling = this._bodyButton.checked ? 300 : 25;
       if (timeout > ceiling)
         timeout = ceiling;
-      yield this._sleepWriteMessages(timeout);
+      yield this._sleepRebuildView(timeout);
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
