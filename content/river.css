@@ -42,31 +42,6 @@
 
 
 /******************************************************************************/
-/* Toolbar */
-
-#toolbar {
-  font: message-box;
-  -moz-box-align: center;
-  width: 100%;
-}
-
-/* Don't style the buttons natively because they look ugly on Linux.
- * FIXME: test on other platforms and style conditionally as appropriate,
- * and figure out how to make them look pretty on Linux. */
-toolbarbutton {
-  -moz-appearance: none;
-  min-width: 24px;
-  min-height: 24px;
-}
-
-/* Hide the button labels, since they would otherwise take up space,
- * even if empty, and throw off the centering of the button icons. */
-.toolbarbutton-text {
-  display: none;
-}
-
-
-/******************************************************************************/
 /* Period Menu */
 
 #periodMenu menupopup > menuitem {
