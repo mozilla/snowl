@@ -84,6 +84,11 @@ let SnowlMessageView = {
     return this._faviconSvc;
   },
 
+  get _contentBox() {
+    delete this._contentBox;
+    return this._contentBox = document.getElementById("contentBox");
+  },
+
   get _bodyButton() {
     let bodyButton = document.getElementById("bodyButton");
     delete this._bodyButton;
@@ -199,7 +204,7 @@ let SnowlMessageView = {
   },
 
   set contentHeight(newVal) {
-    document.getElementById("contentBox").style.height = newVal + "px";
+    this._contentBox.style.height = newVal + "px";
 
     // Make the column splitter as tall as the content box.  It doesn't
     // resize itself, perhaps because it's (absolutely positioned) in a stack.
@@ -401,17 +406,16 @@ let SnowlMessageView = {
   },
 
   _setBody: function(showBody) {
-    let contentBox = document.getElementById("contentBox");
     if (showBody) {
-      let classes = contentBox.className.split(/\s/);
+      let classes = this._contentBox.className.split(/\s/);
       classes.push("showBody");
-      contentBox.className = classes.join(" ");
+      this._contentBox.className = classes.join(" ");
     }
     else {
-      contentBox.className = contentBox.className.
-                             split(/\s/).
-                             filter(function(v) v != "showBody").
-                             join(" ");
+      this._contentBox.className = this._contentBox.className.
+                                   split(/\s/).
+                                   filter(function(v) v != "showBody").
+                                   join(" ");
     }
   },
 
@@ -521,11 +525,19 @@ let SnowlMessageView = {
       return;
     }
 
-    // Build the message representation and add it to the view.
-    let messages = this._document.getElementById("contentBox").
-                   getElementsByClassName("groupBox")[0];
-    let messageBox = this._buildMessageView(message);
-    messages.insertBefore(messageBox, messages.firstChild);
+    // Add the message to the view.
+
+    // Find the group box into which we're going to insert the message.
+    let groups = SnowlDateUtils.periods[period];
+    let groupIndex = 0;
+    while (message.received < groups[groupIndex].epoch)
+      ++groupIndex;
+    let groupBoxes = this._contentBox.getElementsByClassName("groupBox");
+    let groupBox = groupBoxes[groupIndex];
+
+    // Build the message box and add it to the group box.
+    let messageBox = this._buildMessageBox(message);
+    groupBox.insertBefore(messageBox, groupBox.firstChild);
   },
 
   onSourceRemoved: function() {
@@ -542,8 +554,6 @@ let SnowlMessageView = {
   },
 
   doPageMove: function(direction) {
-    let contentBox = document.getElementById("contentBox");
-
     // element.clientWidth is the width of an element not including the space
     // taken up by a vertical scrollbar, if any, so it should be the right
     // number of pixels to scroll whether or not there is a vertical scrollbar
@@ -551,7 +561,7 @@ let SnowlMessageView = {
     // or limitations in the column breaking algorithm).  However, for some
     // reason clientWidth is actually 18 pixels less than the number of pixels
     // to scroll, so we have to add back that number of pixels.
-    let pixelsToScroll = contentBox.clientWidth + 18;
+    let pixelsToScroll = this._contentBox.clientWidth + 18;
 
     // FIXME: file a bug on clientWidth being 18 pixels less than the width
     // of the page (if it really is; first, measure to make sure it's the case,
@@ -566,26 +576,22 @@ let SnowlMessageView = {
   // be the actual width).
   // FIXME: fix this once bug 463828 is fixed.
   doColumnMove: function(direction) {
-    let contentBox = document.getElementById("contentBox");
-    let computedStyle = window.getComputedStyle(contentBox, null);
+    let computedStyle = window.getComputedStyle(this._contentBox, null);
     let columnWidth = parseInt(computedStyle.MozColumnWidth) +
                       parseInt(computedStyle.MozColumnGap);
     this.doMove(direction * columnWidth);
   },
 
   doMove: function(pixels) {
-    let contentBox = document.getElementById("contentBox");
-    contentBox.scrollLeft = contentBox.scrollLeft + pixels;
+    this._contentBox.scrollLeft = this._contentBox.scrollLeft + pixels;
   },
 
   onHome: function() {
-    let contentBox = document.getElementById("contentBox");
-    contentBox.scrollLeft = 0;
+    this._contentBox.scrollLeft = 0;
   },
 
   onEnd: function() {
-    let contentBox = document.getElementById("contentBox");
-    contentBox.scrollLeft = contentBox.scrollWidth;
+    this._contentBox.scrollLeft = this._contentBox.scrollWidth;
   },
 
   /**
@@ -650,13 +656,11 @@ let SnowlMessageView = {
   rebuildView: strand(function() {
     let begin = new Date();
 
-    let contentBox = this._document.getElementById("contentBox");
-
     // Reset the view by removing all its groups and messages.
     // XXX Since contentBox is an HTML div, could we do this more quickly
     // by setting innerHTML to an empty string?
-    while (contentBox.hasChildNodes())
-      contentBox.removeChild(contentBox.lastChild);
+    while (this._contentBox.hasChildNodes())
+      this._contentBox.removeChild(this._contentBox.lastChild);
 
     // Interrupt a strand currently rebuilding the view so we don't both try
     // to rebuild the view at the same time.
@@ -665,77 +669,46 @@ let SnowlMessageView = {
     if (this._futureRebuildView)
       this._futureRebuildView.interrupt();
 
-    let messages = contentBox;
-
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
     let groups = SnowlDateUtils.periods[period];
-    let groupIndex = 0;
 
+    // Build the box for each group and add it to the view.
+    for each (let group in groups) {
+      let header = this._document.createElementNS(XUL_NS, "checkbox");
+      header.className = "twistbox";
+      header.setAttribute("label", group.name);
+      header.setAttribute("checked", "true");
+      let listener = function(event) {
+        // FIXME: set the |hidden| attribute rather than |style.display|.
+        event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
+      };
+      header.addEventListener("command", listener, false);
+      this._contentBox.appendChild(header);
+
+      let container = this._document.createElementNS(HTML_NS, "div");
+      container.className = "groupBox";
+      this._contentBox.appendChild(container);
+    }
+
+    // Build the box for each message and add it to the view.
+    let groupBoxes = this._contentBox.getElementsByClassName("groupBox");
+    let groupIndex = 0;
     for (let i = 0; i < this._collection.messages.length; ++i) {
       let message = this._collection.messages[i];
 
-      while (message.received < groups[groupIndex].epoch) {
+      // Find the group to which the message belongs.
+      while (message.received < groups[groupIndex].epoch)
         ++groupIndex;
 
-        let header = this._document.createElementNS(XUL_NS, "checkbox");
-        header.className = "twistbox";
-        header.setAttribute("label", groups[groupIndex].name);
-        header.setAttribute("checked", "true");
-        let listener = function(event) {
-          event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
-        };
-        header.addEventListener("command", listener, false);
-        contentBox.appendChild(header);
-
-        let container = this._document.createElementNS(HTML_NS, "div");
-        container.className = "groupBox";
-        contentBox.appendChild(container);
-
-        messages = container;
-      }
-
-      let messageBox = this._buildMessageView(message);
-      messages.appendChild(messageBox);
-
-      // Calculate the distance between the content currently being displayed
-      // in the content box and the content at the end of the box.  This tells
-      // us how close the user is to the end of the content, which we can use
-      // to determine how quickly to append more content to the box (the closer
-      // the user is to the end, the quicker we append more content to it, so
-      // they don't run out of stuff to read).
-      let totalPixels, scrolledPixels, boxExtent;
-      if (this._columnsButton.checked) {
-        totalPixels = contentBox.scrollWidth;
-        scrolledPixels = contentBox.scrollLeft;
-        boxExtent = contentBox.clientWidth;
-      }
-      else {
-        totalPixels = contentBox.scrollHeight;
-        scrolledPixels = contentBox.scrollTop;
-        boxExtent = contentBox.clientHeight;
-      }
-
-      // Subtracting the box extent from the total pixels gives us
-      // the distance from the current position to the beginning rather than
-      // the end of the last page of content.
-      let distance = totalPixels - boxExtent - scrolledPixels;
-
-      // Sleep to give the UI thread time to do other things.  We sleep longer
-      // the farther away the user is from the end of the page, and we also
-      // sleep longer if we're displaying full content, since it takes longer
-      // to display.  Our rough algorithm is to divide the distance from the end
-      // of the page by some divisor, limiting the output to a certain ceiling.
-      let timeout = distance / 25;
-      let ceiling = this._bodyButton.checked ? 300 : 25;
-      if (timeout > ceiling)
-        timeout = ceiling;
-      yield this._sleepRebuildView(timeout);
+      let messageBox = this._buildMessageBox(message);
+      groupBoxes[groupIndex].appendChild(messageBox);
+      yield this._sleepRebuildView(this._rebuildViewTimeout);
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
   }),
 
-  _buildMessageView: function(message) {
+  _buildMessageBox: function(message) {
     let messageBox = this._document.createElementNS(HTML_NS, "div");
     messageBox.className = "message";
 
@@ -834,6 +807,45 @@ let SnowlMessageView = {
     messageBox.appendChild(bylineBox);
 
     return messageBox;
+  },
+
+  get _rebuildViewTimeout() {
+    let timeout;
+
+    // Calculate the distance between the content currently being displayed
+    // in the content box and the content at the end of the box.  This tells
+    // us how close the user is to the end of the content, which we can use
+    // to determine how quickly to append more content to the box (the closer
+    // the user is to the end, the more quickly we append more content to it,
+    // so they don't run out of stuff to read).
+    let totalPixels, scrolledPixels, boxExtent;
+    if (this._columnsButton.checked) {
+      totalPixels =     this._contentBox.scrollWidth;
+      scrolledPixels =  this._contentBox.scrollLeft;
+      boxExtent =       this._contentBox.clientWidth;
+    }
+    else {
+      totalPixels =     this._contentBox.scrollHeight;
+      scrolledPixels =  this._contentBox.scrollTop;
+      boxExtent =       this._contentBox.clientHeight;
+    }
+
+    // Subtracting the box extent from the total pixels gives us
+    // the distance from the current position to the beginning rather than
+    // the end of the last page of content.
+    let distance = totalPixels - boxExtent - scrolledPixels;
+
+    // Sleep to give the UI thread time to do other things.  We sleep longer
+    // the farther away the user is from the end of the page, and we also
+    // sleep longer if we're displaying full content, since it takes longer
+    // to display.  Our rough algorithm is to divide the distance from the end
+    // of the page by some divisor, limiting the output to a certain ceiling.
+    timeout = distance / 25;
+    let ceiling = this._bodyButton.checked ? 300 : 25;
+    if (timeout > ceiling)
+      timeout = ceiling;
+
+    return timeout;
   }
 };
 
@@ -855,7 +867,7 @@ let splitterDragObserver = {
   handleEvent: function(event) {
     if (this._timeout)
       this._timeout = window.clearTimeout(this._timeout);
-    let width = event.clientX - document.getElementById("contentBox").offsetLeft;
+    let width = event.clientX - this._contentBox.offsetLeft;
     document.getElementById("columnResizeSplitter").left = width;
     this._timeout = window.setTimeout(this.callback, 500, width);
   }

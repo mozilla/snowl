@@ -201,42 +201,33 @@ let SnowlDateUtils = {
    */
   periods: {
     today: [
-      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
       { name: strings.get("evening"),   get epoch() { return SnowlDateUtils.evening(SnowlDateUtils.today) } },
       { name: strings.get("afternoon"), get epoch() { return SnowlDateUtils.afternoon(SnowlDateUtils.today) } },
       { name: strings.get("morning"),   get epoch() { return SnowlDateUtils.morning(SnowlDateUtils.today) } },
-      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.today } },
-      { name: strings.get("older"),     epoch: 0 }
+      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.today } }
     ],
     yesterday: [
-      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
       { name: strings.get("evening"),   get epoch() { return SnowlDateUtils.evening(SnowlDateUtils.yesterday) } },
       { name: strings.get("afternoon"), get epoch() { return SnowlDateUtils.afternoon(SnowlDateUtils.yesterday) } },
       { name: strings.get("morning"),   get epoch() { return SnowlDateUtils.morning(SnowlDateUtils.yesterday) } },
-      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.yesterday } },
-      { name: strings.get("older"),     epoch: 0 }
+      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.yesterday } }
     ],
     last7days: [
-      { name: strings.get("future"),                            epoch: Number.MAX_VALUE },
       { name: strings.get("today"),                             get epoch() { return SnowlDateUtils.today } },
       { name: strings.get("yesterday"),                         get epoch() { return SnowlDateUtils.yesterday } },
       { get name() { return SnowlDateUtils.twoDaysAgo.name },   get epoch() { return SnowlDateUtils.twoDaysAgo.epoch } },
       { get name() { return SnowlDateUtils.threeDaysAgo.name }, get epoch() { return SnowlDateUtils.threeDaysAgo.epoch } },
       { get name() { return SnowlDateUtils.fourDaysAgo.name },  get epoch() { return SnowlDateUtils.fourDaysAgo.epoch } },
       { get name() { return SnowlDateUtils.fiveDaysAgo.name },  get epoch() { return SnowlDateUtils.fiveDaysAgo.epoch } },
-      { get name() { return SnowlDateUtils.sixDaysAgo.name },   get epoch() { return SnowlDateUtils.sixDaysAgo.epoch } },
-      { name: strings.get("older"),                             epoch: 0 }
+      { get name() { return SnowlDateUtils.sixDaysAgo.name },   get epoch() { return SnowlDateUtils.sixDaysAgo.epoch } }
     ],
     last4weeks: [
-      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
       { name: strings.get("weekOne"),   get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 7) } },
       { name: strings.get("weekTwo"),   get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 14) } },
       { name: strings.get("weekThree"), get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 21) } },
-      { name: strings.get("weekFour"),  get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28) } },
-      { name: strings.get("older"),     epoch: 0 }
+      { name: strings.get("weekFour"),  get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28) } }
     ],
     all: [
-      { name: strings.get("future"),    epoch: Number.MAX_VALUE },
       { name: strings.get("today"),     get epoch() { return SnowlDateUtils.today } },
       { name: strings.get("yesterday"), get epoch() { return SnowlDateUtils.yesterday } },
       { name: strings.get("older"),     epoch: 0 }
