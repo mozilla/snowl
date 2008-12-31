@@ -16,6 +16,7 @@
     <!-- <em:aboutURL>chrome://snowl/content/about.xul</em:aboutURL> -->
     <em:aboutURL/>
     <em:iconURL>chrome://snowl/content/icons/snowl-40.jpg</em:iconURL>
+    <em:updateURL>https://people.mozilla.com/~myk/snowl/update.rdf</em:updateURL>
 
     <!-- Firefox -->
     <em:targetApplication>
