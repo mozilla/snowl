@@ -1,9 +1,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <title>Mozilla Labs / Snowl / First Run</title>
-    <link rel="stylesheet" type="text/css" href="https://services.mozilla.com/weave.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <title>Getting Started with Snowl</title>
+    <link rel="stylesheet" href="chrome://snowl/content/startup.css"/>
     <script>
       const Ci = Components.interfaces;
       var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
@@ -14,54 +14,50 @@
                            getInterface(Ci.nsIDOMWindow);
     </script>
   </head>
-<body>
-  <div id="content">
-    <div id="top">
-
-      <img src="chrome://snowl/content/logo.png" alt="Snowl for Firefox" />
-    </div>
-
-    <div id="bottom">
-      <div><img src="https://services.mozilla.com/images/otherpages-table-top.png" alt="" /></div>
-      <div class="table_middle">
-        <div class="title">Thanks for installing Snowl!</div>
-        <div class="divider"><img src="https://services.mozilla.com/images/otherpages-divider.png" alt="" /></div>
-
-        <div class="details">
-          <p>
-            <b>Getting Started</b>
-          </p>
-
-          <ol>
-            <li>Subscribe to feeds from the feed preview page.</li>
-            <li><a href="chrome://snowl/content/subscribe.xul?tab=twitter">Subscribe to Twitter</a>.</li>
-            <li><a href="chrome://snowl/content/subscribe.xul?tab=opml">Import OPML</a>.</li>
-            <li>Read messages in the
-                <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlList')">list</a>,
-                <a href="chrome://snowl/content/river.xul">river</a>, or
-                <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlStream')">stream</a>
-                views.
-            </li>
-          </ol>
-
-          <p>
-            Please join us in the Mozilla Labs
-            <a href="https://labs.mozilla.com/forum/index.php">discussion forum</a>
-            to provide feedback or make suggestions.
-          </p>
-
-        </div>
-        <div class="divider"><img src="https://services.mozilla.com/images/otherpages-divider.png" alt="" /></div>
+  <body>
+    <div id="outer"><div id="middle"><div id="inner">
+      <div id="content">
+        <img src="chrome://snowl/content/logo.png" alt="Snowl" style="float: right;"/>
+        <h2 class="title">Getting Started with Snowl</h2>
+        <p>
+          Snowl is an experiment in messaging in the browser. You can access
+          Snowl from the <code>Tools</code> menu or the Snowl button
+          <img src="chrome://snowl/content/icons/snowl-16.png"> on the
+          statusbar in the bottom left corner of your browser window. You can
+          also add buttons to your toolbars for quicker access to Snowl
+          features via the <code>View > Toolbars > Customize...</code> menu
+          option.
+        </p>
+  
+        <p>
+          Subscribe to feeds by clicking the feed icon
+          <img src="chrome://browser/skin/feeds/feedIcon16.png"> in the
+          location bar on a web site with a feed, then selecting Snowl from
+          the list of feed readers on the feed preview page.  Subscribe to
+          Twitter or import an OPML file from the <code>Snowl</code> menu in
+          the <code>Tools</code> menu and on the statusbar.
+        </p>
+  
+        <p>
+          Read messages in the
+          <a href="javascript:gBrowserWindow.openUILinkIn('chrome://snowl/content/river.xul', 'tab')">river</a>,
+          <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlStream')">stream</a>,
+          and
+          <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlList')">list</a>
+          views. Write a message by pressing the write button
+          <img src="chrome://snowl/content/icons/email_add.png"> in any view.
+        </p>
+  
+        <p>
+          Get involved!
+          <a href="http://labs.mozilla.com/projects/snowl/">Learn more about Snowl</a>,
+          <a href="https://labs.mozilla.com/forum/?CategoryID=27">tell us what you think</a>,
+          <a href="https://bugzilla.mozilla.org/buglist.cgi?product=Mozilla Labs&amp;component=Snowl">browse bug reports</a>,
+          <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Mozilla Labs&amp;component=Snowl">report a bug</a>,
+          and
+          <a href="http://hg.mozilla.org/labs/snowl/">check out the source</a>.
+        </p>
       </div>
-
-    </div>
-    
-    <div id="footer">
-      <div class="legal">
-        &copy; 2008 Mozilla
-      </div>
-    </div>
-  </div>
-    
-</body>
+    </div></div></div>
+  </body>
 </html>

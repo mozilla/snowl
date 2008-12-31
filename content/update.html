@@ -1,47 +1,60 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
-    <title>Mozilla Labs / Snowl / Update</title>
-    <link rel="stylesheet" type="text/css" href="https://services.mozilla.com/weave.css" />
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+    <title>Snowl 0.2 Update</title>
+    <link rel="stylesheet" href="chrome://snowl/content/startup.css"/>
+    <script>
+      const Ci = Components.interfaces;
+      var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                           getInterface(Ci.nsIWebNavigation).
+                           QueryInterface(Ci.nsIDocShellTreeItem).
+                           rootTreeItem.
+                           QueryInterface(Ci.nsIInterfaceRequestor).
+                           getInterface(Ci.nsIDOMWindow);
+    </script>
   </head>
-<body>
-  <div id="content">
-    <div id="top">
+  <body>
+    <div id="outer"><div id="middle"><div id="inner">
+      <div id="content">
+        <img src="chrome://snowl/content/logo.png" alt="Snowl" style="float: right;"/>
+        <h2 class="title">Snowl 0.2 Update</h2>
 
-      <img src="chrome://snowl/content/logo.png" alt="Snowl for Firefox" />
-    </div>
+        <p>
+          You've just updated to Snowl 0.2.  This version includes a number of
+          new features.  In particular:
+        </p>
 
-    <div id="bottom">
-      <div><img src="https://services.mozilla.com/images/otherpages-table-top.png" alt="" /></div>
-      <div class="table_middle">
-        <div class="title">You've updated Snowl!</div>
-        <div class="divider"><img src="https://services.mozilla.com/images/otherpages-divider.png" alt="" /></div>
+        <ul>
+          <li>
+            the
+            <a href="javascript:gBrowserWindow.toggleSidebar('viewSnowlStream')">stream view</a>
+            is a sidebar that lets you keep track of incoming messages while you
+            do other things;
+          </li>
+          <li>
+            you can send messages via Twitter by pressing the write button
+            <img src="chrome://snowl/content/icons/email_add.png"> in any view;
+          </li>
+          <li>
+            you can subscribe to multiple Twitter accounts.
+          </li>
+        </ul>
 
-        <div class="details">
-          <h1>New Features</h1>
-          <ol>
-          </ol>
-          <h1>Important Bug Fixes</h1>
-          <ol>
-          </ol>
-          <p>
-            Please join us in the Mozilla Labs
-            <a href="https://labs.mozilla.com/forum/index.php">discussion forum</a>
-            to provide feedback or make suggestions.
-          </p>
-        </div>
-        <div class="divider"><img src="https://services.mozilla.com/images/otherpages-divider.png" alt="" /></div>
+        <p>
+          It also includes many bug fixes.
+        </p>
+
+        <p>
+          Get involved!
+          <a href="http://labs.mozilla.com/projects/snowl/">Learn more about Snowl</a>,
+          <a href="https://labs.mozilla.com/forum/?CategoryID=27">tell us what you think</a>,
+          <a href="https://bugzilla.mozilla.org/buglist.cgi?product=Mozilla Labs&amp;component=Snowl">browse bug reports</a>,
+          <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Mozilla Labs&amp;component=Snowl">report a bug</a>,
+          and
+          <a href="http://hg.mozilla.org/labs/snowl/">check out the source</a>.
+        </p>
       </div>
-
-    </div>
-    
-    <div id="footer">
-      <div class="legal">
-        &copy; 2008 Mozilla
-      </div>
-    </div>
-  </div>
-    
-</body>
+    </div></div></div>
+  </body>
 </html>
