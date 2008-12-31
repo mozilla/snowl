@@ -333,9 +333,15 @@ SnowlFeed.prototype = {
     // the user is already subscribed.
     Observers.notify("snowl:subscribe:get:start", this);
 
-    // FIXME: handle the case where this throws |aResult.doc is null|
-    // because the feed processor couldn't parse the feed file
-    // (f.e. because its content isn't a valid feed).
+    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
+    // a valid feed?) and report a more descriptive error message.
+    // FIXME: don't notify get:start and get:end if aResult.doc == null.
+    if (aResult.doc == null) {
+      this._log.error("_processRefresh: aResult.doc is null");
+      Observers.notify("snowl:subscribe:get:end", this);
+      return;
+    }
+
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     let currentMessageIDs = [];
