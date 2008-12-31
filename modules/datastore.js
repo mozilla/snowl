@@ -858,7 +858,7 @@ try {
     this._insertMetadatumStatement.params.value = aValue;
 }
 catch(ex) {
-  dump(ex + " with attribute ID: " + aAttributeID + " and value: " + aValue + "\n");
+  //dump(ex + " with attribute ID: " + aAttributeID + " and value: " + aValue + "\n");
   throw ex;
 }
 
