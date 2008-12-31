@@ -274,14 +274,13 @@ let SnowlMessageView = {
    */
   resizeContentBox: function() {
     let toolbarHeight = document.getElementById("toolbar").boxObject.height;
-    let writeFormHeight = document.getElementById("writeForm").boxObject.height;
 
     // We do this on load, when there isn't yet a horizontal scrollbar,
     // but we anticipate that there probably will be one, so we include it
     // in the calculation.  Perhap we should instead wait to resize
     // the content box until the content actually overflows horizontally.
-    this.contentHeight =
-      window.innerHeight - this.scrollbarBreadth - toolbarHeight - writeFormHeight;
+
+    this.contentHeight = window.innerHeight - this.scrollbarBreadth - toolbarHeight;
   },
 
   _setMidnightTimout: function() {
@@ -626,7 +625,6 @@ let SnowlMessageView = {
 
   onToggleWrite: function(event) {
     this._writeForm.hidden = !event.target.checked;
-    this.resizeContentBox();
   },
 
 

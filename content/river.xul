@@ -81,8 +81,10 @@
   </keyset>
 
   <hbox flex="1">
-    <vbox>
-      <vbox id="collectionsViewBox" style="width: 200px"/>
+    <vbox style="width: 200px;">
+      <vbox id="collectionsViewBox"/>
+
+      <vbox id="writeForm"/>
 
       <toolbar id="snowlToolbar">
         <toolbarbutton id="snowlSubscribeButton"
@@ -96,7 +98,7 @@
         <toolbarspring/>
         <toolbarbutton id="writeButton" type="checkbox"
                        image="chrome://snowl/content/icons/email_add.png"
-                       oncommand="ListSidebar.onToggleWrite(event)"
+                       oncommand="SnowlMessageView.onToggleWrite(event)"
                        tooltiptext="&writeButton.tooltip;"/>
       </toolbar>
     </vbox>
@@ -106,11 +108,6 @@
     <vbox flex="1">
       <toolbar id="toolbar">
         <!-- <toolbarbutton oncommand="dump(new XMLSerializer().serializeToString(document))"/> -->
-
-        <toolbarbutton id="writeButton" type="checkbox"
-                       image="chrome://snowl/content/icons/email_add.png"
-                       oncommand="SnowlMessageView.onToggleWrite(event)"
-                       tooltiptext="&writeButton.tooltip;"/>
 
         <toolbarbutton id="bodyButton" type="checkbox"
                        image="chrome://snowl/content/icons/page_white_text.png"
@@ -156,8 +153,6 @@
                  emptytext="&filterTextbox.emptytext;"
                  oncommand="SnowlMessageView.onFilter()"/>
       </toolbar>
-
-      <vbox id="writeForm"/>
 
       <stack id="contentStack" flex="1">
         <html:div id="contentBox"
