@@ -83,7 +83,7 @@
           class="menu-iconic"
           label="&snowlMenu.label;"
           accesskey="&snowlMenu.accesskey;"
-          insertafter="menu_openAddons">
+          insertbefore="browserToolsSeparator">
       <menupopup id="snowlMenuPopup"
                  onpopupshowing="Snowl.onSnowlMenuPopupShowing(event)"
                  onpopuphiding="Snowl.onSnowlMenuPopupHiding(event)">
