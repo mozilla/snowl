@@ -320,6 +320,8 @@ let SnowlUtils = {
   // XXX store on document for restore on restart??
   gListViewListIndex: -1,
   gListViewCollectionIndex: -1,
+  gListViewCurrentNode: null,
+  gListViewDeleteOrMove: false,
   // Position of current page in tabs and history
   gMessagePosition: {tabIndex: null, pageIndex: null},
 
@@ -342,11 +344,11 @@ let SnowlUtils = {
       //     CollectionsView.onClick(aEvent) }, true);
       let row = {}, col = {}, child = {};
       tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, child);
-      if (tree.view.selection.isSelected(row.value))
-this._log.info("row: "+ row.value + " is selected");
-      else {
-this._log.info("row: "+ row.value + " is not selected");
-      }
+//      if (tree.view.selection.isSelected(row.value))
+//this._log.info("row: "+ row.value + " is selected");
+//      else {
+//this._log.info("row: "+ row.value + " is not selected");
+//      }
     this.gRightMouseButtonDown = false;
     }
   },
@@ -386,14 +388,22 @@ this._log.info("row: "+ row.value + " is not selected");
   // This is triggered when the context menu for a given row is hidden/closed
   // (onpopuphidden for the context <popup>).
   RestoreSelectionWithoutContentLoad: function(tree) {
+    let selectionToRestore;
     let treeSelection = tree.view.selection;
+
+    if (this.gListViewDeleteOrMove) {
+      selectionToRestore = this.gListViewCollectionIndex;
+      this.gListViewDeleteOrMove = false;
+    }
+    else
+      selectionToRestore = treeSelection.currentIndex;
 
     // Make sure that currentIndex is valid so that we don't try to restore
     // a selection of an invalid row.
-    if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
-        (treeSelection.currentIndex >= 0)) {
+    if((!treeSelection.isSelected(selectionToRestore)) &&
+        (selectionToRestore >= 0)) {
       treeSelection.selectEventsSuppressed = true;
-      treeSelection.select(treeSelection.currentIndex);
+      treeSelection.select(selectionToRestore);
       treeSelection.selectEventsSuppressed = false;
 
       // Reset which row in the tree is currently selected.
@@ -402,7 +412,7 @@ this._log.info("row: "+ row.value + " is not selected");
       if(tree.id == "sourcesView")
         this.gListViewCollectionIndex = treeSelection.currentIndex;
     }
-    else if(treeSelection.currentIndex < 0)
+    else if(selectionToRestore < 0)
       // Clear the selection in the case of when a folder has just been
       // loaded where the message pane does not have a message loaded yet.
       // When right-clicking a message in this case and dismissing the

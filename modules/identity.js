@@ -92,6 +92,17 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
     personStatement.step();
     let personID = SnowlDatastore.dbConnection.lastInsertRowID;
 
+    // XXX need to make this one commitable transaction (with place db store)
+    // to maintain strict integrity..
+    // XXX store placesID back into messages for db integrity..
+    let placesID = SnowlDatastorePlaces.persistPlace("Authors",
+                                                     personID,
+                                                     name,
+//                                                     homeURL,
+//                                                     externalID,
+                                                     sourceID);
+SnowlDatastorePlaces._log.info("persistAuthors id:placesID - " + personID + " : " + placesID);
+
     identityStatement.params.sourceID = sourceID;
     identityStatement.params.externalID = externalID;
     identityStatement.params.personID = personID;

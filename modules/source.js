@@ -238,8 +238,12 @@ let SnowlSource = {
    * record.
    *
    * FIXME: move this to a SnowlAccount interface.
+   * XXX need to make this one commitable transaction (with place db store)
+   * to maintain strict integrity..
+   * XXX store placesID back into messages for db integrity..
    */
   persist: function() {
+    // 
     let statement;
     if (this.id) {
       statement = SnowlDatastore.createStatement(
@@ -274,8 +278,18 @@ let SnowlSource = {
     }
 
     // Extract the ID of the source from the newly-created database record.
-    if (!this.id)
+    let placesID;
+    if (!this.id) {
       this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+      placesID = SnowlDatastorePlaces.persistPlace("Sources",
+                                                   this.id,
+                                                   this.name,
+//                                                   this.machineURI.spec,
+//                                                   this.username,
+                                                   this.id); // aSourceID
+//this._log.info("persistSources id:placesID - " + this.id + " : " + placesID);
+
+    }
   },
 
   get _stmtGetInternalIDForExternalID() {

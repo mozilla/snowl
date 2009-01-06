@@ -600,7 +600,7 @@ SnowlFeed.prototype = {
 
     this._subscribeCallback = callback;
 
-    this._log.info("subscribing to " + this.machineURI.spec);
+//    this._log.info("subscribing to " + this.machineURI.spec);
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 

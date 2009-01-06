@@ -194,9 +194,10 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   show: function() {
     Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
 
-    this._collection = new SnowlCollection();
-    this._sort();
-    this._tree.view = this;
+    // Don't automatically read the entire database on init and non selected load..
+//    this._collection = new SnowlCollection();
+//    this._sort();
+//    this._tree.view = this;
 
     this._snowlViewContainer.hidden = false;
     this._snowlViewSplitter.hidden = false;
@@ -221,7 +222,8 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   onMessagesChanged: function(sourceID) {
     // Don't update the list view if the source whose messages have changed
     // is not the one currently being displayed in the view.
-    if (this._collection.groupID && this._collection.groupID != sourceID)
+    if (!this._collection ||
+        (this._collection.groupID && this._collection.groupID != sourceID))
       return;
 
     // FIXME: make the collection listen for message changes and invalidate

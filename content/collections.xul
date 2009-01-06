@@ -36,21 +36,17 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://snowl/content/collections.css"   type="text/css"?>
-<?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
-
 <!DOCTYPE overlay [
   <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">
   %collectionsDTD;
-  <!ENTITY % toolbarDTD     SYSTEM "chrome://snowl/locale/toolbar.dtd">
-  %toolbarDTD;
 ]>
-
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <script type="application/javascript" src="chrome://snowl/content/collections.js"/>
+  <script type="application/x-javascript"
+          src="chrome://snowl/content/collections.js"/>
 
-  <vbox id="collectionsViewBox" flex="1">
+  <vbox id="collectionsViewBox"
+        flex="1">
 
     <!-- Collection context -->
     <popup id="snowlCollectionContext"
@@ -70,13 +66,31 @@
                 oncommand="CollectionsView.unsubscribe();"/>
     </popup>
 
-    <tree id="sourcesView" flex="1" editable="true"
+    <!-- onclick="SidebarUtils.handleTreeClickXXX(this, event, true);" -->
+    <tree id="sourcesView"
+          flex="1"
+          editable="true"
+          class="sidebar-placesTree"
+          type="places"
+          persist="flat"
+          hidecolumnpicker="true"
+          onkeypress="SidebarUtils.handleTreeKeyPress(event);"
+          onmousemove="SidebarUtils.handleTreeMouseMove(event);"
+          onmouseout="SidebarUtils.clearURLFromStatusBar();"
           onselect="CollectionsView.onSelect(event)">
       <treecols>
-        <treecol id="nameCol" label="&nameCol.label;" primary="true" flex="1"/>
+        <treecol id="title"
+                 label="&nameCol.label;"
+                 primary="true"
+                 flex="1"
+                 hideheader="true"/>
       </treecols>
 
-      <treechildren flex="1" context="snowlCollectionContext"
+      <treechildren id="sourcesViewChildren"
+                    view="sourcesView"
+                    class="sidebar-placesTreechildren" 
+                    flex="1"
+                    context="snowlCollectionContext"
                     onmousedown="CollectionsView.onCollectionsTreeMouseDown(event)"/>
     </tree>
 

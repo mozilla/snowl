@@ -37,9 +37,18 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/places/places.css"?>
+<?xml-stylesheet href="chrome://browser/skin/places/places.css"?>
+<?xml-stylesheet href="chrome://snowl/content/collections.css" type"text/css"?>
+<?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
+<?xul-overlay href="chrome://browser/content/places/placesOverlay.xul"?>
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
 
 <!-- toolbar.dtd gives us writeButton.tooltip. -->
 <!DOCTYPE page [
+  <!ENTITY % placesDTD SYSTEM "chrome://browser/locale/places/places.dtd">
+  %placesDTD;
   <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
   %listDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
@@ -54,6 +63,26 @@
       onload="ListSidebar.onLoad()"
       onunload="ListSidebar.onUnload()">
 
+  <script type="application/x-javascript"
+          src="chrome://browser/content/bookmarks/sidebarUtils.js"/>
+
+  <commandset id="placesCommands"/>
+  <commandset id="editMenuCommands"/>
+  <popup id="placesContext"/>
+<!-- 
+  <script type="application/x-javascript"
+          src="chrome://global/content/globalOverlay.js"/>
+  <script type="application/x-javascript"
+          src="chrome://browser/content/utilityOverlay.js"/>
+  <script type="application/x-javascript" 
+          src="chrome://browser/content/places/utils.js"/>
+  <script type="application/x-javascript"
+          src="chrome://browser/content/places/controller.js"/>
+  <script type="application/x-javascript"
+          src="chrome://browser/content/places/treeView.js"/>
+  <script type="application/x-javascript"
+          src="chrome://global/content/nsDragAndDrop.js"/>
+ -->
   <script type="application/javascript" src="chrome://snowl/content/list-sidebar.js"/>
 
   <!-- This is the overlay point for the collections view overlay. -->

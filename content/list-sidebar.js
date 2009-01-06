@@ -33,11 +33,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
+/*
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
-const Cu = Components.utils;
+*/const Cu = Components.utils;
 
 // modules that are generic
 Cu.import("resource://snowl/modules/Observers.js");
@@ -45,7 +45,7 @@ Cu.import("resource://snowl/modules/Observers.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
-
+/*
 let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIWebNavigation).
                      QueryInterface(Ci.nsIDocShellTreeItem).
@@ -59,7 +59,7 @@ let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                          rootTreeItem.
                          QueryInterface(Ci.nsIInterfaceRequestor).
                          getInterface(Ci.nsIDOMWindow);
-
+*/
 let ListSidebar = {
 
   //**************************************************************************//
