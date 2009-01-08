@@ -82,7 +82,7 @@
       <caption label="&source.label;"/>
       <radiogroup id="subscribeRadio"
                   orient="horizontal"
-                  oncommand="SnowlPreferences.selectSubcribeDeck()">
+                  oncommand="SnowlPreferences.selectSubscribeDeck()">
         <radio label="&feeds.label;"
                accesskey="&feeds.accesskey;"/>
         <radio label="&twitter.label;"

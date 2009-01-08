@@ -134,7 +134,7 @@ let SnowlPreferences = {
       document.getElementById("twitterPassword").setAttribute("type", "password");
   },
 
-  selectSubcribeDeck: function() {
+  selectSubscribeDeck: function() {
     let index = document.getElementById("subscribeRadio").selectedIndex;
     let deck = document.getElementById("subscribeDeck");
     deck.setAttribute("selectedIndex", index);
@@ -147,6 +147,6 @@ let SnowlPreferences = {
     document.getElementById("twitterUsername").value = "";
     document.getElementById("twitterPassword").value = "";
     Subscriber.setStatus("none", "");
-  },
+  }
 
 }
