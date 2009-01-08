@@ -60,7 +60,7 @@
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
-  <toolbar>
+  <toolbar id="snowlToolbar">
     <toolbarbutton id="snowlRefreshButton"
                    image="chrome://snowl/content/icons/arrow_refresh_small.png"
                    oncommand="SnowlMessageView.onRefresh()"
