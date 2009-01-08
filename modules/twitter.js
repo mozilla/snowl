@@ -763,7 +763,7 @@ SnowlTwitter.prototype = {
   send: function(content, successCallback, errorCallback) {
     Observers.notify("snowl:send:start", this);
 
-    let data = "status=" + encodeURIComponent(content);
+    let data = "status=" + encodeURIComponent(content) + "&source=snowl";
     //          + "&in_reply_to_status_id=" + encodeURIComponent(inReplyToID);
 
     this._successCallback = successCallback;
