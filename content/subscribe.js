@@ -274,7 +274,8 @@ let Subscriber = {
   }),
 
   subscribeFeed: strand(function(name, machineURI, callback) {
-    this._log.info("subscribing to feed " + name + " <" + machineURI.spec + ">");
+    this._log.info("subscribing to feed " + name +
+                   " <" + (machineURI ? machineURI.spec : "") + ">");
 
     // FIXME: fix the API so I don't have to pass a bunch of null and undefined
     // values (that undefined value, incidentally, can probably be null).
