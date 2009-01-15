@@ -43,14 +43,14 @@ skin    snowl   classic/1.0   skin/mac/       os=Darwin
 skin    snowl   classic/1.0   skin/linux/     os=Linux
 
 # localizations in alphabetical order
-locale  snowl   ca-AD   locale/ca-AD/
+#locale  snowl   ca-AD   locale/ca-AD/
 locale  snowl   da-DK   locale/da-DK/
-locale  snowl   de-DE   locale/de-DE/
+#locale  snowl   de-DE   locale/de-DE/
 locale  snowl   en-US   locale/en-US/
-locale  snowl   es-ES   locale/es-ES/
-locale  snowl   fr-FR   locale/fr-FR/
-locale  snowl   ja-JP   locale/ja-JP/
-locale  snowl   nl-NL   locale/nl-NL/
+#locale  snowl   es-ES   locale/es-ES/
+#locale  snowl   fr-FR   locale/fr-FR/
+#locale  snowl   ja-JP   locale/ja-JP/
+#locale  snowl   nl-NL   locale/nl-NL/
 locale  snowl   pl-PL   locale/pl-PL/
-locale  snowl   pt-BR   locale/pt-BR/
+#locale  snowl   pt-BR   locale/pt-BR/
 locale  snowl   zh-CN   locale/zh-CN/
