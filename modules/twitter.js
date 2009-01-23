@@ -119,8 +119,8 @@ const AUTH_REALM = "Snowl";
 // FIXME: make the constructor accept credentials instead of passing them
 // to the subscribe function.
 
-function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
-  SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance);
+function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
+  SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
   SnowlTarget.init.call(this);
 }
 
@@ -178,6 +178,8 @@ SnowlTwitter.prototype = {
   },
 
   importance: null,
+
+  placeID: null,
 
   get faviconSvc() {
     return SnowlSource.faviconSvc;

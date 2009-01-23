@@ -70,7 +70,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 11,
+  _dbVersion: 12,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -108,7 +108,8 @@ let SnowlDatastore = {
           "humanURI TEXT",
           "username TEXT",
           "lastRefreshed REAL",
-          "importance INTEGER"
+          "importance INTEGER",
+          "placeID INTEGER"
         ]
       },
 
@@ -206,7 +207,8 @@ let SnowlDatastore = {
           // all of them and select from it at display time?
           "name TEXT NOT NULL",
           "homeURL TEXT",
-          "iconURL TEXT"
+          "iconURL TEXT",
+          "placeID INTEGER"
         ]
       },
 
@@ -479,11 +481,11 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * rename it every time we increase the schema version.
    */
-  _dbMigrate0To11: function(dbConnection) {
+  _dbMigrate0To12: function(dbConnection) {
     this._dbCreate(dbConnection);
   },
 
-  _dbMigrate4To11: function(dbConnection) {
+  _dbMigrate4To12: function(dbConnection) {
     this._dbMigrate4To5(dbConnection);
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
@@ -491,41 +493,52 @@ let SnowlDatastore = {
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
   },
 
-  _dbMigrate5To11: function(dbConnection) {
+  _dbMigrate5To12: function(dbConnection) {
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
   },
 
-  _dbMigrate6To11: function(dbConnection) {
+  _dbMigrate6To12: function(dbConnection) {
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
   },
 
-  _dbMigrate7To11: function(dbConnection) {
+  _dbMigrate7To12: function(dbConnection) {
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
   },
 
-  _dbMigrate8To11: function(dbConnection) {
+  _dbMigrate8To12: function(dbConnection) {
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
   },
 
-  _dbMigrate9To11: function(dbConnection) {
+  _dbMigrate9To12: function(dbConnection) {
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
+  },
+
+  _dbMigrate10To12: function(dbConnection) {
+    this._dbMigrate10To11(dbConnection);
+    this._dbMigrate11To12(dbConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -677,6 +690,14 @@ let SnowlDatastore = {
     // the type of collection.
     dbConnection.executeSimpleSQL("UPDATE collections SET iconURL = 'chrome://snowl/skin/livemarkFolder-16.png' WHERE groupIDColumn = 'sources.id'");
     dbConnection.executeSimpleSQL("UPDATE collections SET iconURL = 'chrome://snowl/skin/person-16.png' WHERE groupIDColumn = 'authors.id'");
+  },
+
+  /**
+   * Migrate the database schema from version 11 to version 12.
+   */
+  _dbMigrate11To12: function(dbConnection) {
+    dbConnection.executeSimpleSQL("ALTER TABLE sources ADD COLUMN placeID INTEGER");
+    dbConnection.executeSimpleSQL("ALTER TABLE people ADD COLUMN placeID INTEGER");
   },
 
   get _selectHasSourceStatement() {

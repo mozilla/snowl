@@ -181,13 +181,14 @@ let SnowlService = {
                            URI.get(row.humanURI),
                            row.username,
                            SnowlDateUtils.julianToJSDate(row.lastRefreshed),
-                           row.importance);
+                           row.importance,
+                           row.placeID);
   },
 
   get _getAccountStatement() {
     delete this._getAccountStatement;
     return this._getAccountStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance " +
+      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance, placeID " +
       "FROM sources WHERE id = :id"
     );
   },
@@ -215,7 +216,7 @@ let SnowlService = {
   get _accountsStatement() {
     delete this._accountsStatement;
     return this._accountsStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance " +
+      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance, placeID " +
       "FROM sources"
     );
   },

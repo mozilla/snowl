@@ -110,15 +110,16 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
 
 SnowlIdentity.prototype = {};
 
-function SnowlPerson(id, name) {
+function SnowlPerson(id, name, placeID) {
   this.id = id;
   this.name = name;
+  this.placeID = placeID;
 }
 
 SnowlPerson.__defineGetter__("_getAllStatement",
   function() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT id, name FROM people ORDER BY name"
+      "SELECT id, name, placeID FROM people ORDER BY name"
     );
     this.__defineGetter__("_getAllStatement", function() { return statement });
     return this._getAllStatement;
@@ -132,7 +133,9 @@ SnowlPerson.getAll = function() {
 
   try {
     while (statement.step())
-      people.push(new SnowlPerson(statement.row.id, statement.row.name));
+      people.push(new SnowlPerson(statement.row.id,
+                                  statement.row.name,
+                                  statement.row.placeID));
   }
   finally {
     statement.reset();

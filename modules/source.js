@@ -124,7 +124,7 @@ Cu.import("resource://snowl/modules/utils.js");
  * for other subclasses that access them via __lookupGetter__.
  */
 let SnowlSource = {
-  init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
+  init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
     this.id = aID;
     this.name = aName;
     this.machineURI = aMachineURI;
@@ -132,6 +132,7 @@ let SnowlSource = {
     this.username = aUsername;
     this._lastRefreshed = aLastRefreshed;
     this.importance = aImportance;
+    this.placeID = aPlaceID;
   },
 
   // How often to refresh sources, in milliseconds.
@@ -192,6 +193,9 @@ let SnowlSource = {
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.
   importance: null,
+
+  // The ID of the place representing this source in a list of collections.
+  placeID: null,
 
   // Favicon Service
   get faviconSvc() {

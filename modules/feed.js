@@ -76,8 +76,8 @@ function stringToArray(string) {
   return array;
 }
 
-function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance) {
-  SnowlSource.init.call(this, aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance);
+function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
+  SnowlSource.init.call(this, aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID);
 }
 
 SnowlFeed.prototype = {
@@ -137,6 +137,8 @@ SnowlFeed.prototype = {
   },
 
   importance: null,
+
+  placeID: null,
 
   get faviconSvc() {
     return SnowlSource.faviconSvc;
