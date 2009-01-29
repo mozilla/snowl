@@ -90,7 +90,8 @@ let WriteForm = {
   // Event & Notification Handlers
 
   onLoad: function() {
-    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.add("snowl:source:added", this.onSourcesChanged, this);
+    Observers.add("snowl:source:removed", this.onSourcesChanged, this);
     this._rebuildTargetsMenu();
     this._updateFormState();
   },

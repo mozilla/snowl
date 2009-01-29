@@ -42,6 +42,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
+Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -205,18 +206,33 @@ let SnowlSource = {
     return this.faviconSvc;
   },
 
+  // XXX: If a favicon is not in cache, getFaviconForPage throws, but we do
+  // not want to try getFaviconImageForPage as that returns a default moz image.
+  // Perhaps overkill to try to get a data uri for the favicon via additional
+  // favicon methods. So we will try the former, and use the below for first
+  // time visits for sources we have so far, til this can be fixed properly.
   get faviconURI() {
     if (this.humanURI) {
       try {
+        // If the page has been visited and the icon is in cache
         return this.faviconSvc.getFaviconForPage(this.humanURI);
       }
-      catch(ex) { /* no known favicon */ }
+      catch(ex) {
+        // Try to get the image, returns moz default if not found
+//        return this.faviconSvc.getFaviconImageForPage(this.humanURI);
+//        return this.faviconSvc.getFaviconLinkForIcon(this.humanURI);
+      }
     }
 
     // The default favicon for feed sources.
-    // FIXME: once we support other types of sources, override this
-    // with a type-specific icon.
-    //return URI.get("chrome://snowl/skin/livemarkFolder-16.png");
+    // FIXME: get icon from collections table instead of hardcoding
+    if (this.constructor.name == "SnowlFeed")
+      return URI.get("chrome://snowl/skin/livemarkFolder-16.png");
+
+    // The default favicon for twitter.
+    // FIXME: get icon from collections table instead of hardcoding
+    if (this.constructor.name == "SnowlTwitter")
+      return URI.get("http://static.twitter.com/images/favicon.ico");
 
     return null;
   },
@@ -239,12 +255,14 @@ let SnowlSource = {
 
   /**
    * Insert a record for this source into the database, or update an existing
-   * record.
+   * record; store placesID back into sources table.
    *
    * FIXME: move this to a SnowlAccount interface.
+   * XXX need to make this one commitable transaction (with place db store)
+   * to maintain strict integrity..
    */
   persist: function() {
-    let statement;
+    let statement, placesID;
     if (this.id) {
       statement = SnowlDatastore.createStatement(
         "UPDATE sources " +
@@ -263,6 +281,7 @@ let SnowlSource = {
       );
     }
 
+    SnowlDatastore.dbConnection.beginTransaction();
     try {
       statement.params.name = this.name;
       statement.params.type = this.constructor.name;
@@ -272,14 +291,39 @@ let SnowlSource = {
       if (this.id)
         statement.params.id = this.id;
       statement.step();
+      if (!this.id) {
+        // Extract the ID of the source from the newly-created database record.
+        this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+        // Create places record
+        placesID = SnowlPlaces.persistPlace("sources",
+                                            this.id,
+                                            this.name,
+                                            null, // this.machineURI.spec,
+                                            null, // this.username,
+                                            this.faviconURI,
+                                            this.id); // aSourceID
+        // Store placedID back into messages for db integrity
+        // XXX uncomment once field is added..
+//        SnowlDatastore.dbConnection.executeSimpleSQL(
+//          "UPDATE sources " +
+//          "SET placesID = " + placesID +
+//          "WHERE     id = " + this.id);
+        SnowlUtils.gListViewCollectionItemId = placesID;
+this._log.info("persist newItemId - " + SnowlUtils.gListViewCollectionItemId);
+
+        // Use 'added' here for collections observer for more specificity
+        Observers.notify("snowl:source:added");
+      }
+
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      throw ex;
     }
     finally {
       statement.reset();
     }
-
-    // Extract the ID of the source from the newly-created database record.
-    if (!this.id)
-      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
   },
 
   get _stmtGetInternalIDForExternalID() {

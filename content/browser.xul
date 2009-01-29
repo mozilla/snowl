@@ -161,18 +161,18 @@
                       headerType="Snowl.kFullHeader"
                       oncommand="Snowl._toggleHeader(event)"/>
             <menuseparator/>
-            <menuitem id="snowlHierarchyOffMenuitem"
-                      label="&hierarchyOff.label;"
+            <menuitem id="snowlGroupedOnMenuitem"
+                      label="&groupedOn.label;"
                       type="radio"
-                      accesskey="&hierarchyOff.accesskey;"
-                      name="snowlHierarchyMenuitemGroup"
-                      oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOff)"/>
-            <menuitem id="snowlHierarchyOnMenuitem"
-                      label="&hierarchyOn.label;"
+                      accesskey="&groupedOn.accesskey;"
+                      name="snowlFlatListMenuitemGroup"
+                      oncommand="Snowl._toggleFlatList(Snowl.kFlatListOff)"/>
+            <menuitem id="snowlGroupedOffMenuitem"
+                      label="&groupedOff.label;"
                       type="radio"
-                      accesskey="&hierarchyOn.accesskey;"
-                      name="snowlHierarchyMenuitemGroup"
-                      oncommand="Snowl._toggleHierarchy(Snowl.kHierarchyOn)"/>
+                      accesskey="&groupedOff.accesskey;"
+                      name="snowlFlatListMenuitemGroup"
+                      oncommand="Snowl._toggleFlatList(Snowl.kFlatListOn)"/>
             <menuseparator/>
             <menuitem id="snowlToolbarMenuitem"
                       label="&toolbar.label;"

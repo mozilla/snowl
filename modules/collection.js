@@ -137,7 +137,7 @@ SnowlCollection.prototype = {
                            parameters: { groupValue: statement.row.name } });
 
         let group = new SnowlCollection(null, name, iconURL, constraints, this);
-//this._log.info("got group name: " + group.name);
+this._log.info("got group name: " + group.name);
 
         if (this.groupIDColumn)
           group.groupID = statement.row.groupID;
@@ -181,7 +181,7 @@ this._log.info("got " + groups.length + " groups");
 
     // FIXME: allow group queries to make people the primary table.
 
-    let query = 
+    let query =
       "SELECT " + columns.join(", ") + " " +
       "FROM sources LEFT JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN people AS authors ON messages.authorID = authors.id";
@@ -237,7 +237,8 @@ this._log.info("got " + groups.length + " groups");
   sortProperties: null,
   sortOrder: 1,
 
-  _messages: null,
+  // No messages loaded initially, invalidate and rebuild on setCollection().
+  _messages: [],
 
   get messages() {
     if (this._messages)
@@ -265,6 +266,7 @@ this._log.info("got " + groups.length + " groups");
           sourceID:   statement.row.sourceID,
           subject:    statement.row.subject,
           author:     statement.row.author,
+          authorID:   statement.row.authorID,
           link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
           _read:      (statement.row.read ? true : false),
@@ -290,10 +292,16 @@ this._log.info("got " + groups.length + " groups");
     this._messages = null;
   },
 
+  clear: function() {
+    this._messages = [];
+    this._messageIndex = {};
+  },
+
   _generateStatement: function() {
     let columns = [
       "messages.id AS messageID",
       "messages.sourceID",
+      "messages.authorID",
       "messages.subject",
       "messages.link",
       "messages.timestamp",
@@ -325,16 +333,28 @@ this._log.info("got " + groups.length + " groups");
       // all messages whether or not they have a content part.
       "AND parts.partType = " + PART_TYPE_CONTENT;
 
-    let conditions = [];
+    let conditions = [], operator;
 
-    for each (let condition in this.constraints)
+    for each (let condition in this.constraints) {
+      operator = condition.operator ? condition.operator : "AND";
+      if (conditions.length == 0)
+        conditions.push(" WHERE");
+      else
+        conditions.push(operator);
       conditions.push(condition.expression);
+    }
 
-    for each (let condition in this.filters)
+    for each (let condition in this.filters) {
+      operator = condition.operator ? condition.operator : "AND";
+      if (conditions.length == 0)
+        conditions.push(" WHERE");
+      else
+        conditions.push(operator);
       conditions.push(condition.expression);
+    }
 
     if (conditions.length > 0)
-      query += " WHERE " + conditions.join(" AND ");
+      query += conditions.join(" ");
 
     if (this.order)
       query += " ORDER BY " + this.order;

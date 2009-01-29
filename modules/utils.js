@@ -307,110 +307,136 @@ let SnowlUtils = {
     return this._log;
   },
 
-  // Always maintain selected listitem within a session
+  //**************************************************************************//
+  // Utilities to track tree selections within a session
   // XXX store on document for restore on restart??
-  gListViewListIndex: -1,
-  gListViewCollectionIndex: -1,
+
+  gListViewDeleteMoveInsert: false,
+
+  // Current collections tree itemId
+  // FIXME: figure out where to store this (make array too) across sidebar loads.
+  gListViewCollectionItemId: null,
+
   // Position of current page in tabs and history
   gMessagePosition: {tabIndex: null, pageIndex: null},
 
-  // From Tb: Detect right mouse click and change the highlight to the row
-  // where the click happened without loading the message headers in
-  // the Folder or Thread Pane.
-  gRightMouseButtonDown: false,
-  gSelectOnRtClick: false,
+  // Track mouse and right mouse click for tree row onSelect, contextmenu, and
+  // dnd handling without running a query resulting in content load.
+  gRightMouseButtonDown: null,
+  gMouseEvent: null,
   onTreeMouseDown: function(aEvent, tree) {
-    if (aEvent.button == 2 && !this.gSelectOnRtClick) {
+    this.gMouseEvent = true;
+    if (aEvent.button == 2)
       this.gRightMouseButtonDown = true;
-      this.ChangeSelectionWithoutContentLoad(aEvent, aEvent.target.parentNode);
-    }
-    else {
-      // Add a capturing click listener to the tree so we can find out if the user
-      // clicked on a row that is already selected (in which case we let them edit
-      // the collection name).
-      // FIXME: disable this for names that can't be changed.
-      // this._tree.addEventListener("mousedown", function(aEvent) { 
-      //     CollectionsView.onClick(aEvent) }, true);
-      let row = {}, col = {}, child = {};
-      tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, child);
-      if (tree.view.selection.isSelected(row.value))
-this._log.info("row: "+ row.value + " is selected");
-      else {
-this._log.info("row: "+ row.value + " is not selected");
-      }
-    this.gRightMouseButtonDown = false;
-    }
+    this.ChangeSelectionWithoutContentLoad(aEvent, aEvent.target.parentNode);
   },
 
-  // From Tb: Function to change the highlighted row to where the mouse was
-  // clicked without loading the contents of the selected row.
-  // It will also keep the outline/dotted line in the original row.
+  // Change the highlighted tree row to where the mouse was clicked (right
+  // button for contextmenu or left button for mousedown dnd) without loading
+  // the contents of the selected row.  The original row is indicated by the
+  // dotted border (row at currentIndex).  Current active selected row (via
+  // right or left click) is stored in new tree property currentSelectedIndex.
   ChangeSelectionWithoutContentLoad: function(aEvent, tree) {
-//this._log.info("change selection right click: tree.id = "+tree.id);
+//this._log.info("ChangeSelection");
     let treeBoxObj = tree.treeBoxObject;
     let treeSelection = treeBoxObj.view.selection;
+    let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
+    let row = { }, col = { }, obj = { };
 
-    let row = treeBoxObj.getRowAt(aEvent.clientX, aEvent.clientY);
+    treeBoxObj.getCellAt(aEvent.clientX, aEvent.clientY, row, col, obj);
 
-    // Make sure that row.value is valid so that it doesn't mess up
-    // the call to ensureRowIsVisible().
-    if((row >= 0) && !treeSelection.isSelected(row)) {
+    // Not for twisty click or multiselection
+    if (obj.value == "twisty" || modKey)
+      return;
+
+//this._log.info("ChangeSelection: currentSelIndex = "+tree.currentSelectedIndex);
+//this._log.info("ChangeSelection: currentIndex = "+treeSelection.currentIndex);
+
+    // Make sure that row.value is valid for the call to ensureRowIsVisible().
+    if((row.value >= 0) && !treeSelection.isSelected(row.value)) {
       let saveCurrentIndex = treeSelection.currentIndex;
       treeSelection.selectEventsSuppressed = true;
-      treeSelection.select(row);
+      treeSelection.select(row.value);
       treeSelection.currentIndex = saveCurrentIndex;
-      treeBoxObj.ensureRowIsVisible(row);
+      treeBoxObj.ensureRowIsVisible(row.value);
       treeSelection.selectEventsSuppressed = false;
 
-      // Keep track of which row in the tree is currently selected.
-      if(tree.id == "snowlView")
-        this.gListViewListIndex = row;
-      if(tree.id == "sourcesView")
-        this.gListViewCollectionIndex = row;
+      // Keep track of which row in the tree is currently selected via rt click,
+      // onClick handler will update currentSelectedIndex for left click.
+      if (this.gRightMouseButtonDown)
+        tree.currentSelectedIndex = row.value;
+//this._log.info("ChangeSelection: currentSelIndex = "+tree.currentSelectedIndex);
+//this._log.info("ChangeSelection: currentIndex = "+treeSelection.currentIndex);
     }
     // This will not stop the onSelect event, need to test in the handler..
-//    aEvent.stopPropagation();
+    aEvent.stopPropagation();
   },
 
-  // From Tb: Function to change the highlighted row back to the row that
-  // is currently outline/dotted without loading the contents of either rows.
-  // This is triggered when the context menu for a given row is hidden/closed
-  // (onpopuphidden for the context <popup>).
-  RestoreSelectionWithoutContentLoad: function(tree) {
+  // All purpose function to make sure the right row is selected.  Restore the
+  // original row currently indicated by dotted border without loading its query,
+  // unless rows have been deleted/moved/inserted.  This is triggered when the
+  // context menu for the row is hidden/closed (onpopuphidden event) or mouseup
+  // for dnd.  Also called from onSourceAdded for insertions.
+  RestoreSelection: function(tree, itemId) {
+//this._log.info("RestoreSelection");
     let treeSelection = tree.view.selection;
 
-    // Make sure that currentIndex is valid so that we don't try to restore
-    // a selection of an invalid row.
-    if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
-        (treeSelection.currentIndex >= 0)) {
-      treeSelection.selectEventsSuppressed = true;
-      treeSelection.select(treeSelection.currentIndex);
-      treeSelection.selectEventsSuppressed = false;
+    // Reset mouse state to enable key navigation.
+    this.gMouseEvent = null;
+    this.gRightMouseButtonDown = null;
+//this._log.info("RestoreSelection: START currentSelIndex = "+tree.currentSelectedIndex);
+//this._log.info("RestoreSelection: START currentIndex = "+treeSelection.currentIndex);
 
-      // Reset which row in the tree is currently selected.
-      if(tree.id == "snowlView")
-        this.gListViewListIndex = treeSelection.currentIndex;
-      if(tree.id == "sourcesView")
-        this.gListViewCollectionIndex = treeSelection.currentIndex;
+    // If tree rows removed, need to get new index of originally selected row,
+    // unless original row is removed, then deselect.
+    if (this.gListViewDeleteMoveInsert) {
+//this._log.info("RestoreSelection DelMoveIns itemId - " + itemId);
+      // If selectItems gets no such itemId, the row was removed, currentIndex = -1
+      tree.selectItems([itemId]);
+      // If the itemId is selected, now need to make it the current selection for
+      // the onselect event to run the query.  Make sure row shows.
+      // XXX don't run db query 1st time on default next (if none) selection row.
+      if (tree.currentIndex != -1) {
+        tree.currentSelectedIndex = tree.currentIndex;
+        tree.boxObject.ensureRowIsVisible(tree.currentIndex);
+      }
+
+      this.gListViewDeleteMoveInsert = false;
     }
-    else if(treeSelection.currentIndex < 0)
-      // Clear the selection in the case of when a folder has just been
-      // loaded where the message pane does not have a message loaded yet.
-      // When right-clicking a message in this case and dismissing the
-      // popup menu (by either executing a menu command or clicking
-      // somewhere else),  the selection needs to be cleared.
-      // However, if the 'Delete Message' or 'Move To' menu item has been
-      // selected, DO NOT clear the selection, else it will prevent the
-      // tree view from refreshing.
-      treeSelection.clearSelection();
-
-    // Need to reset gRightMouseButtonDown to false here because
-    // TreeOnMouseDown() is only called on a mousedown, not on a key down.
-    // So resetting it here allows the loading of messages in the messagepane
-    // when navigating via the keyboard or the toolbar buttons *after*
-    // the context menu has been dismissed.
-    this.gRightMouseButtonDown = false;
+    else {
+      tree.currentSelectedIndex = treeSelection.currentIndex;
+      // Make sure that currentIndex is valid so that we don't try to restore
+      // a selection of an invalid row.
+      if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
+          (treeSelection.currentIndex >= 0)) {
+        treeSelection.selectEventsSuppressed = true;
+        treeSelection.select(treeSelection.currentIndex);
+        treeSelection.selectEventsSuppressed = false;
+      }
+      else if(treeSelection.currentIndex < 0) {
+        // Clear the selection and border outline index.
+        treeSelection.clearSelection();
+        tree.currentSelectedIndex = -1;
+      }
+    }
+//this._log.info("RestoreSelection: END currentSelIndex = "+tree.currentSelectedIndex);
+//this._log.info("RestoreSelection: END currentIndex = "+treeSelection.currentIndex);
   },
+
+  // Scroll tree to proper position.
+  scrollPlacement: function(aTree, aRowIndex) {
+    if (aTree.view.rowCount <= aTree.boxObject.getPageLength() ||
+        (aRowIndex >= aTree.boxObject.getFirstVisibleRow() &&
+          aRowIndex <= aTree.boxObject.getLastVisibleRow()) ||
+        aRowIndex == -1)
+      return;
+    let excessRows = aTree.view.rowCount - aTree.view.selection.currentIndex;
+    if (excessRows > aTree.boxObject.getPageLength())
+      aTree.boxObject.scrollToRow(aRowIndex);
+    else
+      aTree.boxObject.scrollByPages(1);
+  },
+
 
   // FIXME: put the following function into a generic SnowlMessageView
   // pure virtual class (i.e. an object rather than a function with a prototype)

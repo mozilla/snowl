@@ -36,17 +36,25 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
+<!-- Places overlays need to be done here so that overrides may be done
+   - in any code defined in collections.xul -->
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/content/places/places.css"?>
+<?xml-stylesheet href="chrome://browser/skin/places/places.css"?>
+<?xul-overlay    href="chrome://global/content/editMenuOverlay.xul"?>
+<?xul-overlay    href="chrome://browser/content/places/placesOverlay.xul"?>
+
+<?xul-overlay    href="chrome://snowl/content/write.xul"?>
 
 <!-- toolbar.dtd gives us writeButton.tooltip. -->
 <!DOCTYPE page [
+  <!ENTITY % placesDTD SYSTEM "chrome://browser/locale/places/places.dtd">
+  %placesDTD;
   <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
   %listDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
   %toolbarDTD;
 ]>
-
-<?xul-overlay href="chrome://snowl/content/write.xul"?>
 
 <page id="snowlSidebar"
       xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
@@ -54,7 +62,15 @@
       onload="ListSidebar.onLoad()"
       onunload="ListSidebar.onUnload()">
 
-  <script type="application/javascript" src="chrome://snowl/content/list-sidebar.js"/>
+  <script type="application/x-javascript"
+          src="chrome://browser/content/bookmarks/sidebarUtils.js"/>
+
+  <script type="application/javascript"
+          src="chrome://snowl/content/list-sidebar.js"/>
+
+  <commandset id="placesCommands"/>
+  <commandset id="editMenuCommands"/>
+  <popup id="placesContext"/>
 
   <!-- This is the overlay point for the collections view overlay. -->
   <vbox id="collectionsViewBox"/>

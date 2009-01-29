@@ -46,14 +46,10 @@ Cu.import("resource://snowl/modules/StringBundle.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
+let gBrowserWindow = SnowlService.gBrowserWindow;
 
 // Parse URL parameters
 let params = {};

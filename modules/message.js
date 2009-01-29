@@ -67,7 +67,7 @@ SnowlMessage.get = function(id) {
 
   let statement = SnowlDatastore.createStatement(
     "SELECT sourceID, subject, authors.name AS author, link, timestamp, read, " +
-    "       authors.iconURL AS authorIcon, received " +
+    "       authors.iconURL AS authorIcon, received, authorID " +
     "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
     "WHERE messages.id = :id"
   );
@@ -80,6 +80,7 @@ SnowlMessage.get = function(id) {
         sourceID:   statement.row.sourceID,
         subject:    statement.row.subject,
         author:     statement.row.author,
+        authorID:   statement.row.authorID,
         link:       statement.row.link,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
         _read:      (statement.row.read ? true : false),

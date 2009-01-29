@@ -114,7 +114,7 @@ let SnowlMessageView = {
   // nsITreeView
 
   get rowCount() {
-this._log.info("get rowCount: " + this._collection.messages.length);
+//this._log.info("get rowCount: " + this._collection.messages.length);
     return this._collection.messages.length;
   },
 
@@ -189,14 +189,17 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     let layoutIndex = Snowl.layoutName.indexOf(layout) < 0 ?
         this.kClassicLayout : Snowl.layoutName.indexOf(layout);
     this.layout(layoutIndex);
+
+    // Init list with empty collection.
+    this._collection = new SnowlCollection();
+    this._tree.view = this;
   },
 
   show: function() {
-    Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
-
-    this._collection = new SnowlCollection();
-    this._sort();
-    this._tree.view = this;
+    // Refresh list on each new message.
+//    Observers.add("snowl:message:added", this.onMessageAdded, this);
+    // Refresh list at end of all message downloads.
+//    Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
 
     this._snowlViewContainer.hidden = false;
     this._snowlViewSplitter.hidden = false;
@@ -211,32 +214,13 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // XXX Should we somehow destroy the view here (f.e. by setting
     // this._tree.view to null)?
 
-    Observers.remove("snowl:messages:changed", this.onMessagesChanged, this);
+//    Observers.remove("snowl:message:added", this.onMessageAdded, this);
+//    Observers.remove("snowl:messages:changed", this.onMessagesChanged, this);
   },
 
 
   //**************************************************************************//
   // Event & Notification Handling
-
-  onMessagesChanged: function(sourceID) {
-    // Don't update the list view if the source whose messages have changed
-    // is not the one currently being displayed in the view.
-    if (this._collection.groupID && this._collection.groupID != sourceID)
-      return;
-
-    // FIXME: make the collection listen for message changes and invalidate
-    // itself, then rebuild the view in a timeout to give the collection time
-    // to do so.
-    this._collection.invalidate();
-
-    // Don't rebuild the view if the list view hasn't been made visible yet
-    // (in which case the tree won't yet have a view property).
-    // XXX problem: if some non viewed source updates, we loose our selection
-    // which is not good. not good even if our viewed source updates
-    // (additions).. need to rebuild for unsubscribe though (blank out view).
-    if (this._tree.view)
-      this._rebuildView();
-  },
 
   onFilter: function() {
     this._applyFilters();
@@ -268,6 +252,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
 
   setCollection: function(collection) {
     this._collection = collection;
+    this._collection.invalidate();
     this._rebuildView();
   },
 
@@ -283,8 +268,11 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     // this._tree.view = this; <- doesn't work for all DOM moves..
     this._tree.boxObject.QueryInterface(Ci.nsITreeBoxObject).view = this;
 
+    this._sort();
+
     // Scroll back to the top of the tree.
-    this._tree.boxObject.scrollToRow(this._tree.boxObject.getFirstVisibleRow());
+    // XXX: need to preserve selection.
+//    this._tree.boxObject.scrollToRow(this._tree.boxObject.getFirstVisibleRow());
   },
 
   switchLayout: function(layout) {
@@ -380,7 +368,7 @@ this._log.info("get rowCount: " + this._collection.messages.length);
   },
 
   onSelect: function(aEvent) {
-//this._log.info("onSelect - start: event.target.id = "+aEvent.target.id);
+//this._log.info("onSelect - start: currentIndex = "+this._tree.currentIndex);
     if (this._tree.currentIndex == -1 || SnowlUtils.gRightMouseButtonDown)
       return;
 
@@ -395,7 +383,9 @@ this._log.info("get rowCount: " + this._collection.messages.length);
     let url = "chrome://snowl/content/message.xul?id=" + message.id;
     window.loadURI(url, null, null, false);
 
-    SnowlUtils.gListViewListIndex = row;
+    // On conversion of list tree to places, this will be stored in
+    // currentSelectedIndex as for collections tree..
+//    SnowlUtils.gListViewListIndex = row;
     this._setRead(true);
     // If new message selected, reset for toggle
     SnowlUtils.gMessagePosition.pageIndex = null;
@@ -601,12 +591,11 @@ this._log.info("_toggleRead: all? " + aAll);
   },
 
   onListTreeMouseDown: function(aEvent) {
-    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
+//    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
   },
 
   onTreeContextPopupHidden: function(aEvent) {
-    if (!SnowlUtils.gSelectOnRtClick)
-      SnowlUtils.RestoreSelectionWithoutContentLoad(this._tree);
+//    SnowlUtils.RestoreSelection(this._tree);
   },
 
 };

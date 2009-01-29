@@ -56,20 +56,6 @@ Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/twitter.js");
 Cu.import("resource://snowl/modules/service.js");
 
-let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
-
-let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                         getInterface(Ci.nsIWebNavigation).
-                         QueryInterface(Ci.nsIDocShellTreeItem).
-                         rootTreeItem.
-                         QueryInterface(Ci.nsIInterfaceRequestor).
-                         getInterface(Ci.nsIDOMWindow);
-
 let SnowlMessageView = {
   get _log() {
     delete this._log;
@@ -116,7 +102,7 @@ let SnowlMessageView = {
 
   onLoad: function() {
     Observers.add("snowl:message:added",    this.onMessageAdded,    this);
-    Observers.add("snowl:sources:changed",  this.onSourcesChanged,  this);
+    Observers.add("snowl:source:added",  this.onSourcesChanged,  this);
     Observers.add("snowl:source:removed",   this.onSourceRemoved,   this);
 
     this.onResize();
@@ -161,7 +147,7 @@ let SnowlMessageView = {
 
   onunLoad: function() {
     Observers.remove("snowl:message:added",   this.onMessageAdded,    this);
-    Observers.remove("snowl:sources:changed", this.onSourcesChanged,  this);
+    Observers.remove("snowl:source:added", this.onSourcesChanged,  this);
     Observers.remove("snowl:source:removed",  this.onSourceRemoved,   this);
   },
 

@@ -379,7 +379,7 @@ SnowlTwitter.prototype = {
       // Save the source to the database.
       this.persist();
 
-      Observers.notify("snowl:sources:changed");
+//      Observers.notify("snowl:sources:changed");
 
       // FIXME: use a date provided by the subscriber so refresh times are the same
       // for all accounts subscribed at the same time (f.e. in an OPML import).
@@ -555,7 +555,7 @@ SnowlTwitter.prototype = {
         this.username = this._authInfo.username;
         this.name = NAME + " - " + this._authInfo.username;
         this.persist();
-        Observers.notify("snowl:sources:changed");
+//        Observers.notify("snowl:sources:changed");
       }
 
       this._saveLogin(this._authInfo);
@@ -628,6 +628,8 @@ SnowlTwitter.prototype = {
       " THEN 1 ELSE 0 END) WHERE sourceID = " + this.id
     );
 
+    // Notify list and collections views on completion of messages download, list
+    // also notified of each message addition.
     if (messagesChanged)
       Observers.notify("snowl:messages:changed", this.id);
 

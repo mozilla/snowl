@@ -49,13 +49,7 @@ Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/opml.js");
-
-let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
+//Cu.import("resource://snowl/components/components.js");
 
 let CollectionsView = {
   _log: null,
@@ -67,185 +61,316 @@ let CollectionsView = {
 
   get _children() {
     delete this._children;
-    return this._children = this._tree.getElementsByTagName("treechildren")[0];
+    return this._children = document.getElementById("sourcesViewChildren");
   },
 
-  isHierarchical: gBrowserWindow.Snowl._prefs.get("collection.hierarchicalView"),
 
   //**************************************************************************//
   // Initialization & Destruction
 
   init: function() {
     this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
-    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
-    Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
-    this._getCollections();
-    this._buildCollectionTree();
+    Observers.add("snowl:source:added", this.onSourceAdded, this);
+    Observers.add("snowl:message:added", this.onMessageAdded, this);
+    Observers.add("snowl:messages:changed", this.onMessagesComplete, this);
+
+    // Intialize places 
+    SnowlPlaces.init();
+    if (!this._tree.hasAttribute("flat"))
+      this._tree.setAttribute("flat", true);
+
+    // Get collections and convert to places tree - one time upgrade
+    if (!SnowlPlaces.convertedToPlaces) {
+      this._getCollections();
+      this._buildCollectionTree();
+    }
+
+    let query = this._tree.getAttribute("flat") == "true" ?
+        SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
+    this._tree.place = query;
 
     // Ensure collection selection maintained, if in List sidebar
-    if (document.getElementById("snowlSidebar"))
-      this._tree.view.selection.select(SnowlUtils.gListViewCollectionIndex);
-  },
-
-
-  //**************************************************************************//
-  // nsITreeView
-
-  selection: null,
-
-  get rowCount() {
-    return this._rows.length;
-  },
-
-  // FIXME: consolidate these two references.
-  _treebox: null,
-  setTree: function(treeBox) {
-    this._treeBox = treeBox;
-  },
-
-  getCellText : function(row, column) {
-    return this._rows[row].name;
-  },
-
-  isContainer: function(row) {
-    //this._log.info("isContainer: " + (this._rows[row].groups ? true : false));
-    return (this._rows[row].groups ? true : false);
-  },
-  isContainerOpen: function(row) {
-    //this._log.info("isContainerOpen: " + this._rows[row].isOpen);
-    return this._rows[row].isOpen;
-  },
-  isContainerEmpty: function(row) {
-    //this._log.info("isContainerEmpty: " + row + " " + this._rows[row].groups.length + " " + (this._rows[row].groups.length == 0));
-    return (this._rows[row].groups.length == 0);
-  },
-
-  isSeparator: function(row)         { return false },
-  isSorted: function()               { return false },
-
-  // FIXME: make this return true for collection names that are editable,
-  // and then implement name editing on the new architecture.
-  isEditable: function(row, column)  { return false },
-
-  getParentIndex: function(row) {
-    //this._log.info("getParentIndex: " + row);
-
-    let thisLevel = this.getLevel(row);
-
-    if (thisLevel == 0)
-      return -1;
-    for (let t = row - 1; t >= 0; t--)
-      if (this.getLevel(t) < thisLevel)
-        return t;
-
-    throw "getParentIndex: couldn't figure out parent index for row " + row;
-  },
-
-  getLevel: function(row) {
-    //this._log.info("getLevel: " + row);
-
-    if (!this.isHierarchical)
-      return 0;
-
-    return this._rows[row].level;
-  },
-
-  hasNextSibling: function(idx, after) {
-    //this._log.info("hasNextSibling: " + idx + " " + after);
-
-    let thisLevel = this.getLevel(idx);
-    for (let t = idx + 1; t < this._rows.length; t++) {
-      let nextLevel = this.getLevel(t);
-      if (nextLevel == thisLevel)
-        return true;
-      if (nextLevel < thisLevel)
-        return false;
-    }
-
-    return false;
-  },
-
-  getImageSrc: function(row, column) {
-    if (column.id == "nameCol") {
-      let iconURL = this._rows[row].iconURL;
-      if (iconURL)
-        return iconURL.spec;
-    }
-
-    return null;
-  },
-
-  toggleOpenState: function(idx) {
-    //this._log.info("toggleOpenState: " + idx);
-
-    let item = this._rows[idx];
-    if (!item.groups)
-      return;
-
-    if (item.isOpen) {
-      item.isOpen = false;
-
-      let thisLevel = this.getLevel(idx);
-      let numToDelete = 0;
-      for (let t = idx + 1; t < this._rows.length; t++) {
-        if (this.getLevel(t) > thisLevel)
-          numToDelete++;
-        else
-          break;
-      }
-      if (numToDelete) {
-        this._rows.splice(idx + 1, numToDelete);
-        this._treeBox.rowCountChanged(idx + 1, -numToDelete);
-      }
-    }
-    else {
-      item.isOpen = true;
-
-      let groups = this._rows[idx].groups;
-      for (let i = 0; i < groups.length; i++)
-        this._rows.splice(idx + 1 + i, 0, groups[i]);
-      this._treeBox.rowCountChanged(idx + 1, groups.length);
-    }
-  },
-
-  getRowProperties: function (row, properties) {},
-  getCellProperties: function (row, column, properties) {},
-  getColumnProperties: function(columnID, column, properties) {},
-
-  setCellText: function(aRow, aCol, aValue) {
-    let statement = SnowlDatastore.createStatement(
-      "UPDATE sources SET name = :name WHERE id = :id");
-    statement.params.name = this._rows[aRow].name = aValue;
-    statement.params.id = this._rows[aRow].id;
-
-    try {
-      statement.execute();
-    }
-    finally {
-      statement.reset();
-    }
+    if (document.getElementById("snowlSidebar") && SnowlUtils.gListViewCollectionItemId)
+      this._tree.selectItems([SnowlUtils.gListViewCollectionItemId]);
   },
 
 
   //**************************************************************************//
   // Event & Notification Handlers
 
-  onSourcesChanged: function() {
-    this._getCollections();
-    // Rebuild the view to reflect the new collection of messages.
-    // Since the number of rows might have changed, we do this by reinitializing
-    // the view instead of merely invalidating the box object (which doesn't
-    // expect changes to the number of rows).
-    this._buildCollectionTree();
+  onSourceAdded: function() {
+    // Newly subscribed source has been added to places, select the inserted row.
+    // The tree may not be ready, so use a timeout.  The effect of selecting here
+    // is that onMessageAdded will trigger a list view refresh for each message,
+    // so messages pop into the list as added.
+    this._tree.view.selection.select(-1);
+    this._tree.currentSelectedIndex = this._tree.currentIndex;
+    setTimeout(function() {
+      SnowlUtils.gListViewDeleteMoveInsert = true;
+      SnowlUtils.RestoreSelection(CollectionsView._tree, SnowlUtils.gListViewCollectionItemId);
+    }, 300)
   },
 
-  onMessagesChanged: function() {
-    // When messages change, the list of users we display might also change,
-    // so we rebuild the view from scratch.
-    this._getCollections();
-    this._buildCollectionTree();
+  onMessageAdded: function(aMessageObj) {
+    // Determine if source or author of new message is currently selected in the
+    // collections list; if so refresh list view.
+    let query, uri, rangeFirst = { }, rangeLast = { }, refreshFlag = false;
+    let numRanges = this._tree.view.selection.getRangeCount();
+    for (let i = 0; i < numRanges && !refreshFlag; i++) {
+      this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
+      for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
+        uri = this._tree.view.nodeForTreeIndex(index).uri;
+        query = new SnowlQuery(uri);
+//this._log.info("onMessageAdded: queryId:aMsgObj = " +
+//query.queryID + " : " + aMessageObj.toSource());
+        if ((query.queryGroupIDColumn == "sources.id" &&
+             query.queryID == aMessageObj.sourceID) ||
+            (query.queryGroupIDColumn == "author.id" &&
+             query.queryID == aMessageObj.authorID))
+          refreshFlag = true;
+      }
+    }
+    // Refresh list view if found updating source matches at least one selection
+    // in the tree.
+    if (refreshFlag) {
+this._log.info("onMessageAdded: REFRESH queryId:aMsgObj = " +
+query.queryID + " : " + aMessageObj.toSource());
+      gMessageViewWindow.SnowlMessageView._collection.invalidate();
+      gMessageViewWindow.SnowlMessageView._rebuildView();
+    }
   },
 
+  onMessagesComplete: function(aSourceId) {
+    // Finished downloading all messages.  Scroll the collection tree intelligently.
+//    SnowlUtils.scrollPlacement(this._tree, this._tree.currentIndex);
+  },
+
+  onSelect: function(aEvent) {
+    // We want to only select onClick (more precisely, mouseup) for mouse events
+    // but need onSelect for key events (arrow keys).  Since onSelect events do
+    // not have info on whether mouse or key, we track it ourselves.
+    if (this._tree.currentIndex == -1 || SnowlUtils.gMouseEvent)
+      return;
+
+    this.onClick(aEvent);
+  },
+
+  onClick: function(aEvent) {
+    let row = { }, col = { }, obj = { };
+    let constraints = [];
+    let uri, rangeFirst = { }, rangeLast = { }, stop = false;
+    let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
+
+this._log.info("onClick start: curIndex:curSelectedIndex = "+
+  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
+this._log.info("onClick start: selNodeViewIndex:viewSelcurIndex = "+
+  (this._tree.selectedNode ?
+  this._tree.selectedNode.viewIndex+" : "+this._tree.view.selection.currentIndex :
+  "NULL selectedNode"));
+this._log.info("onClick start - gMouseEvent:gRtbutton:modKey = "+
+  SnowlUtils.gMouseEvent+" : "+SnowlUtils.gRightMouseButtonDown+" : "+modKey);
+this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
+
+    // Don't run query on right click, or already selected row (unless deselecting).
+    if (SnowlUtils.gRightMouseButtonDown || this._tree.currentIndex == -1 ||
+        (this._tree.view.selection.count == 1 && !modKey &&
+         this._tree.currentIndex == this._tree.currentSelectedIndex))
+      return;
+
+    // On unsubscribe, RestoreSelection() attempts to select the last selected
+    // row, which may have been removed as a result of source unsubscribe, in
+    // which case there should be a null selectedNode.  Shift-left click will
+    // also deselect a row.  Notify list view to clear the message list.
+    let numRanges = this._tree.view.selection.getRangeCount();
+    if (this._tree.view.selection.count == 0) {
+      gMessageViewWindow.SnowlMessageView._collection.clear();
+      gMessageViewWindow.SnowlMessageView._rebuildView();
+      this._tree.currentSelectedIndex = -1;
+//      SnowlUtils.gMouseEvent = null;
+      return;
+    }
+
+    // XXX: file behavior bug - closing container with selected child selects
+    // container, does not remember selected child on open.  Restoring original
+    // selection by traversing the tree for itemID is too expensive here.
+    this._tree.boxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, obj);
+    if (obj.value == "twisty") {
+//      SnowlUtils.RestoreSelection(CollectionsView._tree);
+      return;
+    }
+
+    // Get selected row(s) and construct a query.
+    for (let i = 0; i < numRanges && !stop; i++) {
+      this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
+      for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
+        uri = this._tree.view.nodeForTreeIndex(index).uri;
+        let query = new SnowlQuery(uri);
+        if (query.queryProtocol == "place:") {
+          // Currently, any place: protocol is a collection that returns all
+          // records; for any such selection, break with no constraints.  There
+          // may be other such 'system' collections but more likely collections
+          // will be rows which are user defined snowl: queries.  Folders TBD.
+          constraints = null;
+          stop = true;
+          break;
+        }
+        else {
+          // Construct the contraint to be passed to the collection object for
+          // the db query.
+          let constraint = { };
+          constraint.expression = query.queryGroupIDColumn +
+                                  " = :groupValue" + index;
+          constraint.parameters = { };
+          eval("constraint.parameters.groupValue" + index + " = " + query.queryID);
+          constraint.operator = "OR";
+          constraints.push(constraint);
+
+//          constraints.push(eval('{expression: "' + SnowlPlaces.queryGroupIDColumn +
+//                                               ' = :groupValue' + index + '", ' +
+//                                 'parameters:{groupValue' + index + ':' +
+//                                                 SnowlPlaces.queryID + '}}'));
+this._log.info("onClick: constraints = " + constraints.toSource());
+        }
+      }
+    }
+
+    let collection = new SnowlCollection(null, name, null, constraints, null);
+    this._tree.currentSelectedIndex = this._tree.currentIndex;
+
+    // If multiselection, no selectedNode.
+    if (this._tree.selectedNode)
+      SnowlUtils.gListViewCollectionItemId = this._tree.selectedNode.itemId;
+
+//this._log.info("onSelect collection Obj - " + collection.toSource());
+    gMessageViewWindow.SnowlMessageView.setCollection(collection);
+    SnowlUtils.gMouseEvent = null;
+  },
+
+  onCollectionsTreeMouseDown: function(aEvent) {
+    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
+  },
+
+  onTreeContextPopupHidden: function() {
+    SnowlUtils.RestoreSelection(this._tree, SnowlUtils.gListViewCollectionItemId);
+  },
+
+  onSubscribe: function() {
+    SnowlService.gBrowserWindow.Snowl.onSubscribe();
+  },
+
+  onUnsubscribe: function() {
+    this.unsubscribe();
+  },
+
+  onRefresh: function() {
+    SnowlService.refreshAllSources();
+  },
+
+  refreshSource: function() {
+    let selectedSources = [];
+
+    // XXX: Multiselection?
+    let selectedSource =
+        this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
+    // Create places query object from tree item uri
+    let query = new SnowlQuery(selectedSource.uri);
+    if (query.queryGroupIDColumn != "sources.id")
+      return;
+
+    selectedSources.push(SnowlService.sourcesByID[query.queryID]);
+    SnowlService.refreshAllSources(selectedSources);
+  },
+
+  unsubscribe: function() {
+    let selectedSourceNodeID = [];
+    let selectedSourceNodesIDs = [];
+    let unsubCurSel = false;
+
+    // XXX: Multiselection? since only a source type may be unsubscribed and
+    // the tree contains mixed types of items, this needs some thought. Single
+    // selection only for now.
+    // XXX: fix contextmenu
+
+    let selectedSource =
+        this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
+    // No selection or unsubscribing current selection?
+    if (selectedSource.viewIndex == this._tree.currentIndex)
+      unsubCurSel = true;
+    // Create places query object from tree item uri
+    let query = new SnowlQuery(selectedSource.uri);
+
+    if (query.queryGroupIDColumn != "sources.id")
+      return;
+this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSource.itemId);
+
+    selectedSourceNodeID = [selectedSource, query.queryID];
+    selectedSourceNodesIDs.push(selectedSourceNodeID);
+
+    // Delete loop here, if multiple selections..
+    for (let i = 0; i < selectedSourceNodesIDs.length; ++i) {
+      sourceNode = selectedSourceNodesIDs[i][0];
+      sourceID = selectedSourceNodesIDs[i][1];
+      SnowlDatastore.dbConnection.beginTransaction();
+      try {
+        // Delete messages
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
+            "WHERE messageID IN " +
+            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
+            "WHERE docid IN " +
+            "(SELECT id FROM parts WHERE messageID IN " +
+            "(SELECT id FROM messages WHERE sourceID = " + sourceID + "))");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
+            "WHERE messageID IN " +
+            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
+            "WHERE sourceID = " + sourceID);
+        // Delete people/identities
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
+            "WHERE id IN " +
+            "(SELECT personId FROM identities WHERE sourceID = " + sourceID + ")");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
+            "WHERE sourceID = " + sourceID);
+        // Delete the source
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources " +
+            "WHERE id = " + sourceID);
+        // Finally, clean up the places tree
+        // Authors XXX: a more efficient way would be much better here..
+        let anno = SnowlPlaces.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO + "Authors";
+        let pages = PlacesUtils.annotations.getPagesWithAnnotation(anno, { });
+        for (let i = 0; i < pages.length; ++i) {
+          let annoVal = PlacesUtils.annotations.getPageAnnotation(pages[i], anno);
+          if (annoVal == "snowl:sourceID=" + sourceID) {
+            let bookmarkIds = PlacesUtils.bookmarks.getBookmarkIdsForURI(pages[i], {});
+            for (let j=0; j < bookmarkIds.length; j++) {
+              PlacesUtils.bookmarks.removeItem(bookmarkIds[j]);
+            }
+          }
+        }
+        // Source
+        PlacesUtils.bookmarks.removeItem(sourceNode.itemId);
+
+        SnowlDatastore.dbConnection.commitTransaction();
+      }
+      catch(ex) {
+        SnowlDatastore.dbConnection.rollbackTransaction();
+        throw ex;
+      }
+    }
+
+    if (unsubCurSel) {
+      this._tree.currentSelectedIndex = -1;
+    }
+
+    SnowlUtils.gListViewDeleteMoveInsert = true;
+    Observers.notify("snowl:source:removed");
+  },
+
+
+  //**************************************************************************//
+  // Places conversion
+
+  // Create the source/authors collection from the db to convert to places.
   _collections: null,
   _getCollections: function() {
     this._collections = [];
@@ -277,135 +402,97 @@ let CollectionsView = {
     }
   },
 
-  // Build the list of rows in the tree.  By default, all containers
-  // are closed, so this is the same as the list of collections, although
-  // in the future we might persist and restore the open state.
+  // Convert the list of rows in the tree to places.
   _buildCollectionTree: function() {
-    // XXX: add in proper scrollling/row selection code
-    this._tree.view.selection.select(-1);
-
-    if (this.isHierarchical) {
-      this._rows = [collection for each (collection in this._collections)];
-    }
-    else {
-      this._rows = [];
-      for each (let collection in this._collections) {
-        if (collection.grouped)
-          for each (let group in collection.groups)
-            this._rows.push(group);
-        else
-          this._rows.push(collection);
+    for each (let collection in this._collections) {
+      if (collection.grouped) {
+        let table, value, sourceID, personID;
+        switch (collection.groupIDColumn) {
+          case "sources.id":
+            table = "sources";
+            break;
+          case "authors.id":
+            table = "identities";
+            break;
+          default:
+            table = null;
+            break;
+        }
+        for each (let group in collection.groups) {
+this._log.info(table+" group.name:group.groupID - " + group.name + " : " + group.groupID);
+          if (table == "sources")
+            value = group.groupID;
+          else if (table == "identities") {
+            if (!group.groupID)
+              // Skip null authors
+              continue;
+            // Get the sourceID that the author belongs to
+            value = SnowlDatastore.selectIdentitiesSourceID(group.groupID);
+          }
+          placesID = SnowlPlaces.persistPlace(table,
+                                              group.groupID,
+                                              group.name,
+                                              null, //machineURI.spec,
+                                              null, //username,
+                                              group.iconURL,
+                                              value); // aSourceID
+this._log.info("Converted to places - " + group.name);
+        }
       }
     }
-
-    this._tree.view = this;
-  },
-
-  onSelect: function(aEvent) {
-    if (this._tree.currentIndex == -1 || SnowlUtils.gRightMouseButtonDown)
-      return;
-
-    let collection = this._rows[this._tree.currentIndex];
-    SnowlUtils.gListViewCollectionIndex = this._tree.currentIndex;
-    gMessageViewWindow.SnowlMessageView.setCollection(collection);
-  },
-
-  onCollectionsTreeMouseDown: function(aEvent) {
-    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
-  },
-
-  onTreeContextPopupHidden: function() {
-    if (!SnowlUtils.gSelectOnRtClick)
-      SnowlUtils.RestoreSelectionWithoutContentLoad(this._tree);
-  },
-
-  onSubscribe: function() {
-    gBrowserWindow.Snowl.onSubscribe();
-  },
-
-  onUnsubscribe: function() {
-    this.unsubscribe();
-  },
-
-  onRefresh: function() {
-    SnowlService.refreshAllSources();
-  },
-
-  refreshSource: function() {
-    let selectedSourceIDs = [];
-
-    // XXX: put in a loop for multiselected collections?
-    let selectedSource = this._rows[SnowlUtils.gListViewCollectionIndex];
-
-    if (!selectedSource.parent || selectedSource.parent.groupIDColumn != "sources.id")
-      return;
-//this._log.info("refreshing selected source ID: "+selectedSource.groupID);
-
-    selectedSourceIDs.push(selectedSource.groupID);
-
-    let selectedSources = SnowlService.sources.
-      filter(function(source) selectedSourceIDs.indexOf(source.id) != -1);
-    SnowlService.refreshAllSources(selectedSources);
-  },
-
-  unsubscribe: function() {
-    let selectedSourceIDs = [];
-    let currentSourceID = this._rows[this._tree.currentIndex] ?
-        this._rows[this._tree.currentIndex].groupID : null;
-    let notifyID = null;
-
-    // XXX: put in a loop for multiselected collections?
-    let selectedSource = this._rows[SnowlUtils.gListViewCollectionIndex];
-
-    if (!selectedSource.parent || selectedSource.parent.groupIDColumn != "sources.id")
-      return;
-this._log.info("unsubscribing source: "+selectedSource.name);
-
-    selectedSourceIDs.push(selectedSource.groupID);
-
-    // Delete loop here, if multiple selections..
-    for (let i = 0; i < selectedSourceIDs.length; ++i) {
-      sourceID = selectedSourceIDs[i];
-      SnowlDatastore.dbConnection.beginTransaction();
-      try {
-        // Delete messages
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
-            "WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
-            "WHERE docid IN " +
-            "(SELECT id FROM parts WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE sourceID = " + sourceID + "))");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
-            "WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
-            "WHERE sourceID = " + sourceID);
-        // Delete people/identities
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
-            "WHERE id IN " +
-            "(SELECT personId FROM identities WHERE sourceID = " + sourceID + ")");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
-            "WHERE sourceID = " + sourceID);
-        // Finally, delete the source
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources " +
-            "WHERE id = " + sourceID);
-        SnowlDatastore.dbConnection.commitTransaction();
-      }
-      catch(ex) {
-        SnowlDatastore.dbConnection.rollbackTransaction();
-        throw ex;
-      }
-      if (sourceID == currentSourceID)
-        notifyID = sourceID;
-    }
-
-    Observers.notify("snowl:sources:changed");
-    // If the current selection is unsubscribed, pass its id on to list view
-    Observers.notify("snowl:messages:changed", notifyID);
-    Observers.notify("snowl:source:removed");
   }
 
 };
+
+/**
+ * A single collection list view tree row.
+ * 
+ * @aNode (nsINavHistoryResultNode) collection row node
+
+function lvCollectionNode(aNode) {
+  this._node = aNode;
+}
+lvCollectionNode.prototype = {
+  get uri() {
+    delete this._uri;
+    return this._uri = this._node ? _node.uri : null;
+  },
+
+  get itemId() {
+    delete this._itemId;
+    return this._itemId = this._node ? _node.itemId : null;
+  },
+
+  get viewIndex() {
+    delete this.viewIndex;
+    return this.viewIndex = this._node ? _node.viewIndex : -1;
+  }
+};
+ */
+/**
+ * PlacesTreeView overrides here.
+ *
+ */
+PlacesTreeView.prototype._drop = PlacesTreeView.prototype.drop;
+PlacesTreeView.prototype.drop = SnowlTreeViewDrop;
+function SnowlTreeViewDrop(aRow, aOrientation) {
+  this._drop(aRow, aOrientation);
+
+  SnowlUtils.gListViewDeleteMoveInsert = true;
+  SnowlUtils.RestoreSelection(CollectionsView._tree,
+                              SnowlUtils.gListViewCollectionItemId);
+};
+
+// Not using this yet..
+//function PlacesController(aView) {
+//  this._view = aView;
+//}
+
+//PlacesController.prototype = {
+  /**
+   * The places view.
+   */
+//  _view: null
+//};
 
 window.addEventListener("load", function() { CollectionsView.init() }, true);

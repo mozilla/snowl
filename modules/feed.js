@@ -329,20 +329,19 @@ SnowlFeed.prototype = {
   },
 
   _processRefresh: strand(function(aResult, refreshTime) {
+    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
+    // a valid feed?) and report a more descriptive error message.
+    if (aResult.doc == null) {
+      this._log.error("_processRefresh: aResult.doc is null");
+//      Observers.notify("snowl:subscribe:get:end", this);
+      return;
+    }
+
     // FIXME: Make this be "snowl:refresh:start" or move it into the subscribing
     // caller so it makes sense that it's called "snowl:subscribe:get:start",
     // since this method also gets called during periodically on feeds to which
     // the user is already subscribed.
     Observers.notify("snowl:subscribe:get:start", this);
-
-    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
-    // a valid feed?) and report a more descriptive error message.
-    // FIXME: don't notify get:start and get:end if aResult.doc == null.
-    if (aResult.doc == null) {
-      this._log.error("_processRefresh: aResult.doc is null");
-      Observers.notify("snowl:subscribe:get:end", this);
-      return;
-    }
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
@@ -409,6 +408,8 @@ SnowlFeed.prototype = {
       " THEN 1 ELSE 0 END) WHERE sourceID = " + this.id
     );
 
+    // Notify list and collections views on completion of messages download, list
+    // also notified of each message addition.
     if (messagesChanged)
       Observers.notify("snowl:messages:changed", this.id);
 
@@ -676,8 +677,9 @@ SnowlFeed.prototype = {
   },
 
   onSubscribeResult: strand(function(aResult) {
+    let feed;
     try {
-      let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+      feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
       // Extract the name (if we don't already have one) and human URI from the feed.
       if (!this.name)
@@ -686,7 +688,7 @@ SnowlFeed.prototype = {
 
       this.persist();
 
-      Observers.notify("snowl:sources:changed");
+//      Observers.notify("snowl:sources:changed");
 
       // Refresh the feed to import all its items.
       // FIXME: use a date provided by the subscriber so refresh times are the same
@@ -694,7 +696,9 @@ SnowlFeed.prototype = {
       yield this._processRefresh(aResult, new Date());
     }
     catch(ex) {
+      this._log.error("error on subscribe result: " + feed.toSource());
       this._log.error("error on subscribe result: " + ex);
+      Observers.notify("snowl:subscribe:connect:end", this, "error:" + ex);
     }
     finally {
       if (this._subscribeCallback)

@@ -38,20 +38,25 @@
   border-bottom: 1px solid black;
 }
 
-.labelBox {
-  -moz-box-pack: end;
-}
-
 .label {
   font-weight: bold;
 }
 
-.briefHeaderBox {
+.headerBox {
   -moz-box-align: baseline;
 }
 
-#briefSubject[href] .textbox-input {
-  cursor: pointer;
+#briefHeader > columns {
+  -moz-box-align: baseline;
+}
+
+#fullHeader .label {
+  width: 4.5em;
+  text-align: right;
+}
+
+label.text-link {
+  margin-left: 0px;
 }
 
 #body {

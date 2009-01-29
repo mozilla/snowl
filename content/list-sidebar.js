@@ -34,9 +34,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
@@ -46,19 +43,9 @@ Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
-
-let gMessageViewWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                         getInterface(Ci.nsIWebNavigation).
-                         QueryInterface(Ci.nsIDocShellTreeItem).
-                         rootTreeItem.
-                         QueryInterface(Ci.nsIInterfaceRequestor).
-                         getInterface(Ci.nsIDOMWindow);
+let gBrowserWindow = SnowlService.gBrowserWindow;
+// Defined differently in River
+let gMessageViewWindow = SnowlService.gBrowserWindow;
 
 let ListSidebar = {
 
@@ -82,12 +69,14 @@ let ListSidebar = {
   onLoad: function() {
     gBrowserWindow.SnowlMessageView.show();
     this._updateWriteButton();
-    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.add("snowl:source:added", this.onSourcesChanged, this);
+    Observers.add("snowl:source:removed", this.onSourcesChanged, this);
   },
 
   onUnload: function() {
     gBrowserWindow.SnowlMessageView.hide();
-    Observers.remove("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.remove("snowl:source:added", this.onSourcesChanged, this);
+    Observers.remove("snowl:source:removed", this.onSourcesChanged, this);
   },
 
   onToggleWrite: function(event) {

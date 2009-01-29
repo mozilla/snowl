@@ -67,6 +67,13 @@ const SNOWL_HANDLER_TITLE = "Snowl";
 const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
 
 let SnowlService = {
+  get gBrowserWindow() {
+    let wm = Cc["@mozilla.org/appshell/window-mediator;1"].
+             getService(Ci.nsIWindowMediator);
+    delete this._gBrowserWindow;
+    return this._gBrowserWindow = wm.getMostRecentWindow("navigator:browser");
+  },
+
   get _prefs() {
     delete this._prefs;
     return this._prefs = new Preferences("extensions.snowl.");
@@ -102,7 +109,8 @@ let SnowlService = {
     this._registerFeedHandler();
     this._initTimer();
 
-    Observers.add("snowl:sources:changed", this.onSourcesChanged, this);
+    Observers.add("snowl:source:added", this.onSourcesChanged, this);
+    Observers.add("snowl:source:removed", this.onSourcesChanged, this);
 
     // FIXME: refresh stale sources on startup in a way that doesn't hang
     // the UI thread.

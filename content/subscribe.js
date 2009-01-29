@@ -49,7 +49,7 @@ let SubscriptionListener = {
     if (subject != source)
       return;
   
-      let code, message;
+      let code, message, errorMsg;
       // If blank, fine
       let identity = source.name;
       let stringBundle = document.getElementById("snowlStringBundle");
@@ -78,6 +78,11 @@ let SubscriptionListener = {
           message = stringBundle.getString("messageConnectionError");
           if (data == 401)
             message = stringBundle.getString("messagePassword");
+        }
+        else if (data.split(":", 1)[0] == "error") {
+          code = "error";
+          errorMsg = data.split("error:")[1];
+          message = stringBundle.getFormattedString("messageGenericError", [errorMsg]);
         }
         else {
           // Under most circumstances, this message will be replaced immediately

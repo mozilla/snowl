@@ -36,14 +36,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
-const Cr = Components.results;
-const Cu = Components.utils;
-
 // modules that come with Firefox
 // FIXME: remove this import of XPCOMUtils, as it is no longer being used.
-Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+//Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+const Cu = Components.utils;
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
@@ -56,20 +53,16 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-const XML_NS = "http://www.w3.org/XML/1998/namespace"
+const XML_NS = "http://www.w3.org/XML/1998/namespace";
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
-let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIWebNavigation).
-                     QueryInterface(Ci.nsIDocShellTreeItem).
-                     rootTreeItem.
-                     QueryInterface(Ci.nsIInterfaceRequestor).
-                     getInterface(Ci.nsIDOMWindow);
-
+let gBrowserWindow = SnowlService.gBrowserWindow;
+// Defined differently in List View
 let gMessageViewWindow = window;
 
 let SnowlMessageView = {
+
   get _log() {
     delete this._log;
     return this._log = Log4Moz.repository.getLogger("Snowl.River");
@@ -868,5 +861,43 @@ let splitterDragObserver = {
     let width = event.clientX - this._contentBox.offsetLeft;
     document.getElementById("columnResizeSplitter").left = width;
     this._timeout = window.setTimeout(this.callback, 500, width);
+  }
+};
+
+// From browser.js for Places sidebar
+var XULBrowserWindow = {
+  // Stored Status, Link and Loading values
+  overLink: "",
+  statusText: "",
+
+  get statusTextField () {
+    delete this.statusTextField;
+    return this.statusTextField = gBrowserWindow.
+                                  document.getElementById("statusbar-display");
+  },
+
+  destroy: function () {
+    // XXXjag to avoid leaks :-/, see bug 60729
+    delete this.statusTextField;
+    delete this.statusText;
+  },
+
+  setOverLink: function (link, b) {
+    // Encode bidirectional formatting characters.
+    // (RFC 3987 sections 3.2 and 4.1 paragraph 6)
+    this.overLink = link.replace(/[\u200e\u200f\u202a\u202b\u202c\u202d\u202e]/g,
+                                 encodeURIComponent);
+    this.updateStatusField();
+  },
+
+  updateStatusField: function () {
+    var text = this.overLink;
+
+    // check the current value so we don't trigger an attribute change
+    // and cause needless (slow!) UI updates
+    if (this.statusText != text) {
+      this.statusTextField.label = text;
+      this.statusText = text;
+    }
   }
 }

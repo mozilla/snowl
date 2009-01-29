@@ -52,36 +52,37 @@
       <grid id="briefHeader">
         <columns>
           <column id="briefSubjectColumn" flex="1">
-            <hbox class="briefHeaderBox">
+            <hbox class="headerBox">
               <label class="label"
                      value="&subject.label;"/>
-              <textbox id="briefSubject"
-                       class="text-link plain"
-                       readonly="true"
+              <label id="briefSubject"
+                       class="text-link"
                        crop="end"
                        flex="1"/>
             </hbox>
           </column>
           <column id="briefAuthorColumn" flex="1">
-            <hbox class="briefHeaderBox">
+            <hbox class="headerBox">
               <label class="label"
                      value="&author.label;"/>
               <textbox id="briefAuthor"
                        class="plain"
                        readonly="true"
+                       clickSelectsAll="true"
                        crop="end"
-                       flex="1"/>
+                       flex="0"/>
             </hbox>
           </column>
           <column id="briefTimestampColumn">
-            <hbox class="briefHeaderBox">
+            <hbox class="headerBox">
               <label class="label"
                      value="&timestamp.label;"/>
               <textbox id="briefTimestamp"
                        class="plain"
                        readonly="true"
+                       clickSelectsAll="true"
                        crop="end"
-                       flex="1"/>
+                       flex="0"/>
             </hbox>
           </column>
         </columns>
@@ -90,38 +91,47 @@
         </rows>
       </grid>
 
-      <grid id="fullHeader">
-        <columns>
-          <column id="labelColumn"/>
-          <column id="valueColumn" flex="1"/>
-        </columns>
-        <rows>
-          <row id="authorRow">
-            <hbox class="labelBox">
-              <label class="label" value="&author.label;"/>
-            </hbox>
-            <label id="author" crop="end"/>
-          </row>
-          <row id="subjectRow">
-            <hbox class="labelBox">
-              <label class="label" value="&subject.label;"/>
-            </hbox>
-            <label id="subject" crop="end"/>
-          </row>
-          <row id="timestampRow">
-            <hbox class="labelBox">
-              <label class="label" value="&timestamp.label;"/>
-            </hbox>
-            <label id="timestamp" crop="end"/>
-          </row>
-          <row id="linkRow">
-            <hbox class="labelBox">
-              <label class="label" value="&link.label;"/>
-            </hbox>
-            <label id="link" class="text-link" crop="end"/>
-          </row>
-        </rows>
-      </grid>
+      <vbox id="fullHeader">
+        <hbox id="authorRow"
+              class="headerBox">
+          <label class="label"
+                 value="&author.label;"/>
+          <textbox id="author"
+                   flex="1"
+                   class="plain"
+                   readonly="true"
+                   clickSelectsAll="true"
+                   crop="end"/>
+        </hbox>
+        <hbox id="subjectRow"
+              class="headerBox">
+          <label class="label" value="&subject.label;"/>
+          <textbox id="subject"
+                   flex="1"
+                   class="plain"
+                   readonly="true"
+                   clickSelectsAll="true"
+                   crop="end"/>
+        </hbox>
+        <hbox id="timestampRow"
+              class="headerBox">
+          <label class="label" value="&timestamp.label;"/>
+          <textbox id="timestamp"
+                   flex="1"
+                   class="plain"
+                   readonly="true"
+                   clickSelectsAll="true"
+                   crop="end"/>
+        </hbox>
+        <hbox id="linkRow"
+              class="headerBox">
+          <label class="label" value="&link.label;"/>
+          <label id="link"
+                 flex="1"
+                 class="text-link"
+                 crop="end"/>
+        </hbox>
+      </vbox>
 
     </deck>
 

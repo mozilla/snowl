@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["SnowlDatastore"];
+let EXPORTED_SYMBOLS = ["SnowlDatastore", "SnowlPlaces", "SnowlQuery"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -42,11 +42,13 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that come with Firefox
+Cu.import("resource://gre/modules/utils.js"); // Places
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/StringBundle.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
@@ -875,17 +877,308 @@ let SnowlDatastore = {
     this._insertMetadatumStatement.params.messageID = aMessageID;
     this._insertMetadatumStatement.params.attributeID = aAttributeID;
 
-try {
-    this._insertMetadatumStatement.params.value = aValue;
-}
-catch(ex) {
-  //dump(ex + " with attribute ID: " + aAttributeID + " and value: " + aValue + "\n");
-  throw ex;
-}
+    try {
+        this._insertMetadatumStatement.params.value = aValue;
+    }
+    catch(ex) {
+      //dump(ex + " with attribute ID: " + aAttributeID + " and value: " + aValue + "\n");
+      throw ex;
+    }
 
     this._insertMetadatumStatement.execute();
     return this.dbConnection.lastInsertRowID;
+  },
+
+  get _selectIdentitiesSourceIDStatement() {
+    let statement = this.createStatement(
+      "SELECT sourceID FROM identities WHERE personID = :id"
+    );
+    this.__defineGetter__("_selectIdentitiesSourceIDStatement",
+                          function() { return statement });
+    return this._selectIdentitiesSourceIDStatement;
+  },
+
+  /**
+   * Get sourceID for a people table entry from identities table.
+   * 
+   * @param aID {integer} the record ID of the people entry, which should be
+   * tested against the peopleID value in identities
+   *
+   * @returns {integer} the sourceID of the people record
+   */
+  selectIdentitiesSourceID: function(aID) {
+    let sourceID;
+
+    try {
+      this._selectIdentitiesSourceIDStatement.params.id = aID;
+      if (this._selectIdentitiesSourceIDStatement.step()) {
+        sourceID = this._selectIdentitiesSourceIDStatement.row["sourceID"];
+      }
+    }
+    finally {
+      this._selectIdentitiesSourceIDStatement.reset();
+    }
+
+    return sourceID;
   }
+
+};
+
+/**
+ * Parsed query uri associated with a Places collection row.
+ * 
+ * @param aUri (string) - query string contained in the places item's uri.
+ */
+function SnowlQuery(aUri) {
+  this.queryUri = decodeURI(aUri);
+  if (this.queryUri) {
+    if (this.queryUri.indexOf("place:") != -1)
+      this.queryProtocol = "place:";
+    else if (this.queryUri.indexOf("snowl:") != -1) {
+      this.queryProtocol = "snowl:";
+      this.queryID = this.queryUri.split(".id=")[1].split("&")[0];
+      this.queryName = this.queryUri.split("name=")[1].split("&")[0];
+      this.queryGroupIDColumn = this.queryUri.split("snowl:")[1].split("=")[0];
+    }
+  }
+}
+SnowlQuery.prototype = {
+  queryUri: null,
+  queryProtocol: null,
+  queryID: null,
+  queryName: null,
+  queryGroupIDColumn: null,
+};
+
+/**
+ * Places functions for Snowl
+ */
+let SnowlPlaces = {
+
+  get _log() {
+    let logger = Log4Moz.repository.getLogger("Snowl.SnowlPlaces");
+    this.__defineGetter__("_log", function() logger);
+    return this._log;
+  },
+
+  SNOWL_ROOT_ANNO: "Snowl",
+  SNOWL_COLLECTIONS_FLAT_ANNO: "Snowl/CollectionsFlat",
+  SNOWL_COLLECTIONS_GROUPED_ANNO: "Snowl/CollectionsGrouped",
+  SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO: "Snowl/CollectionsGrouped/Folder/",
+//  SMART_BOOKMARKS_ANNO: "Places/SmartBookmark",
+  ORGANIZER_QUERY_ANNO: "PlacesOrganizer/OrganizerQuery",
+  snowlRootID: null,
+  collectionsFlatID: null,
+  collectionsGroupedID: null,
+  collectionsGroupedFolderID: null,
+  convertedToPlaces: null,
+
+  get queryFlat() {
+    delete this._queryFlat;
+    return this._queryFlat = "place:queryType=1&expandQueries=0&folder=" +
+        this.collectionsFlatID;
+  },
+
+  get queryGrouped() {
+    delete this._queryGrouped;
+    return this._queryGrouped = "place:queryType=1&expandQueries=1&folder=" +
+          this.collectionsGroupedID;
+  },
+
+  persistPlace: function(aTable, aId, aName, aMachineURI, aUsername, aIconURI, aSourceId) {
+    let uri, iconUri, annoType;
+    if (aTable == "sources") {
+      uri = URI("snowl:sources.id=" + aId +
+                "&name=" + aName +
+//                "&machineURI=" + aMachineURI +
+//                "&username=" + aUsername +
+//                "&groupIDColumn=sources.id" +
+                "&");
+      annoType = "Sources";
+    }
+    else if (aTable == "identities") {
+      uri = URI("snowl:authors.id=" + aId +
+                "&name=" + aName +
+//                "&externalID=" + aUsername +
+//                "&sourceID=" + aSourceId +
+//                "&groupIDColumn=authors.id" +
+                "&");
+      annoType = "Authors";
+    }
+    else
+      return null;
+
+    let placesID = PlacesUtils.bookmarks.
+                               insertBookmark(SnowlPlaces.collectionsFlatID,
+                                              uri,
+                                              PlacesUtils.bookmarks.DEFAULT_INDEX,
+                                              aName);
+
+    let anno = SnowlPlaces.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO + annoType;
+    PlacesUtils.annotations.
+                setPageAnnotation(uri,
+                                  anno,
+                                  "snowl:sourceID=" + aSourceId,
+                                  0,
+                                  PlacesUtils.annotations.EXPIRE_NEVER);
+//this._log.info(annoType + " iconURI.spec - " + (aIconURI ? aIconURI.spec : "null"));
+    PlacesUtils.favicons.
+//                setFaviconUrlForPage(uri,
+                setAndLoadFaviconForPage(uri,
+                                         aIconURI,
+                                         false);
+//this._log.info(aType + " name:placesID - " + aName + " : " + id);
+
+    return placesID;
+  },
+
+  // Check for our places structure and create if not found
+  init: function() {
+    let itemID, items;
+    items = PlacesUtils.annotations.
+                        getItemsWithAnnotation(this.SNOWL_ROOT_ANNO, {});
+    if (items.length != 0 && items[0] != -1) {
+      // Have our root..
+      this.snowlRootID = items[0];
+      // Get flat collection root
+      items = PlacesUtils.annotations.
+                          getItemsWithAnnotation(this.SNOWL_COLLECTIONS_FLAT_ANNO, {});
+      this.collectionsFlatID = items[0];
+      // Get grouped collection root
+      items = PlacesUtils.annotations.
+                          getItemsWithAnnotation(this.SNOWL_COLLECTIONS_GROUPED_ANNO, {});
+      this.collectionsGroupedID = items[0];
+      // Get grouped folder root
+      items = PlacesUtils.annotations.
+                          getItemsWithAnnotation(this.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO, {});
+      this.collectionsGroupedFolderID = items[0];
+
+      this.convertedToPlaces = true;
+    }
+    else {
+      // Create places stucture
+      itemID = PlacesUtils.bookmarks.
+                           createFolder(PlacesUtils.placesRootId,
+                                        "snowlRoot",
+                                        -1);
+      // Ensure immediate children can't be removed
+      PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
+      // Create annotation
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_ROOT_ANNO,
+                                    "snowl:root",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      this.snowlRootID = itemID;
+
+      // Create flat collections root
+      itemID = PlacesUtils.bookmarks.
+                           createFolder(this.snowlRootID,
+                                        "snowlCollectionsFlat",
+                                        PlacesUtils.bookmarks.DEFAULT_INDEX);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_FLAT_ANNO,
+                                    "snowl:collectionsFlat",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      this.collectionsFlatID = itemID;
+
+      // Create grouped collections root
+      itemID = PlacesUtils.bookmarks.
+                           createFolder(this.snowlRootID,
+                                        "snowlCollectionsGrouped",
+                                        PlacesUtils.bookmarks.DEFAULT_INDEX);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_GROUPED_ANNO,
+                                    "snowl:collectionsGrouped",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      this.collectionsGroupedID = itemID;
+      // Ensure immediate child can't be removed
+      PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
+
+      // Create grouped collections folder
+      itemID = PlacesUtils.bookmarks.
+                           createFolder(this.collectionsGroupedID,
+                                        "All Messages",
+                                        PlacesUtils.bookmarks.DEFAULT_INDEX);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO,
+                                    "snowl:collectionsGroupedFolder",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      this.collectionsGroupedFolderID = itemID;
+
+      // Default collections
+      let collections = [];
+      // All
+      coll = {queryId:  "snowl:AllMessages",
+              itemId:   null,
+              title:    strings.get("allCollectionName"),
+              uri:      URI("place:folder=" + this.collectionsFlatID +
+                            "&OR" +
+                            "&expandQueries=0" +
+                            "&annotation=" +
+                            this.SNOWL_COLLECTIONS_FLAT_ANNO),
+              parent:   this.collectionsFlatID,
+              position: PlacesUtils.bookmarks.DEFAULT_INDEX};
+      collections.push(coll);
+
+      // Sources
+      coll = {queryId:  "snowl:AllSources",
+              itemId:   null,
+              title:    strings.get("sourcesCollectionName"),
+              uri:      URI("place:folder=" + this.collectionsGroupedFolderID +
+                            "&OR" +
+                            "&annotation=" +
+                            this.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO + "Sources" +
+                            "&expandQueries=1" +
+                            "&queryType=" +
+                            Ci.nsINavHistoryQueryOptions.QUERY_TYPE_BOOKMARKS +
+                            "&sort=" +
+                            Ci.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING),
+              parent:   this.collectionsGroupedFolderID,
+              position: PlacesUtils.bookmarks.DEFAULT_INDEX};
+      collections.push(coll);
+      // Authors
+      coll = {queryId:  "snowl:AllAuthors",
+              itemId:   null,
+              title:    strings.get("authorsCollectionName"),
+              uri:      URI("place:folder=" + this.collectionsGroupedFolderID +
+                            "&OR" +
+                            "&annotation=" +
+                            this.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO + "Authors" +
+                            "&expandQueries=1" +
+                            "&queryType=" +
+                            Ci.nsINavHistoryQueryOptions.QUERY_TYPE_BOOKMARKS +
+                            "&sort=" +
+                            Ci.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING),
+              parent:   this.collectionsGroupedFolderID,
+              position: PlacesUtils.bookmarks.DEFAULT_INDEX};
+      collections.push(coll);
+      // Add the collections
+      for each(let coll in collections) {
+        coll.itemId = PlacesUtils.bookmarks.insertBookmark(coll.parent,
+                                                           coll.uri,
+                                                           coll.position,
+                                                           coll.title);
+        PlacesUtils.annotations.
+//                    setPageAnnotation(coll.itemId,
+                    setItemAnnotation(coll.itemId,
+                                      this.ORGANIZER_QUERY_ANNO,
+                                      coll.queryId,
+                                      0,
+                                      PlacesUtils.annotations.EXPIRE_NEVER);
+      };
+
+      this.convertedToPlaces = false;
+    }
+  }
+
 };
 
 // FIXME: don't wrap statements in this wrapper for stable releases.
