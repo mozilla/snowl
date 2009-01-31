@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Myk Melez <myk@mozilla.org>
+ *   alta88 <alta88@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -56,14 +57,19 @@ SnowlIdentity.get = function(sourceID, externalID) {
   let identity;
 
   let statement = SnowlDatastore.createStatement(
-    "SELECT id, personID FROM identities WHERE externalID = :externalID AND sourceID = :sourceID"
+    "SELECT id, personID " +
+    "FROM identities " +
+    "WHERE externalID = :externalID AND sourceID = :sourceID"
   );
 
   try {
     statement.params.sourceID = sourceID;
     statement.params.externalID = externalID;
     if (statement.step()) {
-      identity = new SnowlIdentity(statement.row.id, sourceID, externalID, statement.row.personID);
+      identity = new SnowlIdentity(statement.row.id,
+                                   sourceID,
+                                   externalID,
+                                   statement.row.personID);
     }
   }
   finally {
@@ -77,17 +83,14 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
   let identity;
 
   let personStatement = SnowlDatastore.createStatement(
-    "INSERT INTO people (name, homeURL, iconURL) VALUES (:name, :homeURL, :iconURL)"
+    "INSERT INTO people (name, homeURL, iconURL, placeID) " +
+    "VALUES             (:name, :homeURL, :iconURL, :placeID)"
   );
 
   let identityStatement = SnowlDatastore.createStatement(
     "INSERT INTO identities (sourceID, externalID, personID) " +
-    "VALUES (:sourceID, :externalID, :personID)"
+    "VALUES                 (:sourceID, :externalID, :personID)"
   );
-//  let identityStatement = SnowlDatastore.createStatement(
-//    "INSERT INTO identities (sourceID, externalID, personID, placesID) " +
-//    "VALUES (:sourceID, :externalID, :personID, :placesID)"
-//  );
 
   try {
     personStatement.params.name = name;
@@ -102,20 +105,24 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
       homeURL ? SnowlSource.faviconSvc.getFaviconForPage(homeURL) :
       URI.get("chrome://snowl/skin/person-16.png");
 
-    // Create places record, placesID stored into people table record.
+    // Create places record, placeID stored into people table record.
 //SnowlPlaces._log.info("Author name:iconURI.spec - " + name + " : " + iconURI.spec);
-    let placesID = SnowlPlaces.persistPlace("identities",
-                                             personID,
-                                             name,
-                                             null, // homeURL,
-                                             null, // externalID,
-                                             iconURI,
-                                             sourceID);
+    let placeID = SnowlPlaces.persistPlace("people",
+                                            personID,
+                                            name,
+                                            null, // homeURL,
+                                            null, // externalID,
+                                            iconURI,
+                                            sourceID);
+    // Store placeID back into messages for db integrity
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE people " +
+      "SET    placeID = " + placeID +
+      " WHERE      id = " + personID);
 
     identityStatement.params.sourceID = sourceID;
     identityStatement.params.externalID = externalID;
     identityStatement.params.personID = personID;
-//    identityStatement.params.placesID = placesID;
     identityStatement.step();
     let identityID = SnowlDatastore.dbConnection.lastInsertRowID;
 

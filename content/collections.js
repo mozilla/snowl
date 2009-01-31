@@ -412,31 +412,38 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
             table = "sources";
             break;
           case "authors.id":
-            table = "identities";
+            table = "people";
             break;
           default:
             table = null;
             break;
         }
         for each (let group in collection.groups) {
-this._log.info(table+" group.name:group.groupID - " + group.name + " : " + group.groupID);
+//this._log.info(table+" group.name:group.groupID - " + group.name + " : " + group.groupID);
           if (table == "sources")
             value = group.groupID;
-          else if (table == "identities") {
+          else if (table == "people") {
             if (!group.groupID)
               // Skip null authors
               continue;
             // Get the sourceID that the author belongs to
             value = SnowlDatastore.selectIdentitiesSourceID(group.groupID);
           }
-          placesID = SnowlPlaces.persistPlace(table,
-                                              group.groupID,
-                                              group.name,
-                                              null, //machineURI.spec,
-                                              null, //username,
-                                              group.iconURL,
-                                              value); // aSourceID
-this._log.info("Converted to places - " + group.name);
+          placeID = SnowlPlaces.persistPlace(table,
+                                             group.groupID,
+                                             group.name,
+                                             null, //machineURI.spec,
+                                             null, //username,
+                                             group.iconURL,
+                                             value); // aSourceID
+          // Store placeID back into messages for db integrity
+          SnowlDatastore.dbConnection.executeSimpleSQL(
+            "UPDATE " + table +
+            " SET    placeID = " + placeID +
+            " WHERE       id = " + group.groupID);
+
+this._log.info("Converted to places - " +
+group.name + " : " + group.groupID + " : " + placeID);
         }
       }
     }

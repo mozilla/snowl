@@ -996,7 +996,7 @@ let SnowlPlaces = {
                 "&");
       annoType = "Sources";
     }
-    else if (aTable == "identities") {
+    else if (aTable == "people") {
       uri = URI("snowl:authors.id=" + aId +
                 "&name=" + aName +
 //                "&externalID=" + aUsername +
@@ -1008,11 +1008,11 @@ let SnowlPlaces = {
     else
       return null;
 
-    let placesID = PlacesUtils.bookmarks.
-                               insertBookmark(SnowlPlaces.collectionsFlatID,
-                                              uri,
-                                              PlacesUtils.bookmarks.DEFAULT_INDEX,
-                                              aName);
+    let placeID = PlacesUtils.bookmarks.
+                              insertBookmark(SnowlPlaces.collectionsFlatID,
+                                             uri,
+                                             PlacesUtils.bookmarks.DEFAULT_INDEX,
+                                             aName);
 
     let anno = SnowlPlaces.SNOWL_COLLECTIONS_GROUPEDFOLDER_ANNO + annoType;
     PlacesUtils.annotations.
@@ -1027,9 +1027,9 @@ let SnowlPlaces = {
                 setAndLoadFaviconForPage(uri,
                                          aIconURI,
                                          false);
-//this._log.info(aType + " name:placesID - " + aName + " : " + id);
+//this._log.info(aType + " name:placeID - " + aName + " : " + id);
 
-    return placesID;
+    return placeID;
   },
 
   // Check for our places structure and create if not found

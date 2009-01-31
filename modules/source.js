@@ -255,14 +255,12 @@ let SnowlSource = {
 
   /**
    * Insert a record for this source into the database, or update an existing
-   * record; store placesID back into sources table.
+   * record; store placeID back into sources table.
    *
    * FIXME: move this to a SnowlAccount interface.
-   * XXX need to make this one commitable transaction (with place db store)
-   * to maintain strict integrity..
    */
   persist: function() {
-    let statement, placesID;
+    let statement, placeID;
     if (this.id) {
       statement = SnowlDatastore.createStatement(
         "UPDATE sources " +
@@ -295,21 +293,21 @@ let SnowlSource = {
         // Extract the ID of the source from the newly-created database record.
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
         // Create places record
-        placesID = SnowlPlaces.persistPlace("sources",
-                                            this.id,
-                                            this.name,
-                                            null, // this.machineURI.spec,
-                                            null, // this.username,
-                                            this.faviconURI,
-                                            this.id); // aSourceID
-        // Store placedID back into messages for db integrity
-        // XXX uncomment once field is added..
-//        SnowlDatastore.dbConnection.executeSimpleSQL(
-//          "UPDATE sources " +
-//          "SET placesID = " + placesID +
-//          "WHERE     id = " + this.id);
-        SnowlUtils.gListViewCollectionItemId = placesID;
-this._log.info("persist newItemId - " + SnowlUtils.gListViewCollectionItemId);
+        placeID = SnowlPlaces.persistPlace("sources",
+                                           this.id,
+                                           this.name,
+                                           null, // this.machineURI.spec,
+                                           null, // this.username,
+                                           this.faviconURI,
+                                           this.id); // aSourceID
+
+        // Store placeID back into messages for db integrity
+        SnowlDatastore.dbConnection.executeSimpleSQL(
+          "UPDATE sources " +
+          "SET    placeID = " + placeID +
+          " WHERE      id = " + this.id);
+        SnowlUtils.gListViewCollectionItemId = placeID;
+this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
 
         // Use 'added' here for collections observer for more specificity
         Observers.notify("snowl:source:added");
