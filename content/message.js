@@ -51,6 +51,9 @@ Cu.import("resource://snowl/modules/utils.js");
 
 let gBrowserWindow = SnowlService.gBrowserWindow;
 
+let gNavigatorBundle = new StringBundle("chrome://browser/locale/browser.properties");
+let strings = new StringBundle("chrome://snowl/locale/message.properties");
+
 // Parse URL parameters
 let params = {};
 let query = window.location.search.substr(1);
@@ -64,8 +67,6 @@ for each (let param in query.split("&")) {
     name = param;
   params[name] = value;
 }
-
-let strings = new StringBundle("chrome://snowl/locale/message.properties");
 
 let message = SnowlMessage.get(parseInt(params.id));
 
@@ -90,7 +91,8 @@ if (message) {
 
   content = message.content || message.summary;
 }
-else { // no message found with the given ID
+else {
+  // No message found with the given ID
   document.documentElement.setAttribute("title",
     strings.get("messageNotFoundTitle", [params.id]));
 
@@ -111,7 +113,8 @@ if (content) {
   if (content.type == "text") {
     SnowlUtils.linkifyText(content.text, body, message.source.principal);
   }
-  else { // content.type == "html" or "xhtml"
+  else {
+    // content.type == "html" or "xhtml"
     if (content.base)
       body.setAttributeNS(XML_NS, "base", content.base.spec);
 
@@ -119,4 +122,82 @@ if (content) {
     if (docFragment)
       body.appendChild(docFragment);
   }
+};
+
+//****************************************************************************//
+// Utils for headers.  Based on XULBrowserWindow in browser.js and SidebarUtils
+// in sidebarUtils.js
+
+var messageHeaderUtils = {
+  handleLinkMouseMove: function MHU_handleLinkMouseMove(aEvent) {
+    if (aEvent.target.localName != "label")
+      return;
+
+    var link = aEvent.target.href;
+//    if (PlacesUtils.nodeIsURI(link))
+      this.setOverLink(link, null);
+//    else
+//      this.clearURLFromStatusBar();
+  },
+
+  clearURLFromStatusBar: function MHU_clearURLFromStatusBar() {
+    this.setOverLink("", null);
+  },
+
+  // Stored Status, Link and Loading values
+  overLink: "",
+  defaultStatus: gNavigatorBundle.get("nv_done"),
+  statusText: "",
+
+  get statusTextField() {
+    delete this.statusTextField;
+    return this.statusTextField = gBrowserWindow.
+                                  document.getElementById("statusbar-display");
+  },
+
+  destroy: function() {
+    // XXXjag to avoid leaks :-/, see bug 60729
+    delete this.statusTextField;
+    delete this.statusText;
+  },
+
+  setOverLink: function(link, b) {
+    // Encode bidirectional formatting characters.
+    // (RFC 3987 sections 3.2 and 4.1 paragraph 6)
+    this.overLink = link.replace(/[\u200e\u200f\u202a\u202b\u202c\u202d\u202e]/g,
+                                 encodeURIComponent);
+    this.updateStatusField();
+  },
+
+  updateStatusField: function() {
+    var text = this.overLink || this.defaultStatus;
+
+    // check the current value so we don't trigger an attribute change
+    // and cause needless (slow!) UI updates
+    if (this.statusText != text) {
+      this.statusTextField.label = text;
+      this.statusText = text;
+    }
+  },
+
+  copy: function(linkNode) {
+    let link, clipboard;
+    if (linkNode) {
+      link = linkNode.getAttribute("value");
+      clipboard = Cc["@mozilla.org/widget/clipboardhelper;1"].
+                  getService(Ci.nsIClipboardHelper);
+      clipboard.copyString(link);
+    }
+  },
+
+  copyLink: function(linkNode) {
+    let link, clipboard;
+    if (linkNode) {
+      link = linkNode.getAttribute("href");
+      clipboard = Cc["@mozilla.org/widget/clipboardhelper;1"].
+                  getService(Ci.nsIClipboardHelper);
+      clipboard.copyString(link);
+    }
+  }
+
 }

@@ -41,9 +41,28 @@
 <?xml-stylesheet href="chrome://global/skin/formatting.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/message.css" type="text/css"?>
 
-<!DOCTYPE page SYSTEM "chrome://snowl/locale/message.dtd">
+<!DOCTYPE page [
+  <!ENTITY % browserDTD SYSTEM "chrome://browser/locale/browser.dtd">
+  %browserDTD;
+  <!ENTITY % messageDTD SYSTEM "chrome://snowl/locale/message.dtd">
+  %messageDTD;
+]>
 
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <popupset id="mainPopupSet">
+    <popup id="headersContextMenu">
+      <menuitem id="context-copy"
+                label="&copyCmd.label;"
+                accesskey="&copyCmd.accesskey;"
+                oncommand="messageHeaderUtils.copy(document.popupNode);"/>
+      <menuitem id="context-copylink"
+                label="&copyLinkCmd.label;"
+                accesskey="&copyLinkCmd.accesskey;"
+                oncommand="messageHeaderUtils.copyLink(document.popupNode);"/>
+    </popup>
+  </popupset>
+
   <vbox id="head">
     <deck id="headerDeck" flex="1">
 
@@ -58,7 +77,10 @@
               <label id="briefSubject"
                        class="text-link"
                        crop="end"
-                       flex="1"/>
+                       flex="1"
+                       context="headersContextMenu"
+                       onmousemove="messageHeaderUtils.handleLinkMouseMove(event);"
+                       onmouseout="messageHeaderUtils.clearURLFromStatusBar();"/>
             </hbox>
           </column>
           <column id="briefAuthorColumn" flex="1">
@@ -92,21 +114,21 @@
       </grid>
 
       <vbox id="fullHeader">
-        <hbox id="authorRow"
+        <hbox id="subjectRow"
               class="headerBox">
-          <label class="label"
-                 value="&author.label;"/>
-          <textbox id="author"
+          <label class="label" value="&subject.label;"/>
+          <textbox id="subject"
                    flex="1"
                    class="plain"
                    readonly="true"
                    clickSelectsAll="true"
                    crop="end"/>
         </hbox>
-        <hbox id="subjectRow"
+        <hbox id="authorRow"
               class="headerBox">
-          <label class="label" value="&subject.label;"/>
-          <textbox id="subject"
+          <label class="label"
+                 value="&author.label;"/>
+          <textbox id="author"
                    flex="1"
                    class="plain"
                    readonly="true"
@@ -127,9 +149,12 @@
               class="headerBox">
           <label class="label" value="&link.label;"/>
           <label id="link"
-                 flex="1"
                  class="text-link"
-                 crop="end"/>
+                 crop="end"
+                 flex="1"
+                 context="headersContextMenu"
+                 onmousemove="messageHeaderUtils.handleLinkMouseMove(event);"
+                 onmouseout="messageHeaderUtils.clearURLFromStatusBar();"/>
         </hbox>
       </vbox>
 
