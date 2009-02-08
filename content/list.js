@@ -66,12 +66,6 @@ let SnowlMessageView = {
                            getService(Ci.nsIAtomService);
   },
 
-  // The ID of the source to display.  The sidebar can set this to the source
-  // selected by the user.
-  // FIXME: make this an array of sources, and let the user select multiple
-  // sources to view multiple sources simultaneously.
-  sourceID: null,
-
   get _filter() {
     delete this._filter;
     return this._filter = document.getElementById("snowlFilter");
@@ -104,6 +98,7 @@ let SnowlMessageView = {
 
   // Maps XUL tree column IDs to collection properties.
   _columnProperties: {
+    "snowlSourceCol": "source",
     "snowlAuthorCol": "author",
     "snowlSubjectCol": "subject",
     "snowlTimestampCol": "timestamp"
@@ -122,6 +117,9 @@ let SnowlMessageView = {
     // FIXME: use _columnProperties instead of hardcoding column
     // IDs and property names here.
     switch(aColumn.id) {
+      case "snowlSourceCol":
+        return this._collection.messages[aRow].source.name;
+
       case "snowlAuthorCol":
         return this._collection.messages[aRow].author;
 

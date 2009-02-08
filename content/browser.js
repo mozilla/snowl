@@ -369,9 +369,9 @@ let Snowl = {
       sidebarDoc.CollectionsView._tree.place = val ?
           SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
       // Ensure collection selection maintained, if in List sidebar
-      if (document.getElementById("snowlSidebar") && SnowlUtils.gListViewCollectionItemId) {
+      if (document.getElementById("snowlSidebar") && SnowlUtils.gListViewCollectionItemIds) {
         sidebarDoc.CollectionsView._tree.
-                   selectItems([SnowlUtils.gListViewCollectionItemId]);
+                   selectItems(SnowlUtils.gListViewCollectionItemIds);
         sidebarDoc.CollectionsView._tree.boxObject.
                    ensureRowIsVisible(sidebarDoc.CollectionsView._tree.currentIndex);
       }

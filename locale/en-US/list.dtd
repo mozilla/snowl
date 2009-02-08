@@ -3,6 +3,7 @@
 <!ENTITY placementButton.tooltip      "Switch placement.">
 <!ENTITY unreadButton.tooltip         "Only show unread messages.">
 
+<!ENTITY sourceCol.label              "Source">
 <!ENTITY authorCol.label              "Author">
 <!ENTITY subjectCol.label             "Subject">
 <!ENTITY timestampCol.label           "Date">

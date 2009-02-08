@@ -49,7 +49,6 @@ Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/opml.js");
-//Cu.import("resource://snowl/components/components.js");
 
 let CollectionsView = {
   _log: null,
@@ -90,8 +89,8 @@ let CollectionsView = {
     this._tree.place = query;
 
     // Ensure collection selection maintained, if in List sidebar
-    if (document.getElementById("snowlSidebar") && SnowlUtils.gListViewCollectionItemId)
-      this._tree.selectItems([SnowlUtils.gListViewCollectionItemId]);
+    if (document.getElementById("snowlSidebar") && SnowlUtils.gListViewCollectionItemIds)
+      this._tree.selectItems(SnowlUtils.gListViewCollectionItemIds);
   },
 
 
@@ -107,37 +106,38 @@ let CollectionsView = {
     this._tree.currentSelectedIndex = this._tree.currentIndex;
     setTimeout(function() {
       SnowlUtils.gListViewDeleteMoveInsert = true;
-      SnowlUtils.RestoreSelection(CollectionsView._tree, SnowlUtils.gListViewCollectionItemId);
+      SnowlUtils.RestoreSelection(CollectionsView._tree,
+                                  SnowlUtils.gListViewCollectionItemIds);
     }, 300)
   },
 
   onMessageAdded: function(aMessageObj) {
     // Determine if source or author of new message is currently selected in the
-    // collections list; if so refresh list view.
+    // collections list; if so refresh list view.  Tree may not be ready, so must
+    // use a timeout.
     let query, uri, rangeFirst = { }, rangeLast = { }, refreshFlag = false;
-    let numRanges = this._tree.view.selection.getRangeCount();
-    for (let i = 0; i < numRanges && !refreshFlag; i++) {
-      this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
-      for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
-        uri = this._tree.view.nodeForTreeIndex(index).uri;
-        query = new SnowlQuery(uri);
-//this._log.info("onMessageAdded: queryId:aMsgObj = " +
-//query.queryID + " : " + aMessageObj.toSource());
-        if ((query.queryGroupIDColumn == "sources.id" &&
-             query.queryID == aMessageObj.sourceID) ||
-            (query.queryGroupIDColumn == "author.id" &&
-             query.queryID == aMessageObj.authorID))
-          refreshFlag = true;
+
+    setTimeout(function() {
+      let numRanges = CollectionsView._tree.view.selection.getRangeCount();
+      for (let i = 0; i < numRanges && !refreshFlag; i++) {
+        CollectionsView._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
+        for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
+          uri = CollectionsView._tree.view.nodeForTreeIndex(index).uri;
+          query = new SnowlQuery(uri);
+          if ((query.queryGroupIDColumn == "sources.id" &&
+               query.queryID == aMessageObj.sourceID) ||
+              (query.queryGroupIDColumn == "author.id" &&
+               query.queryID == aMessageObj.authorID))
+            refreshFlag = true;
+        }
       }
-    }
-    // Refresh list view if found updating source matches at least one selection
-    // in the tree.
-    if (refreshFlag) {
-this._log.info("onMessageAdded: REFRESH queryId:aMsgObj = " +
-query.queryID + " : " + aMessageObj.toSource());
-      gMessageViewWindow.SnowlMessageView._collection.invalidate();
-      gMessageViewWindow.SnowlMessageView._rebuildView();
-    }
+
+      if (refreshFlag) {
+        gMessageViewWindow.SnowlMessageView._collection.invalidate();
+        gMessageViewWindow.SnowlMessageView._rebuildView();
+      }
+    }, 30)
+
   },
 
   onMessagesComplete: function(aSourceId) {
@@ -158,7 +158,7 @@ query.queryID + " : " + aMessageObj.toSource());
   onClick: function(aEvent) {
     let row = { }, col = { }, obj = { };
     let constraints = [];
-    let uri, rangeFirst = { }, rangeLast = { }, stop = false;
+    let itemId, uri, rangeFirst = { }, rangeLast = { }, stop = false;
     let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
 
 this._log.info("onClick start: curIndex:curSelectedIndex = "+
@@ -177,6 +177,10 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
          this._tree.currentIndex == this._tree.currentSelectedIndex))
       return;
 
+    // If mod key deselected, reset currentIndex
+    if (modKey && !this._tree.view.selection.isSelected(this._tree.currentIndex))
+      this._tree.currentIndex = -1;
+
     // On unsubscribe, RestoreSelection() attempts to select the last selected
     // row, which may have been removed as a result of source unsubscribe, in
     // which case there should be a null selectedNode.  Shift-left click will
@@ -186,7 +190,6 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
       gMessageViewWindow.SnowlMessageView._collection.clear();
       gMessageViewWindow.SnowlMessageView._rebuildView();
       this._tree.currentSelectedIndex = -1;
-//      SnowlUtils.gMouseEvent = null;
       return;
     }
 
@@ -199,10 +202,14 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
       return;
     }
 
+    // Reset stored selection array.
+    SnowlUtils.gListViewCollectionItemIds = [];
     // Get selected row(s) and construct a query.
     for (let i = 0; i < numRanges && !stop; i++) {
       this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
       for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
+        itemId = this._tree.view.nodeForTreeIndex(index).itemId;
+        SnowlUtils.gListViewCollectionItemIds.push(itemId);
         uri = this._tree.view.nodeForTreeIndex(index).uri;
         let query = new SnowlQuery(uri);
         if (query.queryProtocol == "place:") {
@@ -221,28 +228,18 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
           constraint.expression = query.queryGroupIDColumn +
                                   " = :groupValue" + index;
           constraint.parameters = { };
-          eval("constraint.parameters.groupValue" + index + " = " + query.queryID);
+          constraint.parameters["groupValue" + index] = query.queryID;
           constraint.operator = "OR";
           constraints.push(constraint);
-
-//          constraints.push(eval('{expression: "' + SnowlPlaces.queryGroupIDColumn +
-//                                               ' = :groupValue' + index + '", ' +
-//                                 'parameters:{groupValue' + index + ':' +
-//                                                 SnowlPlaces.queryID + '}}'));
 this._log.info("onClick: constraints = " + constraints.toSource());
         }
       }
     }
 
     let collection = new SnowlCollection(null, name, null, constraints, null);
-    this._tree.currentSelectedIndex = this._tree.currentIndex;
-
-    // If multiselection, no selectedNode.
-    if (this._tree.selectedNode)
-      SnowlUtils.gListViewCollectionItemId = this._tree.selectedNode.itemId;
-
-//this._log.info("onSelect collection Obj - " + collection.toSource());
     gMessageViewWindow.SnowlMessageView.setCollection(collection);
+
+    this._tree.currentSelectedIndex = this._tree.currentIndex;
     SnowlUtils.gMouseEvent = null;
   },
 
@@ -251,7 +248,7 @@ this._log.info("onClick: constraints = " + constraints.toSource());
   },
 
   onTreeContextPopupHidden: function() {
-    SnowlUtils.RestoreSelection(this._tree, SnowlUtils.gListViewCollectionItemId);
+    SnowlUtils.RestoreSelection(this._tree, SnowlUtils.gListViewCollectionItemIds);
   },
 
   onSubscribe: function() {
@@ -487,7 +484,7 @@ function SnowlTreeViewDrop(aRow, aOrientation) {
 
   SnowlUtils.gListViewDeleteMoveInsert = true;
   SnowlUtils.RestoreSelection(CollectionsView._tree,
-                              SnowlUtils.gListViewCollectionItemId);
+                              SnowlUtils.gListViewCollectionItemIds);
 };
 
 // Not using this yet..

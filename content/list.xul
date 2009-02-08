@@ -115,6 +115,11 @@
             onblur="SnowlUtils.gMessagePosition.pageIndex=null"
             onkeypress="SnowlMessageView.onKeyPress(event)">
         <treecols>
+          <treecol id="snowlSourceCol" label="&sourceCol.label;" flex="1"
+                   persist="width ordinal hidden sortDirection"
+                   class="sortDirectionIndicator"
+                   onclick="SnowlMessageView.onClickColumnHeader(event)"/>
+          <splitter class="tree-splitter"/>
           <treecol id="snowlAuthorCol" label="&authorCol.label;" flex="1"
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"

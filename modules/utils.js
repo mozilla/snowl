@@ -313,9 +313,9 @@ let SnowlUtils = {
 
   gListViewDeleteMoveInsert: false,
 
-  // Current collections tree itemId
-  // FIXME: figure out where to store this (make array too) across sidebar loads.
-  gListViewCollectionItemId: null,
+  // Current collections tree selected row(s) itemId(s)
+  // FIXME: store the list per tree view across list/river loads, multiple windows.
+  gListViewCollectionItemIds: [],
 
   // Position of current page in tabs and history
   gMessagePosition: {tabIndex: null, pageIndex: null},
@@ -337,7 +337,6 @@ let SnowlUtils = {
   // dotted border (row at currentIndex).  Current active selected row (via
   // right or left click) is stored in new tree property currentSelectedIndex.
   ChangeSelectionWithoutContentLoad: function(aEvent, tree) {
-//this._log.info("ChangeSelection");
     let treeBoxObj = tree.treeBoxObject;
     let treeSelection = treeBoxObj.view.selection;
     let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
@@ -349,24 +348,26 @@ let SnowlUtils = {
     if (obj.value == "twisty" || modKey)
       return;
 
-//this._log.info("ChangeSelection: currentSelIndex = "+tree.currentSelectedIndex);
-//this._log.info("ChangeSelection: currentIndex = "+treeSelection.currentIndex);
-
     // Make sure that row.value is valid for the call to ensureRowIsVisible().
     if((row.value >= 0) && !treeSelection.isSelected(row.value)) {
-      let saveCurrentIndex = treeSelection.currentIndex;
-      treeSelection.selectEventsSuppressed = true;
-      treeSelection.select(row.value);
-      treeSelection.currentIndex = saveCurrentIndex;
-      treeBoxObj.ensureRowIsVisible(row.value);
-      treeSelection.selectEventsSuppressed = false;
-
+      if (treeSelection.count > 1) {
+        // If in multiselect, and not rt click on a selected row, just select the
+        // rt click row..
+        this.gRightMouseButtonDown = false;
+        treeSelection.select(row.value);
+      }
+      else {
+        let saveCurrentIndex = treeSelection.currentIndex;
+        treeSelection.selectEventsSuppressed = true;
+        treeSelection.select(row.value);
+        treeSelection.currentIndex = saveCurrentIndex;
+        treeBoxObj.ensureRowIsVisible(row.value);
+        treeSelection.selectEventsSuppressed = false;
       // Keep track of which row in the tree is currently selected via rt click,
       // onClick handler will update currentSelectedIndex for left click.
       if (this.gRightMouseButtonDown)
         tree.currentSelectedIndex = row.value;
-//this._log.info("ChangeSelection: currentSelIndex = "+tree.currentSelectedIndex);
-//this._log.info("ChangeSelection: currentIndex = "+treeSelection.currentIndex);
+      }
     }
     // This will not stop the onSelect event, need to test in the handler..
     aEvent.stopPropagation();
@@ -377,22 +378,18 @@ let SnowlUtils = {
   // unless rows have been deleted/moved/inserted.  This is triggered when the
   // context menu for the row is hidden/closed (onpopuphidden event) or mouseup
   // for dnd.  Also called from onSourceAdded for insertions.
-  RestoreSelection: function(tree, itemId) {
-//this._log.info("RestoreSelection");
+  RestoreSelection: function(tree, itemIds) {
     let treeSelection = tree.view.selection;
 
     // Reset mouse state to enable key navigation.
     this.gMouseEvent = null;
     this.gRightMouseButtonDown = null;
-//this._log.info("RestoreSelection: START currentSelIndex = "+tree.currentSelectedIndex);
-//this._log.info("RestoreSelection: START currentIndex = "+treeSelection.currentIndex);
 
     // If tree rows removed, need to get new index of originally selected row,
     // unless original row is removed, then deselect.
     if (this.gListViewDeleteMoveInsert) {
-//this._log.info("RestoreSelection DelMoveIns itemId - " + itemId);
       // If selectItems gets no such itemId, the row was removed, currentIndex = -1
-      tree.selectItems([itemId]);
+      tree.selectItems(itemIds);
       // If the itemId is selected, now need to make it the current selection for
       // the onselect event to run the query.  Make sure row shows.
       // XXX don't run db query 1st time on default next (if none) selection row.
@@ -419,8 +416,6 @@ let SnowlUtils = {
         tree.currentSelectedIndex = -1;
       }
     }
-//this._log.info("RestoreSelection: END currentSelIndex = "+tree.currentSelectedIndex);
-//this._log.info("RestoreSelection: END currentIndex = "+treeSelection.currentIndex);
   },
 
   // Scroll tree to proper position.
