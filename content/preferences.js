@@ -100,12 +100,6 @@ let SnowlPreferences = {
   },
 
   onPaneLoad: function() {
-    // Select passed tab
-    let snowlPrefs = document.getElementById("snowlPrefs");
-    let extraArgs = window.arguments[1];
-    if (extraArgs && extraArgs["snowlTab"])
-      snowlPrefs.selectedTab = document.getElementById(extraArgs["snowlTab"]);
-
     Subscriber.addObservers();
     window.addEventListener("unload", function() { Subscriber.removeObservers(); }, false);
   },

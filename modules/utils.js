@@ -309,13 +309,8 @@ let SnowlUtils = {
 
   //**************************************************************************//
   // Utilities to track tree selections within a session
-  // XXX store on document for restore on restart??
 
   gListViewDeleteMoveInsert: false,
-
-  // Current collections tree selected row(s) itemId(s)
-  // FIXME: store the list per tree view across list/river loads, multiple windows.
-  gListViewCollectionItemIds: [],
 
   // Position of current page in tabs and history
   gMessagePosition: {tabIndex: null, pageIndex: null},
@@ -363,10 +358,10 @@ let SnowlUtils = {
         treeSelection.currentIndex = saveCurrentIndex;
         treeBoxObj.ensureRowIsVisible(row.value);
         treeSelection.selectEventsSuppressed = false;
-      // Keep track of which row in the tree is currently selected via rt click,
-      // onClick handler will update currentSelectedIndex for left click.
-      if (this.gRightMouseButtonDown)
-        tree.currentSelectedIndex = row.value;
+        // Keep track of which row in the tree is currently selected via rt click,
+        // onClick handler will update currentSelectedIndex for left click.
+        if (this.gRightMouseButtonDown)
+          tree.currentSelectedIndex = row.value;
       }
     }
     // This will not stop the onSelect event, need to test in the handler..

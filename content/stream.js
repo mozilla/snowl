@@ -139,6 +139,9 @@ let SnowlMessageView = {
     // in the view when you first open it, which is confusing and unexpected.
     this._collection.limit = 250;
 
+    // Set messages to null, to trigger collection build (unlike List view).
+    this._collection.invalidate();
+
     this._rebuildView();
 
     this._initWriteForm();

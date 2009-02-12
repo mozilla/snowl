@@ -63,6 +63,21 @@ let CollectionsView = {
     return this._children = document.getElementById("sourcesViewChildren");
   },
 
+  get itemIds() {
+    let intArray = [];
+    let strArray = this._tree.getAttribute("itemids").split(",");
+    for each (let intg in strArray)
+      intArray.push(parseInt(intg));
+    delete this._itemIds;
+    return this._itemIds = intArray;
+  },
+
+  set itemIds(ids) {
+    this._tree.setAttribute("itemids", ids);
+    delete this._itemIds;
+    return this._itemIds = ids;
+  },
+
 
   //**************************************************************************//
   // Initialization & Destruction
@@ -73,7 +88,7 @@ let CollectionsView = {
     Observers.add("snowl:message:added", this.onMessageAdded, this);
     Observers.add("snowl:messages:changed", this.onMessagesComplete, this);
 
-    // Intialize places 
+    // Intialize places
     SnowlPlaces.init();
     if (!this._tree.hasAttribute("flat"))
       this._tree.setAttribute("flat", true);
@@ -88,26 +103,27 @@ let CollectionsView = {
         SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
     this._tree.place = query;
 
-    // Ensure collection selection maintained, if in List sidebar
-    if (document.getElementById("snowlSidebar") && SnowlUtils.gListViewCollectionItemIds)
-      this._tree.selectItems(SnowlUtils.gListViewCollectionItemIds);
+    // Ensure collection tree selection maintained
+//    if (document.getElementById("snowlSidebar"))
+      this._tree.selectItems(this.itemIds);
+this._log.info("init: itemIds = "+this.itemIds);
   },
 
 
   //**************************************************************************//
   // Event & Notification Handlers
 
-  onSourceAdded: function() {
+  onSourceAdded: function(aPlaceID) {
     // Newly subscribed source has been added to places, select the inserted row.
     // The tree may not be ready, so use a timeout.  The effect of selecting here
     // is that onMessageAdded will trigger a list view refresh for each message,
     // so messages pop into the list as added.
     this._tree.view.selection.select(-1);
     this._tree.currentSelectedIndex = this._tree.currentIndex;
+    this.itemIds = [aPlaceID];
     setTimeout(function() {
       SnowlUtils.gListViewDeleteMoveInsert = true;
-      SnowlUtils.RestoreSelection(CollectionsView._tree,
-                                  SnowlUtils.gListViewCollectionItemIds);
+      SnowlUtils.RestoreSelection(CollectionsView._tree, CollectionsView.itemIds);
     }, 300)
   },
 
@@ -133,6 +149,7 @@ let CollectionsView = {
       }
 
       if (refreshFlag) {
+CollectionsView._log.info("onMessageAdded: REFRESH LIST");
         gMessageViewWindow.SnowlMessageView._collection.invalidate();
         gMessageViewWindow.SnowlMessageView._rebuildView();
       }
@@ -146,6 +163,7 @@ let CollectionsView = {
   },
 
   onSelect: function(aEvent) {
+this._log.info("onSelect start: aEvent = "+aEvent.toSource());
     // We want to only select onClick (more precisely, mouseup) for mouse events
     // but need onSelect for key events (arrow keys).  Since onSelect events do
     // not have info on whether mouse or key, we track it ourselves.
@@ -157,19 +175,16 @@ let CollectionsView = {
 
   onClick: function(aEvent) {
     let row = { }, col = { }, obj = { };
-    let constraints = [];
+    let constraints = [], selectedItemIds = [];
     let itemId, uri, rangeFirst = { }, rangeLast = { }, stop = false;
     let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
 
 this._log.info("onClick start: curIndex:curSelectedIndex = "+
   this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
-this._log.info("onClick start: selNodeViewIndex:viewSelcurIndex = "+
-  (this._tree.selectedNode ?
-  this._tree.selectedNode.viewIndex+" : "+this._tree.view.selection.currentIndex :
-  "NULL selectedNode"));
 this._log.info("onClick start - gMouseEvent:gRtbutton:modKey = "+
   SnowlUtils.gMouseEvent+" : "+SnowlUtils.gRightMouseButtonDown+" : "+modKey);
 this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
+this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
     // Don't run query on right click, or already selected row (unless deselecting).
     if (SnowlUtils.gRightMouseButtonDown || this._tree.currentIndex == -1 ||
@@ -190,6 +205,7 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
       gMessageViewWindow.SnowlMessageView._collection.clear();
       gMessageViewWindow.SnowlMessageView._rebuildView();
       this._tree.currentSelectedIndex = -1;
+      this.itemIds = "";
       return;
     }
 
@@ -202,14 +218,12 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
       return;
     }
 
-    // Reset stored selection array.
-    SnowlUtils.gListViewCollectionItemIds = [];
     // Get selected row(s) and construct a query.
     for (let i = 0; i < numRanges && !stop; i++) {
       this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
       for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
         itemId = this._tree.view.nodeForTreeIndex(index).itemId;
-        SnowlUtils.gListViewCollectionItemIds.push(itemId);
+        selectedItemIds.push(itemId);
         uri = this._tree.view.nodeForTreeIndex(index).uri;
         let query = new SnowlQuery(uri);
         if (query.queryProtocol == "place:") {
@@ -238,6 +252,7 @@ this._log.info("onClick: constraints = " + constraints.toSource());
 
     let collection = new SnowlCollection(null, name, null, constraints, null);
     gMessageViewWindow.SnowlMessageView.setCollection(collection);
+    this.itemIds = selectedItemIds;
 
     this._tree.currentSelectedIndex = this._tree.currentIndex;
     SnowlUtils.gMouseEvent = null;
@@ -248,7 +263,7 @@ this._log.info("onClick: constraints = " + constraints.toSource());
   },
 
   onTreeContextPopupHidden: function() {
-    SnowlUtils.RestoreSelection(this._tree, SnowlUtils.gListViewCollectionItemIds);
+    SnowlUtils.RestoreSelection(this._tree, this.itemIds);
   },
 
   onSubscribe: function() {
@@ -483,8 +498,7 @@ function SnowlTreeViewDrop(aRow, aOrientation) {
   this._drop(aRow, aOrientation);
 
   SnowlUtils.gListViewDeleteMoveInsert = true;
-  SnowlUtils.RestoreSelection(CollectionsView._tree,
-                              SnowlUtils.gListViewCollectionItemIds);
+  SnowlUtils.RestoreSelection(CollectionsView._tree, CollectionsView.itemIds);
 };
 
 // Not using this yet..

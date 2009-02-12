@@ -306,11 +306,10 @@ let SnowlSource = {
           "UPDATE sources " +
           "SET    placeID = " + placeID +
           " WHERE      id = " + this.id);
-        SnowlUtils.gListViewCollectionItemIds = [placeID];
 this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
 
         // Use 'added' here for collections observer for more specificity
-        Observers.notify("snowl:source:added");
+        Observers.notify("snowl:source:added", placeID);
       }
 
       SnowlDatastore.dbConnection.commitTransaction();
