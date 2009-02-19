@@ -10,14 +10,40 @@
   <binding id="tree" extends="chrome://browser/content/places/tree.xml#places-tree">
     <implementation>
 
-      <!-- selection on right click, may be different than currentIndex -->
+      <!-- Selection on right click, may be different than currentIndex -->
       <field name="_currentSelectedIndex">-1</field>
       <property name="currentSelectedIndex"
                 onget="return this._currentSelectedIndex;"
                 onset="return this._currentSelectedIndex = val;"/>
 
+      <method name="restoreSelection">
+        <parameter name="items"/>
+        <body><![CDATA[
+          let strArray = [], intArray = [], itemIds = [];
+          if (items)
+            itemIds = items;
+          else {
+            strArray = this.getAttribute("itemids").split(",");
+            for each (let intg in strArray)
+              intArray.push(parseInt(intg));
+            itemIds = intArray;
+          }
+          this.selectItems(itemIds);
+          if (itemIds == -1)
+            return;
+          this.boxObject.ensureRowIsVisible(this.currentIndex)
+          ]]></body>
+      </method>
+
     </implementation>
 
+    <handlers>
+      <!-- Restore tree selection on drag end -->
+      <handler event="dragend"><![CDATA[
+        SnowlUtils.gMouseEvent = false;
+        this.restoreSelection();
+      ]]></handler>
+    </handlers>
   </binding>
 
 </bindings>

@@ -194,11 +194,6 @@ let SnowlMessageView = {
   },
 
   show: function() {
-    // Refresh list on each new message.
-//    Observers.add("snowl:message:added", this.onMessageAdded, this);
-    // Refresh list at end of all message downloads.
-//    Observers.add("snowl:messages:changed", this.onMessagesChanged, this);
-
     this._snowlViewContainer.hidden = false;
     this._snowlViewSplitter.hidden = false;
 
@@ -211,14 +206,18 @@ let SnowlMessageView = {
 
     // XXX Should we somehow destroy the view here (f.e. by setting
     // this._tree.view to null)?
-
-//    Observers.remove("snowl:message:added", this.onMessageAdded, this);
-//    Observers.remove("snowl:messages:changed", this.onMessagesChanged, this);
   },
 
 
   //**************************************************************************//
   // Event & Notification Handling
+
+  onMessageAdded: function(message) {
+    // Refresh list view on each new message, if collection selected.
+this._log.info("onMessageAdded: REFRESH LIST");
+      this._collection.invalidate();
+      this._rebuildView();
+  },
 
   onFilter: function() {
     this._applyFilters();
@@ -387,6 +386,11 @@ let SnowlMessageView = {
     this._setRead(true);
     // If new message selected, reset for toggle
     SnowlUtils.gMessagePosition.pageIndex = null;
+  },
+
+  onCollectionsDeselect: function() {
+    this._collection.clear();
+    this._rebuildView();
   },
 
   onKeyPress: function(aEvent) {

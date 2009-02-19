@@ -310,16 +310,14 @@ let SnowlUtils = {
   //**************************************************************************//
   // Utilities to track tree selections within a session
 
-  gListViewDeleteMoveInsert: false,
-
   // Position of current page in tabs and history
   gMessagePosition: {tabIndex: null, pageIndex: null},
 
   // Track mouse and right mouse click for tree row onSelect, contextmenu, and
   // dnd handling without running a query resulting in content load.
-  gRightMouseButtonDown: null,
-  gMouseEvent: null,
-  onTreeMouseDown: function(aEvent, tree) {
+  gRightMouseButtonDown: false,
+  gMouseEvent: false,
+  onTreeMouseDown: function(aEvent) {
     this.gMouseEvent = true;
     if (aEvent.button == 2)
       this.gRightMouseButtonDown = true;
@@ -352,7 +350,8 @@ let SnowlUtils = {
         treeSelection.select(row.value);
       }
       else {
-        let saveCurrentIndex = treeSelection.currentIndex;
+        let saveCurrentIndex = tree.selectedNode ?
+            treeSelection.currentIndex : -1;
         treeSelection.selectEventsSuppressed = true;
         treeSelection.select(row.value);
         treeSelection.currentIndex = saveCurrentIndex;
@@ -372,44 +371,33 @@ let SnowlUtils = {
   // original row currently indicated by dotted border without loading its query,
   // unless rows have been deleted/moved/inserted.  This is triggered when the
   // context menu for the row is hidden/closed (onpopuphidden event) or mouseup
-  // for dnd.  Also called from onSourceAdded for insertions.
+  // for dnd.
   RestoreSelection: function(tree, itemIds) {
     let treeSelection = tree.view.selection;
+//this._log.info("RestoreSelection: curIndex:curSelectedIndex = "+
+//  tree.currentIndex+" : "+tree.currentSelectedIndex);
 
     // Reset mouse state to enable key navigation.
-    this.gMouseEvent = null;
-    this.gRightMouseButtonDown = null;
+    this.gMouseEvent = false;
+    if (!this.gRightMouseButtonDown)
+      // Reset already (onSourceRemoved) and restore selection handled, so return.
+      return;
+    else
+      this.gRightMouseButtonDown = false;
 
-    // If tree rows removed, need to get new index of originally selected row,
-    // unless original row is removed, then deselect.
-    if (this.gListViewDeleteMoveInsert) {
-      // If selectItems gets no such itemId, the row was removed, currentIndex = -1
-      tree.selectItems(itemIds);
-      // If the itemId is selected, now need to make it the current selection for
-      // the onselect event to run the query.  Make sure row shows.
-      // XXX don't run db query 1st time on default next (if none) selection row.
-      if (tree.currentIndex != -1) {
-        tree.currentSelectedIndex = tree.currentIndex;
-        tree.boxObject.ensureRowIsVisible(tree.currentIndex);
-      }
-
-      this.gListViewDeleteMoveInsert = false;
+    tree.currentSelectedIndex = treeSelection.currentIndex;
+    // Make sure that currentIndex is valid so that we don't try to restore
+    // a selection of an invalid row.
+    if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
+        (treeSelection.currentIndex >= 0)) {
+      treeSelection.selectEventsSuppressed = true;
+      treeSelection.select(treeSelection.currentIndex);
+      treeSelection.selectEventsSuppressed = false;
     }
-    else {
-      tree.currentSelectedIndex = treeSelection.currentIndex;
-      // Make sure that currentIndex is valid so that we don't try to restore
-      // a selection of an invalid row.
-      if((!treeSelection.isSelected(treeSelection.currentIndex)) &&
-          (treeSelection.currentIndex >= 0)) {
-        treeSelection.selectEventsSuppressed = true;
-        treeSelection.select(treeSelection.currentIndex);
-        treeSelection.selectEventsSuppressed = false;
-      }
-      else if(treeSelection.currentIndex < 0) {
-        // Clear the selection and border outline index.
-        treeSelection.clearSelection();
-        tree.currentSelectedIndex = -1;
-      }
+    else if(treeSelection.currentIndex < 0) {
+      // Clear the selection and border outline index.
+      treeSelection.clearSelection();
+      tree.currentSelectedIndex = -1;
     }
   },
 

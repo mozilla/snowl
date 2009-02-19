@@ -338,11 +338,13 @@ this._log.info("got " + groups.length + " groups");
     for each (let condition in this.constraints) {
       operator = condition.operator ? condition.operator : "AND";
       if (conditions.length == 0)
-        conditions.push(" WHERE");
+        conditions.push(" WHERE (");
       else
         conditions.push(operator);
       conditions.push(condition.expression);
     }
+    if (conditions.length > 0)
+      conditions.push(")");
 
     for each (let condition in this.filters) {
       operator = condition.operator ? condition.operator : "AND";

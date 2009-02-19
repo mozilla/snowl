@@ -81,6 +81,9 @@ let Snowl = {
 
     this._prefs.set("lastVersion", this._version);
 
+    // Intialize places
+    SnowlPlaces.init();
+
     // Init tab listeners
     this._initTabListeners();
 
@@ -368,12 +371,8 @@ let Snowl = {
       sidebarDoc.CollectionsView._tree.setAttribute("flat", val ? true : false);
       sidebarDoc.CollectionsView._tree.place = val ?
           SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
-      // Ensure collection selection maintained, if in List sidebar
-      if (document.getElementById("snowlSidebar")) {
-        sidebarDoc.CollectionsView._tree.selectItems(CollectionsView.itemIds);
-        sidebarDoc.CollectionsView._tree.boxObject.
-                   ensureRowIsVisible(sidebarDoc.CollectionsView._tree.currentIndex);
-      }
+      // Ensure collection selection maintained
+      sidebarDoc.CollectionsView._tree.restoreSelection();
     }
 
     let rivertab = this._snowlRiverTab();
@@ -383,6 +382,8 @@ let Snowl = {
       tabDoc.CollectionsView._tree.setAttribute("flat", val ? true : false);
       tabDoc.CollectionsView._tree.place = val ?
           SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
+      // Ensure collection selection maintained
+      tabDoc.CollectionsView._tree.restoreSelection();
     }
   },
 

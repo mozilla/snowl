@@ -48,7 +48,8 @@
   %messageDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+<page id="snowlMessage"
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <popupset id="mainPopupSet">
     <popup id="headersContextMenu">

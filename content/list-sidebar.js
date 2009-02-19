@@ -44,8 +44,6 @@ Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 let gBrowserWindow = SnowlService.gBrowserWindow;
-// Defined differently in River
-let gMessageViewWindow = SnowlService.gBrowserWindow;
 
 let ListSidebar = {
 

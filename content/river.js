@@ -58,8 +58,6 @@ const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 let gBrowserWindow = SnowlService.gBrowserWindow;
-// Defined differently in List View
-let gMessageViewWindow = window;
 
 let SnowlMessageView = {
 
@@ -217,9 +215,6 @@ let SnowlMessageView = {
   // Initialization
 
   _init: function() {
-    Observers.add("snowl:message:added", this.onMessageAdded, this);
-    Observers.add("snowl:source:removed", this.onSourceRemoved, this);
-
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
 
@@ -252,7 +247,9 @@ let SnowlMessageView = {
     this._window = new XPCNativeWrapper(window);
     this._document = this._window.document;
 
-    //this._collection = new SnowlCollection();
+    // Init list with empty collection.
+    this._collection = new SnowlCollection();
+
     // _updateToolbar selects a collection, which triggers a view rebuild,
     // so we don't have to call rebuildView here.  This is pretty convoluted,
     // though.  We should make this simpler and clearer.
@@ -320,18 +317,24 @@ let SnowlMessageView = {
       this._bodyButton.checked = true;
       this._setBody(true);
     }
+    else {
+      this._setBody(this._bodyButton.hasAttribute("checked"));
+    }
 
     if ("filter" in this._params)
       document.getElementById("filterTextbox").value = this._params.filter;
 
     if ("period" in this._params) {
       let item = this._periodMenuPopup.getElementsByAttribute("value", this._params.period)[0];
-      if (item)
+      if (item) {
         this._periodMenu.selectedItem = item;
+        this._periodMenu.setAttribute("selectedindex", this._periodMenu.selectedIndex);
+      }
     }
-    // By default, show one week.
-    else
-      this._periodMenu.selectedIndex = 3;
+    else {
+      // Restore persisted selection
+      this._periodMenu.selectedIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
+    }
 
     if ("columns" in this._params) {
       this._columnsButton.checked = true;
@@ -340,31 +343,19 @@ let SnowlMessageView = {
       // the view gets built needs to get cleaned up and documented.
       this._setColumns(this._columnsButton.checked);
     }
-
-    let selected = false;
-    if ("collection" in this._params) {
-      //dump("this._params.collection: " + this._params.collection + "; this._params.group: " + this._params.group + "\n");
-      for (let i = 0; i < CollectionsView._rows.length; i++) {
-        let collection = CollectionsView._rows[i];
-        //dump("collection id: " + collection.id + "; parent id: " + (collection.parent ? collection.parent.id : "no parent") + "; collection.name = " + collection.name + "\n");
-        if (collection.id == this._params.collection) {
-          CollectionsView._tree.view.selection.select(i);
-          selected = true;
-          break;
-        }
-        else if ("group" in this._params &&
-                 collection.parent &&
-                 collection.parent.id == this._params.collection &&
-                 collection.name == this._params.group) {
-          CollectionsView._tree.view.selection.select(i);
-          selected = true;
-          break;
-        }
-      }
+    else {
+      this._setColumns(this._columnsButton.hasAttribute("checked"));
     }
-    if (!selected)
-      CollectionsView._tree.view.selection.select(0);
 
+    if ("collection" in this._params) {
+      CollectionsView.itemIds = this._params.collection;
+    }
+
+    // Restore saved selection
+this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
+    if (CollectionsView.itemIds != -1) {
+      CollectionsView._tree.restoreSelection();
+    }
   },
 
   onFilter: function() {
@@ -388,8 +379,13 @@ let SnowlMessageView = {
 
     this._collection.filters = filters;
 
-    this._collection.invalidate();
-    this.rebuildView();
+    if (CollectionsView.itemIds == -1)
+      // No selection, don't show anything
+      this._collection.clear();
+    else
+      this._collection.invalidate();
+
+    this._rebuildView();
   },
 
   onCommandBodyButton: function() {
@@ -432,6 +428,7 @@ let SnowlMessageView = {
   },
 
   onCommandPeriodMenu: function(event) {
+    this._periodMenu.setAttribute("selectedindex", this._periodMenu.selectedIndex);
     this._updateURI();
     this._applyFilters();
   },
@@ -445,21 +442,17 @@ let SnowlMessageView = {
     if (this._columnsButton.checked)
       params.push("columns");
 
-    // FIXME: don't add the collection if it's the default All collection,
-    // but do add it if it's already in the list of params.
-    if (this._collection.id)
-      params.push("collection=" + this._collection.id);
-    else if (this._collection.parent) {
-      params.push("collection=" + this._collection.parent.id);
-      params.push("group=" + encodeURIComponent(this._collection.name));
-    }
+    if (CollectionsView.itemIds && CollectionsView.itemIds != -1)
+      params.push("collection=" + CollectionsView.itemIds)
 
     if (this._filterTextbox.value)
       params.push("filter=" + encodeURIComponent(this._filterTextbox.value));
 
-    // FIXME: do add the All period if it's already in the list of params.
-    if (this._periodMenu.selectedItem && this._periodMenu.selectedItem.value != "all")
+    let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
+    if (selIndex) {
+      this._periodMenu.selectedIndex = selIndex;
       params.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
+    }
 
     let browser = gBrowserWindow.gBrowser.getBrowserForDocument(document);
 
@@ -497,6 +490,7 @@ let SnowlMessageView = {
   },
 
   onMessageAdded: function(message) {
+this._log.info("onMessageAdded: REFRESH RIVER");
     // Don't add the message if the view isn't showing the latest available
     // messages.  Currently, that only happens when the user selects "yesterday"
     // from the period menu.
@@ -513,11 +507,12 @@ let SnowlMessageView = {
     let filter = this._filterTextbox.value;
     if (filter != "") {
       this._collection.invalidate();
-      this.rebuildView();
+      this._rebuildView();
       return;
     }
 
     // Add the message to the view.
+//this._log.info("onMessageAdded: REFRESH RIVER message = "+message.toSource());
 
     // Find the group box into which we're going to insert the message.
     let groups = SnowlDateUtils.periods[period];
@@ -532,17 +527,16 @@ let SnowlMessageView = {
     groupBox.insertBefore(messageBox, groupBox.firstChild);
   },
 
-  onSourceRemoved: function() {
-    // If a source was removed, we have to remove any of its messages
-    // that we are currently displaying in the view.  Until we come up with
-    // a smarter way to do that, we simply unconditionally rebuild the view.
-    this._collection.invalidate();
-    this.rebuildView();
+  onCollectionsDeselect: function() {
+    this._updateURI();
+    this._collection.clear();
+    this._collection.constraints = null;
+    this._rebuildView();
   },
 
   onMidnight: function() {
     this._setMidnightTimout();
-    this.rebuildView();
+    this._rebuildView();
   },
 
   doPageMove: function(direction) {
@@ -644,7 +638,7 @@ let SnowlMessageView = {
     yield this._futureRebuildView.result();
   }),
 
-  rebuildView: strand(function() {
+  _rebuildView: strand(function() {
     let begin = new Date();
 
     // Reset the view by removing all its groups and messages.
@@ -858,7 +852,7 @@ let splitterDragObserver = {
   handleEvent: function(event) {
     if (this._timeout)
       this._timeout = window.clearTimeout(this._timeout);
-    let width = event.clientX - this._contentBox.offsetLeft;
+    let width = event.clientX - SnowlMessageView._contentBox.offsetLeft;
     document.getElementById("columnResizeSplitter").left = width;
     this._timeout = window.setTimeout(this.callback, 500, width);
   }

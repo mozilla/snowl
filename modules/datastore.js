@@ -971,7 +971,8 @@ let SnowlPlaces = {
   collectionsFlatID: null,
   collectionsGroupedID: null,
   collectionsGroupedFolderID: null,
-  convertedToPlaces: null,
+  initializedPlaces: false,
+  convertedToPlaces: false,
 
   get queryFlat() {
     delete this._queryFlat;
@@ -1034,6 +1035,10 @@ let SnowlPlaces = {
 
   // Check for our places structure and create if not found
   init: function() {
+    // Only do once for session
+    if (this.initializedPlaces)
+      return;
+
     let itemID, items;
     items = PlacesUtils.annotations.
                         getItemsWithAnnotation(this.SNOWL_ROOT_ANNO, {});
@@ -1177,6 +1182,8 @@ let SnowlPlaces = {
 
       this.convertedToPlaces = false;
     }
+
+    this.initializedPlaces = true;
   }
 
 };

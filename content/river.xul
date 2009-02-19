@@ -64,7 +64,8 @@
   %filterTextboxDTD;
 ]>
 
-<page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+<page id="snowlRiver"
+      xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       xmlns:html="http://www.w3.org/1999/xhtml"
       title="&page.title;"
       onload="SnowlMessageView.onLoad()">
@@ -126,30 +127,34 @@
         <!-- <toolbarbutton oncommand="dump(new XMLSerializer().serializeToString(document))"/> -->
 
         <toolbarbutton id="bodyButton" type="checkbox"
+                       persist="checked"
                        image="chrome://snowl/content/icons/page_white_text.png"
                        oncommand="SnowlMessageView.onCommandBodyButton(event)"
                        tooltiptext="&bodyButton.tooltip;"/>
 
         <toolbarbutton id="columnsButton" type="checkbox"
+                       persist="checked"
                        image="chrome://snowl/content/icons/application_view_columns.png"
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
 
-        <menulist id="periodMenu" oncommand="SnowlMessageView.onCommandPeriodMenu(event)">
+        <menulist id="periodMenu"
+                  selectedindex=""
+                  persist="selectedindex"
+                  oncommand="SnowlMessageView.onCommandPeriodMenu(event)">
           <menupopup id="periodMenuPopup">
             <menuitem label="&periodAnytime.label;"
                       value="all"
                       class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/rainbow.png"
-                      selected="true"/>
+                      image="chrome://snowl/content/icons/calendar.png"/>
             <menuitem label="&periodToday.label;"
                       value="today"
                       class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/calendar_view_day.png"/>
+                      image="chrome://snowl/content/icons/date.png"/>
             <menuitem label="&periodYesterday.label;"
                       value="yesterday"
                       class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/calendar_view_day.png"/>
+                      image="chrome://snowl/content/icons/date_previous.png"/>
             <menuitem label="&periodLast7Days.label;"
                       value="last7days"
                       class="menuitem-iconic"
