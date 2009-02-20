@@ -1,0 +1,58 @@
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!ENTITY listView.label "Seznam">
+<!ENTITY listView.accesskey "S">
+<!ENTITY riverView.label "Řeka">
+<!ENTITY riverView.accesskey "e">
+<!ENTITY streamView.label "Proud">
+<!ENTITY streamView.accesskey "P">
+<!ENTITY checkForNewMessages.label "Zkontolovat nové zprávy">
+<!ENTITY checkForNewMessages.accesskey "k">
+<!ENTITY subscribe.label "Odebírat...">
+<!ENTITY subscribe.accesskey "O">
+<!ENTITY importOPML.label "Importovat OPML...">
+<!ENTITY importOPML.accesskey "I">
+<!ENTITY exportOPML.label "Exportovat OPML...">
+<!ENTITY exportOPML.accesskey "x">
+<!ENTITY options.label "Možnosti">
+<!ENTITY options.accesskey "M">
+<!ENTITY listViewSidebarMenuItem.label "Seznam zpráv">
+<!ENTITY listViewSidebarMenuItem.accesskey "z">
+<!ENTITY listViewSidebar.label "Seznam zpráv">
+<!ENTITY streamViewSidebarMenuItem.label "Proud zpráv">
+<!ENTITY streamViewSidebarMenuItem.accesskey "P">
+<!ENTITY streamViewSidebar.label "Proud zpráv">
+<!ENTITY snowlLayoutMenu.label "Rozhraní">
+<!ENTITY snowlLayoutMenu.accesskey "R">
+<!ENTITY layoutClassic.label "Klasické">
+<!ENTITY layoutClassic.accesskey "K">
+<!ENTITY layoutVertical.label "Vertikální">
+<!ENTITY layoutVertical.accesskey "V">
+<!ENTITY layoutWideMessage.label "Široká zpráva">
+<!ENTITY layoutWideMessage.accesskey "z">
+<!ENTITY layoutWideThread.label "Široký seznam">
+<!ENTITY layoutWideThread.accesskey "m">
+<!ENTITY layoutStacked.label "Nad sebou">
+<!ENTITY layoutStacked.accesskey "N">
+<!ENTITY headerNone.label "Žádná hlavičku">
+<!ENTITY headerNone.accesskey "h">
+<!ENTITY headerBrief.label "Stručná hlavička">
+<!ENTITY headerBrief.accesskey "S">
+<!ENTITY headerFull.label "Úplná hlavička">
+<!ENTITY headerFull.accesskey "l">
+<!ENTITY toolbar.label "Postraní lišta">
+<!ENTITY toolbar.accesskey "P">
+<!ENTITY viewtoolbar.label "Lišta seznamu">
+<!ENTITY viewtoolbar.accesskey "u">
+<!ENTITY hierarchyOff.label "Rovné uspořádání kolekce">
+<!ENTITY hierarchyOff.accesskey "R">
+<!ENTITY hierarchyOn.label "Hierarchické uspořádání kolekce">
+<!ENTITY hierarchyOn.accesskey "H">
+<!ENTITY toggleList.label "Snowl přepínání zobrazení seznamu">
+<!ENTITY toggleList.tooltip "Přepnout zobrazení seznamu">
+<!ENTITY toggleStream.label "Snowl přepínání zobrazení proudů">
+<!ENTITY toggleStream.tooltip "Přepnout zobrazení proudu">
+<!ENTITY toggleRiver.label "Snowl přepínání zobrazení řeky">
+<!ENTITY toggleRiver.tooltip "Přepnout zobrazení řeky">
+<!ENTITY toggleHeader.label "Snowl přepínání hlavičky">
+<!ENTITY toggleHeader.tooltip "Přepnout hlavičku zprávy na žádnou, stručnou nebo plnou">

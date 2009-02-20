@@ -44,6 +44,7 @@ skin    snowl   classic/1.0   skin/linux/     os=Linux
 
 # localizations in alphabetical order
 locale  snowl   ca-AD   locale/ca-AD/
+locale  snowl   cs-CZ   locale/cs-CZ/
 locale  snowl   da-DK   locale/da-DK/
 locale  snowl   de-DE   locale/de-DE/
 locale  snowl   en-US   locale/en-US/

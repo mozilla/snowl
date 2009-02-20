@@ -1,0 +1,7 @@
+<!ENTITY nameCol.label "Jméno">
+<!ENTITY refresh.label "Obnovit">
+<!ENTITY refresh.accesskey "t">
+<!ENTITY refreshAll.label "Obnovit všechny zdroje">
+<!ENTITY refreshAll.accesskey "v">
+<!ENTITY unsubscribe.label "Zrušit odběr">
+<!ENTITY unsubscribe.accesskey "Z">

@@ -1,0 +1,22 @@
+<!ENTITY subscribe.title "Odebírat">
+<!ENTITY source.label "Odebírat zdroj zpráv">
+<!ENTITY feeds.label "Kanál">
+<!ENTITY feeds.accesskey "k">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Umístění:">
+<!ENTITY name.label "Název:">
+<!ENTITY subscribeButton.label "Odebírat">
+<!ENTITY subscribeButton.accesskey "O">
+<!ENTITY closeButton.label "Zpět">
+<!ENTITY closeButton.accesskey "Z">
+<!ENTITY clearButton.label "Vymazat">
+<!ENTITY clearButton.accesskey "V">
+<!ENTITY page.title "Snowl: Odebírat zdroj zpráv">
+<!ENTITY mail.label "Pošta">
+<!ENTITY mail.accesskey "P">
+<!ENTITY newsgroup.label "Diskusní skupina">
+<!ENTITY newsgroup.accesskey "D">
+<!ENTITY general.title "Hlavní">
+<!ENTITY subscriptions.title "Příspěvky">
+<!ENTITY organize.title "Setřídit">
