@@ -74,7 +74,7 @@
           <column id="briefSubjectColumn" flex="1">
             <hbox class="headerBox">
               <label class="label"
-                     value="&subject.label;"/>
+                     value="&subject.label;" control="briefSubject"/>
               <label id="briefSubject"
                        class="text-link"
                        crop="end"
@@ -87,7 +87,7 @@
           <column id="briefAuthorColumn" flex="1">
             <hbox class="headerBox">
               <label class="label"
-                     value="&author.label;"/>
+                     value="&author.label;" control="briefAuthor"/>
               <textbox id="briefAuthor"
                        class="plain"
                        readonly="true"
@@ -99,7 +99,7 @@
           <column id="briefTimestampColumn">
             <hbox class="headerBox">
               <label class="label"
-                     value="&timestamp.label;"/>
+                     value="&timestamp.label;" control="briefTimestamp"/>
               <textbox id="briefTimestamp"
                        class="plain"
                        readonly="true"
