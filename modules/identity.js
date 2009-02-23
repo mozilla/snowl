@@ -91,6 +91,10 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
     "INSERT INTO identities (sourceID, externalID, personID) " +
     "VALUES                 (:sourceID, :externalID, :personID)"
   );
+//  let identityStatement = SnowlDatastore.createStatement(
+//    "INSERT INTO identities (sourceID, externalID, personID, placesID) " +
+//    "VALUES (:sourceID, :externalID, :personID, :placesID)"
+//  );
 
   try {
     personStatement.params.name = name;
@@ -120,9 +124,26 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
       "SET    placeID = " + placeID +
       " WHERE      id = " + personID);
 
+    // XXX lookup favicon in collections table rather than hardcoding
+    let iconURI =
+      iconURL ? URI.get(iconURL) :
+      homeURL ? SnowlSource.faviconSvc.getFaviconForPage(homeURL) :
+      URI.get("chrome://snowl/skin/person-16.png");
+
+    // Create places record, placesID stored into people table record.
+//SnowlPlaces._log.info("Author name:iconURI.spec - " + name + " : " + iconURI.spec);
+    let placesID = SnowlPlaces.persistPlace("identities",
+                                             personID,
+                                             name,
+                                             null, // homeURL,
+                                             null, // externalID,
+                                             iconURI,
+                                             sourceID);
+
     identityStatement.params.sourceID = sourceID;
     identityStatement.params.externalID = externalID;
     identityStatement.params.personID = personID;
+//    identityStatement.params.placesID = placesID;
     identityStatement.step();
     let identityID = SnowlDatastore.dbConnection.lastInsertRowID;
 
