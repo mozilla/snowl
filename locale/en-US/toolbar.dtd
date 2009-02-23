@@ -3,3 +3,4 @@
 <!ENTITY refreshButton.tooltip        "Refresh all message sources.">
 <!ENTITY exportButton.tooltip         "Export message sources as OPML.">
 <!ENTITY writeButton.tooltip          "Write a message.">
+<!ENTITY searchboxButton.tooltip      "Toggle searchbox.">

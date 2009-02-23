@@ -46,6 +46,7 @@
 
 <?xml-stylesheet href="chrome://snowl/content/river.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/riverContent.css" type="text/css"?>
+<?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
 
 <!-- We load overlays via xul-overlay processing instructions rather than
    - chrome.manifest instructions because manifest instructions require us
@@ -56,9 +57,9 @@
 
 <!-- toolbar.dtd gives us writeButton.tooltip -->
 <!DOCTYPE page [
-  <!ENTITY % riverDTD SYSTEM "chrome://snowl/locale/river.dtd">
+  <!ENTITY % riverDTD         SYSTEM "chrome://snowl/locale/river.dtd">
   %riverDTD;
-  <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
+  <!ENTITY % toolbarDTD       SYSTEM "chrome://snowl/locale/toolbar.dtd">
   %toolbarDTD;
   <!ENTITY % filterTextboxDTD SYSTEM "chrome://snowl/locale/filterTextbox.dtd">
   %filterTextboxDTD;
@@ -105,16 +106,16 @@
 
       <toolbar id="snowlToolbar">
         <toolbarbutton id="snowlSubscribeButton"
-                       image="chrome://snowl/content/icons/add.png"
                        oncommand="CollectionsView.onSubscribe()"
                        tooltiptext="&subscribeButton.tooltip;"/>
         <toolbarbutton id="snowlRefreshButton"
-                       image="chrome://snowl/content/icons/arrow_refresh_small.png"
                        oncommand="CollectionsView.onRefresh()"
                        tooltiptext="&refreshButton.tooltip;"/>
         <toolbarspring/>
+        <toolbarbutton id="searchBoxButton" type="checkbox"
+                       oncommand="CollectionsView.onToggleSearchbox()"
+                       tooltiptext="&searchboxButton.tooltip;"/>
         <toolbarbutton id="writeButton" type="checkbox"
-                       image="chrome://snowl/content/icons/email_add.png"
                        oncommand="SnowlMessageView.onToggleWrite(event)"
                        tooltiptext="&writeButton.tooltip;"/>
       </toolbar>
@@ -128,13 +129,11 @@
 
         <toolbarbutton id="bodyButton" type="checkbox"
                        persist="checked"
-                       image="chrome://snowl/content/icons/page_white_text.png"
                        oncommand="SnowlMessageView.onCommandBodyButton(event)"
                        tooltiptext="&bodyButton.tooltip;"/>
 
         <toolbarbutton id="columnsButton" type="checkbox"
                        persist="checked"
-                       image="chrome://snowl/content/icons/application_view_columns.png"
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
 

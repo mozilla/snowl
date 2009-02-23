@@ -40,6 +40,8 @@
 <?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
 
 <!DOCTYPE overlay [
+  <!ENTITY % placesDTD      SYSTEM "chrome://browser/locale/places/places.dtd">
+  %placesDTD;
   <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">
   %collectionsDTD;
   <!ENTITY % toolbarDTD     SYSTEM "chrome://snowl/locale/toolbar.dtd">
@@ -80,6 +82,20 @@
                 accesskey="&unsubscribe.accesskey;"
                 oncommand="CollectionsView.unsubscribe();"/>
     </popup>
+
+    <hbox id="searchBox"
+          persist="collapsed"
+          align="center">
+      <label value="&search.label;"
+             accesskey="&search.accesskey;"
+             control="search-box"/>
+      <textbox id="search-box"
+               flex="1"
+               type="search"
+               cocoa-size="small"
+               aria-controls="sourcesView"
+               oncommand="CollectionsView.searchCollections(this.value);"/>
+    </hbox>
 
     <!-- onclick="SidebarUtils.handleTreeClick(this, event, true);" -->
     <tree id="sourcesView"

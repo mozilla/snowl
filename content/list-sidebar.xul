@@ -48,8 +48,6 @@
 
 <!-- toolbar.dtd gives us writeButton.tooltip. -->
 <!DOCTYPE page [
-  <!ENTITY % placesDTD SYSTEM "chrome://browser/locale/places/places.dtd">
-  %placesDTD;
   <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
   %listDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
@@ -79,19 +77,20 @@
 
   <toolbar id="snowlToolbar" persist="hidden">
     <toolbarbutton id="snowlSubscribeButton"
-                   image="chrome://snowl/content/icons/add.png"
-				   class="tabbable"
+                   class="tabbable"
                    oncommand="CollectionsView.onSubscribe()"
                    tooltiptext="&subscribeButton.tooltip;"/>
     <toolbarbutton id="snowlRefreshButton"
-                   image="chrome://snowl/content/icons/arrow_refresh_small.png"
-				   class="tabbable"
+                   class="tabbable"
                    oncommand="CollectionsView.onRefresh()"
                    tooltiptext="&refreshButton.tooltip;"/>
     <toolbarspring/>
+    <toolbarbutton id="searchBoxButton" type="checkbox"
+                   class="tabbable"
+                   oncommand="CollectionsView.onToggleSearchbox()"
+                   tooltiptext="&searchboxButton.tooltip;"/>
     <toolbarbutton id="writeButton" type="checkbox"
-                   image="chrome://snowl/content/icons/email_add.png"
-				   class="tabbable"
+                   class="tabbable"
                    oncommand="ListSidebar.onToggleWrite(event)"
                    tooltiptext="&writeButton.tooltip;"/>
   </toolbar>
