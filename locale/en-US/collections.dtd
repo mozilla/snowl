@@ -7,3 +7,5 @@
 <!ENTITY refreshAll.accesskey         "A">
 <!ENTITY unsubscribe.label            "Unsubscribe">
 <!ENTITY unsubscribe.accesskey        "U">
+
+<!ENTITY colSearchEmptytext.label     "Search Collections">

@@ -106,16 +106,20 @@
 
       <toolbar id="snowlToolbar">
         <toolbarbutton id="snowlSubscribeButton"
+                       class="tabbable"
                        oncommand="CollectionsView.onSubscribe()"
                        tooltiptext="&subscribeButton.tooltip;"/>
         <toolbarbutton id="snowlRefreshButton"
+                       class="tabbable"
                        oncommand="CollectionsView.onRefresh()"
                        tooltiptext="&refreshButton.tooltip;"/>
         <toolbarspring/>
         <toolbarbutton id="searchBoxButton" type="checkbox"
+                       class="tabbable"
                        oncommand="CollectionsView.onToggleSearchbox()"
                        tooltiptext="&searchboxButton.tooltip;"/>
         <toolbarbutton id="writeButton" type="checkbox"
+                       class="tabbable"
                        oncommand="SnowlMessageView.onToggleWrite(event)"
                        tooltiptext="&writeButton.tooltip;"/>
       </toolbar>
@@ -127,16 +131,18 @@
       <toolbar id="toolbar">
         <!-- <toolbarbutton oncommand="dump(new XMLSerializer().serializeToString(document))"/> -->
 
-        <toolbarbutton id="bodyButton" type="checkbox"
+        <toolbarbutton id="bodyButton"
+                       type="checkbox"
                        persist="checked"
+                       class="tabbable"
                        oncommand="SnowlMessageView.onCommandBodyButton(event)"
                        tooltiptext="&bodyButton.tooltip;"/>
-
-        <toolbarbutton id="columnsButton" type="checkbox"
+        <toolbarbutton id="columnsButton"
+                       type="checkbox"
                        persist="checked"
+                       class="tabbable"
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
-
         <menulist id="periodMenu"
                   selectedindex=""
                   persist="selectedindex"

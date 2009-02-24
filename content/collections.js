@@ -395,7 +395,8 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
   },
 
   searchCollections: function(aSearchString) {
-    // XXX: applyFilter searches in uri, which is not meaningful, fix this..
+    // XXX: Bug 479903, place queries have no way of excluding search in uri,
+    // which is not meaningful for our usage.
     if (!aSearchString)
       this._tree.place = this._tree.place;
     else

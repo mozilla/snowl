@@ -54,13 +54,13 @@
           src="chrome://snowl/content/collections.js"/>
 
   <!-- Places oncommandupdater events = null for now, override list and river
-       overlays of placesOverlay.xul -->
+       overlays of placesOverlay.xul
   <commandset id="placesCommands" events=""/>
   <commandset id="editMenuCommands">
     <commandset id="editMenuCommandSetAll" events=""/>
     <commandset id="editMenuCommandSetUndo" events=""/>
     <commandset id="editMenuCommandSetPaste" events=""/>
-  </commandset>
+  </commandset> -->
 
   <vbox id="collectionsViewBox"
         flex="1">
@@ -92,6 +92,7 @@
       <textbox id="search-box"
                flex="1"
                type="search"
+               emptytext="&colSearchEmptytext.label;"
                cocoa-size="small"
                aria-controls="sourcesView"
                oncommand="CollectionsView.searchCollections(this.value);"/>

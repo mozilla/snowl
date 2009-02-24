@@ -62,10 +62,13 @@
 
   <toolbar id="snowlToolbar">
     <toolbarbutton id="snowlRefreshButton"
+                   class="tabbable"
                    oncommand="SnowlMessageView.onRefresh()"
                    tooltiptext="&refreshButton.tooltip;"/>
     <toolbarspring/>
-    <toolbarbutton id="writeButton" type="checkbox"
+    <toolbarbutton id="writeButton"
+                   type="checkbox"
+                   class="tabbable"
                    oncommand="SnowlMessageView.onToggleWrite(event)"
                    tooltiptext="&writeButton.tooltip;"/>
   </toolbar>
