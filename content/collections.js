@@ -63,6 +63,16 @@ let CollectionsView = {
     return this._children = document.getElementById("sourcesViewChildren");
   },
 
+  get _searchBox() {
+    delete this._searchBox;
+    return this._searchBox = document.getElementById("searchBox");
+  },
+
+  get _searchBoxButton() {
+    delete this._searchBoxButton;
+    return this._searchBoxButton = document.getElementById("searchBoxButton");
+  },
+
   get itemIds() {
     let intArray = [];
     let strArray = this._tree.getAttribute("itemids").split(",");
@@ -103,6 +113,9 @@ let CollectionsView = {
     // Intialize places flat attribute
     if (!this._tree.hasAttribute("flat"))
       this._tree.setAttribute("flat", true);
+
+    if (!this._searchBox.hasAttribute("collapsed"))
+      this._searchBoxButton.setAttribute("checked", true);
 
     // Get collections and convert to places tree - one time upgrade
     // XXX move this to datastore.js module
@@ -270,6 +283,13 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     SnowlService.refreshAllSources();
   },
 
+  onToggleSearchbox: function() {
+    if (this._searchBox.hasAttribute("collapsed"))
+      this._searchBox.removeAttribute("collapsed");
+    else
+      this._searchBox.setAttribute("collapsed", true);
+  },
+
   refreshSource: function() {
     let selectedSources = [];
 
@@ -374,6 +394,14 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
     Observers.notify("snowl:source:removed");
   },
 
+  searchCollections: function(aSearchString) {
+    // XXX: applyFilter searches in uri, which is not meaningful, fix this..
+    if (!aSearchString)
+      this._tree.place = this._tree.place;
+    else
+      this._tree.applyFilter(aSearchString, [SnowlPlaces.snowlRootID]);
+  },
+
   isMessageForSelectedCollection: function(aMessageObj) {
     // Determine if source or author of new message is currently selected in the
     // collections list.
@@ -387,7 +415,7 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
         query = new SnowlQuery(uri);
         if ((query.queryGroupIDColumn == "sources.id" &&
              query.queryID == aMessageObj.sourceID) ||
-            (query.queryGroupIDColumn == "author.id" &&
+            (query.queryGroupIDColumn == "authors.id" &&
              query.queryID == aMessageObj.authorID) ||
             // Currently, any place: protocol is a collection that returns all records
             query.queryProtocol == "place:")

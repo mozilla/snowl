@@ -42,6 +42,15 @@
 
 
 /******************************************************************************/
+/* Images */
+
+#bodyButton {
+  list-style-image: url("chrome://snowl/content/icons/page_white_text.png");
+}
+#columnsButton {
+  list-style-image: url("chrome://snowl/content/icons/application_view_columns.png");
+}
+
 /* Period Menu */
 
 #periodMenu menupopup > menuitem {

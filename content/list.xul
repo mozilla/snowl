@@ -97,7 +97,6 @@
                persist="hidden">
         <toolbarbutton id="snowlUnreadButton" class="snowlToolbarButton"
                        type="checkbox"
-                       image="chrome://snowl/content/icons/new.png"
                        oncommand="SnowlMessageView.onCommandUnreadButton(event)"
                        tooltiptext="&unreadButton.tooltip;"/>
 

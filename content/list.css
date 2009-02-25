@@ -56,3 +56,7 @@ treechildren::-moz-tree-cell-text(unread) {
 #snowlView {
   height: 12em;
 }
+
+#snowlUnreadButton {
+  list-style-image: url("chrome://snowl/content/icons/new.png");
+}
