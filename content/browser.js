@@ -480,7 +480,28 @@ let Snowl = {
 
   _onClickFeedButton: function(event) {
     dump("Snowl._onClickFeedButton\n");
+
+    let feeds = gBrowser.selectedBrowser.feeds;
+    if (feeds == null)
+      return;
+
+    // The title of the feed(s) we're going to show the user.
+    // We use the title of the page by default, falling back on a title
+    // provided by the feed(s) if necessary.
+    let title = gBrowser.selectedBrowser.contentTitle;
+
+    let params = [];
+    for (let i = 0; i < feeds.length; ++i) {
+      let feed = feeds[i];
+      params.push("feed=" + encodeURIComponent(feed.href));
+      if (!title && feed.title)
+        title = feed.title;
+    }
+
+    let href = "chrome://snowl/content/river.xul" + (params.length > 0 ? "?" + params.join("&") : "");
+    openUILink(href, event, false, true, false, null);
   },
+
   _onPopupShowingFeedMenu: function(event) {
     dump("Snowl._onPopupShowingFeedMenu\n");
     // Suppress the popup's own popupshowing event handler.
