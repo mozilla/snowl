@@ -90,6 +90,11 @@ let Snowl = {
     // Init river tab 
     setTimeout(function() { Snowl._initSnowlRiverTab() }, 100);
 
+    let feedButton = document.getElementById("feed-button");
+    let feedMenuPopup = feedButton.firstChild;
+    let t = this;
+    feedButton.addEventListener("click", function(evt) { t._onClickFeedButton(evt) }, true);
+    feedMenuPopup.addEventListener("popupshowing", function(evt) { t._onPopupShowingFeedMenu(evt) }, true);
   },
 
 
@@ -467,6 +472,19 @@ let Snowl = {
         // Tab closed or none, remove it
         Snowl._mainWindow.removeAttribute("snowltabindex");
     }, 200)
+  },
+
+
+  //**************************************************************************//
+  // Feed Button
+
+  _onClickFeedButton: function(event) {
+    dump("Snowl._onClickFeedButton\n");
+  },
+  _onPopupShowingFeedMenu: function(event) {
+    dump("Snowl._onPopupShowingFeedMenu\n");
+    // Suppress the popup's own popupshowing event handler.
+    event.preventDefault();
   }
 
 };
