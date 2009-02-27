@@ -495,6 +495,8 @@ let Snowl = {
       if (!title && feed.title)
         title = feed.title;
     }
+    if (title)
+      params.push("title=" + encodeURIComponent(title));
 
     let href = "chrome://snowl/content/river.xul" + (params.length > 0 ? "?" + params.join("&") : "");
     openUILink(href, event, false, true, false, null);
