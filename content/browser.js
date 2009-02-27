@@ -479,8 +479,6 @@ let Snowl = {
   // Feed Button
 
   _onClickFeedButton: function(event) {
-    dump("Snowl._onClickFeedButton\n");
-
     let feeds = gBrowser.selectedBrowser.feeds;
     if (feeds == null)
       return;
@@ -503,7 +501,6 @@ let Snowl = {
   },
 
   _onPopupShowingFeedMenu: function(event) {
-    dump("Snowl._onPopupShowingFeedMenu\n");
     // Suppress the popup's own popupshowing event handler.
     event.preventDefault();
   }
