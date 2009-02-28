@@ -143,6 +143,17 @@ let SnowlService = {
     dapp.level = Log4Moz.Level[this._prefs.get("log.appender.dump.level")];
     root.addAppender(dapp);
 
+    let logFile = this._dirSvc.get("ProfD", Ci.nsIFile);
+    logFile.QueryInterface(Ci.nsILocalFile);
+    logFile.append("snowl");
+    logFile.append("log.txt");
+    if (!logFile.exists())
+      logFile.create(Ci.nsIFile.NORMAL_FILE_TYPE, PERMS_FILE);
+
+    let fapp = new Log4Moz.RotatingFileAppender(logFile, formatter);
+    fapp.level = Log4Moz.Level[this._prefs.get("log.appender.file.level")];
+    root.addAppender(fapp);
+
     this._log = Log4Moz.repository.getLogger("Snowl.Service");
     this._log.info("initialized logging");
   },
