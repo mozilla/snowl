@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Vyžadováno ověření">
+<!ENTITY realm.label "Zdroj říká:">
+<!ENTITY username.label "Uživatelské jméno">
+<!ENTITY password.label "Heslo:">
+<!ENTITY showPassword.label "Zobrazit heslo">
+<!ENTITY rememberPassword.label "Zapamatovat si heslo pokud je správné.">
