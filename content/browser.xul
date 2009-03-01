@@ -161,19 +161,20 @@
                       headerType="Snowl.kFullHeader"
                       oncommand="Snowl._toggleHeader(event)"/>
             <menuseparator/>
-            <menuitem id="snowlGroupedOnMenuitem"
-                      label="&groupedOn.label;"
-                      type="radio"
-                      accesskey="&groupedOn.accesskey;"
-                      name="snowlFlatListMenuitemGroup"
-                      oncommand="Snowl._toggleFlatList(Snowl.kFlatListOff)"/>
-            <menuitem id="snowlGroupedOffMenuitem"
-                      label="&groupedOff.label;"
-                      type="radio"
-                      accesskey="&groupedOff.accesskey;"
-                      name="snowlFlatListMenuitemGroup"
-                      oncommand="Snowl._toggleFlatList(Snowl.kFlatListOn)"/>
-            <menuseparator/>
+            <!-- Removed, remember labels too..  -->
+            <!-- <menuitem id="snowlGroupedOnMenuitem" -->
+            <!--           label="&groupedOn.label;" -->
+            <!--           type="radio" -->
+            <!--           accesskey="&groupedOn.accesskey;" -->
+            <!--           name="snowlFlatListMenuitemGroup" -->
+            <!--           oncommand="Snowl._toggleFlatList(Snowl.kFlatListOff)"/> -->
+            <!-- <menuitem id="snowlGroupedOffMenuitem" -->
+            <!--           label="&groupedOff.label;" -->
+            <!--           type="radio" -->
+            <!--           accesskey="&groupedOff.accesskey;" -->
+            <!--           name="snowlFlatListMenuitemGroup" -->
+            <!--           oncommand="Snowl._toggleFlatList(Snowl.kFlatListOn)"/> -->
+            <!-- <menuseparator/> -->
             <menuitem id="snowlToolbarMenuitem"
                       label="&toolbar.label;"
                       type="checkbox"

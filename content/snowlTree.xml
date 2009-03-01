@@ -15,6 +15,11 @@
       <property name="currentSelectedIndex"
                 onget="return this._currentSelectedIndex;"
                 onset="return this._currentSelectedIndex = val;"/>
+      <!-- Selection count, used to track selected items on container toggles -->
+      <field name="_currentSelectionCount">0</field>
+      <property name="currentSelectionCount"
+                onget="return this._currentSelectionCount;"
+                onset="return this._currentSelectionCount = val;"/>
 
       <method name="restoreSelection">
         <parameter name="items"/>
@@ -28,7 +33,9 @@
               intArray.push(parseInt(intg));
             itemIds = intArray;
           }
+//CollectionsView._log.info("restoreSelection: itemIds - "+itemIds);
           this.selectItems(itemIds);
+//CollectionsView._log.info("restoreSelection: count - "+this.view.selection.count);
           if (itemIds == -1)
             return;
           this.boxObject.ensureRowIsVisible(this.currentIndex)
@@ -38,6 +45,13 @@
     </implementation>
 
     <handlers>
+      <!-- Fix focus; if currentIndex == -1 check if there's a selection..
+      <handler event="focus"> <![CDATA[
+        if (this.view.selection.count > 0 &&
+           !this.view.selection.isSelected(this.currentIndex)) {
+          this.currentIndex = this.treeBoxObject.getFirstVisibleRow();
+      ]]></handler> -->
+
       <!-- Restore tree selection on drag end -->
       <handler event="dragend"><![CDATA[
         SnowlUtils.gMouseEvent = false;

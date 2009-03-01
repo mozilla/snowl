@@ -332,17 +332,27 @@ let SnowlUtils = {
   ChangeSelectionWithoutContentLoad: function(aEvent, tree) {
     let treeBoxObj = tree.treeBoxObject;
     let treeSelection = treeBoxObj.view.selection;
+    let saveCurrentIndex;
     let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
-    let row = { }, col = { }, obj = { };
+    let row = { }, col = { }, obj = { }, rangeFirst = { }, rangeLast = { };;
 
     treeBoxObj.getCellAt(aEvent.clientX, aEvent.clientY, row, col, obj);
 
-    // Not for twisty click or multiselection
-    if (obj.value == "twisty" || modKey)
+    // Not for multiselection
+    if (modKey)
       return;
 
+    // Handle twisty click
+    if (obj.value == "twisty") {
+//this._log.info("ChangeSelectionWithoutContentLoad: twisty selCount - "+treeSelection.count);
+//      treeSelection.currentIndex = row.value;
+      return;
+    }
+
     // Make sure that row.value is valid for the call to ensureRowIsVisible().
-    if((row.value >= 0) && !treeSelection.isSelected(row.value)) {
+    if((row.value >= 0) && !treeSelection.isSelected(row.value) ||
+        (treeSelection.isSelected(row.value) && treeSelection.currentIndex == -1)) {
+
       if (treeSelection.count > 1) {
         // If in multiselect, and not rt click on a selected row, just select the
         // rt click row..
@@ -350,8 +360,14 @@ let SnowlUtils = {
         treeSelection.select(row.value);
       }
       else {
-        let saveCurrentIndex = tree.selectedNode ?
-            treeSelection.currentIndex : -1;
+        if (treeSelection.count == 0)
+          saveCurrentIndex = -1;
+        else {
+          // If no current index yet row selected, get first row in range.
+          treeSelection.getRangeAt(0, rangeFirst, rangeLast);
+          saveCurrentIndex = treeSelection.currentIndex == -1 ?
+              rangeFirst.value : treeSelection.currentIndex;
+        }
         treeSelection.selectEventsSuppressed = true;
         treeSelection.select(row.value);
         treeSelection.currentIndex = saveCurrentIndex;

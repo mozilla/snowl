@@ -53,39 +53,52 @@
   <script type="application/x-javascript"
           src="chrome://snowl/content/collections.js"/>
 
-  <!-- Places oncommandupdater events = null for now, override list and river
-       overlays of placesOverlay.xul
-  <commandset id="placesCommands" events=""/>
-  <commandset id="editMenuCommands">
-    <commandset id="editMenuCommandSetAll" events=""/>
-    <commandset id="editMenuCommandSetUndo" events=""/>
-    <commandset id="editMenuCommandSetPaste" events=""/>
-  </commandset> -->
+  <!-- Collections context, extends placesContext -->
+  <popup id="placesContext"
+         onpopupshowing="this._view = PlacesUIUtils.getViewForNode(document.popupNode);
+                         return this._view.buildContextMenu(this);"
+         onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
+    <menuseparator/>
+    <menuitem id="snowlCollectionRefreshMenuitem"
+              label="&refresh.label;"
+              accesskey="&refresh.accesskey;"
+              oncommand="CollectionsView.refreshSource();"/>
+    <menuitem id="snowlCollectionRefreshAllMenuitem"
+              label="&refreshAll.label;"
+              accesskey="&refreshAll.accesskey;"
+              oncommand="SnowlService.refreshAllSources();"/>
+    <menuseparator/>
+    <menuitem id="snowlCollectionUnsubscribeMenuitem"
+              label="&unsubscribe.label;"
+              accesskey="&unsubscribe.accesskey;"
+              oncommand="CollectionsView.unsubscribe();"/>
+  </popup>
 
   <vbox id="collectionsViewBox"
         flex="1">
 
-    <!-- Collection context -->
-    <popup id="snowlCollectionContext"
-           onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
-      <menuitem id="snowlCollectionRefreshMenuitem"
-                label="&refresh.label;"
-                accesskey="&refresh.accesskey;"
-                oncommand="CollectionsView.refreshSource();"/>
-      <menuitem id="snowlCollectionRefreshAllMenuitem"
-                label="&refreshAll.label;"
-                accesskey="&refreshAll.accesskey;"
-                oncommand="SnowlService.refreshAllSources();"/>
-      <menuseparator/>
-      <menuitem id="snowlCollectionUnsubscribeMenuitem"
-                label="&unsubscribe.label;"
-                accesskey="&unsubscribe.accesskey;"
-                oncommand="CollectionsView.unsubscribe();"/>
-    </popup>
-
     <hbox id="searchBox"
           persist="collapsed"
           align="center">
+      <label value="&view.label;"
+             accesskey="&view.accesskey;"
+             control="collectionsViewMenu"/>
+      <menulist id="collectionsViewMenu"
+                sizetopopup="none"
+                selectedindex=""
+                persist="selectedindex"
+                oncommand="CollectionsView.onCommandCollectionsView(this.value)">
+        <menupopup id="collectionsViewMenuPopup">
+          <menuitem label="&viewDefault.label;"
+                    value="default"/>
+          <menuitem label="&viewSources.label;"
+                    value="sources"/>
+          <menuitem label="&viewAuthors.label;"
+                    value="authors"/>
+          <menuitem label="&viewCustom.label;"
+                    value="custom"/>
+        </menupopup>
+      </menulist>
       <label value="&search.label;"
              accesskey="&search.accesskey;"
              control="search-box"/>
@@ -98,13 +111,12 @@
                oncommand="CollectionsView.searchCollections(this.value);"/>
     </hbox>
 
-    <!-- onclick="SidebarUtils.handleTreeClick(this, event, true);" -->
     <tree id="sourcesView"
           flex="1"
           editable="true"
           class="sidebar-placesTree"
           type="places"
-          persist="flat itemids"
+          persist="itemids"
           itemids=""
           hidecolumnpicker="true"
           onkeypress="SidebarUtils.handleTreeKeyPress(event);"
@@ -124,7 +136,7 @@
                     view="sourcesView"
                     class="sidebar-placesTreechildren" 
                     flex="1"
-                    context="snowlCollectionContext"
+                    context="placesContext"
                     onmousedown="CollectionsView.onCollectionsTreeMouseDown(event)"/>
     </tree>
 

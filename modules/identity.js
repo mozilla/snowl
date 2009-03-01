@@ -111,7 +111,7 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
                                             personID,
                                             name,
                                             null, // homeURL,
-                                            null, // externalID,
+                                            externalID, // externalID,
                                             iconURI,
                                             sourceID);
     // Store placeID back into messages for db integrity

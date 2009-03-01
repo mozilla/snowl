@@ -9,3 +9,10 @@
 <!ENTITY unsubscribe.accesskey        "U">
 
 <!ENTITY colSearchEmptytext.label     "Search Collections">
+<!ENTITY view.label                   "View:">
+<!ENTITY view.accesskey               "V">
+<!-- Leave extra space at end for sizetopopup=none space saving menulist attr -->
+<!ENTITY viewDefault.label            "Default ">
+<!ENTITY viewSources.label            "Sources ">
+<!ENTITY viewAuthors.label            "Authors ">
+<!ENTITY viewCustom.label             "Custom ">

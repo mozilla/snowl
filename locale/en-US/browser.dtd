@@ -32,9 +32,9 @@
    - where the user needs more context that these are for Snowl commands,
    - since the sidebar menu also includes commands for non-Snowl functions. -->
 
-<!ENTITY listViewSidebarMenuItem.label        "Message List">
+<!ENTITY listViewSidebarMenuItem.label        "Message Collections">
 <!ENTITY listViewSidebarMenuItem.accesskey    "l">
-<!ENTITY listViewSidebar.label                "Message List">
+<!ENTITY listViewSidebar.label                "Message Collections">
 
 <!ENTITY streamViewSidebarMenuItem.label      "Message Stream">
 <!ENTITY streamViewSidebarMenuItem.accesskey  "t">

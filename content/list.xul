@@ -95,7 +95,8 @@
                pack="end"
                align="center"
                persist="hidden">
-        <toolbarbutton id="snowlUnreadButton" class="snowlToolbarButton"
+        <toolbarbutton id="snowlUnreadButton"
+                       class="snowlToolbarButton tabbable"
                        type="checkbox"
                        oncommand="SnowlMessageView.onCommandUnreadButton(event)"
                        tooltiptext="&unreadButton.tooltip;"/>
