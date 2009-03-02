@@ -287,7 +287,7 @@ let Snowl = {
     gBrowser.tabContainer.addEventListener("TabOpen",
         function() { Snowl._resetSnowlRiverTabIndex(); }, false);
     gBrowser.tabContainer.addEventListener("TabClose",
-        function() { Snowl._resetSnowlRiverTabIndex(); }, false);
+        function(event) { Snowl._resetSnowlRiverTabIndex(event); }, false);
     gBrowser.tabContainer.addEventListener("TabMove",
         function() { Snowl._resetSnowlRiverTabIndex(); }, false);
   },
@@ -455,8 +455,17 @@ let Snowl = {
   },
 
   // Need to reset snowl River tab index
-  _resetSnowlRiverTabIndex: function () {
-    setTimeout(function() {
+  _resetSnowlRiverTabIndex: function (aEvent) {
+    let tabWindowDoc, tabDoc;
+    if (aEvent && aEvent.type == "TabClose") {
+      // Closing a River tab?
+      tabWindowDoc = aEvent.target.linkedBrowser.contentWindow;
+      tabDoc = new XPCNativeWrapper(tabWindowDoc).wrappedJSObject;
+      if (tabDoc.document.documentURI == "chrome://snowl/content/river.xul")
+        tabDoc.CollectionsView.unloadObservers();
+    }
+
+    setTimeout(function(aEvent) {
       let snowlRiverTab = Snowl._snowlRiverTab();
       if (snowlRiverTab) {
         // River tab exists
