@@ -73,6 +73,7 @@ let ListSidebar = {
 
   onUnload: function() {
     gBrowserWindow.SnowlMessageView.hide();
+    CollectionsView.unloadObservers();
     Observers.remove("snowl:source:added", this.onSourcesChanged, this);
     Observers.remove("snowl:source:removed", this.onSourcesChanged, this);
   },

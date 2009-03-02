@@ -56,7 +56,9 @@
   <!-- Collections context, extends placesContext -->
   <popup id="placesContext"
          onpopupshowing="this._view = PlacesUIUtils.getViewForNode(document.popupNode);
-                         return this._view.buildContextMenu(this);"
+                         this._view.buildContextMenu(this);
+                         CollectionsView.buildContextMenu(this);
+                         return;"
          onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
     <menuseparator/>
     <menuitem id="snowlCollectionRefreshMenuitem"

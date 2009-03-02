@@ -143,13 +143,6 @@ this._log.info("init: itemIds = "+this.itemIds);
     }
   },
 
-  unload: function() {
-    if (document.getElementById("snowlSidebar")) {
-      // Only for sidebar collections tree in list view, river handled on Tab Close.
-      this.unloadObservers();
-    }
-  },
-
   loadObservers: function() {
     Observers.add("snowl:source:added", this.onSourceAdded, this);
     Observers.add("snowl:message:added", this.onMessageAdded, this);
@@ -540,6 +533,16 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
     return refreshFlag;
   },
 
+  isSourceNode: function(aNode) {
+    let query = new SnowlQuery(aNode.uri);
+    return query.queryTypeSource;
+  },
+
+  isAuthorNode: function(aNode) {
+    let query = new SnowlQuery(aNode.uri);
+    return query.queryTypeAuthor;
+  },
+
   getSelectionConstraints: function() {
     // Return contraints object based on selected itemIds in the collections
     // tree and persist the list
@@ -582,6 +585,10 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
 //this._log.info("getSelectionConstraints: constraints = " + constraints.toSource());
 //this._log.info("getSelectionConstraints: itemIds = " + this.itemIds);
     return constraints;
+  },
+
+  buildContextMenu: function(aPopup) {
+
   },
 
   //**************************************************************************//
@@ -712,4 +719,3 @@ function SnowlTreeViewDrop(aRow, aOrientation) {
 */
 
 window.addEventListener("load", function() { CollectionsView.init() }, true);
-window.addEventListener("unload", function() { CollectionsView.unload() }, true);

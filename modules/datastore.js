@@ -942,13 +942,16 @@ function SnowlQuery(aUri) {
       this.queryProtocol = "snowl:";
       this.queryID = this.queryUri.split(".id=")[1].split("&")[0];
       this.queryName = this.queryUri.split("name=")[1].split("&")[0];
-      if (this.queryUri.indexOf("authors.id=") != -1)
+      if (this.queryUri.indexOf("authors.id=") != -1) {
         this.queryGroupIDColumn = "authors.id";
-      else if (this.queryUri.indexOf("sources.id=") != -1)
+        this.queryTypeAuthor = true;
+      }
+      else if (this.queryUri.indexOf("sources.id=") != -1) {
         this.queryGroupIDColumn = "sources.id";
-      else
-        this.queryGroupIDColumn = null;
+        this.queryTypeSource = true;
+      }
     }
+    
   }
 }
 SnowlQuery.prototype = {
@@ -957,6 +960,8 @@ SnowlQuery.prototype = {
   queryID: null,
   queryFolder: null,
   queryName: null,
+  queryTypeSource: false,
+  queryTypeAuthor: false,
   queryGroupIDColumn: null,
 };
 
