@@ -50,12 +50,16 @@ let SnowlTarget = {
   init: function() {},
 
   /**
-   * The maximum number of characters a message can contain.
+   * The maximum number of characters a message can contain. By default,
+   * this is null, which means a message can contain an arbitrary number
+   * of characters.
    */
   maxMessageLength: null,
 
   /**
    * Send a message to this target.
+   *
+   * This method is a stub that should be implemented by objects that inmix it.
    *
    * @param content {string} the content of the message
    * @param callback {Function} a function to call when the send completes
