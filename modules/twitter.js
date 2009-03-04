@@ -46,8 +46,8 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
-Cu.import("resource://snowl/modules/Compose.js");
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Mixin.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -64,8 +64,6 @@ Cu.import("resource://snowl/modules/service.js");
 // FIXME: make strands.js into a module.
 let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
 loader.loadSubScript("chrome://snowl/content/strands.js");
-
-Object.prototype.acquire = acquire;
 
 const TYPE = "SnowlTwitter";
 const NAME = "Twitter";
@@ -156,6 +154,7 @@ SnowlTwitter.prototype = {
   refreshInterval: 1000 * 60 * 3, // 3 minutes
 
   // refresh is defined elsewhere.
+
 
   //**************************************************************************//
   // SnowlTarget
@@ -804,6 +803,6 @@ SnowlTwitter.prototype = {
   }
 };
 
-SnowlTwitter.prototype.acquire(SnowlSource);
-SnowlTwitter.prototype.acquire(SnowlTarget);
+inmix(SnowlTwitter.prototype, SnowlSource);
+inmix(SnowlTwitter.prototype, SnowlTarget);
 SnowlService.addAccountType(SnowlTwitter);
