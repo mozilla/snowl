@@ -90,11 +90,11 @@ let Snowl = {
     // Init river tab 
     setTimeout(function() { Snowl._initSnowlRiverTab() }, 100);
 
-    let feedButton = document.getElementById("feed-button");
-    let feedMenuPopup = feedButton.firstChild;
-    let t = this;
-    feedButton.addEventListener("click", function(evt) { t._onClickFeedButton(evt) }, true);
-    feedMenuPopup.addEventListener("popupshowing", function(evt) { t._onPopupShowingFeedMenu(evt) }, true);
+    //let feedButton = document.getElementById("feed-button");
+    //let feedMenuPopup = feedButton.firstChild;
+    //let t = this;
+    //feedButton.addEventListener("click", function(evt) { t._onClickFeedButton(evt) }, true);
+    //feedMenuPopup.addEventListener("popupshowing", function(evt) { t._onPopupShowingFeedMenu(evt) }, true);
   },
 
 
