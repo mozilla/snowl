@@ -90,6 +90,11 @@ let Snowl = {
     // Init river tab 
     setTimeout(function() { Snowl._initSnowlRiverTab() }, 100);
 
+    let feedButton = document.getElementById("feed-button");
+    let feedMenuPopup = feedButton.firstChild;
+    let t = this;
+    feedButton.addEventListener("click", function(evt) { t._onClickFeedButton(evt) }, true);
+    feedMenuPopup.addEventListener("popupshowing", function(evt) { t._onPopupShowingFeedMenu(evt) }, true);
   },
 
 
@@ -476,6 +481,39 @@ let Snowl = {
         // Tab closed or none, remove it
         Snowl._mainWindow.removeAttribute("snowltabindex");
     }, 200)
+  },
+
+
+  //**************************************************************************//
+  // Feed Button
+
+  _onClickFeedButton: function(event) {
+    let feeds = gBrowser.selectedBrowser.feeds;
+    if (feeds == null)
+      return;
+
+    // The title of the feed(s) we're going to show the user.
+    // We use the title of the page by default, falling back on a title
+    // provided by the feed(s) if necessary.
+    let title = gBrowser.selectedBrowser.contentTitle;
+
+    let params = [];
+    for (let i = 0; i < feeds.length; ++i) {
+      let feed = feeds[i];
+      params.push("feed=" + encodeURIComponent(feed.href));
+      if (!title && feed.title)
+        title = feed.title;
+    }
+    if (title)
+      params.push("title=" + encodeURIComponent(title));
+
+    let href = "chrome://snowl/content/river.xul" + (params.length > 0 ? "?" + params.join("&") : "");
+    openUILink(href, event, false, true, false, null);
+  },
+
+  _onPopupShowingFeedMenu: function(event) {
+    // Suppress the popup's own popupshowing event handler.
+    event.preventDefault();
   }
 
 };
