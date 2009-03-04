@@ -109,74 +109,6 @@ SnowlFeed.prototype = {
 
 
   //**************************************************************************//
-  // SnowlSource
-
-  get refreshInterval() {
-    return SnowlSource.refreshInterval;
-  },
-
-  id: null,
-  type: null,
-  name: null,
-  machineURI: null,
-
-  get principal() {
-    return SnowlSource.__lookupGetter__("principal").call(this);
-  },
-
-  humanURI: null,
-  username: null,
-  _lastRefreshed: null,
-
-  get lastRefreshed() {
-    return SnowlSource.__lookupGetter__("lastRefreshed").call(this);
-  },
-
-  set lastRefreshed(newValue) {
-    return SnowlSource.__lookupSetter__("lastRefreshed").call(this, newValue);
-  },
-
-  importance: null,
-
-  placeID: null,
-
-  get faviconSvc() {
-    return SnowlSource.faviconSvc;
-  },
-
-  get faviconURI() {
-    return SnowlSource.__lookupGetter__("faviconURI").call(this);
-  },
-
-  // refresh is defined elsewhere.
-  //refresh: function(refreshTime) {},
-
-  persist: function() {
-    SnowlSource.persist.call(this);
-  },
-
-  get _stmtGetInternalIDForExternalID() {
-    return SnowlSource._stmtGetInternalIDForExternalID;
-  },
-
-  _getInternalIDForExternalID: function(externalID) {
-    return SnowlSource._getInternalIDForExternalID.call(this, externalID);
-  },
-
-  get _stmtInsertPart() {
-    return SnowlSource._stmtInsertPart;
-  },
-
-  get _stmtInsertPartText() {
-    return SnowlSource._stmtInsertPartText;
-  },
-
-  addPart: function(messageID, content, mediaType, partType, baseURI, languageTag) {
-    return SnowlSource.addPart.call(this, messageID, content, mediaType, partType, baseURI, languageTag);
-  },
-
-
-  //**************************************************************************//
   // XPCOM Interface Goo
 
   // nsISupports
@@ -748,3 +680,35 @@ SnowlFeed.prototype = {
 };
 
 SnowlService.addAccountType(SnowlFeed);
+
+
+/**
+ * Acquire attributes (properties, methods, getters/setters) from another
+ * object.  Doesn't acquire attributes that already exist in the acquiring
+ * object (i.e. that have been overridden by that object).
+ *
+ * FIXME: give the acquiring object access to the attributes it overrides.
+ *
+ * @param   obj   {Object}  the object from which to acquire attributes
+ */
+Object.prototype.acquire = function(obj) {
+  for (let attr in obj) {
+    // Don't acquire attributes we have overridden.
+    if (attr in this)
+      continue;
+
+    let getter = obj.__lookupGetter__(attr);
+    let setter = obj.__lookupSetter__(attr);
+
+    if (getter || setter) {
+      if (getter)
+        this.__defineGetter__(attr, getter);
+      if (setter)
+        this.__defineSetter__(attr, setter);
+    }
+    else
+       this[attr] = obj[attr];
+  }
+}
+
+SnowlFeed.prototype.acquire(SnowlSource);
