@@ -332,8 +332,14 @@ let SnowlMessageView = {
       }
     }
     else {
-      // Restore persisted selection
-      this._periodMenu.selectedIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
+      // Restore persisted selection or init
+      let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
+      if (selIndex >= 0)
+        this._periodMenu.selectedIndex = selIndex;
+      else {
+        this._periodMenu.setAttribute("selectedindex", 3); // "last7days"
+        this._periodMenu.selectedIndex = 3;
+      }
     }
 
     if ("columns" in this._params) {
@@ -449,7 +455,7 @@ this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
       params.push("filter=" + encodeURIComponent(this._filterTextbox.value));
 
     let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
-    if (selIndex) {
+    if (selIndex != -1) {
       this._periodMenu.selectedIndex = selIndex;
       params.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
     }

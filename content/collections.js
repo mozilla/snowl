@@ -94,6 +94,7 @@ let CollectionsView = {
   },
 
   gMessageViewWindow: null,
+  gListOrRiver: null,
 
 
   //**************************************************************************//
@@ -105,19 +106,33 @@ let CollectionsView = {
       // Only for sidebar collections tree in list view.
       this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
       this.gMessageViewWindow = SnowlService.gBrowserWindow;
+      this.gListOrRiver = "list";
+
+      if (!this._searchBox.hasAttribute("collapsed"))
+        this._searchBoxButton.setAttribute("checked", true);
+
+      // Restore persisted view selection or init
+      let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
+      if (selIndex >= 0)
+        this._collectionsViewMenu.selectedIndex = selIndex;
+      else {
+        this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
+        this._collectionsViewMenu.selectedIndex = 0;
+      }
+
+      // Set the view, which sets the Places query on the collections tree.
+      this.onCommandCollectionsView(this._collectionsViewMenu.value);
     }
     else if (document.getElementById("snowlRiver")) {
       // Only for collections tree in river view.
       this._log = Log4Moz.repository.getLogger("Snowl.River");
       this.gMessageViewWindow = window;
+      this.gListOrRiver = "river";
+      this._searchBox.hidden = true;
+      this._searchBoxButton.hidden = true;
+      this._collectionsViewMenu.value = "default";
+      this._tree.place = SnowlPlaces.querySources;
     }
-
-    // Intialize places flat attribute
-//    if (!this._tree.hasAttribute("flat"))
-//      this._tree.setAttribute("flat", true);
-
-    if (!this._searchBox.hasAttribute("collapsed"))
-      this._searchBoxButton.setAttribute("checked", true);
 
     // Get collections and convert to places tree - one time upgrade
     // XXX move this to datastore.js module
@@ -126,19 +141,14 @@ let CollectionsView = {
         SnowlPlaces.convertedToPlaces != null) {
       // Use null as a lock in case another CollectionsView instantiated.
       SnowlPlaces.convertedToPlaces = null;
+      this.itemIds = -1;
       this._getCollections();
       this._buildCollectionTree();
       SnowlPlaces.convertedToPlaces = true;
     }
 
-    // Restore persisted view
-    this._collectionsViewMenu.selectedIndex =
-        parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
-    this.onCommandCollectionsView(this._collectionsViewMenu.value);
-
     // Ensure collection tree selection maintained for list view, river handles itself.
     if (document.getElementById("snowlSidebar")) {
-this._log.info("init: itemIds = "+this.itemIds);
       this._tree.restoreSelection();
     }
   },
@@ -321,7 +331,6 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
 
     // Mod key click will deselect a row; for a 0 count notify view to clear.
     if (this._tree.view.selection.count == 0) {
-//      this._tree.currentIndex = -1;
       this._tree.currentSelectedIndex = -1;
       this.itemIds = -1;
       this.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
@@ -598,6 +607,7 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
   _collections: null,
   _getCollections: function() {
     this._collections = [];
+this._log.info("_getCollections: Convert to Places: START");
 
     let statement = SnowlDatastore.createStatement(
       "SELECT id, name, iconURL, grouped, groupIDColumn, groupNameColumn, " +
@@ -627,7 +637,10 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
   },
 
   // Convert the list of rows in the tree to places.
-  _buildCollectionTree: function() {
+  _buildCollectionTree: strand(function() {
+    this.gMessageViewWindow.XULBrowserWindow.
+                            setOverLink("Conversion to Places started");
+this._log.info("_buildCollectionTree: Convert to Places: START");
     for each (let collection in this._collections) {
       if (collection.grouped) {
         let table, value, sourceID, personID, externalID;
@@ -666,12 +679,20 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
             " SET    placeID = " + placeID +
             " WHERE       id = " + group.groupID);
 
+          this.gMessageViewWindow.XULBrowserWindow.
+                                  setOverLink("Converted to Places: " +
+                                              table + " - " + group.name);
 this._log.info("Converted to places - " +
   group.name + " : " + group.groupID + " : " + placeID);
+
+          yield sleep(10);
         }
       }
     }
-  }
+    this.gMessageViewWindow.XULBrowserWindow.
+                            setOverLink("Conversion to Places completed");
+this._log.info("_buildCollectionTree: Convert to Places: END");
+  })
 
 };
 

@@ -1030,7 +1030,7 @@ let SnowlPlaces = {
  * @aSourceId   - sourceId of source or author record
  */
   persistPlace: function(aTable, aId, aName, aMachineURI, aUsername, aIconURI, aSourceId) {
-    let parent, uri, iconUri;
+    let parent, uri, iconUri, placeID;
     if (aTable == "sources") {
       uri = URI("snowl:sourceId=" + aSourceId +
                 "sources.id=" + aId +
@@ -1049,19 +1049,25 @@ let SnowlPlaces = {
     else
       return null;
 
-    let placeID = PlacesUtils.bookmarks.
-                              insertBookmark(parent,
-                                             uri,
-                                             PlacesUtils.bookmarks.DEFAULT_INDEX,
-                                             aName);
+    try {
+      placeID = PlacesUtils.bookmarks.
+                            insertBookmark(parent,
+                                           uri,
+                                           PlacesUtils.bookmarks.DEFAULT_INDEX,
+                                           aName);
 
 //this._log.info(aTable + " iconURI.spec - " + (aIconURI ? aIconURI.spec : "null"));
-    PlacesUtils.favicons.
+      PlacesUtils.favicons.
 //                setFaviconUrlForPage(uri,
-                setAndLoadFaviconForPage(uri,
-                                         aIconURI,
-                                         false);
-//this._log.info(aType + " name:placeID - " + aName + " : " + id);
+                  setAndLoadFaviconForPage(uri,
+                                           aIconURI,
+                                           false);
+    }
+    catch(ex) {
+      this._log.error(ex);
+//      throw ex;
+    }
+
     return placeID;
   },
 
