@@ -46,6 +46,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
+Cu.import("resource://snowl/modules/Compose.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -63,6 +64,8 @@ Cu.import("resource://snowl/modules/service.js");
 // FIXME: make strands.js into a module.
 let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
 loader.loadSubScript("chrome://snowl/content/strands.js");
+
+Object.prototype.acquire = acquire;
 
 const TYPE = "SnowlTwitter";
 const NAME = "Twitter";
@@ -152,70 +155,7 @@ SnowlTwitter.prototype = {
 
   refreshInterval: 1000 * 60 * 3, // 3 minutes
 
-  id: null,
-
-  // FIXME: remove "type", as it is no longer being used (we use the constructor
-  // instead to identify what type of source this is).
-  type: null,
-
-  name: null,
-  machineURI: null,
-
-  get principal() {
-    return SnowlSource.__lookupGetter__("principal").call(this);
-  },
-
-  humanURI: null,
-  username: null,
-  _lastRefreshed: null,
-
-  get lastRefreshed() {
-    return SnowlSource.__lookupGetter__("lastRefreshed").call(this);
-  },
-
-  set lastRefreshed(newValue) {
-    return SnowlSource.__lookupSetter__("lastRefreshed").call(this, newValue);
-  },
-
-  importance: null,
-
-  placeID: null,
-
-  get faviconSvc() {
-    return SnowlSource.faviconSvc;
-  },
-
-  get faviconURI() {
-    return SnowlSource.__lookupGetter__("faviconURI").call(this);
-  },
-
   // refresh is defined elsewhere.
-  //refresh: function(refreshTime) {},
-
-  persist: function() {
-    SnowlSource.persist.call(this);
-  },
-
-  get _stmtGetInternalIDForExternalID() {
-    return SnowlSource._stmtGetInternalIDForExternalID;
-  },
-
-  _getInternalIDForExternalID: function(externalID) {
-    return SnowlSource._getInternalIDForExternalID.call(this, externalID);
-  },
-
-  get _stmtInsertPart() {
-    return SnowlSource._stmtInsertPart;
-  },
-
-  get _stmtInsertPartText() {
-    return SnowlSource._stmtInsertPartText;
-  },
-
-  addPart: function(messageID, content, mediaType, partType, baseURI, languageTag) {
-    return SnowlSource.addPart.call(this, messageID, content, mediaType, partType, baseURI, languageTag);
-  },
-
 
   //**************************************************************************//
   // SnowlTarget
@@ -223,7 +163,6 @@ SnowlTwitter.prototype = {
   maxMessageLength: 140,
 
   // send is defined elsewhere.
-  //send: function() {},
 
 
   //**************************************************************************//
@@ -865,4 +804,6 @@ SnowlTwitter.prototype = {
   }
 };
 
+SnowlTwitter.prototype.acquire(SnowlSource);
+SnowlTwitter.prototype.acquire(SnowlTarget);
 SnowlService.addAccountType(SnowlTwitter);

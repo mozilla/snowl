@@ -46,6 +46,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
+Cu.import("resource://snowl/modules/Compose.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -62,6 +63,8 @@ Cu.import("resource://snowl/modules/service.js");
 // FIXME: make strands.js into a module.
 let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
 loader.loadSubScript("chrome://snowl/content/strands.js");
+
+Object.prototype.acquire = acquire;
 
 /**
  * Convert a string to an array of character codes.
@@ -679,36 +682,5 @@ SnowlFeed.prototype = {
 
 };
 
-SnowlService.addAccountType(SnowlFeed);
-
-
-/**
- * Acquire attributes (properties, methods, getters/setters) from another
- * object.  Doesn't acquire attributes that already exist in the acquiring
- * object (i.e. that have been overridden by that object).
- *
- * FIXME: give the acquiring object access to the attributes it overrides.
- *
- * @param   obj   {Object}  the object from which to acquire attributes
- */
-Object.prototype.acquire = function(obj) {
-  for (let attr in obj) {
-    // Don't acquire attributes we have overridden.
-    if (attr in this)
-      continue;
-
-    let getter = obj.__lookupGetter__(attr);
-    let setter = obj.__lookupSetter__(attr);
-
-    if (getter || setter) {
-      if (getter)
-        this.__defineGetter__(attr, getter);
-      if (setter)
-        this.__defineSetter__(attr, setter);
-    }
-    else
-       this[attr] = obj[attr];
-  }
-}
-
 SnowlFeed.prototype.acquire(SnowlSource);
+SnowlService.addAccountType(SnowlFeed);
