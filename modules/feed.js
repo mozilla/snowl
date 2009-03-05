@@ -287,9 +287,9 @@ SnowlFeed.prototype = {
     let messages = [];
     for (let i = 0; i < feed.items.length; i++) {
       let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-      let timestamp =   entry.updated        ? new Date(entry.updated)
-                      : entry.published      ? new Date(entry.published)
-                      : entry.get("dc:date") ? ISO8601DateUtils.parse(entry.get("dc:date"))
+      let timestamp =   entry.updated               ? new Date(entry.updated)
+                      : entry.published             ? new Date(entry.published)
+                      : entry.fields.get("dc:date") ? ISO8601DateUtils.parse(entry.fields.get("dc:date"))
                       : null;
       messages.push({ entry: entry, timestamp: timestamp });
     }
