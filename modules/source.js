@@ -357,6 +357,41 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
     return internalID;
   },
 
+  /**
+   * Add a message with a single part to the datastore.
+   *
+   * @param aSourceID    {integer} the record ID of the message source
+   * @param aExternalID  {string}  the external ID of the message
+   * @param aSubject     {string}  the title of the message
+   * @param aAuthorID    {string}  the author of the message
+   * @param aTimestamp   {Date}    the date/time when the message was sent
+   * @param aReceived    {Date}    the date/time when the message was received
+   * @param aLink        {nsIURI}  a link to the content of the message,
+   *                               if the content is hosted on a server
+   *
+   * @returns {integer} the internal ID of the newly-created message
+   */
+  addSimpleMessage: function(aSourceID, aExternalID, aSubject, aAuthorID,
+                             aTimestamp, aReceived, aLink) {
+    let messageID =
+      SnowlDatastore.insertMessage(aSourceID,
+                                   aExternalID,
+                                   aSubject,
+                                   aAuthorID,
+                                   SnowlDateUtils.jsToJulianDate(aTimestamp),
+                                   SnowlDateUtils.jsToJulianDate(aReceived),
+                                   aLink ? aLink.spec : null);
+
+    return messageID;
+  },
+
+  _addMetadatum: function(aMessageID, aAttributeName, aValue) {
+    // FIXME: speed this up by caching the list of known attributes.
+    let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
+                      || SnowlDatastore.insertAttribute(aAttributeName);
+    SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
+  },
+
   get _stmtInsertPart() {
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO parts( messageID,  content,  mediaType,  partType,  baseURI,  languageTag) " +
