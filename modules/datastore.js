@@ -1033,14 +1033,14 @@ let SnowlPlaces = {
     let parent, uri, iconUri, placeID;
     if (aTable == "sources") {
       uri = URI("snowl:sourceId=" + aSourceId +
-                "sources.id=" + aId +
+                "&sources.id=" + aId +
                 "&name=" + aName +
                 "&");
       parent = SnowlPlaces.collectionsSourcesID
     }
     else if (aTable == "people") {
       uri = URI("snowl:sourceId=" + aSourceId +
-                "authors.id=" + aId +
+                "&authors.id=" + aId +
                 "&name=" + aName +
                 "&externalID=" + aUsername +
                 "&");
@@ -1064,6 +1064,8 @@ let SnowlPlaces = {
                                            false);
     }
     catch(ex) {
+      this._log.error("persistPlace: parentId:aName:uri - " +
+                      parent + " : " + aName + " : " + uri );
       this._log.error(ex);
 //      throw ex;
     }

@@ -101,7 +101,6 @@ let CollectionsView = {
   // Initialization & Destruction
 
   init: function() {
-    this.loadObservers();
     if (document.getElementById("snowlSidebar")) {
       // Only for sidebar collections tree in list view.
       this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
@@ -134,6 +133,8 @@ let CollectionsView = {
       this._tree.place = SnowlPlaces.querySources;
     }
 
+    this.loadObservers();
+
     // Get collections and convert to places tree - one time upgrade
     // XXX move this to datastore.js module
     if (!SnowlPlaces.convertedToPlaces &&
@@ -142,6 +143,8 @@ let CollectionsView = {
       // Use null as a lock in case another CollectionsView instantiated.
       SnowlPlaces.convertedToPlaces = null;
       this.itemIds = -1;
+      this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
+      this._collectionsViewMenu.selectedIndex = 0;
       this._getCollections();
       this._buildCollectionTree();
       SnowlPlaces.convertedToPlaces = true;
@@ -158,6 +161,7 @@ let CollectionsView = {
     Observers.add("snowl:message:added", this.onMessageAdded, this);
     Observers.add("snowl:source:removed", this.onSourceRemoved, this);
     Observers.add("snowl:messages:changed", this.onMessagesComplete, this);
+this._log.info("loadObservers");
   },
 
   unloadObservers: function() {
@@ -165,6 +169,7 @@ let CollectionsView = {
     Observers.remove("snowl:message:added", this.onMessageAdded, this);
     Observers.remove("snowl:source:removed", this.onSourceRemoved, this);
     Observers.remove("snowl:messages:changed", this.onMessagesComplete, this);
+this._log.info("unloadObservers");
   },
 
 
@@ -318,7 +323,10 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
          this._tree.currentIndex == this._tree.currentSelectedIndex))
       return;
 
-    // If mod key deselected, reset currentIndex
+    // Check this here post rt click.
+    let isBookmark = this.isBookmark();
+
+    // If mod key deselected, reset currentIndex and redo query.
     if (modKey && !this._tree.view.selection.isSelected(this._tree.currentIndex))
       this._tree.currentIndex = -1;
 
@@ -333,7 +341,14 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
     if (this._tree.view.selection.count == 0) {
       this._tree.currentSelectedIndex = -1;
       this.itemIds = -1;
-      this.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+      if (!isBookmark)
+        this.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+      return;
+    }
+
+    // See if it can be opened like a bookmark.
+    if (isBookmark) {
+      goDoCommand('placesCmd_open');
       return;
     }
 
@@ -540,6 +555,18 @@ this._log.info("unsubscribe: source - " + query.queryName + " : " + selectedSour
     }
 
     return refreshFlag;
+  },
+
+  isBookmark: function() {
+    // Determine if a uri that can be passed to url opener, ie a bookmark.
+    let query, uri, index;
+    let index = this._tree.currentIndex;
+    uri = this._tree.view.nodeForTreeIndex(index).uri;
+    query = new SnowlQuery(uri);
+    if (query.queryProtocol == "snowl:" || query.queryProtocol == "place:")
+      return false;
+    else
+      return true;
   },
 
   isSourceNode: function(aNode) {

@@ -241,6 +241,15 @@ let SnowlMessageView = {
                             function() SnowlMessageView.resizeContentBox(),
                             false);
 
+    // Remove/restore observers for paging with river view or bookmarks
+    window.addEventListener("pageshow",
+                            function() { SnowlMessageView.onPageShow(); },
+                            false);
+
+    window.addEventListener("pagehide",
+                            function() { SnowlMessageView.onPageHide(); },
+                            false);
+
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
     // get a non-native object.
@@ -493,6 +502,14 @@ this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
 
   onLoad: function() {
     this._init();
+  },
+
+  onPageShow: function() {
+    CollectionsView.loadObservers();
+  },
+
+  onPageHide: function() {
+    CollectionsView.unloadObservers();
   },
 
   onMessageAdded: function(message) {
