@@ -980,10 +980,13 @@ let SnowlPlaces = {
   SNOWL_COLLECTIONS_ANNO: "Snowl/Collections",
   SNOWL_COLLECTIONS_SYSTEM_ANNO: "Snowl/Collections/System",
   SNOWL_COLLECTIONS_SOURCES_ANNO: "Snowl/Collections/System/Sources",
+  SNOWL_COLLECTIONS_SOURCES_SRC_ANNO: "Snowl/Source",
   SNOWL_COLLECTIONS_AUTHORS_ANNO: "Snowl/Collections/System/Authors",
+  SNOWL_COLLECTIONS_AUTHORS_AUTH_ANNO: "Snowl/Author",
   SNOWL_COLLECTIONS_CUSTOM_ANNO: "Snowl/Collections/Custom",
-//  SMART_BOOKMARKS_ANNO: "Places/SmartBookmark",
-  ORGANIZER_QUERY_ANNO: "PlacesOrganizer/OrganizerQuery",
+  SNOWL_COLLECTIONS_QUERY_ANNO: "Snowl/Collections/Query",
+  SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO: "Snowl/System",
+
   snowlRootID: null,
   collectionsID: null,
   collectionsSystemID: null,
@@ -1030,13 +1033,14 @@ let SnowlPlaces = {
  * @aSourceId   - sourceId of source or author record
  */
   persistPlace: function(aTable, aId, aName, aMachineURI, aUsername, aIconURI, aSourceId) {
-    let parent, uri, iconUri, placeID;
+    let parent, uri, iconUri, placeID, anno;
     if (aTable == "sources") {
       uri = URI("snowl:sourceId=" + aSourceId +
                 "&sources.id=" + aId +
                 "&name=" + aName +
                 "&");
-      parent = SnowlPlaces.collectionsSourcesID
+      parent = SnowlPlaces.collectionsSourcesID;
+      anno = this.SNOWL_COLLECTIONS_SOURCES_SRC_ANNO;
     }
     else if (aTable == "people") {
       uri = URI("snowl:sourceId=" + aSourceId +
@@ -1044,7 +1048,8 @@ let SnowlPlaces = {
                 "&name=" + aName +
                 "&externalID=" + aUsername +
                 "&");
-      parent = SnowlPlaces.collectionsAuthorsID
+      parent = SnowlPlaces.collectionsAuthorsID;
+      anno = this.SNOWL_COLLECTIONS_AUTHORS_AUTH_ANNO;
     }
     else
       return null;
@@ -1055,10 +1060,15 @@ let SnowlPlaces = {
                                            uri,
                                            PlacesUtils.bookmarks.DEFAULT_INDEX,
                                            aName);
+      PlacesUtils.annotations.
+                  setPageAnnotation(uri,
+                                    anno,
+                                    "snowl:sourceID=" + aSourceId,
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
 
 //this._log.info(aTable + " iconURI.spec - " + (aIconURI ? aIconURI.spec : "null"));
       PlacesUtils.favicons.
-//                setFaviconUrlForPage(uri,
                   setAndLoadFaviconForPage(uri,
                                            aIconURI,
                                            false);
@@ -1153,7 +1163,8 @@ let SnowlPlaces = {
       this.convertedToPlaces = true;
     }
     else {
-      // Create places stucture - system root
+      // Create places stucture - system root.  The second annotation is for
+      // easier future management and contextmenu selections.
       itemID = PlacesUtils.bookmarks.
                            createFolder(PlacesUtils.placesRootId,
                                         "snowlRoot",
@@ -1162,6 +1173,12 @@ let SnowlPlaces = {
       PlacesUtils.annotations.
                   setItemAnnotation(itemID,
                                     this.SNOWL_ROOT_ANNO,
+                                    "snowl:root",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
                                     "snowl:root",
                                     0,
                                     PlacesUtils.annotations.EXPIRE_NEVER);
@@ -1180,10 +1197,16 @@ let SnowlPlaces = {
                                     "snowl:collectionsRoot",
                                     0,
                                     PlacesUtils.annotations.EXPIRE_NEVER);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
+                                    "snowl:collectionsRoot",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
       this.collectionsID = itemID;
-      // Ensure immediate children can't be removed
+      // Do not set readOnly, this level is where users can add their own views.
 //      PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
-/**/
+
       // Create collections system
       itemID = PlacesUtils.bookmarks.
                            createFolder(this.collectionsID,
@@ -1192,6 +1215,12 @@ let SnowlPlaces = {
       PlacesUtils.annotations.
                   setItemAnnotation(itemID,
                                     this.SNOWL_COLLECTIONS_SYSTEM_ANNO,
+                                    "snowl:collectionsSystem",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
                                     "snowl:collectionsSystem",
                                     0,
                                     PlacesUtils.annotations.EXPIRE_NEVER);
@@ -1210,6 +1239,12 @@ let SnowlPlaces = {
                                     "snowl:collectionsSources",
                                     0,
                                     PlacesUtils.annotations.EXPIRE_NEVER);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
+                                    "snowl:collectionsSources",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
       this.collectionsSourcesID = itemID;
       // Ensure immediate children can't be removed
       PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
@@ -1222,6 +1257,12 @@ let SnowlPlaces = {
       PlacesUtils.annotations.
                   setItemAnnotation(itemID,
                                     this.SNOWL_COLLECTIONS_AUTHORS_ANNO,
+                                    "snowl:collectionsAuthors",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
                                     "snowl:collectionsAuthors",
                                     0,
                                     PlacesUtils.annotations.EXPIRE_NEVER);
@@ -1240,8 +1281,14 @@ let SnowlPlaces = {
                                     "snowl:collectionsCustom",
                                     0,
                                     PlacesUtils.annotations.EXPIRE_NEVER);
+      PlacesUtils.annotations.
+                  setItemAnnotation(itemID,
+                                    this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
+                                    "snowl:collectionsCustom",
+                                    0,
+                                    PlacesUtils.annotations.EXPIRE_NEVER);
       this.collectionsCustomID = itemID;
-      // Ensure immediate children can't be removed
+      // Children of Custom view are user deleteable.
 //      PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
 
       // Default collections
@@ -1251,39 +1298,15 @@ let SnowlPlaces = {
               itemId:   null,
               title:    strings.get("allCollectionName"),
               uri:      URI("place:folder=" + this.collectionsID +
-                            "&OR" +
-                            "&expandQueries=0"),
+                            "&OR&expandQueries=0"),
               parent:   this.collectionsSystemID,
               position: 0}; // 0=first
       collections.push(coll);
-/*
-      // All Sources
-      coll = {queryId:  "snowl:AllSources",
-              itemId:   null,
-              title:    strings.get("sourcesCollectionName"),
-              uri:      URI("place:folder=" + this.collectionsSourcesID +
-                            "&sort=" +
-                            Ci.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING),
-              parent:   this.collectionsSystemID,
-              position: 1};
-      collections.push(coll);
 
-      // All Authors
-      coll = {queryId:  "snowl:AllAuthors",
-              itemId:   null,
-              title:    strings.get("authorsCollectionName"),
-              uri:      URI("place:folder=" + this.collectionsAuthorsID +
-                            "&sort=" +
-                            Ci.nsINavHistoryQueryOptions.SORT_BY_TITLE_ASCENDING),
-              parent:   this.collectionsSystemID,
-              position: 2};
-      collections.push(coll);
-*/
       // Custom
       coll = {queryId:  "snowl:Custom",
               itemId:   null,
-              title:    "Custom",
-//              title:    strings.get("customCollectionName"),
+              title:    strings.get("customCollectionName"),
               uri:      URI("place:folder=" + this.collectionsCustomID),
               parent:   this.collectionsSystemID,
               position: 3};
@@ -1296,9 +1319,14 @@ let SnowlPlaces = {
                                                            coll.position,
                                                            coll.title);
         PlacesUtils.annotations.
-//                    setPageAnnotation(coll.itemId,
                     setItemAnnotation(coll.itemId,
-                                      this.ORGANIZER_QUERY_ANNO,
+                                      this.SNOWL_COLLECTIONS_QUERY_ANNO,
+                                      coll.queryId,
+                                      0,
+                                      PlacesUtils.annotations.EXPIRE_NEVER);
+        PlacesUtils.annotations.
+                    setItemAnnotation(coll.itemId,
+                                      this.SNOWL_COLLECTIONS_SYSTEM_GROUP_ANNO,
                                       coll.queryId,
                                       0,
                                       PlacesUtils.annotations.EXPIRE_NEVER);

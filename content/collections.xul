@@ -55,27 +55,56 @@
   <script type="application/x-javascript"
           src="chrome://snowl/content/collections.js"/>
 
-  <!-- Collections context, extends placesContext -->
+  <!-- Extend placesContext -->
   <popup id="placesContext"
          onpopupshowing="this._view = PlacesUIUtils.getViewForNode(document.popupNode);
                          this._view.buildContextMenu(this);
                          CollectionsView.buildContextMenu(this);
                          return;"
          onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
-    <menuseparator/>
+    <menuitem id="placesContext_open"
+              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+    <menuitem id="placesContext_open:newwindow"
+              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+    <menuitem id="placesContext_open:newtab"
+              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+    <menuitem id="placesContext_openContainer:tabs"
+              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author|folder"/>
+    <menuitem id="placesContext_openLinks:tabs"
+              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+    <menuseparator id="placesContext_openSeparator"
+              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+
     <menuitem id="snowlCollectionRefreshMenuitem"
+              insertbefore="placesContext_show:info"
               label="&refresh.label;"
               accesskey="&refresh.accesskey;"
+              selectiontype="single"
+              selection="Snowl/Source"
               oncommand="CollectionsView.refreshSource();"/>
     <menuitem id="snowlCollectionRefreshAllMenuitem"
+              insertbefore="placesContext_show:info"
               label="&refreshAll.label;"
               accesskey="&refreshAll.accesskey;"
+              selectiontype="multiple"
+              selection="any"
               oncommand="SnowlService.refreshAllSources();"/>
-    <menuseparator/>
-    <menuitem id="snowlCollectionUnsubscribeMenuitem"
-              label="&unsubscribe.label;"
-              accesskey="&unsubscribe.accesskey;"
-              oncommand="CollectionsView.unsubscribe();"/>
+    <menuitem id="snowlCollectionRemoveSourceMenuitem"
+              insertbefore="placesContext_show:info"
+              label="&removeSource.label;"
+              accesskey="&removeSource.accesskey;"
+              selectiontype="single"
+              selection="Snowl/Source"
+              oncommand="CollectionsView.removeSource();"/>
+    <menuitem id="snowlCollectionRemoveAuthorMenuitem"
+              insertbefore="placesContext_show:info"
+              label="&removeAuthor.label;"
+              accesskey="&removeAuthor.accesskey;"
+              selectiontype="single"
+              selection="Snowl/Author"
+              oncommand="CollectionsView.removeAuthor();"/>
+    <menuseparator id="snowlPlacesContextExtensionSep"
+              insertbefore="placesContext_show:info"/>
   </popup>
 
   <vbox id="collectionsViewBox"
