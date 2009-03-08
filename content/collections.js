@@ -39,6 +39,7 @@
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/StringBundle.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -50,6 +51,8 @@ Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/opml.js");
 
+let strings = new StringBundle("chrome://snowl/locale/datastore.properties");
+
 let CollectionsView = {
   _log: null,
 
@@ -60,7 +63,7 @@ let CollectionsView = {
 
   get _children() {
     delete this._children;
-    return this._children = document.getElementById("sourcesViewChildren");
+    return this._children = document.getElementById("sourcesViewTreeChildren");
   },
 
   get _searchBox() {
@@ -142,6 +145,13 @@ let CollectionsView = {
         SnowlPlaces.convertedToPlaces != null) {
       // Use null as a lock in case another CollectionsView instantiated.
       SnowlPlaces.convertedToPlaces = null;
+
+      let titleMsg = strings.get("rebuildPlacesTitleMsg");
+      let dialogMsg = strings.get("rebuildPlacesDialogMsg");
+      let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].
+                          getService(Ci.nsIPromptService);
+      promptService.alert(window, titleMsg, dialogMsg);
+
       this.itemIds = -1;
       this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
       this._collectionsViewMenu.selectedIndex = 0;
@@ -582,10 +592,10 @@ this._log.info("removeAuthor: author - " + query.queryName + " : " + selectedSou
       searchFolders = view == "sources" ? [SnowlPlaces.collectionsSourcesID] :
                       view == "authors" ? [SnowlPlaces.collectionsAuthorsID] :
                       view == "custom"  ? [SnowlPlaces.collectionsCustomID] :
-                                          [SnowlPlaces.collectionsID];
+                                          [SnowlPlaces.collectionsSystemID];
     else {
       // XXX Get selected items and search only those
-      searchFolders = [SnowlPlaces.collectionsID];
+      searchFolders = [SnowlPlaces.collectionsSystemID];
     }
 
     if (!aSearchString)
@@ -613,7 +623,7 @@ this._log.info("removeAuthor: author - " + query.queryName + " : " + selectedSou
             (query.queryGroupIDColumn == "authors.id" &&
              query.queryID == aMessageObj.authorID) ||
             // Collection folders that return all records
-            query.queryFolder == SnowlPlaces.collectionsID)
+            query.queryFolder == SnowlPlaces.collectionsSystemID)
           refreshFlag = true;
       }
     }
@@ -657,7 +667,7 @@ this._log.info("removeAuthor: author - " + query.queryName + " : " + selectedSou
         selectedItemIds.push(itemId);
         uri = this._tree.view.nodeForTreeIndex(index).uri;
         let query = new SnowlQuery(uri);
-        if (query.queryFolder == SnowlPlaces.collectionsID) {
+        if (query.queryFolder == SnowlPlaces.collectionsSystemID) {
           // Collection folder that returns all records, break with no constraints.
           // There may be other such 'system' collections but more likely collections
           // will be rows which are user defined snowl: queries.  Selection of a

@@ -36,8 +36,6 @@
 
 #sourcesView {
   -moz-binding: url(chrome://snowl/content/snowlTree.xml#tree);
-  margin-left: 0;
-  margin-right: 0;
 }
 
 /* Make the tree icons be 16x16 in size even if the image files are larger. */
@@ -46,17 +44,13 @@
   height: 16px;
 }
 
-#sourcesView treecolpicker {
-  display: none;
+/* A different icon than folders */
+#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowlCollectionsSources),
+#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowlCollectionsAuthors) {
+  list-style-image: url("chrome://browser/skin/places/query.png");
+}
+/* User defined view folders can have a custom icon */
+#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowlCustom) {
+  list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
 }
 
-/* Hide the column header, which is unuseful while we only have one column. */
-#sourcesView .treecol-text,
-#sourcesView .treecol-sortdirection {
-  display: none;
-}
-#nameCol {
-  -moz-appearance: none;
-  border: 0;
-  padding: 0;
-}

@@ -63,24 +63,24 @@
                          return;"
          onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
     <menuitem id="placesContext_open"
-              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_open:newwindow"
-              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_open:newtab"
-              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_openContainer:tabs"
-              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author|folder"/>
+              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author|folder"/>
     <menuitem id="placesContext_openLinks:tabs"
-              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuseparator id="placesContext_openSeparator"
-              forcehideselection="Snowl/System|Snowl/Source|Snowl/Author"/>
+              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
 
     <menuitem id="snowlCollectionRefreshMenuitem"
               insertbefore="placesContext_show:info"
               label="&refresh.label;"
               accesskey="&refresh.accesskey;"
               selectiontype="single"
-              selection="Snowl/Source"
+              selection="Snowl/Collections/Source"
               oncommand="CollectionsView.refreshSource();"/>
     <menuitem id="snowlCollectionRefreshAllMenuitem"
               insertbefore="placesContext_show:info"
@@ -94,14 +94,14 @@
               label="&removeSource.label;"
               accesskey="&removeSource.accesskey;"
               selectiontype="single"
-              selection="Snowl/Source"
+              selection="Snowl/Collections/Source"
               oncommand="CollectionsView.removeSource();"/>
     <menuitem id="snowlCollectionRemoveAuthorMenuitem"
               insertbefore="placesContext_show:info"
               label="&removeAuthor.label;"
               accesskey="&removeAuthor.accesskey;"
               selectiontype="single"
-              selection="Snowl/Author"
+              selection="Snowl/Collections/Author"
               oncommand="CollectionsView.removeAuthor();"/>
     <menuseparator id="snowlPlacesContextExtensionSep"
               insertbefore="placesContext_show:info"/>
@@ -158,14 +158,14 @@
           onselect="CollectionsView.onSelect(event)"
           onclick="CollectionsView.onClick(event)">
       <treecols>
+        <!-- Don't use label if hideheader=true - label="&nameCol.label;" -->
         <treecol id="title"
-                 label="&nameCol.label;"
                  primary="true"
                  flex="1"
                  hideheader="true"/>
       </treecols>
 
-      <treechildren id="sourcesViewChildren"
+      <treechildren id="sourcesViewTreeChildren"
                     view="sourcesView"
                     class="sidebar-placesTreechildren" 
                     flex="1"
