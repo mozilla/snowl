@@ -38,8 +38,12 @@
   -moz-binding: url(chrome://snowl/content/snowlTree.xml#tree);
 }
 
+#collectionsViewMenu > .menulist-label-box {
+  margin-right: 3px;
+}
+
 /* Make the tree icons be 16x16 in size even if the image files are larger. */
-#sourcesView > treechildren::-moz-tree-image {
+#sourcesViewTreeChildren::-moz-tree-image {
   width: 16px;
   height: 16px;
 }
@@ -50,7 +54,7 @@
   list-style-image: url("chrome://browser/skin/places/query.png");
 }
 /* User defined view folders can have a custom icon */
-#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowlCustom) {
+#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowl-Custom) {
   list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
 }
 

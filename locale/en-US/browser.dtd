@@ -68,10 +68,6 @@
 <!ENTITY toolbar.accesskey                    "d">
 <!ENTITY viewtoolbar.label                    "List Toolbar">
 <!ENTITY viewtoolbar.accesskey                "i">
-<!ENTITY groupedOff.label                     "Flat Collections">
-<!ENTITY groupedOff.accesskey                 "a">
-<!ENTITY groupedOn.label                      "Grouped Collections">
-<!ENTITY groupedOn.accesskey                  "G">
 
 <!-- These labels and access keys are for toolbar buttons -->
 

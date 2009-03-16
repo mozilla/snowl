@@ -12,6 +12,9 @@ style chrome://global/content/customizeToolbar.xul chrome://snowl/content/browse
 # For our About dialog.
 overlay chrome://mozapps/content/extensions/about.xul chrome://snowl/content/about.xul
 
+# For customizing Places bookmarks dialog.
+overlay chrome://browser/content/places/bookmarkProperties.xul chrome://snowl/content/bookmarkProperties.xul
+
 # Note: we overlay the river view via xul-overlay processing instructions
 # because chrome.manifest instructions require exact URLs, and the river view's
 # URL varies because of query params in response to user searches.

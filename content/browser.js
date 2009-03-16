@@ -159,23 +159,6 @@ let Snowl = {
       }
     }
 
-    // Flat/Grouped init 
-    let isFlatList;
-    let sidebarDoc = document.getElementById("sidebar").contentDocument;
-    let sourcesView = sidebarDoc.getElementById("sourcesView");
-    if (sourcesView)
-      isFlatList = sourcesView.getAttribute("flat") == "true";
-
-    let hmenuitems = document.getElementsByAttribute("name", "snowlFlatListMenuitemGroup");
-    let rivertab = this._snowlRiverTab();
-    if (hmenuitems) {
-      for (var i = 0; i < hmenuitems.length; i++) {
-        hmenuitems[i].setAttribute("disabled", !lchecked && !(rivertab));
-        if (i == isFlatList)
-          hmenuitems[i].setAttribute("checked", true);
-      }
-    }
-
     // Toolbars
     document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
         (!lchecked && !schecked) ? true : false);
@@ -364,33 +347,6 @@ let Snowl = {
         .getElementById("headerDeck");
     return headerDeck;
   },
-
-  // Collections flat/grouped toggle, menu disabled if not in List view
-//  kFlatListOff: 0,
-//  kFlatListOn: 1,
-//
-//  _toggleFlatList: function(val) {
-//    let sidebarDoc = document.getElementById("sidebar").contentWindow;
-//    let lchecked = document.getElementById("viewSnowlList").hasAttribute("checked");
-//    if (lchecked) {
-//      sidebarDoc.CollectionsView._tree.setAttribute("flat", val ? true : false);
-//     sidebarDoc.CollectionsView._tree.place = val ?
-//          SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
-//      // Ensure collection selection maintained
-//      sidebarDoc.CollectionsView._tree.restoreSelection();
-//    }
-//
-//    let rivertab = this._snowlRiverTab();
-//    if (rivertab) {
-//      let tabWindowDoc = gBrowser.getBrowserAtIndex(rivertab._tPos).contentWindow;
-//      let tabDoc = new XPCNativeWrapper(tabWindowDoc).wrappedJSObject;
-//      tabDoc.CollectionsView._tree.setAttribute("flat", val ? true : false);
-//      tabDoc.CollectionsView._tree.place = val ?
-//          SnowlPlaces.queryFlat : SnowlPlaces.queryGrouped;
-//      // Ensure collection selection maintained
-//      tabDoc.CollectionsView._tree.restoreSelection();
-//    }
-//  },
 
   // Need to init onLoad due to xul structure, toolbar exists in list and stream
   _initSnowlToolbar: function() {

@@ -81,6 +81,11 @@ let CollectionsView = {
     return this._collectionsViewMenu = document.getElementById("collectionsViewMenu");
   },
 
+  get _collectionsViewMenuPopup() {
+    delete this._collectionsViewMenuPopup;
+    return this._collectionsViewMenuPopup = document.getElementById("collectionsViewMenuPopup");
+  },
+
   get itemIds() {
     let intArray = [];
     let strArray = this._tree.getAttribute("itemids").split(",");
@@ -113,10 +118,12 @@ let CollectionsView = {
       if (!this._searchBox.hasAttribute("collapsed"))
         this._searchBoxButton.setAttribute("checked", true);
 
-      // Restore persisted view selection or init
+      // Restore persisted view selection (need to build the menulist) or init.
       let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
-      if (selIndex >= 0)
+      if (selIndex >= 0) {
+        this.onPopupshowingCollectionsView();
         this._collectionsViewMenu.selectedIndex = selIndex;
+      }
       else {
         this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
         this._collectionsViewMenu.selectedIndex = 0;
@@ -140,11 +147,11 @@ let CollectionsView = {
 
     // Get collections and convert to places tree - one time upgrade
     // XXX move this to datastore.js module
-    if (!SnowlPlaces.convertedToPlaces &&
-        SnowlPlaces.initializedPlaces &&
-        SnowlPlaces.convertedToPlaces != null) {
+    if (!SnowlPlaces._placesConverted &&
+        SnowlPlaces._placesInitialized &&
+        SnowlPlaces._placesConverted != null) {
       // Use null as a lock in case another CollectionsView instantiated.
-      SnowlPlaces.convertedToPlaces = null;
+      SnowlPlaces._placesConverted = null;
 
       let titleMsg = strings.get("rebuildPlacesTitleMsg");
       let dialogMsg = strings.get("rebuildPlacesDialogMsg");
@@ -157,7 +164,6 @@ let CollectionsView = {
       this._collectionsViewMenu.selectedIndex = 0;
       this._getCollections();
       this._buildCollectionTree();
-      SnowlPlaces.convertedToPlaces = true;
     }
 
     // Ensure collection tree selection maintained for list view, river handles itself.
@@ -171,6 +177,7 @@ let CollectionsView = {
     Observers.add("snowl:message:added", this.onMessageAdded, this);
     Observers.add("snowl:source:removed", this.onSourceRemoved, this);
     Observers.add("snowl:messages:changed", this.onMessagesComplete, this);
+    Observers.add("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
       Observers.add("snowl:author:removed", this.onSourceRemoved, this);;
 this._log.info("loadObservers");
@@ -181,6 +188,7 @@ this._log.info("loadObservers");
     Observers.remove("snowl:message:added", this.onMessageAdded, this);
     Observers.remove("snowl:source:removed", this.onSourceRemoved, this);
     Observers.remove("snowl:messages:changed", this.onMessagesComplete, this);
+    Observers.remove("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
       Observers.remove("snowl:author:removed", this.onSourceRemoved, this);;
 this._log.info("unloadObservers");
@@ -404,27 +412,81 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
       this._searchBox.setAttribute("collapsed", true);
   },
 
+  _resetCollectionsView: true,
+  onPopupshowingCollectionsView: function(event) {
+    // Build dynamic Views list.
+    var list, queryVal, title, baseItemId, menuItem;
+
+    // Rebuild first time or only if item added or removed, to maintain selection.
+    if (!this._resetCollectionsView)
+      return;
+
+    while (this._collectionsViewMenuPopup.hasChildNodes() &&
+        this._collectionsViewMenuPopup.lastChild.id != "collectionVewMenuSep")
+      this._collectionsViewMenuPopup.removeChild(this._collectionsViewMenuPopup.lastChild);
+
+    list = PlacesUtils.annotations
+                      .getItemsWithAnnotation(SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO, {});
+    for (var i=0; i < list.length; i++) {
+      // Parent has to be systemID otherwise get dupes if shortcut folders copied..
+      if (PlacesUtils.bookmarks.
+                      getFolderIdForItem(list[i]) != SnowlPlaces.collectionsSystemID)
+        continue;
+
+      queryVal = PlacesUtils.annotations.
+                             getItemAnnotation(list[i],
+                                               SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO);
+      title = PlacesUtils.bookmarks.getItemTitle(list[i]);
+      baseItemId = queryVal;
+      menuItem = document.createElement("menuitem");
+      menuItem.setAttribute("label", title);
+      menuItem.setAttribute("value", baseItemId);
+      this._collectionsViewMenuPopup.appendChild(menuItem);
+    }
+
+    if (this._collectionsViewMenuPopup.lastChild.id == "collectionVewMenuSep")
+      this._collectionsViewMenuPopup.lastChild.hidden = true;
+    else
+      document.getElementById("collectionVewMenuSep").hidden = false;
+
+    this._resetCollectionsView = false;
+  },
+
   onCommandCollectionsView: function(value) {
-    // TODO: make this recognize user definable views, which will be stored in
-    // the database.
+    // View is a predefined system view, or else a custom view.  The |value| is
+    // the Places itemId for the view base folder (ie not the shortcut).
     this._collectionsViewMenu.setAttribute("selectedindex",
                                            this._collectionsViewMenu.selectedIndex);
     switch (value) {
+      case "default":
+        this._tree.place = SnowlPlaces.queryDefault;
+        break;
       case "sources":
         this._tree.place = SnowlPlaces.querySources;
         break;
       case "authors":
         this._tree.place = SnowlPlaces.queryAuthors;
         break;
-      case "custom":
-        this._tree.place = SnowlPlaces.queryCustom;
-        break;
       default:
-        this._tree.place = SnowlPlaces.queryDefault;
+        // Menu must built with correct itemId values.
+        this._tree.place = SnowlPlaces.queryCustom + parseInt(value);
         break;
     }
     this._tree.restoreSelection();
     this._tree.focus();
+  },
+
+  onItemChanged: function(aItemChangedObj) {
+//this._log.info("onItemChanged: start itemId - "+aItemChangedObj.itemId);
+      switch (aItemChangedObj.property) {
+        case "title":
+          // Here if notified of a rename of a View folder shortcut.
+//this._log.info("onItemChanged: title - "+aItemChangedObj.title);
+          this.updateViewNames(aItemChangedObj);
+          break;
+        default:
+          break;
+      }
   },
 
   refreshSource: function() {
@@ -459,7 +521,7 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
 
     if (query.queryGroupIDColumn != "sources.id")
       return;
-this._log.info("removeSource: source - " + query.queryName + " : " + selectedSource.itemId);
+this._log.info("removeSource: Removing source - " + query.queryName + " : " + selectedSource.itemId);
 
     selectedSourceNodeID = [selectedSource, query.queryID];
     selectedSourceNodesIDs.push(selectedSourceNodeID);
@@ -530,7 +592,7 @@ this._log.info("removeSource: source - " + query.queryName + " : " + selectedSou
 
     if (query.queryGroupIDColumn != "authors.id")
       return;
-this._log.info("removeAuthor: author - " + query.queryName + " : " + selectedSource.itemId);
+this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + selectedSource.itemId);
 
     selectedSourceNodeID = [selectedSource, query.queryID];
     selectedSourceNodesIDs.push(selectedSourceNodeID);
@@ -582,17 +644,110 @@ this._log.info("removeAuthor: author - " + query.queryName + " : " + selectedSou
     Observers.notify("snowl:author:removed");
   },
 
+  newView: function() {
+    // The ip is only in the default view, so appending the new custom view
+    // shortcut at the bottom will only be visible there, although the action is
+    // performed in any view.  Need to have all this to pass a 'mode'..
+    let title = strings.get("newViewTitle");
+    let ip = new InsertionPoint(SnowlPlaces.collectionsSystemID,
+                                SnowlPlaces.DEFAULT_INDEX,
+                                Ci.nsITreeView.DROP_ON);
+    let info = {
+      action: "add",
+      type: "folder",
+      hiddenRows: ["folderPicker"],
+      title: title,
+      defaultInsertionPoint: ip,
+      mode: "view"
+    };
+
+    let dialogURL = "chrome://browser/content/places/bookmarkProperties.xul";
+    let features = "centerscreen,chrome,modal,resizable=no";
+    window.openDialog(dialogURL, "",  features, info);
+
+    if ("performed" in info && info.performed) {
+      // Select the new item.
+//      let insertedNodeId = PlacesUtils.bookmarks
+//                                      .getIdForItemAt(ip.itemId, ip.index);
+//      this._tree.selectItems([insertedNodeId], false);
+      this._resetCollectionsView = true;
+    }
+  },
+
+  removeView: function() {
+    if (this._tree.selectedNode) {
+      let removeNode =
+          this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
+      let scItem = removeNode.itemId;
+      let uri = removeNode.uri;
+      let query = new SnowlQuery(uri);
+      let baseItem = query.queryFolder;
+
+      if (baseItem)
+        PlacesUtils.bookmarks.removeItem(baseItem);
+
+     if (scItem) {
+       // Removing a shortcut bookmark does not remove its history uri entry
+       // (in moz_places), so remove it like this.  Cannot use removePage since
+       // it explicitly excludes 'place:' uris.
+       let db = Cc["@mozilla.org/browser/nav-history-service;1"].
+                getService(Ci.nsPIPlacesDatabase).
+                DBConnection;
+       db.executeSimpleSQL("DELETE FROM moz_places WHERE id = " +
+          "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
+
+       PlacesUtils.bookmarks.removeItem(scItem);
+     }
+
+     this._resetCollectionsView = true;
+    }
+  },
+
+  updateViewNames: function(aRenameObj) {
+    // Bug 482978: need to reset tree on rename of folder shortcut, and it must
+    // be in a thread or setCellText loops since the node's title is not reset.
+    setTimeout(function() {
+      CollectionsView._tree.place = CollectionsView._tree.place;
+      CollectionsView._tree.restoreSelection();
+    }, 0)
+
+    // Reflect folder shortcut name change in the View structure.
+    let newTitle = aRenameObj.title;
+
+    // Update base folder name.
+    let baseFolderId = PlacesUtils.annotations.
+                                   getItemAnnotation(aRenameObj.itemId,
+                                                     SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO)
+//this._log.info("_updateViewNames: baseFolder itemid:newtitle - "+ baseFolderId+" : "+newTitle);
+    var txn = PlacesUIUtils.ptm.editItemTitle(baseFolderId,
+                                              "snowlUserView:" + newTitle);
+    PlacesUIUtils.ptm.doTransaction(txn);
+
+    // Update string in our css anno.
+//this._log.info("_updateViewNames: shortcut itemid - "+aRenameObj.itemId);
+    let annotation = { name: SnowlPlaces.ORGANIZER_QUERY_ANNO,
+                       type: Ci.nsIAnnotationService.TYPE_STRING,
+                       flags: 0,
+                       value: "snowl-" + newTitle,
+                       expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
+    var txn = PlacesUIUtils.ptm.setItemAnnotation(aRenameObj.itemId,
+                                                  annotation);
+    PlacesUIUtils.ptm.doTransaction(txn);
+
+    // Force rebuild of View menulist for the new name.
+    this._resetCollectionsView = true;
+  },
+
   searchCollections: function(aSearchString) {
     // XXX: Bug 479903, place queries have no way of excluding search in uri,
     // which may not be meaningful for our usage.
     let searchFolders = [];
     let view = this._collectionsViewMenu.value;
-    if (view != "default")
+    if (view && view != "default")
       // Limit search to authors/sources/custom if that view selected, else all
       searchFolders = view == "sources" ? [SnowlPlaces.collectionsSourcesID] :
                       view == "authors" ? [SnowlPlaces.collectionsAuthorsID] :
-                      view == "custom"  ? [SnowlPlaces.collectionsCustomID] :
-                                          [SnowlPlaces.collectionsSystemID];
+                                          [parseInt(view)];
     else {
       // XXX Get selected items and search only those
       searchFolders = [SnowlPlaces.collectionsSystemID];
@@ -641,16 +796,6 @@ this._log.info("removeAuthor: author - " + query.queryName + " : " + selectedSou
       return false;
     else
       return true;
-  },
-
-  isSourceNode: function(aNode) {
-    let query = new SnowlQuery(aNode.uri);
-    return query.queryTypeSource;
-  },
-
-  isAuthorNode: function(aNode) {
-    let query = new SnowlQuery(aNode.uri);
-    return query.queryTypeAuthor;
   },
 
   getSelectionConstraints: function() {
@@ -794,51 +939,35 @@ this._log.info("Converted to places - " +
     this.gMessageViewWindow.XULBrowserWindow.
                             setOverLink("Conversion to Places completed");
 this._log.info("_buildCollectionTree: Convert to Places: END");
+    SnowlPlaces._placesConverted = true;
+    SnowlPlaces.setPlacesVersion(SnowlPlaces.snowlPlacesFolderId);
   })
 
 };
 
 /**
- * A single collection list view tree row.
- * 
- * @aNode (nsINavHistoryResultNode) collection row node
+ * PlacesTreeView overrides here.
+ */
 
-function lvCollectionNode(aNode) {
-  this._node = aNode;
-}
-lvCollectionNode.prototype = {
-  get uri() {
-    delete this._uri;
-    return this._uri = this._node ? _node.uri : null;
-  },
+/* Allow inline renaming and handle folder shortcut items */
+PlacesTreeView.prototype._setCellText = PlacesTreeView.prototype.setCellText;
+PlacesTreeView.prototype.setCellText = SnowlTreeViewSetCellText;
+function SnowlTreeViewSetCellText(aRow, aColumn, aText) {
+  this._setCellText(aRow, aColumn, aText);
 
-  get itemId() {
-    delete this._itemId;
-    return this._itemId = this._node ? _node.itemId : null;
-  },
+  let node = this.nodeForTreeIndex(aRow);
+  if (node.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_FOLDER_SHORTCUT) {
+//CollectionsView._log.info("_setCellText: shortcut node.title - "+node.title);
+    // Send a notify on item change (title rename so far).
+    let itemChangedObj = {
+      itemId: node.itemId,
+      property: "title",
+      title: aText
+    }
 
-  get viewIndex() {
-    delete this.viewIndex;
-    return this.viewIndex = this._node ? _node.viewIndex : -1;
+    Observers.notify("itemchanged", itemChangedObj);
   }
 };
- */
-/**
- * PlacesTreeView overrides here.
- *
- */
-/* 
-PlacesTreeView.prototype._drop = PlacesTreeView.prototype.drop;
-PlacesTreeView.prototype.drop = SnowlTreeViewDrop;
-function SnowlTreeViewDrop(aRow, aOrientation) {
-  this._drop(aRow, aOrientation);
 
-//CollectionsView._log.info("_drop");
-
-  // Restore selection
-  SnowlUtils.gMouseEvent = false;
-  CollectionsView._tree.selectItems(CollectionsView.itemIds);
-};
-*/
 
 window.addEventListener("load", function() { CollectionsView.init() }, true);

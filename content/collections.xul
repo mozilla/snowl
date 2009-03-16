@@ -74,7 +74,24 @@
               forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuseparator id="placesContext_openSeparator"
               forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
+    <menuitem id="placesContext_show:info"
+              forcehideselection="Snowl/Collections"/>
 
+    <menuitem id="snowlCollectionNewViewMenuitem"
+              insertbefore="placesContext_new:bookmark"
+              label="&newView.label;"
+              accesskey="&newView.accesskey;"
+              selectiontype="any"
+              selection="any"
+              hideifnoinsertionpoint="true"
+              oncommand="CollectionsView.newView();"/>
+    <menuitem id="snowlCollectionRemoveViewMenuitem"
+              insertbefore="placesContext_show:info"
+              label="&removeView.label;"
+              accesskey="&removeView.accesskey;"
+              selectiontype="single"
+              selection="Snowl/User/ViewList"
+              oncommand="CollectionsView.removeView();"/>
     <menuitem id="snowlCollectionRefreshMenuitem"
               insertbefore="placesContext_show:info"
               label="&refresh.label;"
@@ -121,15 +138,15 @@
                 selectedindex=""
                 persist="selectedindex"
                 oncommand="CollectionsView.onCommandCollectionsView(this.value)">
-        <menupopup id="collectionsViewMenuPopup">
+        <menupopup id="collectionsViewMenuPopup"
+                   onpopupshowing="CollectionsView.onPopupshowingCollectionsView(event)">
           <menuitem label="&viewDefault.label;"
                     value="default"/>
           <menuitem label="&viewSources.label;"
                     value="sources"/>
           <menuitem label="&viewAuthors.label;"
                     value="authors"/>
-          <menuitem label="&viewCustom.label;"
-                    value="custom"/>
+          <menuseparator id="collectionVewMenuSep"/>
         </menupopup>
       </menulist>
       <label value="&search.label;"
