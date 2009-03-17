@@ -150,7 +150,9 @@ let CollectionsView = {
     if (!SnowlPlaces._placesConverted &&
         SnowlPlaces._placesInitialized &&
         SnowlPlaces._placesConverted != null) {
-      // Use null as a lock in case another CollectionsView instantiated.
+      // Use null as a lock in case another CollectionsView instantiated.  If
+      // collections tree is unloaded before a complete conversion, a restart
+      // will attempt the conversion again.
       SnowlPlaces._placesConverted = null;
 
       let titleMsg = strings.get("rebuildPlacesTitleMsg");
@@ -199,29 +201,19 @@ this._log.info("unloadObservers");
   // Event & Notification Handlers
 
   onSourceAdded: function(aPlaceID) {
-    // Newly subscribed source has been added to places, sort the Sources system
-    // folder (by AZ name)
-    let txn = PlacesUIUtils.ptm.sortFolderByName(SnowlPlaces.collectionsSourcesID);
-    PlacesUIUtils.ptm.doTransaction(txn);
-
-    // Select the inserted row.  The effect of selecting here is that
-    // onMessageAdded will trigger a view refresh for each message, so messages
-    // pop into the view as added.
-    this._tree.currentSelectedIndex = -1;
-//    this._tree.selection.clearSelection();
 //this._log.info("onSourceAdded: curIndex:curSelectedIndex = "+
 //  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
+    // Newly subscribed source has been added to places, elect the inserted row.
+    // The effect of selecting here is that onMessageAdded will trigger a view
+    // refresh for each message, so messages pop into the view as added.
+    this._tree.currentSelectedIndex = -1;
     setTimeout(function() {
       let viewItemIds = CollectionsView.itemIds;
-//CollectionsView._log.info("onSourceAdded: new PLACE - "+aPlaceID);
       CollectionsView._tree.restoreSelection([aPlaceID]);
       if (CollectionsView._tree.view.selection.count == 0) {
         // If not in a view that shows Sources, hence nothing selected, restore
         // the view to its current state, as selectItems will clear it.
-//CollectionsView._log.info("onSourceAdded: count=0 viewItemIds - "+viewItemIds);
         CollectionsView._tree.restoreSelection(viewItemIds);
-//CollectionsView._log.info("onSourceAdded: END curIndex - "+
-//  CollectionsView._tree.currentIndex);
       }
     }, 30)
   },
@@ -230,9 +222,7 @@ this._log.info("unloadObservers");
     // If source or author of new message is currently selected in the
     // collections list, refresh view.  This observer exists for both list and
     // river and selections may be different.
-//this._log.info("onMessageAdded: COLLECTIONS");
     if (this.isMessageForSelectedCollection(message)) {
-//this._log.info("onMessageAdded: REFRESH");
       this.gMessageViewWindow.SnowlMessageView.onMessageAdded(message);
     }
   },
@@ -240,31 +230,17 @@ this._log.info("unloadObservers");
   onMessagesComplete: function(aSourceId) {
     // Finished downloading all messages.  Scroll the collection tree intelligently.
 //    SnowlUtils.scrollPlacement(this._tree, this._tree.currentIndex);
-
-    // Sort the Authors system folder (by AZ name)
-    // XXX: bizarrely, for authors folder (and not sources) sort is A-Za-z
-//    let txn = PlacesUIUtils.ptm.sortFolderByName(SnowlPlaces.collectionsAuthorsID);
-//    PlacesUIUtils.ptm.doTransaction(txn);
-
-//this._log.info("onMessagesComplete: COLLECTIONS authorItemId - "+
-//  SnowlPlaces.collectionsAuthorsID);
   },
 
   onSourceRemoved: function() {
 //this._log.info("onSourceRemoved: curIndex:gMouseEvent - "+
 //  this._tree.currentIndex+" : "+SnowlUtils.gMouseEvent);
-    SnowlUtils.gRightMouseButtonDown = false;
-    // If tree rows removed, attempt to reselect originally selected row.
-    setTimeout(function() {
-      CollectionsView._tree.restoreSelection();
-      if (!CollectionsView._tree.selectedNode) {
-        // Original selected row removed, reset and clear.
-        CollectionsView._tree.currentIndex = -1;
-        CollectionsView._tree.currentSelectedIndex = -1;
-        CollectionsView.itemIds = -1;
-        CollectionsView.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+    if (!this._tree.selectedNode) {
+      // Original selected row removed, reset and clear.
+      this._tree.currentIndex = -1;
+      this.itemIds = -1;
+      this.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
       }
-    }, 30)
   },
 
   onSelect: function(aEvent) {
@@ -436,6 +412,11 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
       queryVal = PlacesUtils.annotations.
                              getItemAnnotation(list[i],
                                                SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO);
+
+      if (queryVal == SnowlPlaces.collectionsSystemID)
+        // This is the All Messages shortcut, skip.
+        continue;
+
       title = PlacesUtils.bookmarks.getItemTitle(list[i]);
       baseItemId = queryVal;
       menuItem = document.createElement("menuitem");
@@ -564,7 +545,6 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
         // Finally, clean up Places bookmarks with sourceID in its prefixed uri.
         SnowlPlaces.removePlacesItemsByURI("snowl:sourceId=" + sourceID, true);
 //this._log.info("removeSource: Delete Places DONE");
-        this._tree.view.selection.clearSelection();
 
         SnowlDatastore.dbConnection.commitTransaction();
       }
@@ -631,7 +611,6 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
         // Finally, clean up Places bookmark by author's place itemId.
         PlacesUtils.bookmarks.removeItem(sourceNode.itemId);
 //this._log.info("removeAuthor: Delete Places DONE");
-        this._tree.view.selection.clearSelection();
 
         SnowlDatastore.dbConnection.commitTransaction();
       }
@@ -686,20 +665,20 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
       if (baseItem)
         PlacesUtils.bookmarks.removeItem(baseItem);
 
-     if (scItem) {
-       // Removing a shortcut bookmark does not remove its history uri entry
-       // (in moz_places), so remove it like this.  Cannot use removePage since
-       // it explicitly excludes 'place:' uris.
-       let db = Cc["@mozilla.org/browser/nav-history-service;1"].
-                getService(Ci.nsPIPlacesDatabase).
-                DBConnection;
-       db.executeSimpleSQL("DELETE FROM moz_places WHERE id = " +
-          "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
+    if (scItem) {
+      // Removing a shortcut bookmark does not remove its history uri entry
+      // (in moz_places), so remove it like this.  Cannot use removePage since
+      // it explicitly excludes 'place:' uris.
+      let db = Cc["@mozilla.org/browser/nav-history-service;1"].
+               getService(Ci.nsPIPlacesDatabase).
+               DBConnection;
+      db.executeSimpleSQL("DELETE FROM moz_places WHERE id = " +
+         "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
 
-       PlacesUtils.bookmarks.removeItem(scItem);
-     }
+      PlacesUtils.bookmarks.removeItem(scItem);
+    }
 
-     this._resetCollectionsView = true;
+    this._resetCollectionsView = true;
     }
   },
 
@@ -969,5 +948,15 @@ function SnowlTreeViewSetCellText(aRow, aColumn, aText) {
   }
 };
 
+/* Restore selection when any row is removed */
+PlacesTreeView.prototype._itemRemoved = PlacesTreeView.prototype.itemRemoved;
+PlacesTreeView.prototype.itemRemoved = SnowlTreeViewItemRemoved;
+function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
+  this._itemRemoved(aParent, aItem, aOldIndex);
+
+CollectionsView._log.info("_itemRemoved: ");
+  // Restore.
+  CollectionsView._tree.restoreSelection();
+};
 
 window.addEventListener("load", function() { CollectionsView.init() }, true);

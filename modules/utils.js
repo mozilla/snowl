@@ -395,11 +395,7 @@ let SnowlUtils = {
 
     // Reset mouse state to enable key navigation.
     this.gMouseEvent = false;
-    if (!this.gRightMouseButtonDown)
-      // Reset already (onSourceRemoved) and restore selection handled, so return.
-      return;
-    else
-      this.gRightMouseButtonDown = false;
+    this.gRightMouseButtonDown = false;
 
     tree.currentSelectedIndex = treeSelection.currentIndex;
     // Make sure that currentIndex is valid so that we don't try to restore

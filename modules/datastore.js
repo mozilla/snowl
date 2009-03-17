@@ -975,7 +975,7 @@ let SnowlPlaces = {
     return this._log;
   },
 
-  _placesVersion: 0,
+  _placesVersion: 1,
   _placesConverted: false,
   _placesInitialized: false,
 
@@ -1358,11 +1358,10 @@ this._log.info("init: Rebuilding Snowl Places...");
         // All Messages.
         coll = {queryId:  "snowl-AllMessages",
                 itemId:   null,
-                value:    "snowlAllMessages",
+                value:    this.collectionsSystemID,
                 title:    strings.get("allCollectionName"),
                 uri:      URI("place:folder=" + this.collectionsSystemID + "&OR"),
                 parent:   this.collectionsSystemID,
-                anno:     this.SNOWL_COLLECTIONS_ANNO,
                 position: 0}; // 0=first
         collections.push(coll);
 
@@ -1379,7 +1378,6 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
                   title:    name,
                   uri:      URI("place:folder=" + viewItems[i]),
                   parent:   this.collectionsSystemID,
-                  anno:     this.SNOWL_USER_VIEWLIST_ANNO,
                   position: this.DEFAULT_INDEX};
           collections.push(coll);
         }
@@ -1399,7 +1397,7 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
           // View shortcut, otherwise string for AllMessages shortcut.
           PlacesUtils.annotations.
                       setItemAnnotation(coll.itemId,
-                                        coll.anno,
+                                        this.SNOWL_USER_VIEWLIST_ANNO,
                                         coll.value,
                                         0,
                                         this.EXPIRE_NEVER);
