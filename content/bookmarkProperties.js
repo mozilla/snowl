@@ -72,8 +72,10 @@ BookmarkPropertiesPanel.Places_onDialogAccept =
 
 BookmarkPropertiesPanel.onDialogAccept =
   function BPP__onDialogAccept() {
-    // Update names for a View item.
-    this._updateViewNames();
+    // Update names for a View or Source/Author item.
+    SnowlPlaces.renamePlace(this._itemId,
+                            this._uri.spec,
+                            this._element("userEnteredName").label);
 
     this.Places_onDialogAccept();
 };
@@ -159,25 +161,4 @@ BookmarkPropertiesPanel._getCreateNewViewShortcutTransaction =
                                         null,
                                         annotations,
                                         null);
-};
-
-/**
- * On save, for both New View adds and name changes via Properties.  Get the
- * new title to update base folder and shortcut annos, which aren't part of the
- * built-in method of title renaming, and send a notify.
- */
-BookmarkPropertiesPanel._updateViewNames =
-  function BPP___updateViewNames() {
-    // Check if in a shortcut folder with our anno.
-    if (PlacesUtils.annotations.
-                    itemHasAnnotation(this._itemId,
-                                      SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO)) {
-      let itemChangedObj = {
-        itemId: this._itemId,
-        property: "title",
-        title: this._element("userEnteredName").label
-      }
-
-      Observers.notify("itemchanged", itemChangedObj);
-    }
 };

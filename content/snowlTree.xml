@@ -52,9 +52,25 @@
           this.currentIndex = this.treeBoxObject.getFirstVisibleRow();
       ]]></handler> -->
 
+      <!-- The system collections folder (default View) is necessarily readOnly,
+           however we want to allow user ordering of custom View shorcuts within
+           the default View.  Do a check and unset readOnly; reset on dragend. -->
+      <handler event="dragstart"><![CDATA[
+        let rootNodeId = this.getResultNode().itemId;
+        if (rootNodeId == SnowlPlaces.collectionsSystemID &&
+            this.selectedNode.parent.itemId == SnowlPlaces.collectionsSystemID &&
+            this.selectedNode.itemId != SnowlPlaces.collectionsSourcesID &&
+            this.selectedNode.itemId != SnowlPlaces.collectionsAuthorsID &&
+            this.selectedNode.itemId != SnowlPlaces.collectionsAllID)
+          PlacesUtils.bookmarks.setFolderReadonly(rootNodeId, false);
+      ]]></handler>
+
       <!-- Restore tree selection on drag end -->
       <handler event="dragend"><![CDATA[
         SnowlUtils.gMouseEvent = false;
+        let rootNodeId = this.getResultNode().itemId;
+        if (rootNodeId == SnowlPlaces.collectionsSystemID)
+          PlacesUtils.bookmarks.setFolderReadonly(rootNodeId, true);
         this.restoreSelection();
       ]]></handler>
     </handlers>

@@ -47,6 +47,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/StringBundle.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -1032,6 +1033,11 @@ this._log.info("setPlacesVersion: " + verInfo);
     return this.collectionsAuthorsID = this.snowlPlacesQueries["snowlCollectionsAuthors"];
   },
 
+  get collectionsAllID() {
+    delete this.collectionsAllID;
+    return this.collectionsAllID = this.snowlPlacesQueries["snowlCollectionsAll"];
+  },
+
   get userRootID() {
     delete this.userRootID;
     return this.userRootID = this.snowlPlacesQueries["snowlUserRoot"];
@@ -1159,6 +1165,43 @@ this._log.info("setPlacesVersion: " + verInfo);
     uniqueIds.forEach(function(itemid) {
       PlacesUtils.bookmarks.removeItem(itemid);
     })
+  },
+
+/**
+ * Called from Properties dialog on save, for View adds and View and Source/Author
+ * name changes, and from setCellText tree inline rename.
+ * 
+ * @aNode      - node
+ * @aUri       - uri
+ * @aNewTitle  - new title
+ */
+  renamePlace: function(aItemId, aUri, aNewTitle) {
+    let itemChangedObj = {
+      itemId: aItemId,
+      type: null,
+      property: "title",
+      uri: aUri,
+      title: aNewTitle
+    }
+  
+    if (PlacesUtils.annotations.
+                    itemHasAnnotation(aItemId,
+                                      this.SNOWL_USER_VIEWLIST_ANNO)) {
+      // View shortcut folder.
+      itemChangedObj.type = "view";
+    }
+    else {
+      let parentId = PlacesUtils.bookmarks.getFolderIdForItem(aItemId);
+      if (parentId == this.collectionsSourcesID ||
+          parentId == this.collectionsAuthorsID)
+        // Source/author folder.
+        itemChangedObj.type = "collection";
+      else
+        return;
+    }
+  
+    Observers.notify("itemchanged", itemChangedObj);
+    return;
   },
 
 /**
@@ -1349,19 +1392,16 @@ this._log.info("init: Rebuilding Snowl Places...");
         // Ensure immediate children can't be removed.
         PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
 
-        // Build the map.
-        delete this.snowlPlacesQueries;
-        this.snowlPlacesQueries = this.buildNameItemMap(this.SNOWL_COLLECTIONS_ANNO);
-
         // Default collections.  These are folder shortcuts.
         let collections = [], viewItems, name;
         // All Messages.
         coll = {queryId:  "snowl-AllMessages",
                 itemId:   null,
-                value:    this.collectionsSystemID,
+                value:    "snowlCollectionsAll",
                 title:    strings.get("allCollectionName"),
-                uri:      URI("place:folder=" + this.collectionsSystemID + "&OR"),
-                parent:   this.collectionsSystemID,
+                uri:      URI("place:folder=" + collsysID + "&OR"),
+                anno:     this.SNOWL_COLLECTIONS_ANNO,
+                parent:   collsysID,
                 position: 0}; // 0=first
         collections.push(coll);
 
@@ -1377,7 +1417,8 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
                   value:    viewItems[i],
                   title:    name,
                   uri:      URI("place:folder=" + viewItems[i]),
-                  parent:   this.collectionsSystemID,
+                  anno:     this.SNOWL_USER_VIEWLIST_ANNO,
+                  parent:   collsysID,
                   position: this.DEFAULT_INDEX};
           collections.push(coll);
         }
@@ -1397,13 +1438,17 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
           // View shortcut, otherwise string for AllMessages shortcut.
           PlacesUtils.annotations.
                       setItemAnnotation(coll.itemId,
-                                        this.SNOWL_USER_VIEWLIST_ANNO,
+                                        coll.anno,
                                         coll.value,
                                         0,
                                         this.EXPIRE_NEVER);
         };
 
-        PlacesUtils.bookmarks.insertSeparator(this.collectionsSystemID, 3);
+        PlacesUtils.bookmarks.insertSeparator(collsysID, 3);
+
+        // Build the map.
+        delete this.snowlPlacesQueries;
+        this.snowlPlacesQueries = this.buildNameItemMap(this.SNOWL_COLLECTIONS_ANNO);
 //      }
 //    };
 

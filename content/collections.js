@@ -413,10 +413,6 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
                              getItemAnnotation(list[i],
                                                SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO);
 
-      if (queryVal == SnowlPlaces.collectionsSystemID)
-        // This is the All Messages shortcut, skip.
-        continue;
-
       title = PlacesUtils.bookmarks.getItemTitle(list[i]);
       baseItemId = queryVal;
       menuItem = document.createElement("menuitem");
@@ -461,9 +457,13 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
 //this._log.info("onItemChanged: start itemId - "+aItemChangedObj.itemId);
       switch (aItemChangedObj.property) {
         case "title":
-          // Here if notified of a rename of a View folder shortcut.
+          // Here if notified of a title rename, either View or source/author,
+          // which require special updates; others updated via places mechanisms.
 //this._log.info("onItemChanged: title - "+aItemChangedObj.title);
-          this.updateViewNames(aItemChangedObj);
+          if (aItemChangedObj.type == "view")
+            this.updateViewNames(aItemChangedObj);
+          if (aItemChangedObj.type == "collection")
+            this.updateCollectionNames(aItemChangedObj);
           break;
         default:
           break;
@@ -669,11 +669,11 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
       // Removing a shortcut bookmark does not remove its history uri entry
       // (in moz_places), so remove it like this.  Cannot use removePage since
       // it explicitly excludes 'place:' uris.
-      let db = Cc["@mozilla.org/browser/nav-history-service;1"].
-               getService(Ci.nsPIPlacesDatabase).
-               DBConnection;
-      db.executeSimpleSQL("DELETE FROM moz_places WHERE id = " +
-         "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
+      let PlacesDB = Cc["@mozilla.org/browser/nav-history-service;1"].
+                     getService(Ci.nsPIPlacesDatabase);
+      PlacesDB.DBConnection.executeSimpleSQL(
+          "DELETE FROM moz_places WHERE id = " +
+          "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
 
       PlacesUtils.bookmarks.removeItem(scItem);
     }
@@ -697,13 +697,11 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
     let baseFolderId = PlacesUtils.annotations.
                                    getItemAnnotation(aRenameObj.itemId,
                                                      SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO)
-//this._log.info("_updateViewNames: baseFolder itemid:newtitle - "+ baseFolderId+" : "+newTitle);
     var txn = PlacesUIUtils.ptm.editItemTitle(baseFolderId,
                                               "snowlUserView:" + newTitle);
     PlacesUIUtils.ptm.doTransaction(txn);
 
     // Update string in our css anno.
-//this._log.info("_updateViewNames: shortcut itemid - "+aRenameObj.itemId);
     let annotation = { name: SnowlPlaces.ORGANIZER_QUERY_ANNO,
                        type: Ci.nsIAnnotationService.TYPE_STRING,
                        flags: 0,
@@ -715,6 +713,37 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
 
     // Force rebuild of View menulist for the new name.
     this._resetCollectionsView = true;
+  },
+
+  updateCollectionNames: function(aRenameObj) {
+    // Source or Author name change.  The 'name' field is updated in the people
+    // table for Authors; the externalID in identities table continues to identify
+    // the unique author as sent by the source, either by name or email.
+//this._log.info("updateCollectionNames: uri - "+aRenameObj.uri);
+    let newTitle = aRenameObj.title;
+    let uri = aRenameObj.uri;
+    let query = new SnowlQuery(uri);
+    let table = query.queryTypeSource ? "sources" :
+                query.queryTypeAuthor ? "people" : null;
+
+    if (table) {
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "UPDATE " + table +
+        " SET   name = '" + newTitle +
+        "' WHERE   id = " + query.queryID);
+
+      let oldNameStr = "name=" + uri.split("name=")[1].split("&")[0];
+      let newNameStr = "name=" + newTitle;
+      let newUri = uri.replace(oldNameStr, newNameStr);
+      PlacesUtils.bookmarks.
+                  changeBookmarkURI(aRenameObj.itemId,
+                                    URI(newUri));
+
+      if (query.queryTypeSource)
+        // Invalidate sources cache so new name is reflected.
+        SnowlService.onSourcesChanged();
+//this._log.info("updateCollectionNames: newUri - "+newUri);
+    }
   },
 
   searchCollections: function(aSearchString) {
@@ -934,18 +963,9 @@ PlacesTreeView.prototype.setCellText = SnowlTreeViewSetCellText;
 function SnowlTreeViewSetCellText(aRow, aColumn, aText) {
   this._setCellText(aRow, aColumn, aText);
 
+  // Custom handling for Views or Source/Author name changes.
   let node = this.nodeForTreeIndex(aRow);
-  if (node.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_FOLDER_SHORTCUT) {
-//CollectionsView._log.info("_setCellText: shortcut node.title - "+node.title);
-    // Send a notify on item change (title rename so far).
-    let itemChangedObj = {
-      itemId: node.itemId,
-      property: "title",
-      title: aText
-    }
-
-    Observers.notify("itemchanged", itemChangedObj);
-  }
+  SnowlPlaces.renamePlace(node.itemId, node.uri, aText);
 };
 
 /* Restore selection when any row is removed */
@@ -954,8 +974,8 @@ PlacesTreeView.prototype.itemRemoved = SnowlTreeViewItemRemoved;
 function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
   this._itemRemoved(aParent, aItem, aOldIndex);
 
-CollectionsView._log.info("_itemRemoved: ");
-  // Restore.
+//CollectionsView._log.info("_itemRemoved: ");
+  // Restore; note that itemRemoved is called on each item manipulated in a sort.
   CollectionsView._tree.restoreSelection();
 };
 

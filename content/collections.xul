@@ -63,17 +63,17 @@
                          return;"
          onpopuphidden="CollectionsView.onTreeContextPopupHidden(event)">
     <menuitem id="placesContext_open"
-              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
+              forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_open:newwindow"
-              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
+              forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_open:newtab"
-              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
+              forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_openContainer:tabs"
-              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author|folder|query"/>
+              forcehideselection="folder|query"/>
     <menuitem id="placesContext_openLinks:tabs"
-              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
+              forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuseparator id="placesContext_openSeparator"
-              forcehideselection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"/>
+              forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuitem id="placesContext_sortBy:name"
               forcehideselection="Snowl/Collections"/>
     <menuitem id="placesContext_show:info"
@@ -128,6 +128,7 @@
               accesskey="&cmd.context_sortby_name.accesskey;"
               closemenu="single"
               selection="Snowl/Collections"
+              forcehideselection="query"
               oncommand="var view = PlacesUIUtils.getViewForNode(document.popupNode);
                          view.controller.sortFolderByName();"/>
     <menuseparator id="snowlPlacesContextExtensionSep"
