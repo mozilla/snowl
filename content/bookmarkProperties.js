@@ -64,7 +64,21 @@ BookmarkPropertiesPanel._fillAddProperties =
       return;
     }
 
-  this.Places_fillAddProperties();
+    this.Places_fillAddProperties();
+};
+
+BookmarkPropertiesPanel.Places_fillEditProperties =
+  BookmarkPropertiesPanel._fillEditProperties;
+
+BookmarkPropertiesPanel._fillEditProperties =
+  function BPP__fillAEditProperties() {
+    this.Places_fillEditProperties();
+
+    // Sources/Authors location field readonly; no sidebar for snowl query.
+    if (this._uri.schemeIs("snowl")) {
+      this._element("locationField").setAttribute("readonly", true);
+      this._element("loadInSidebarCheckbox").collapsed = true;
+    }
 };
 
 BookmarkPropertiesPanel.Places_onDialogAccept =

@@ -899,13 +899,8 @@ var XULBrowserWindow = {
     delete this.statusText;
   },
 
-  setOverLink: function (link, b) {
-    // Encode bidirectional formatting characters.
-    // (RFC 3987 sections 3.2 and 4.1 paragraph 6)
-    this.overLink = link.replace(/[\u200e\u200f\u202a\u202b\u202c\u202d\u202e]/g,
-                                 encodeURIComponent);
-    this.updateStatusField();
-  },
+  // Defined in collections.js and shared.
+  // setOverLink: function (link, b) { },
 
   updateStatusField: function () {
     var text = this.overLink;

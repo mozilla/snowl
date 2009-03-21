@@ -53,6 +53,12 @@ Cu.import("resource://snowl/modules/opml.js");
 
 let strings = new StringBundle("chrome://snowl/locale/datastore.properties");
 
+let gMessageViewWindow = null;
+if (document.getElementById("snowlSidebar"))
+  gMessageViewWindow = SnowlService.gBrowserWindow;
+else if (document.getElementById("snowlRiver"))
+  gMessageViewWindow = window;
+
 let CollectionsView = {
   _log: null,
 
@@ -101,7 +107,6 @@ let CollectionsView = {
     return this._itemIds = ids;
   },
 
-  gMessageViewWindow: null,
   gListOrRiver: null,
 
 
@@ -112,7 +117,6 @@ let CollectionsView = {
     if (document.getElementById("snowlSidebar")) {
       // Only for sidebar collections tree in list view.
       this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
-      this.gMessageViewWindow = SnowlService.gBrowserWindow;
       this.gListOrRiver = "list";
 
       if (!this._searchBox.hasAttribute("collapsed"))
@@ -135,7 +139,6 @@ let CollectionsView = {
     else if (document.getElementById("snowlRiver")) {
       // Only for collections tree in river view.
       this._log = Log4Moz.repository.getLogger("Snowl.River");
-      this.gMessageViewWindow = window;
       this.gListOrRiver = "river";
       this._searchBox.hidden = true;
       this._searchBoxButton.hidden = true;
@@ -223,7 +226,7 @@ this._log.info("unloadObservers");
     // collections list, refresh view.  This observer exists for both list and
     // river and selections may be different.
     if (this.isMessageForSelectedCollection(message)) {
-      this.gMessageViewWindow.SnowlMessageView.onMessageAdded(message);
+      gMessageViewWindow.SnowlMessageView.onMessageAdded(message);
     }
   },
 
@@ -239,7 +242,7 @@ this._log.info("unloadObservers");
       // Original selected row removed, reset and clear.
       this._tree.currentIndex = -1;
       this.itemIds = -1;
-      this.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+      gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
       }
   },
 
@@ -340,7 +343,7 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
       this._tree.currentSelectedIndex = -1;
       this.itemIds = -1;
       if (!isBookmark)
-        this.gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+        gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
       return;
     }
 
@@ -362,7 +365,7 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
                                          null, 
                                          constraints,
                                          null);
-    this.gMessageViewWindow.SnowlMessageView.setCollection(collection);
+    gMessageViewWindow.SnowlMessageView.setCollection(collection);
   },
 
   onCollectionsTreeMouseDown: function(aEvent) {
@@ -729,7 +732,7 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
     if (table) {
       SnowlDatastore.dbConnection.executeSimpleSQL(
         "UPDATE " + table +
-        " SET   name = '" + newTitle +
+        " SET    name = '" + newTitle +
         "' WHERE   id = " + query.queryID);
 
       let oldNameStr = "name=" + uri.split("name=")[1].split("&")[0];
@@ -893,8 +896,8 @@ this._log.info("_getCollections: Convert to Places: START");
 
   // Convert the list of rows in the tree to places.
   _buildCollectionTree: strand(function() {
-    this.gMessageViewWindow.XULBrowserWindow.
-                            setOverLink("Conversion to Places started");
+    gMessageViewWindow.XULBrowserWindow.
+                       setOverLink("Conversion to Places started");
 this._log.info("_buildCollectionTree: Convert to Places: START");
     for each (let collection in this._collections) {
       if (collection.grouped) {
@@ -934,9 +937,9 @@ this._log.info("_buildCollectionTree: Convert to Places: START");
             " SET    placeID = " + placeID +
             " WHERE       id = " + group.groupID);
 
-          this.gMessageViewWindow.XULBrowserWindow.
-                                  setOverLink("Converted to Places: " +
-                                              table + " - " + group.name);
+          gMessageViewWindow.XULBrowserWindow.
+                             setOverLink("Converted to Places: " +
+                                         table + " - " + group.name);
 this._log.info("Converted to places - " +
   group.name + " : " + group.groupID + " : " + placeID);
 
@@ -944,8 +947,8 @@ this._log.info("Converted to places - " +
         }
       }
     }
-    this.gMessageViewWindow.XULBrowserWindow.
-                            setOverLink("Conversion to Places completed");
+    gMessageViewWindow.XULBrowserWindow.
+                       setOverLink("Conversion to Places completed");
 this._log.info("_buildCollectionTree: Convert to Places: END");
     SnowlPlaces._placesConverted = true;
     SnowlPlaces.setPlacesVersion(SnowlPlaces.snowlPlacesFolderId);
@@ -977,6 +980,33 @@ function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
 //CollectionsView._log.info("_itemRemoved: ");
   // Restore; note that itemRemoved is called on each item manipulated in a sort.
   CollectionsView._tree.restoreSelection();
+};
+
+/**
+ * XULBrowserWindow overrides here, from browser.js for collections tree.
+ */
+gMessageViewWindow.XULBrowserWindow.setOverLink =
+  function (link, b) {
+    let statusbartext, externalId;
+    // Encode bidirectional formatting characters.
+    // (RFC 3987 sections 3.2 and 4.1 paragraph 6)
+    statusbartext = link.replace(/[\u200e\u200f\u202a\u202b\u202c\u202d\u202e]/g,
+                                 encodeURIComponent);
+ 
+    if (statusbartext.indexOf("name=") != -1) {
+      statusbartext = decodeURI(statusbartext);
+      if (statusbartext.indexOf("externalID=") != -1) {
+        externalId = statusbartext.split("externalID=")[1].split("&")[0];
+        externalId = (externalId.indexOf("@") != -1) ? externalId : null;
+      }
+
+      statusbartext = statusbartext.split("name=")[1].split("&")[0];
+      if (externalId)
+        statusbartext = statusbartext + ", " + externalId;
+    }
+
+    this.overLink = statusbartext;
+    this.updateStatusField();
 };
 
 window.addEventListener("load", function() { CollectionsView.init() }, true);
