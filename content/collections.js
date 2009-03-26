@@ -901,7 +901,7 @@ this._log.info("_getCollections: Convert to Places: START");
 this._log.info("_buildCollectionTree: Convert to Places: START");
     for each (let collection in this._collections) {
       if (collection.grouped) {
-        let table, value, sourceID, personID, externalID;
+        let table, value, sourceID, personID, externalID, machineURI;
         switch (collection.groupIDColumn) {
           case "sources.id":
             table = "sources";
@@ -915,8 +915,10 @@ this._log.info("_buildCollectionTree: Convert to Places: START");
         }
         for each (let group in collection.groups) {
 //this._log.info(table+" group.name:group.groupID - " + group.name + " : " + group.groupID);
-          if (table == "sources")
+          if (table == "sources") {
             value = group.groupID;
+            machineURI = SnowlService.sourcesByID[group.groupID].machineURI;
+          }
           else if (table == "people") {
             if (!group.groupID)
               // Skip null authors
@@ -927,8 +929,8 @@ this._log.info("_buildCollectionTree: Convert to Places: START");
           placeID = SnowlPlaces.persistPlace(table,
                                              group.groupID,
                                              group.name,
-                                             null, //machineURI.spec,
-                                             externalID, //externalID
+                                             machineURI,
+                                             externalID,
                                              group.iconURL,
                                              value); // aSourceID
           // Store placeID back into messages for db integrity
@@ -987,22 +989,22 @@ function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
  */
 gMessageViewWindow.XULBrowserWindow.setOverLink =
   function (link, b) {
-    let statusbartext, externalId;
+    let statusbartext;
     // Encode bidirectional formatting characters.
     // (RFC 3987 sections 3.2 and 4.1 paragraph 6)
     statusbartext = link.replace(/[\u200e\u200f\u202a\u202b\u202c\u202d\u202e]/g,
                                  encodeURIComponent);
- 
-    if (statusbartext.indexOf("name=") != -1) {
-      statusbartext = decodeURI(statusbartext);
-      if (statusbartext.indexOf("externalID=") != -1) {
-        externalId = statusbartext.split("externalID=")[1].split("&")[0];
-        externalId = (externalId.indexOf("@") != -1) ? externalId : null;
-      }
 
-      statusbartext = statusbartext.split("name=")[1].split("&")[0];
-      if (externalId)
-        statusbartext = statusbartext + ", " + externalId;
+    // Source
+    if (statusbartext.indexOf("machineURI=") != -1) {
+      statusbartext = decodeURI(statusbartext);
+      statusbartext = statusbartext.split("machineURI=")[1].split("&")[0];
+    }
+    // Author
+    else if (statusbartext.indexOf("externalID=") != -1) {
+        statusbartext = decodeURI(statusbartext);
+        statusbartext = statusbartext.split("externalID=")[1].split("&")[0];
+        statusbartext = statusbartext == "" ? " " : statusbartext;
     }
 
     this.overLink = statusbartext;

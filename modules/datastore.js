@@ -1084,6 +1084,7 @@ this._log.info("setPlacesVersion: " + verInfo);
       uri = URI("snowl:sourceId=" + aSourceId +
                 "&sources.id=" + aId +
                 "&name=" + aName +
+                "&machineURI=" + aMachineURI.spec +
                 "&");
       parent = SnowlPlaces.collectionsSourcesID;
       anno = this.SNOWL_COLLECTIONS_SOURCE_ANNO;

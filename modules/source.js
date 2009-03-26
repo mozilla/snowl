@@ -296,7 +296,7 @@ let SnowlSource = {
         placeID = SnowlPlaces.persistPlace("sources",
                                            this.id,
                                            this.name,
-                                           null, // this.machineURI.spec,
+                                           this.machineURI,
                                            null, // this.username,
                                            this.faviconURI,
                                            this.id); // aSourceID

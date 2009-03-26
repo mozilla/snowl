@@ -75,7 +75,7 @@ BookmarkPropertiesPanel._fillEditProperties =
     this.Places_fillEditProperties();
 
     // Sources/Authors location field readonly; no sidebar for snowl query.
-    if (this._uri.schemeIs("snowl")) {
+    if (this._uri && this._uri.schemeIs("snowl")) {
       this._element("locationField").setAttribute("readonly", true);
       this._element("loadInSidebarCheckbox").collapsed = true;
     }
@@ -88,7 +88,7 @@ BookmarkPropertiesPanel.onDialogAccept =
   function BPP__onDialogAccept() {
     // Update names for a View or Source/Author item.
     SnowlPlaces.renamePlace(this._itemId,
-                            this._uri.spec,
+                            this._uri ? this._uri.spec : null,
                             this._element("userEnteredName").label);
 
     this.Places_onDialogAccept();
