@@ -66,6 +66,11 @@ let Snowl = {
     return this._mainWindow = document.getElementById("main-window");
   },
 
+  get _searchbar() {
+    delete this._searchbar;
+    return this._searchbar = document.getElementById("searchbar");
+  },
+
   init: function() {
     let lastVersion = this._prefs.get("lastVersion");
 
@@ -100,13 +105,6 @@ let Snowl = {
 
   //**************************************************************************//
   // Menu Popups
-
-  onSnowlMenuPopupShowing: function(event) {
-    // River view menuitem checkstate is off if its tab is not selected+focused
-    let rivermenuitem = document.getElementById("viewSnowlRiver");
-    let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
-    rivermenuitem.setAttribute("checked", isRiverTab);
-  },
 
   onSnowlButtonMouseDown: function(event) {
     // Jumping thru hoops to reuse popup for menupopup and button..
@@ -180,7 +178,7 @@ let Snowl = {
     // Unchecking river menuitem, if current tab is snowl river tab, close it
     let snowlRiverTab = this._snowlRiverTab();
     if (gBrowser.selectedTab == snowlRiverTab) {
-      this.closeRiverView(gBrowser.selectedTab);
+      gBrowser.removeTab(gBrowser.selectedTab);
       return;
     }
 
@@ -207,13 +205,11 @@ let Snowl = {
       let riverbroadcaster = document.getElementById("viewSnowlRiver");
       let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
       if (riverbroadcaster)
-        riverbroadcaster.setAttribute("checked", isRiverTab);
+        if (isRiverTab)
+          riverbroadcaster.setAttribute("checked", true);
+        else
+          riverbroadcaster.removeAttribute("checked");
     }
-  },
-
-  closeRiverView: function(aTab) {
-    gBrowser.removeTab(aTab);
-    document.getElementById("viewSnowlRiver").setAttribute("checked", false);
   },
 
   onTabSelect: function() {
@@ -224,7 +220,10 @@ let Snowl = {
     let riverbroadcaster = document.getElementById("viewSnowlRiver");
     let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
     if (riverbroadcaster)
-      riverbroadcaster.setAttribute("checked", isRiverTab);
+      if (isRiverTab)
+        riverbroadcaster.setAttribute("checked", true);
+      else
+        riverbroadcaster.removeAttribute("checked");
   },
 
   onCheckForNewMessages: function() {
@@ -412,7 +411,10 @@ let Snowl = {
     let riverbroadcaster = document.getElementById("viewSnowlRiver");
     let isRiverTab = gBrowser.selectedTab.hasAttribute("snowl");
     if (riverbroadcaster)
-      riverbroadcaster.setAttribute("checked", isRiverTab);
+      if (isRiverTab)
+        riverbroadcaster.setAttribute("checked", true);
+      else
+        riverbroadcaster.removeAttribute("checked");
   },
 
   // Need to reset snowl River tab index

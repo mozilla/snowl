@@ -60,6 +60,11 @@ let ListSidebar = {
     return this._writeForm = document.getElementById("writeForm");
   },
 
+  get _searchbar() {
+    delete this._searchbar;
+    return this._searchbar = gBrowserWindow.document.getElementById("searchbar");
+  },
+
 
   //**************************************************************************//
   // Event & Notification Handlers
@@ -67,6 +72,8 @@ let ListSidebar = {
   onLoad: function() {
     gBrowserWindow.SnowlMessageView.show();
     this._updateWriteButton();
+    // Set the sidebar reference for the search engine after it loads.
+    this._searchbar._sidebar = window;
     Observers.add("snowl:source:added", this.onSourcesChanged, this);
     Observers.add("snowl:source:removed", this.onSourcesChanged, this);
   },

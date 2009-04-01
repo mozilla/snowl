@@ -85,7 +85,6 @@
           accesskey="&snowlMenu.accesskey;"
           insertbefore="browserToolsSeparator">
       <menupopup id="snowlMenuPopup"
-                 onpopupshowing="Snowl.onSnowlMenuPopupShowing(event)"
                  onpopuphiding="Snowl.onSnowlMenuPopupHiding(event)">
         <menuitem observes="viewSnowlList" label="&listView.label;"
                   accesskey="&listView.accesskey;"/>

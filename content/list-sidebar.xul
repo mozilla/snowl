@@ -50,6 +50,8 @@
 <!DOCTYPE page [
   <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
   %listDTD;
+  <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">
+  %collectionsDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
   %toolbarDTD;
 ]>
@@ -70,12 +72,30 @@
   <commandset id="editMenuCommands"/>
   <popup id="placesContext"/>
 
-  <!-- This is the overlay point for the collections view overlay. -->
-  <vbox id="collectionsViewBox"/>
-
-  <vbox id="writeForm" hidden="true"/>
-
   <toolbar id="snowlToolbar" persist="hidden">
+    <toolbaritem id="viewBox"
+                 align="center">
+      <label value="&view.label;"
+             accesskey="&view.accesskey;"
+             control="collectionsViewMenu"/>
+      <menulist id="collectionsViewMenu"
+                sizetopopup="none"
+                selectedindex=""
+                persist="selectedindex"
+                oncommand="CollectionsView.onCommandCollectionsView(this.value)">
+        <menupopup id="collectionsViewMenuPopup"
+                   onpopupshowing="CollectionsView.onPopupshowingCollectionsView(event)">
+          <menuitem label="&viewDefault.label;"
+                    value="default"/>
+          <menuitem label="&viewSources.label;"
+                    value="sources"/>
+          <menuitem label="&viewAuthors.label;"
+                    value="authors"/>
+          <menuseparator id="collectionVewMenuSep"/>
+        </menupopup>
+      </menulist>
+    </toolbaritem>
+    <toolbarspring/>
     <toolbarbutton id="snowlSubscribeButton"
                    class="tabbable"
                    oncommand="CollectionsView.onSubscribe()"
@@ -84,15 +104,21 @@
                    class="tabbable"
                    oncommand="CollectionsView.onRefresh()"
                    tooltiptext="&refreshButton.tooltip;"/>
-    <toolbarspring/>
-    <toolbarbutton id="searchBoxButton" type="checkbox"
+    <toolbarbutton id="snowlUnreadButton"
                    class="tabbable"
-                   oncommand="CollectionsView.onToggleSearchbox()"
-                   tooltiptext="&searchboxButton.tooltip;"/>
+                   type="checkbox"
+                   persist="checked"
+                   oncommand="CollectionsView.onCommandUnreadButton(event)"
+                   tooltiptext="&unreadButton.tooltip;"/>
     <toolbarbutton id="writeButton" type="checkbox"
                    class="tabbable"
                    oncommand="ListSidebar.onToggleWrite(event)"
                    tooltiptext="&writeButton.tooltip;"/>
   </toolbar>
+
+  <!-- This is the overlay point for the collections view overlay. -->
+  <vbox id="collectionsViewBox"/>
+
+  <vbox id="writeForm" hidden="true"/>
 
 </page>

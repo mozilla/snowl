@@ -44,8 +44,6 @@
   %placesDTD;
   <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">
   %collectionsDTD;
-  <!ENTITY % toolbarDTD     SYSTEM "chrome://snowl/locale/toolbar.dtd">
-  %toolbarDTD;
 ]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
@@ -138,47 +136,13 @@
   <vbox id="collectionsViewBox"
         flex="1">
 
-    <hbox id="searchBox"
-          persist="collapsed"
-          align="center">
-      <label value="&view.label;"
-             accesskey="&view.accesskey;"
-             control="collectionsViewMenu"/>
-      <menulist id="collectionsViewMenu"
-                sizetopopup="none"
-                selectedindex=""
-                persist="selectedindex"
-                oncommand="CollectionsView.onCommandCollectionsView(this.value)">
-        <menupopup id="collectionsViewMenuPopup"
-                   onpopupshowing="CollectionsView.onPopupshowingCollectionsView(event)">
-          <menuitem label="&viewDefault.label;"
-                    value="default"/>
-          <menuitem label="&viewSources.label;"
-                    value="sources"/>
-          <menuitem label="&viewAuthors.label;"
-                    value="authors"/>
-          <menuseparator id="collectionVewMenuSep"/>
-        </menupopup>
-      </menulist>
-      <label value="&search.label;"
-             accesskey="&search.accesskey;"
-             control="search-box"/>
-      <textbox id="search-box"
-               flex="1"
-               type="search"
-               emptytext="&colSearchEmptytext.label;"
-               cocoa-size="small"
-               aria-controls="sourcesView"
-               oncommand="CollectionsView.searchCollections(this.value);"/>
-    </hbox>
-
     <tree id="sourcesView"
           flex="1"
           editable="true"
           class="sidebar-placesTree"
           type="places"
           persist="itemids"
-          itemids=""
+          itemids="-1"
           hidecolumnpicker="true"
           onkeypress="SidebarUtils.handleTreeKeyPress(event);"
           onmousemove="SidebarUtils.handleTreeMouseMove(event);"

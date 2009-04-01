@@ -94,9 +94,9 @@ let SnowlMessageView = {
     return this._columnsButton;
   },
 
-  get _filterTextbox() {
-    delete this._filterTextbox;
-    return this._filterTextbox = document.getElementById("filterTextbox");
+  get _filter() {
+    delete this._filter;
+    return this._filter = gBrowserWindow.document.getElementById("searchbar");
   },
 
   get _periodMenu() {
@@ -265,6 +265,9 @@ let SnowlMessageView = {
     this._updateToolbar();
 
     this._setMidnightTimout();
+
+    // Set the rivertab reference for the search engine after it loads.
+    this._filter._rivertab = this._window.wrappedJSObject;
   },
 
   /**
@@ -330,8 +333,12 @@ let SnowlMessageView = {
       this._setBody(this._bodyButton.hasAttribute("checked"));
     }
 
-    if ("filter" in this._params)
-      document.getElementById("filterTextbox").value = this._params.filter;
+    if ("filter" in this._params &&
+        this._filter.currentEngine.name == this._filter.SNOWL_ENGINE_NAME &&
+        this._filter.searchView == "river")
+      // XXX: if a river bookmark has a filter, should loading it autoswitch to
+      // the snowl engine river search?
+      this._filter.value = this._params.filter;
 
     if ("period" in this._params) {
       let item = this._periodMenuPopup.getElementsByAttribute("value", this._params.period)[0];
@@ -367,7 +374,7 @@ let SnowlMessageView = {
     }
 
     // Restore saved selection
-this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
+//this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
     if (CollectionsView.itemIds != -1) {
       CollectionsView._tree.restoreSelection();
     }
@@ -383,9 +390,11 @@ this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    if (this._filterTextbox.value)
+    if (this._filter.value &&
+        this._filter.currentEngine.name == this._filter.SNOWL_ENGINE_NAME &&
+        this._filter.searchView == "river")
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: SnowlUtils.appendAsterisks(this._filterTextbox.value) } });
+                     parameters: { filter: SnowlUtils.appendAsterisks(this._filter.value) } });
 
     if (this._periodMenu.selectedItem)
       filters.push({ expression: "received >= :startTime AND received < :endTime",
@@ -460,8 +469,10 @@ this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
     if (CollectionsView.itemIds && CollectionsView.itemIds != -1)
       params.push("collection=" + CollectionsView.itemIds)
 
-    if (this._filterTextbox.value)
-      params.push("filter=" + encodeURIComponent(this._filterTextbox.value));
+    if (this._filter.value &&
+        this._filter.currentEngine.name == this._filter.SNOWL_ENGINE_NAME &&
+        this._filter.searchView == "river")
+      params.push("filter=" + encodeURIComponent(this._filter.value));
 
     let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
     if (selIndex != -1) {
@@ -527,8 +538,9 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // FIXME: figure out a way to determine that; perhaps a message could have
     // a method that takes a filter string and returns a boolean for whether or
     // not the message content matches the string.
-    let filter = this._filterTextbox.value;
-    if (filter != "") {
+    if (this._filter.value &&
+        this._filter.currentEngine.name == this._filter.SNOWL_ENGINE_NAME &&
+        this._filter.searchView == "river") {
       this._collection.invalidate();
       this._rebuildView();
       return;

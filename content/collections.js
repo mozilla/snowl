@@ -72,16 +72,6 @@ let CollectionsView = {
     return this._children = document.getElementById("sourcesViewTreeChildren");
   },
 
-  get _searchBox() {
-    delete this._searchBox;
-    return this._searchBox = document.getElementById("searchBox");
-  },
-
-  get _searchBoxButton() {
-    delete this._searchBoxButton;
-    return this._searchBoxButton = document.getElementById("searchBoxButton");
-  },
-
   get _collectionsViewMenu() {
     delete this._collectionsViewMenu;
     return this._collectionsViewMenu = document.getElementById("collectionsViewMenu");
@@ -119,9 +109,6 @@ let CollectionsView = {
       this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
       this.gListOrRiver = "list";
 
-      if (!this._searchBox.hasAttribute("collapsed"))
-        this._searchBoxButton.setAttribute("checked", true);
-
       // Restore persisted view selection (need to build the menulist) or init.
       let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
       if (selIndex >= 0) {
@@ -133,16 +120,14 @@ let CollectionsView = {
         this._collectionsViewMenu.selectedIndex = 0;
       }
 
-      // Set the view, which sets the Places query on the collections tree.
+      // Set the view, which sets the Places query on the collections tree and
+      // restores the selection.
       this.onCommandCollectionsView(this._collectionsViewMenu.value);
     }
     else if (document.getElementById("snowlRiver")) {
       // Only for collections tree in river view.
       this._log = Log4Moz.repository.getLogger("Snowl.River");
       this.gListOrRiver = "river";
-      this._searchBox.hidden = true;
-      this._searchBoxButton.hidden = true;
-      this._collectionsViewMenu.value = "default";
       this._tree.place = SnowlPlaces.querySources;
     }
 
@@ -170,11 +155,6 @@ let CollectionsView = {
       this._getCollections();
       this._buildCollectionTree();
     }
-
-    // Ensure collection tree selection maintained for list view, river handles itself.
-    if (document.getElementById("snowlSidebar")) {
-      this._tree.restoreSelection();
-    }
   },
 
   loadObservers: function() {
@@ -185,7 +165,7 @@ let CollectionsView = {
     Observers.add("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
       Observers.add("snowl:author:removed", this.onSourceRemoved, this);;
-this._log.info("loadObservers");
+//this._log.info("loadObservers");
   },
 
   unloadObservers: function() {
@@ -196,7 +176,7 @@ this._log.info("loadObservers");
     Observers.remove("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
       Observers.remove("snowl:author:removed", this.onSourceRemoved, this);;
-this._log.info("unloadObservers");
+//this._log.info("unloadObservers");
   },
 
 
@@ -384,11 +364,11 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
     SnowlService.refreshAllSources();
   },
 
-  onToggleSearchbox: function() {
-    if (this._searchBox.hasAttribute("collapsed"))
-      this._searchBox.removeAttribute("collapsed");
-    else
-      this._searchBox.setAttribute("collapsed", true);
+  onCommandUnreadButton: function(aEvent) {
+    // XXX Instead of rebuilding from scratch each time, when going from
+    // all to unread, simply hide the ones that are read (f.e. by setting a CSS
+    // class on read items and then using a CSS rule to hide them)?
+    gMessageViewWindow.SnowlMessageView._applyFilters();
   },
 
   _resetCollectionsView: true,

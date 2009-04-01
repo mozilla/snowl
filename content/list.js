@@ -68,7 +68,7 @@ let SnowlMessageView = {
 
   get _filter() {
     delete this._filter;
-    return this._filter = document.getElementById("snowlFilter");
+    return this._filter = document.getElementById("searchbar");
   },
 
   get _tree() {
@@ -91,9 +91,14 @@ let SnowlMessageView = {
     return this._snowlSidebar = document.getElementById("snowlSidebar");
   },
 
-  get _unreadButton() {
-    delete this._unreadButton;
-    return this._unreadButton = document.getElementById("snowlUnreadButton");
+  // The get method doesn't return all attrs/properties on sidebar reloads..
+  _unreadButton: function() {
+    return document.getElementById("sidebar").contentDocument.
+                    getElementById("snowlUnreadButton");
+  },
+
+  _sidebarWin: function() {
+    return document.getElementById("sidebar").contentWindow;
   },
 
   // Maps XUL tree column IDs to collection properties.
@@ -214,7 +219,7 @@ let SnowlMessageView = {
 
   onMessageAdded: function(message) {
     // Refresh list view on each new message, if collection selected.
-this._log.info("onMessageAdded: REFRESH LIST");
+//this._log.info("onMessageAdded: REFRESH LIST");
       this._collection.invalidate();
       this._rebuildView();
   },
@@ -223,34 +228,35 @@ this._log.info("onMessageAdded: REFRESH LIST");
     this._applyFilters();
   },
 
-  onCommandUnreadButton: function(aEvent) {
-    // XXX Instead of rebuilding from scratch each time, when going from
-    // all to unread, simply hide the ones that are read (f.e. by setting a CSS
-    // class on read items and then using a CSS rule to hide them)?
-    this._applyFilters();
-  },
-
   _applyFilters: function() {
     let filters = [];
+//this._log.info("_applyFilters: START");
 
-    if (this._unreadButton.checked)
+    if (this._unreadButton().checked)
       filters.push({ expression: "read = 0", parameters: {} });
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    if (this._filter.value)
+    if (this._filter.value &&
+        this._filter.currentEngine.name == this._filter.SNOWL_ENGINE_NAME &&
+        this._filter.searchView == "list")
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
                      parameters: { filter: SnowlUtils.appendAsterisks(this._filter.value) } });
 
     this._collection.filters = filters;
-    this._collection.invalidate();
+
+    if (this._sidebarWin().CollectionsView.itemIds == -1)
+      // No selection, don't show anything
+      this._collection.clear();
+    else
+      this._collection.invalidate();
+
     this._rebuildView();
   },
 
   setCollection: function(collection) {
     this._collection = collection;
-    this._collection.invalidate();
-    this._rebuildView();
+    this._applyFilters();
   },
 
   _rebuildView: function() {

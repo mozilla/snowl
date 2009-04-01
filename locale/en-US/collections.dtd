@@ -14,7 +14,6 @@
 <!ENTITY removeView.label             "Remove View">
 <!ENTITY removeView.accesskey         "w">
 
-<!ENTITY colSearchEmptytext.label     "Search Collections">
 <!ENTITY view.label                   "View:">
 <!ENTITY view.accesskey               "V">
 <!ENTITY viewDefault.label            "Default">

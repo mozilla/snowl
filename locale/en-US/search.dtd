@@ -1,0 +1,17 @@
+<!-- Search button options items -->
+<!ENTITY searchButtonTooltip.label          "Select a Snowl view and message search categories to activate.">
+<!ENTITY searchClearButtonTooltip.label     "Clear">
+<!ENTITY searchListTooltip.label            "Search List messages by selected categories.  Collections or River will be deselected.">
+<!ENTITY searchCollectionsTooltip.label     "Search collections by title or url or unique id (mailid if available).  List or River will be deselected.">
+<!ENTITY searchRiverTooltip.label           "Search River messages by selected categories.  Collections or List will be deselected.">
+<!ENTITY searchStreamTooltip.label          "Search Stream messages by selected categories.  Not yet implemented.">
+
+<!ENTITY searchMessageList.label            "Message List">
+<!ENTITY searchSubject.label                "Subject">
+<!ENTITY searchAuthor.label                 "Author">
+<!ENTITY searchToCcBcc.label                "To or Cc or Bcc">
+<!ENTITY searchMessage.label                "Message">
+<!ENTITY searchMessageCollections.label     "Message Collections">
+<!ENTITY searchCollections.label            "Collections">
+<!ENTITY searchMessageRiver.label           "Message River">
+<!ENTITY searchMessageStream.label          "Message Stream">

@@ -1,0 +1,498 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE bindings [
+  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % searchDTD SYSTEM "chrome://snowl/locale/search.dtd">
+  %searchDTD;
+]>
+
+<bindings id="snowlSearchBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:html="http://www.w3.org/1999/xhtml"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <!-- Binding attached to #searchbar -->
+  <binding id="search" extends="chrome://browser/content/search/search.xml#searchbar">
+    <implementation>
+
+      <field name="_searchIconsDeck">document.getElementById("search-icons");</field>
+      <field name="_strings">null</field>
+
+      <!-- Set by list-sidebar.js on its load -->
+      <field name="_sidebar">null</field>
+
+      <!-- Set by river.js on its load -->
+      <field name="_rivertab">null</field>
+
+      <property name="searchCategories"
+                onget="return this.getAttribute('searchcategories');"
+                onset="this.setAttribute('searchcategories', val);
+                       document.persist('searchbar', 'searchcategories');
+                       return val;">
+      </property>
+
+      <property name="searchView"
+                onget="let sv = this.getAttribute('searchview');
+                       return sv ? sv : 'default';"
+                onset="this.setAttribute('searchview', val);
+                       document.persist('searchbar', 'searchview');
+                       return val;">
+      </property>
+
+      <field name="_searchViewEmptytext" readonly="true"><![CDATA[({
+        list: this._strings.GetStringFromName("searchListEmptyText"),
+        collections: this._strings.GetStringFromName("searchCollectionsEmptyText"),
+        river: this._strings.GetStringFromName("searchRiverEmptyText"),
+        stream: this._strings.GetStringFromName("searchStreamEmptyText"),
+        default: this.SNOWL_ENGINE_NAME
+      })]]></field>
+
+      <!-- View type and its broadcaster id, to set search engine state -->
+      <field name="_searchViewBroadcasterIds" readonly="true"><![CDATA[({
+        list: "viewSnowlList",
+        collections: "viewSnowlList",
+        river: "viewSnowlRiver",
+        stream: "viewSnowlStream"
+      })]]></field>
+
+      <!-- Broadcaster id and views it affects, to set search engine state -->
+      <field name="_searchBroadcasterIdsForView" readonly="true"><![CDATA[({
+        viewSnowlList: ["list", "collections"],
+        viewSnowlRiver: ["river"],
+        viewSnowlStream: ["stream"]
+      })]]></field>
+
+      <!-- Observer for search engine change -->
+      <field name="_observer"><![CDATA[({
+        _self: this,
+        observe: function(aEngine, aTopic, aVerb) {
+          if (aTopic != "browser-search-engine-modified")
+            return;
+          switch (aVerb) {
+            case "engine-current":
+              this._self.onEngineChanged(this._self.searchView);
+              break;
+            default:
+              break;
+          }
+        }
+      })]]></field>
+
+      <constructor><![CDATA[
+        // Register the engine if needed.
+        this._registerSearchEngine();
+
+        let XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+        let observes;
+
+        // Observer for list view broadcaster.
+        observes = document.createElementNS(XUL_NS, "observes");
+        observes.setAttribute("element", "viewSnowlList");
+        observes.setAttribute("attribute", "checked");
+        observes.setAttribute("onbroadcast", "this.parentNode.onViewChanged('viewSnowlList')");
+        this.appendChild(observes);
+
+        // Observer for river tab broadcaster.
+        observes = document.createElementNS(XUL_NS, "observes");
+        observes.setAttribute("element", "viewSnowlRiver");
+        observes.setAttribute("attribute", "checked");
+        observes.setAttribute("onbroadcast", "this.parentNode.onViewChanged('viewSnowlRiver')");
+        this.appendChild(observes);
+
+        // Observer for stream view broadcaster.
+        observes = document.createElementNS(XUL_NS, "observes");
+        observes.setAttribute("element", "viewSnowlStream");
+        observes.setAttribute("attribute", "checked");
+        observes.setAttribute("onbroadcast", "this.parentNode.onViewChanged('viewSnowlStream')");
+        this.appendChild(observes);
+
+        // Need to create string bundle manually instead of using <xul:stringbundle/>
+        // see bug 63370 for details (per other workarounds).  Also, is it even
+        // possible to add an additional bundle to searchbar via binding if one
+        // already exists?
+        var bundleURL = "chrome://snowl/locale/search.properties";
+        var appLocale = Cc["@mozilla.org/intl/nslocaleservice;1"].
+                        getService(Ci.nsILocaleService).
+                        getApplicationLocale();
+        this._strings = Cc["@mozilla.org/intl/stringbundle;1"].
+                        getService(Ci.nsIStringBundleService).
+                        createBundle(bundleURL, appLocale);
+
+        setTimeout(function (a) { a.initSearchMessages(); }, 30, this);
+      ]]></constructor>
+
+      <method name="initSearchMessages">
+        <body><![CDATA[
+          if (this.currentEngine.name == this.SNOWL_ENGINE_NAME) {
+            // Disable initially; if list view open broadcaster will notify..
+            this.setAttribute("disabled", true);
+            this._searchIconsDeck.selectedIndex = 1;
+          }
+
+          this._textbox.setAttribute("oninput", "onInputMessageSearch(this.value);");
+
+          let os = Cc["@mozilla.org/observer-service;1"].
+                   getService(Ci.nsIObserverService);
+          os.addObserver(this._observer, "browser-search-engine-modified", false);
+          this._addedSearchObserver = true;
+        ]]></body>
+      </method>
+
+      <destructor><![CDATA[
+        if (this._addedSearchObserver) {
+          var os = Cc["@mozilla.org/observer-service;1"].
+                   getService(Ci.nsIObserverService);
+          os.removeObserver(this._observer, "browser-search-engine-modified", false);
+        }
+      ]]></destructor>
+
+      <method name="onInputMessageSearch">
+        <body><![CDATA[
+          if (this.currentEngine.name != this.SNOWL_ENGINE_NAME)
+            return;
+          // Search options button is 1, clear button is 2.
+          this._searchIconsDeck.selectedIndex = this.value ? 2 : 1;
+          if (this.searchView == "list")
+            SnowlMessageView.onFilter();
+          else if (this.searchView == "collections")
+            this._sidebar.CollectionsView.searchCollections(this.value);
+          else if (this.searchView == "river")
+            this._rivertab.SnowlMessageView.onFilter();
+          else if (this.searchView == "stream")
+            SnowlMessageView.onFilter();
+        ]]></body>
+      </method>
+
+      <method name="onEngineChanged">
+        <parameter name="aView"/>
+        <body><![CDATA[
+          if (this.currentEngine.name == this.SNOWL_ENGINE_NAME) {
+            // Get check state of list/stream/river view broadcaster and set
+            // engine accordingly.
+            if (aView != "default" && 
+                document.getElementById(this._searchViewBroadcasterIds[aView]).
+                  hasAttribute("checked")) {
+              this.removeAttribute("disabled");
+              if (this.value)
+                this.onInputMessageSearch();
+            }
+            else {
+              this.setAttribute("disabled", true);
+              this._textbox.removeAttribute('focused');
+              this._textbox._updateVisibleText();
+            }
+            // Search options button is 1, clear button is 2.
+            this._searchIconsDeck.selectedIndex = this.value ? 2 : 1;
+          }
+          else {
+            this.removeAttribute("disabled");
+            this._searchIconsDeck.selectedIndex = 0;
+          }
+        ]]></body>
+      </method>
+
+      <method name="onViewChanged">
+        <parameter name="aViewBroadcasterId"/>
+        <body><![CDATA[
+          if (this.currentEngine.name != this.SNOWL_ENGINE_NAME)
+            return;
+          // Get check state of list/stream/river view broadcaster and set
+          // engine accordingly.
+          let bcasterView = this._searchBroadcasterIdsForView[aViewBroadcasterId];
+          if (document.getElementById(aViewBroadcasterId).hasAttribute("checked") &&
+              bcasterView.indexOf(this.searchView) != -1) {
+            this.removeAttribute("disabled");
+            if (this.searchView == "river")
+              this._rivertab.SnowlMessageView._updateToolbar();
+          }
+          else if (bcasterView.indexOf(this.searchView) != -1) {
+            this.setAttribute("disabled", true);
+            this._clearSearch({button:0});
+          }
+        ]]></body>
+      </method>
+
+      <!-- Overload from search.xml -->
+      <method name="doSearch">
+        <parameter name="aData"/>
+        <parameter name="aWhere"/>
+        <body><![CDATA[
+          // Return here, after items are added to history on <enter>, if snowl.
+          if (this.currentEngine.name == this.SNOWL_ENGINE_NAME)
+            return;
+          // null parameter below specifies HTML response for search
+          var submission = this.currentEngine.getSubmission(aData, null);
+          openUILinkIn(submission.uri.spec, aWhere, null, submission.postData);
+        ]]></body>
+      </method>
+
+      <!-- Overload from search.xml -->
+      <method name="updateDisplay">
+        <body><![CDATA[
+          var uri = this.currentEngine.iconURI;
+          this.setAttribute("src", uri ? uri.spec : "");
+
+          var name = this.currentEngine.name;
+          var text = this._stringBundle.getFormattedString("searchtip", [name]);
+
+          if (name == this.SNOWL_ENGINE_NAME)
+            this._textbox.emptyText = this._searchViewEmptytext[this.searchView];
+          else
+            this._textbox.emptyText = name;
+
+          this._textbox.label = text;
+          this._textbox.tooltipText = text;
+        ]]></body>
+      </method>
+
+      <method name="_clearSearch">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          if (!this.disabled && !this.readOnly &&
+              (aEvent.button == 0 || aEvent.keyCode == KeyEvent.DOM_VK_RETURN)) {
+            this.value = "";
+            this._searchIconsDeck.selectedIndex = 1;
+            if (this.hasAttribute("disabled")) {
+              this._textbox.removeAttribute('focused');
+              this._textbox._updateVisibleText();
+            }
+            else {
+              this._textbox.select();
+              if (this.searchView == "list")
+                SnowlMessageView.onFilter();
+              else if (this.searchView == "collections")
+                this._sidebar.CollectionsView.searchCollections(this.value);
+              else if (this.searchView == "river")
+                this._rivertab.SnowlMessageView.onFilter();
+              else if (this.searchView == "stream")
+                SnowlMessageView.onFilter();
+            }
+            return true;
+          }
+          return false;
+        ]]></body>
+      </method>
+
+      <method name="_updatepopup">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          let childNodeView;
+          let popup = aEvent.target;
+          for each (let childNode in popup.childNodes) {
+            if (childNode.value) {
+              childNodeView = childNode.getAttribute("view");
+              if (childNodeView == this.searchView &&
+                  this.searchCategories.indexOf(childNode.value) != -1)
+                childNode.setAttribute("checked", true);
+              else
+                childNode.removeAttribute("checked");
+
+              // Display search categories based on active view.
+              if (document.getElementById(this._searchViewBroadcasterIds[childNodeView]).
+                    hasAttribute("checked"))
+                childNode.hidden = false;
+              else
+                childNode.hidden = true;
+            }
+          }
+        ]]></body>
+      </method>
+
+      <method name="_persistpopup">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          // Persist checked states attribute on #searchbar.
+          let checkedItems = [];
+          let menuitem = aEvent.target;
+          this.searchView = menuitem.getAttribute("view");
+          let popup = aEvent.target.parentNode;
+          for each (let childNode in popup.childNodes) {
+            if (childNode.value && childNode.hasAttribute("checked")) {
+              if (childNode.getAttribute("view") == this.searchView)
+                checkedItems.push(childNode.value);
+            }
+          }
+          this.searchCategories = checkedItems;
+          if (this.searchCategories == "")
+            this.searchView = "default";
+          this._textbox.emptyText = this._searchViewEmptytext[this.searchView];
+          this.onEngineChanged(this.searchView);
+
+        ]]></body>
+      </method>
+
+      <!--  Search engine initialization -->
+      <field name="SNOWL_ENGINE_NAME">"Snowl Search Engine"</field>
+      <field name="SNOWL_ENGINE_ICON">"chrome://snowl/content/icons/snowl-16.png"</field>
+      <field name="SNOWL_ENGINE_ALIAS">"snowl"</field>
+      <field name="SNOWL_ENGINE_DESCRIPTION">"Search Snowl Messages"</field>
+      <field name="SNOWL_ENGINE_TEMPLATE">"http://snowl.mozdev.org/"</field>
+
+      <method name="_registerSearchEngine">
+        <body><![CDATA[
+          if (!this.searchService.getEngineByName(this.SNOWL_ENGINE_NAME)) {
+            let iconDataUri = this._convertToDataUri(this.SNOWL_ENGINE_ICON);
+            this.searchService.addEngineWithDetails(this.SNOWL_ENGINE_NAME,
+                                                    iconDataUri,
+                                                    this.SNOWL_ENGINE_ALIAS,
+                                                    this.SNOWL_ENGINE_DESCRIPTION,
+                                                    "GET",
+                                                    this.SNOWL_ENGINE_TEMPLATE);
+          }
+        ]]></body>
+      </method>
+
+      <method name="_convertToDataUri">
+        <parameter name="aIconUri"/>
+        <body><![CDATA[
+          try {
+            let ioserv = Cc["@mozilla.org/network/io-service;1"].
+                         getService(Ci.nsIIOService);
+            let channel = ioserv.newChannel(aIconUri, 0, null);
+            let stream = channel.open();
+
+            if (channel instanceof Ci.nsIHttpChannel && channel.responseStatus != 200)
+              return null;
+
+            let bstream = Cc["@mozilla.org/binaryinputstream;1"].
+                          createInstance(Ci.nsIBinaryInputStream);
+            bstream.setInputStream(stream);
+
+            let size = 0;
+            let file_data = "";
+            while(size = bstream.available())
+               file_data += bstream.readBytes(size);
+            bstream.close();
+
+            let data = btoa(file_data);
+            return "data:image/x-icon;base64," + data;
+          }
+          catch(e) {
+            throw(e);
+            return null;
+          }
+        ]]></body>
+      </method>
+
+    </implementation>
+  </binding>
+
+  <!-- Binding attached to .search-go-container for custom menu and clear buttons -->
+  <binding id="searchgocontainer-buttons">
+    <resources>
+      <stylesheet src="chrome://global/skin/textbox.css"/>
+    </resources>
+
+    <content>
+      <xul:deck id="search-icons">
+        <children/>
+        <xul:button id="message-search-button"
+                    type="menu"
+                    tooltiptext="&searchButtonTooltip.label;"
+                    chromedir="&locale.dir;">
+          <xul:menupopup id="message-search-popup"
+                         onpopupshowing="searchbar._updatepopup(event);">
+            <xul:menuitem class="heading"
+                          tooltiptext="&searchListTooltip.label;"
+                          disabled="true"
+                          view="list">
+              <xul:menuseparator/>
+              <xul:label value="&searchMessageList.label;"/>
+              <xul:menuseparator flex="1"/>
+            </xul:menuitem>
+            <xul:menuitem label="&searchSubject.label;"
+                          disabled="true"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="list"
+                          value="subject"
+                          oncommand="searchbar._persistpopup(event);"/>
+            <xul:menuitem label="&searchAuthor.label;"
+                          disabled="true"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="list"
+                          value="author"
+                          oncommand="searchbar._persistpopup(event);"/>
+            <xul:menuitem label="&searchToCcBcc.label;"
+                          hidden="true"
+                          disabled="true"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="list"
+                          value="toccbcc"
+                          oncommand="searchbar._persistpopup(event);"/>
+            <xul:menuitem label="&searchMessage.label;"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="list"
+                          value="message"
+                          oncommand="searchbar._persistpopup(event);"/>
+
+            <xul:menuitem class="heading"
+                          tooltiptext="&searchCollectionsTooltip.label;"
+                          disabled="true"
+                          view="collections">
+              <xul:menuseparator/>
+              <xul:label value="&searchMessageCollections.label;"/>
+              <xul:menuseparator flex="1"/>
+            </xul:menuitem>
+            <xul:menuitem label="&searchCollections.label;"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="collections"
+                          value="collections"
+                          oncommand="searchbar._persistpopup(event);"/>
+
+            <xul:menuitem class="heading"
+                          tooltiptext="&searchRiverTooltip.label;"
+                          disabled="true"
+                          view="river">
+              <xul:menuseparator/>
+              <xul:label value="&searchMessageRiver.label;"/>
+              <xul:menuseparator flex="1"/>
+            </xul:menuitem>
+            <xul:menuitem label="&searchMessage.label;"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="river"
+                          value="message"
+                          oncommand="searchbar._persistpopup(event);"/>
+
+            <xul:menuitem class="heading"
+                          tooltiptext="&searchStreamTooltip.label;"
+                          disabled="true"
+                          view="stream">
+              <xul:menuseparator/>
+              <xul:label value="&searchMessageStream.label;"/>
+              <xul:menuseparator flex="1"/>
+            </xul:menuitem>
+            <xul:menuitem label="&searchMessage.label;"
+                          disabled="true"
+                          tooltiptext=""
+                          type="checkbox"
+                          view="stream"
+                          value="message"
+                          oncommand="searchbar._persistpopup(event);"/>
+          </xul:menupopup>
+        </xul:button>
+
+        <xul:image class="textbox-search-clear"
+                   xbl:inherits="disabled"
+                   tooltiptext="&searchClearButtonTooltip.label;"
+                   chromedir="&locale.dir;"
+                   onkeypress="searchbar._clearSearch(event);"
+                   onclick="searchbar._clearSearch(event);"/>
+      </xul:deck>
+
+    </content>
+
+    <implementation>
+      <field name="searchbar">document.getElementById("searchbar");</field>
+    </implementation>
+
+  </binding>
+  
+</bindings>

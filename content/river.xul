@@ -114,10 +114,6 @@
                        oncommand="CollectionsView.onRefresh()"
                        tooltiptext="&refreshButton.tooltip;"/>
         <toolbarspring/>
-        <toolbarbutton id="searchBoxButton" type="checkbox"
-                       class="tabbable"
-                       oncommand="CollectionsView.onToggleSearchbox()"
-                       tooltiptext="&searchboxButton.tooltip;"/>
         <toolbarbutton id="writeButton" type="checkbox"
                        class="tabbable"
                        oncommand="SnowlMessageView.onToggleWrite(event)"
@@ -170,14 +166,6 @@
                       image="chrome://snowl/content/icons/calendar_view_month.png"/>
           </menupopup>
         </menulist>
-
-        <spacer flex="1"/>
-
-        <!-- FIXME: change type="timed" to type="search" once we no longer
-           - support Firefox 3.0. -->
-        <textbox id="filterTextbox" type="timed" timeout="200"
-                 emptytext="&filterTextbox.emptytext;"
-                 oncommand="SnowlMessageView.onFilter()"/>
       </toolbar>
 
       <stack id="contentStack" flex="1">
