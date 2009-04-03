@@ -102,6 +102,14 @@ let SnowlService = {
     return this._promptSvc;
   },
 
+  get _ssSvc() {
+    let ssSvc =
+      Cc["@mozilla.org/browser/sessionstore;1"].
+      getService(Ci.nsISessionStore);
+    this.__defineGetter__("_ssSvc", function() { return ssSvc });
+    return this._ssSvc;
+  },
+
   _log: null,
 
   _init: function() {

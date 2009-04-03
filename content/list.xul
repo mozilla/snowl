@@ -50,8 +50,7 @@
   <script type="application/javascript" src="chrome://snowl/content/list.js"/>
 
   <window id="main-window"
-          persist="screenX screenY width height sizemode
-             snowllayout snowltabindex snowlcollectionindex"
+          persist="screenX screenY width height sizemode snowllayout"
           snowllayout="classic">
 
     <!-- Apparently Popup can not be child of mainPopupSet, otherwise popup hide

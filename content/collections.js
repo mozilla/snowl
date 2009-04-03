@@ -164,7 +164,7 @@ let CollectionsView = {
     Observers.add("snowl:messages:changed", this.onMessagesComplete, this);
     Observers.add("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
-      Observers.add("snowl:author:removed", this.onSourceRemoved, this);;
+      Observers.add("snowl:author:removed", this.onSourceRemoved, this);
 //this._log.info("loadObservers");
   },
 
@@ -175,7 +175,7 @@ let CollectionsView = {
     Observers.remove("snowl:messages:changed", this.onMessagesComplete, this);
     Observers.remove("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
-      Observers.remove("snowl:author:removed", this.onSourceRemoved, this);;
+      Observers.remove("snowl:author:removed", this.onSourceRemoved, this);
 //this._log.info("unloadObservers");
   },
 
