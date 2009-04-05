@@ -82,6 +82,16 @@ let CollectionsView = {
     return this._collectionsViewMenuPopup = document.getElementById("collectionsViewMenuPopup");
   },
 
+  get _listToolbar() {
+    delete this._listToolbar;
+    return this._listToolbar = document.getElementById("snowlListToolbar");
+  },
+
+  get _toggleListToolbarButton() {
+    delete this._toggleListToolbarButton;
+    return this._toggleListToolbarButton = document.getElementById("listToolbarButton");
+  },
+
   get itemIds() {
     let intArray = [];
     let strArray = this._tree.getAttribute("itemids").split(",");
@@ -99,6 +109,11 @@ let CollectionsView = {
 
   gListOrRiver: null,
 
+  Filters: {
+    unread: false,
+    searchterms: null
+  },
+
 
   //**************************************************************************//
   // Initialization & Destruction
@@ -108,6 +123,12 @@ let CollectionsView = {
       // Only for sidebar collections tree in list view.
       this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
       this.gListOrRiver = "list";
+
+      if (!this._listToolbar.hasAttribute("hidden"))
+        this._toggleListToolbarButton.setAttribute("checked", true);
+
+      this.Filters["unread"] = document.getElementById("snowlUnreadButton").
+                                        checked ? true : false;
 
       // Restore persisted view selection (need to build the menulist) or init.
       let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
@@ -145,9 +166,7 @@ let CollectionsView = {
 
       let titleMsg = strings.get("rebuildPlacesTitleMsg");
       let dialogMsg = strings.get("rebuildPlacesDialogMsg");
-      let promptService = Cc["@mozilla.org/embedcomp/prompt-service;1"].
-                          getService(Ci.nsIPromptService);
-      promptService.alert(window, titleMsg, dialogMsg);
+      SnowlService._promptSvc.alert(window, titleMsg, dialogMsg);
 
       this.itemIds = -1;
       this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
@@ -345,7 +364,7 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
                                          null, 
                                          constraints,
                                          null);
-    gMessageViewWindow.SnowlMessageView.setCollection(collection);
+    gMessageViewWindow.SnowlMessageView.setCollection(collection, this.Filters);
   },
 
   onCollectionsTreeMouseDown: function(aEvent) {
@@ -364,11 +383,24 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
     SnowlService.refreshAllSources();
   },
 
-  onCommandUnreadButton: function(aEvent) {
+  onToggleListToolbar: function() {
+    if (this._listToolbar.hasAttribute("hidden"))
+      this._listToolbar.removeAttribute("hidden");
+    else
+      this._listToolbar.setAttribute("hidden", true);
+  },
+
+  onSearch: function(aValue) {
+    this.Filters["searchterms"] = aValue ? aValue : null;
+    gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
+  },
+
+  onCommandUnreadButton: function(aChecked) {
     // XXX Instead of rebuilding from scratch each time, when going from
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
     // class on read items and then using a CSS rule to hide them)?
-    gMessageViewWindow.SnowlMessageView._applyFilters();
+    this.Filters["unread"] = aChecked ? true : false;
+    gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
   },
 
   _resetCollectionsView: true,

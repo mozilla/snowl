@@ -66,11 +66,6 @@ let SnowlMessageView = {
                            getService(Ci.nsIAtomService);
   },
 
-  get _filter() {
-    delete this._filter;
-    return this._filter = document.getElementById("searchbar");
-  },
-
   get _tree() {
     delete this._tree;
     return this._tree = document.getElementById("snowlView");
@@ -89,16 +84,6 @@ let SnowlMessageView = {
   get _snowlSidebar() {
     delete this._snowlSidebar;
     return this._snowlSidebar = document.getElementById("snowlSidebar");
-  },
-
-  // The get method doesn't return all attrs/properties on sidebar reloads..
-  _unreadButton: function() {
-    return document.getElementById("sidebar").contentDocument.
-                    getElementById("snowlUnreadButton");
-  },
-
-  _sidebarWin: function() {
-    return document.getElementById("sidebar").contentWindow;
   },
 
   // Maps XUL tree column IDs to collection properties.
@@ -224,39 +209,31 @@ let SnowlMessageView = {
       this._rebuildView();
   },
 
-  onFilter: function() {
-    this._applyFilters();
+  onFilter: function(aFilters) {
+    this._applyFilters(aFilters);
   },
 
-  _applyFilters: function() {
+  _applyFilters: function(aFilters) {
     let filters = [];
-//this._log.info("_applyFilters: START");
+//this._log.info("_applyFilters: aFilters - "+[aFilters].toSource());
 
-    if (this._unreadButton().checked)
+    if (aFilters["unread"])
       filters.push({ expression: "read = 0", parameters: {} });
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    if (this._filter.value &&
-        this._filter.currentEngine.name == this._filter.SNOWL_ENGINE_NAME &&
-        this._filter.searchView == "list")
+    if (aFilters["searchterms"])
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: SnowlUtils.appendAsterisks(this._filter.value) } });
+                     parameters: { filter: SnowlUtils.appendAsterisks(aFilters["searchterms"]) } });
 
     this._collection.filters = filters;
-
-    if (this._sidebarWin().CollectionsView.itemIds == -1)
-      // No selection, don't show anything
-      this._collection.clear();
-    else
-      this._collection.invalidate();
-
+    this._collection.invalidate();
     this._rebuildView();
   },
 
-  setCollection: function(collection) {
+  setCollection: function(collection, aFilters) {
     this._collection = collection;
-    this._applyFilters();
+    this._applyFilters(aFilters);
   },
 
   _rebuildView: function() {

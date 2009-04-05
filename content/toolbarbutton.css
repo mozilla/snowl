@@ -52,6 +52,12 @@
 #snowlRefreshButton {
   list-style-image: url("chrome://snowl/content/icons/arrow_refresh_small.png");
 }
+
+#listToolbarButton {
+  list-style-image: url("chrome://global/skin/icons/Search-glass.png");
+  -moz-image-region: rect(0pt, 16px, 16px, 0pt);
+}
+
 #snowlUnreadButton {
   list-style-image: url("chrome://snowl/content/icons/new.png");
 }

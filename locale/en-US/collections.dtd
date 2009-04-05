@@ -19,3 +19,5 @@
 <!ENTITY viewDefault.label            "Default">
 <!ENTITY viewSources.label            "Sources">
 <!ENTITY viewAuthors.label            "Authors">
+<!ENTITY search.label                 "Search:">
+<!ENTITY search.accesskey             "S">

@@ -7,3 +7,5 @@
 
 <!ENTITY openListMessage.label        "Open Message">
 <!ENTITY openListMessage.accesskey    "O">
+
+<!ENTITY listSearch.emptytext         "Search Messages">
