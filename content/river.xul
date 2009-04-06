@@ -166,6 +166,14 @@
                       image="chrome://snowl/content/icons/calendar_view_month.png"/>
           </menupopup>
         </menulist>
+ 
+        <spacer flex="1"/>
+
+        <!-- FIXME: change type="timed" to type="search" once we no longer
+           - support Firefox 3.0. -->
+        <textbox id="filterTextbox" type="timed" timeout="200"
+                 emptytext="&filterTextbox.emptytext;"
+                 oncommand="SnowlMessageView.onFilter()"/>
       </toolbar>
 
       <stack id="contentStack" flex="1">
