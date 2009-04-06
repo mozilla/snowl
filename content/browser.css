@@ -91,7 +91,7 @@ tab[snowl] > image {
 
 /******************************************************************************/
 /* Snowl search engine */
-
+/* disable until results page finalized
 #searchbar {
   -moz-binding: url("chrome://snowl/content/snowlSearch.xml#search");
-}
+}*/
