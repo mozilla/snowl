@@ -109,7 +109,7 @@ package: $(package_files)
 ifneq ($(package_url),)
 	$(substitute) update.rdf.in > $(site_path_local)/dist/$(update_name)
 	mv $(package_name) $(site_path_local)/dist/
-	ln -s $(package_name) $(site_path_local)/dist/$(package_alias)
+	ln -s -f $(package_name) $(site_path_local)/dist/$(package_alias)
 endif
 
 publish:
