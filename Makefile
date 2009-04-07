@@ -95,7 +95,7 @@ chrome.jar: $(chrome_files)
 package_files     := content locale skin modules defaults \
                      install.rdf chrome.manifest
 
-substitute        := perl -p -e 's/@([^@]+)@/$$ENV{$$1} || $$&/ge'
+substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
 export package_version update_url_tag package_url revision_id
 
 package: $(package_files)
