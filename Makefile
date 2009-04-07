@@ -52,7 +52,7 @@ ifeq ($(channel),dev)
   update_name     := update-$(channel).rdf
   update_url      := $(site_url_base)/dist/$(update_name)
   update_url_tag  := <em:updateURL>$(update_url)</em:updateURL>
-  package_version := $(version).99pre0t$(date)
+  package_version := $(version)d$(date)
   package_name    := $(name)-$(channel)-$(package_version).xpi
   package_alias   := $(name)-$(channel)-latest.xpi
   package_url     := $(site_url_base)/dist/$(package_name)
