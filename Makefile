@@ -54,6 +54,7 @@ ifeq ($(channel),dev)
   update_url_tag  := <em:updateURL>$(update_url)</em:updateURL>
   package_version := $(version).99pre0t$(date)
   package_name    := $(name)-$(channel)-$(package_version).xpi
+  package_alias   := $(name)-$(channel)-latest.xpi
   package_url     := $(site_url)$(package_name)
 
 # Release Channel
@@ -108,6 +109,7 @@ package: $(package_files)
 	$(substitute) update.rdf.in > $(site_path_local)$(update_name)
 ifneq ($(package_url),)
 	mv $(package_name) $(site_path_local)
+	ln -s $(package_name) $(site_path_local)$(package_alias)
 endif
 
 publish:
