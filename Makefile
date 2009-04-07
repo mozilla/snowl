@@ -77,10 +77,6 @@ else
   package_url     := 
 endif
 
-dotin_files := $(shell find . -type f -name \*.in)
-dotin_files := $(dotin_files:.in=)
-  $(error $(dotin_files))
-
 
 all: package
 
