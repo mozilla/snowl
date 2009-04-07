@@ -169,8 +169,10 @@ let CollectionsView = {
       SnowlService._promptSvc.alert(window, titleMsg, dialogMsg);
 
       this.itemIds = -1;
-      this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
-      this._collectionsViewMenu.selectedIndex = 0;
+      if (this.gListOrRiver == "list") {
+        this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
+        this._collectionsViewMenu.selectedIndex = 0;
+      }
       this._getCollections();
       this._buildCollectionTree();
     }
