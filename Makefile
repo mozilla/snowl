@@ -35,9 +35,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
-site_url          := https://people.mozilla.com/~myk/snowl/
-site_path_local   := website/
-site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl/
+site_url_base     := https://people.mozilla.com/~myk/snowl
+site_path_local   := website
+site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl
 
 name              := $(shell perl -ane 'print $$1 if /<em:name>(.*)<\/em:name>/' install.rdf)
 version           := $(shell perl -ane 'print $$1 if /<em:version>(.*)<\/em:version>/' install.rdf)
@@ -50,12 +50,12 @@ ifeq ($(channel),dev)
   # Development build updates are managed by the website, so we construct
   # an update URL that points to the update manifest we are going to create.
   update_name     := update-$(channel).rdf
-  update_url      := $(site_url)$(update_name)
+  update_url      := $(site_url_base)/dist/$(update_name)
   update_url_tag  := <em:updateURL>$(update_url)</em:updateURL>
   package_version := $(version).99pre0t$(date)
   package_name    := $(name)-$(channel)-$(package_version).xpi
   package_alias   := $(name)-$(channel)-latest.xpi
-  package_url     := $(site_url)$(package_name)
+  package_url     := $(site_url_base)/dist/$(package_name)
 
 # Release Channel
 else ifeq ($(channel),rel)
@@ -106,14 +106,14 @@ package: $(package_files)
 	zip -ur $(package_name) $(package_files) -x \*.in
 	mv .\#install.rdf.bak install.rdf
 	mv .\#prefs.js.bak defaults/preferences/prefs.js
-	$(substitute) update.rdf.in > $(site_path_local)$(update_name)
 ifneq ($(package_url),)
-	mv $(package_name) $(site_path_local)
-	ln -s $(package_name) $(site_path_local)$(package_alias)
+	$(substitute) update.rdf.in > $(site_path_local)/dist/$(update_name)
+	mv $(package_name) $(site_path_local)/dist/
+	ln -s $(package_name) $(site_path_local)/dist/$(package_alias)
 endif
 
 publish:
-	rsync -av $(site_path_local) $(site_path_remote)
+	rsync -av $(site_path_local)/ $(site_path_remote)/
 
 help:
 	@echo 'Targets:'
