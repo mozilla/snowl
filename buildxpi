@@ -1,3 +1,0 @@
-#!/bin/sh -x
-
-zip -9 -ur snowl.xpi content skin locale modules defaults install.rdf chrome.manifest -x \*/.\*
