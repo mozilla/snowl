@@ -1,3 +1,5 @@
+# IMPORTANT: When changing this file, make sure to keep changes in sync with chrome.manifest.in.
+
 # Generic browser chrome integration points: an icon in the status bar,
 # a menu in the Tools menu, View > Sidebar entries, etc.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul

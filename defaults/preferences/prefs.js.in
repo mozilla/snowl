@@ -1,3 +1,5 @@
+// IMPORTANT: When changing this file, make sure to keep changes in sync with prefs.js.
+
 // About box description, so it's localizable
 pref("extensions.snowl@mozilla.org.description", "chrome://snowl/locale/about.properties");
 

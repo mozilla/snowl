@@ -85,9 +85,6 @@ all: package
 
 .PHONY: package publish subscribe
 
-# This creates a chrome.jar file for faster performance loading chrome files
-# on startup.  We're not currently using this, but we should start doing so.
-# But first we have to make it work (i.e. update chrome.manifest paths).
 chrome_files      := content/* locale/* skin/*
 
 chrome.jar: $(chrome_files)
