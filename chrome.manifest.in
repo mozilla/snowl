@@ -1,5 +1,3 @@
-# IMPORTANT: When changing this file, make sure to keep changes in sync with chrome.manifest.in.
-
 # Generic browser chrome integration points: an icon in the status bar,
 # a menu in the Tools menu, View > Sidebar entries, etc.
 overlay chrome://browser/content/browser.xul chrome://snowl/content/browser.xul
@@ -38,25 +36,25 @@ resource snowl ./
 # Note: chrome in this case includes cross-OS style (skin).  OS-specific style
 # should go into OS-specific subdirectories of the skin directory, as defined
 # below.
-content snowl   content/
+content snowl   @chrome_path@content/
 
 # Register separate skins for each primary platform so we can fit personas
 # into each one's very different skin.
-skin    snowl   classic/1.0   skin/luna/      os=WINNT    osversion<6
-skin    snowl   classic/1.0   skin/aero/      os=WINNT    osversion>=6
-skin    snowl   classic/1.0   skin/mac/       os=Darwin
-skin    snowl   classic/1.0   skin/linux/     os=Linux
+skin    snowl   classic/1.0   @chrome_path@skin/luna/   os=WINNT    osversion<6
+skin    snowl   classic/1.0   @chrome_path@skin/aero/   os=WINNT    osversion>=6
+skin    snowl   classic/1.0   @chrome_path@skin/mac/    os=Darwin
+skin    snowl   classic/1.0   @chrome_path@skin/linux/  os=Linux
 
 # localizations in alphabetical order
-locale  snowl   ca-AD   locale/ca-AD/
-locale  snowl   cs-CZ   locale/cs-CZ/
-locale  snowl   da-DK   locale/da-DK/
-locale  snowl   de-DE   locale/de-DE/
-locale  snowl   en-US   locale/en-US/
-locale  snowl   es-ES   locale/es-ES/
-locale  snowl   fr-FR   locale/fr-FR/
-locale  snowl   ja-JP   locale/ja-JP/
-locale  snowl   nl-NL   locale/nl-NL/
-locale  snowl   pl-PL   locale/pl-PL/
-locale  snowl   pt-BR   locale/pt-BR/
-locale  snowl   zh-CN   locale/zh-CN/
+locale  snowl   ca-AD   @chrome_path@locale/ca-AD/
+locale  snowl   cs-CZ   @chrome_path@locale/cs-CZ/
+locale  snowl   da-DK   @chrome_path@locale/da-DK/
+locale  snowl   de-DE   @chrome_path@locale/de-DE/
+locale  snowl   en-US   @chrome_path@locale/en-US/
+locale  snowl   es-ES   @chrome_path@locale/es-ES/
+locale  snowl   fr-FR   @chrome_path@locale/fr-FR/
+locale  snowl   ja-JP   @chrome_path@locale/ja-JP/
+locale  snowl   nl-NL   @chrome_path@locale/nl-NL/
+locale  snowl   pl-PL   @chrome_path@locale/pl-PL/
+locale  snowl   pt-BR   @chrome_path@locale/pt-BR/
+locale  snowl   zh-CN   @chrome_path@locale/zh-CN/

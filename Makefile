@@ -39,13 +39,11 @@ site_url_base     := https://people.mozilla.com/~myk/snowl
 site_path_local   := website
 site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl
 
-name              := $(shell perl -ane 'print $$1 if /<em:name>(.*)<\/em:name>/' install.rdf)
-version           := $(shell perl -ane 'print $$1 if /<em:version>(.*)<\/em:version>/' install.rdf)
+name              := $(shell perl -ane 'print $$1 if /<em:name>(.*)<\/em:name>/' install.rdf.in)
+version           := $(shell cat VERSION)
 
 date              := $(shell date --utc +%Y%m%d%H%M)
 revision_id       := $(shell hg tip --template '{node|short}')
-
-chrome_path       := jar:chrome.jar!/
 
 # Development Channel
 ifeq ($(channel),dev)
@@ -58,6 +56,7 @@ ifeq ($(channel),dev)
   package_name    := $(name)-$(channel)-$(package_version).xpi
   package_alias   := $(name)-$(channel)-latest.xpi
   package_url     := $(site_url_base)/dist/$(package_name)
+  chrome_path     := jar:chrome.jar!/
 
 # Release Channel
 else ifeq ($(channel),rel)
@@ -68,6 +67,7 @@ else ifeq ($(channel),rel)
   package_version := $(version)
   package_name    := $(name)-$(version).xpi
   package_url     := 
+  chrome_path     := jar:chrome.jar!/
 
 # No Channel
 else
@@ -78,12 +78,26 @@ else
   package_version := 0
   package_name    := $(name).xpi
   package_url     := 
+  chrome_path     :=
 endif
 
+dotin_files := $(shell find . -type f -name \*.in)
+dotin_files := $(dotin_files:.in=)
 
-all: package
 
-.PHONY: package publish subscribe
+all: build
+
+.PHONY: $(dotin_files) substitute build package publish
+
+substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
+export package_version update_url_tag package_url revision_id chrome_path
+
+$(dotin_files): $(dotin_files:=.in)
+	$(substitute) $@.in > $@
+
+substitute: $(dotin_files)
+
+build: substitute
 
 chrome_files      := content/* locale/* skin/*
 
@@ -93,24 +107,12 @@ chrome.jar: $(chrome_files)
 # FIXME: use a package manifest to determine which files to package.
 package_files     := defaults modules chrome.manifest chrome.jar install.rdf
 
-substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
-export package_version update_url_tag package_url revision_id chrome_path
-
-package: $(package_files) chrome.jar
-	mv install.rdf .\#install.rdf.bak
-	mv chrome.manifest .\#chrome.manifest.bak
-	mv defaults/preferences/prefs.js .\#prefs.js.bak
-	$(substitute) install.rdf.in > install.rdf
-	$(substitute) chrome.manifest.in > chrome.manifest
-	$(substitute) defaults/preferences/prefs.js.in > defaults/preferences/prefs.js
+package: build chrome.jar $(package_files)
 	zip -ur $(package_name) $(package_files) -x \*.in
-	mv .\#install.rdf.bak install.rdf
-	mv .\#chrome.manifest.bak chrome.manifest
-	mv .\#prefs.js.bak defaults/preferences/prefs.js
 ifneq ($(package_url),)
-	$(substitute) update.rdf.in > $(site_path_local)/dist/$(update_name)
 	mv $(package_name) $(site_path_local)/dist/
 	ln -s -f $(package_name) $(site_path_local)/dist/$(package_alias)
+	mv update.rdf $(site_path_local)/dist/$(update_name)
 endif
 
 publish:
@@ -118,9 +120,9 @@ publish:
 
 help:
 	@echo 'Targets:'
+	@echo '  build:     build the extension'
 	@echo '  package:   build a XPI'
-	@echo '  publish:   push files to the website'
-	@echo '  clean'
+	@echo '  publish:   push distribution files to the website'
 	@echo
 	@echo 'Variables:'
 	@echo '  channel: "rel", "dev", or blank'
