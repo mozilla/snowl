@@ -116,7 +116,7 @@ publish:
 help:
 	@echo 'Targets:'
 	@echo '  build:     build the extension'
-	@echo '  package:   build a XPI'
+	@echo '  package:   bundle the extension into a XPI'
 	@echo '  publish:   push distribution files to the website'
 	@echo
 	@echo 'Variables:'
