@@ -35,6 +35,11 @@
 #
 # ***** END LICENSE BLOCK *****
 
+# Generic makefile for a Mozilla extension.  This makefile is designed to be
+# reusable by multiple extensions.  Extension-specific variables and targets
+# should be defined in an extension-specific makefile (f.e. client.mk).
+
+# Include extension-specific makefiles.
 include *.mk
 
 date              := $(shell date --utc +%Y%m%d%H%M)

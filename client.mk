@@ -34,6 +34,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
+# Snowl-specific makefile.  This gets included by the generic Makefile.
+
 name              := snowl
 version           := 0.3pre1
 
