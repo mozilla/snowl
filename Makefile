@@ -56,7 +56,6 @@ ifeq ($(channel),dev)
   package_name    := $(name)-$(channel)-$(package_version).xpi
   package_alias   := $(name)-$(channel)-latest.xpi
   package_url     := $(site_url_base)/dist/$(package_name)
-  chrome_path     := jar:chrome.jar!/
 
 # Release Channel
 else ifeq ($(channel),rel)
@@ -67,7 +66,6 @@ else ifeq ($(channel),rel)
   package_version := $(version)
   package_name    := $(name)-$(version).xpi
   package_url     := 
-  chrome_path     := jar:chrome.jar!/
 
 # No Channel
 else
@@ -78,11 +76,20 @@ else
   package_version := 0
   package_name    := $(name).xpi
   package_url     := 
-  chrome_path     :=
 endif
 
-dotin_files := $(shell find . -type f -name \*.in)
-dotin_files := $(dotin_files:.in=)
+dotin_files       := $(shell find . -type f -name \*.in)
+dotin_files       := $(dotin_files:.in=)
+
+# FIXME: separate the question of whether or not to archive chrome files
+# from the question of whether or not we're packaging the build, so builders
+# can choose to archive chrome files while simply building or not to archive
+# chrome files even when packaging.
+ifeq ($(MAKECMDGOALS),package)
+  chrome_path     := jar:chrome.jar!/
+else
+  chrome_path     :=
+endif
 
 
 all: build
