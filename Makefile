@@ -125,11 +125,15 @@ endif
 publish:
 	rsync -av $(site_path_local)/ $(site_path_remote)/
 
+clean:
+	rm -f $(dotin_files) $(package_name)
+
 help:
 	@echo 'Targets:'
-	@echo '  build:     build the extension'
+	@echo '  build:     process .in files'
 	@echo '  package:   bundle the extension into a XPI'
-	@echo '  publish:   push distribution files to the website'
+	@echo '  publish:   push package and update manifest to the website'
+	@echo '  clean'
 	@echo
 	@echo 'Variables:'
 	@echo '  channel: "rel", "dev", or blank'
