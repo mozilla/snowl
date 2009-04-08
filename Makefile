@@ -35,12 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-site_url_base     := https://people.mozilla.com/~myk/snowl
-site_path_local   := website
-site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl
-
-name              := $(shell perl -ane 'print $$1 if /<em:name>(.*)<\/em:name>/' install.rdf.in)
-version           := $(shell cat VERSION)
+include *.mk
 
 date              := $(shell date --utc +%Y%m%d%H%M)
 revision_id       := $(shell hg tip --template '{node|short}')
