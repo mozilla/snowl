@@ -94,7 +94,7 @@ endif
 
 all: build
 
-.PHONY: $(dotin_files) substitute build package publish
+.PHONY: $(dotin_files) substitute build package publish clean
 
 substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
 export package_version update_url_tag package_url revision_id chrome_path
