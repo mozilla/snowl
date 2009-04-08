@@ -126,7 +126,7 @@ publish:
 	rsync -av $(site_path_local)/ $(site_path_remote)/
 
 clean:
-	rm -f $(dotin_files) $(package_name)
+	rm -f $(dotin_files) chrome.jar $(package_name)
 
 help:
 	@echo 'Targets:'
