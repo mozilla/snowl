@@ -1,3 +1,7 @@
-syntax: glob
-*.kpf
-*.xpi
+\.xpi$
+^chrome\.jar$
+^chrome\.manifest$
+^install\.rdf$
+^update\.rdf$
+^defaults/preferences/prefs.js$
+^website$
