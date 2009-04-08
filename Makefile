@@ -45,6 +45,8 @@ version           := $(shell perl -ane 'print $$1 if /<em:version>(.*)<\/em:vers
 date              := $(shell date --utc +%Y%m%d%H%M)
 revision_id       := $(shell hg tip --template '{node|short}')
 
+chrome_path       := jar:chrome.jar!/
+
 # Development Channel
 ifeq ($(channel),dev)
   # Development build updates are managed by the website, so we construct
@@ -92,19 +94,21 @@ chrome.jar: $(chrome_files)
 	zip -ur chrome.jar $(chrome_files)
 
 # FIXME: use a package manifest to determine which files to package.
-package_files     := content locale skin modules defaults \
-                     install.rdf chrome.manifest
+package_files     := defaults modules chrome.manifest chrome.jar install.rdf
 
 substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
-export package_version update_url_tag package_url revision_id
+export package_version update_url_tag package_url revision_id chrome_path
 
-package: $(package_files)
+package: $(package_files) chrome.jar
 	mv install.rdf .\#install.rdf.bak
+	mv chrome.manifest .\#chrome.manifest.bak
 	mv defaults/preferences/prefs.js .\#prefs.js.bak
 	$(substitute) install.rdf.in > install.rdf
+	$(substitute) chrome.manifest.in > chrome.manifest
 	$(substitute) defaults/preferences/prefs.js.in > defaults/preferences/prefs.js
 	zip -ur $(package_name) $(package_files) -x \*.in
 	mv .\#install.rdf.bak install.rdf
+	mv .\#chrome.manifest.bak chrome.manifest
 	mv .\#prefs.js.bak defaults/preferences/prefs.js
 ifneq ($(package_url),)
 	$(substitute) update.rdf.in > $(site_path_local)/dist/$(update_name)
