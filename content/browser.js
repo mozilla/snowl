@@ -83,7 +83,10 @@ let Snowl = {
       let url = "chrome://snowl/content/firstrun.html";
       setTimeout(function() { window.openUILinkIn(url, "tab") }, 500);
     }
-    else if (lastVersion != this._version) {
+    // Don't show the "updated" page in the dev channel, since we update
+    // that channel so often that this behavior would get old fast.
+    else if (lastVersion != this._version &&
+             this._prefs.get("channel") != "dev") {
       let url = "chrome://snowl/content/update.html?old=" + lastVersion +
                 "&new=" + this._version;
       setTimeout(function() { window.openUILinkIn(url, "tab") }, 500);

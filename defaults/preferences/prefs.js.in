@@ -11,3 +11,10 @@ pref("extensions.snowl.log.appender.file.level",      "Debug");
 
 // The ID of the Mercurial revision from which a particular package is built.
 pref("extensions.snowl.revisionID", "@revision_id@");
+
+// The distribution channel for a particular package.  We use this to determine
+// whether or not to display the "updated" page when the user updates Snowl.
+// We do show the page when the user updates to a new release build; we don't
+// show it when the user upgrades to a new development build (which would get
+// old fast since they come out so often).
+pref("extensions.snowl.channel", "@channel@");
