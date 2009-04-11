@@ -72,7 +72,7 @@ endif
 ################################################################################
 # Variable Declarations
 
-date              := $(shell date --utc +%Y%m%d%H%M)
+date              := $(shell date -u +%Y%m%d%H%M)
 revision_id       := $(shell hg tip --template '{node|short}')
 
 # Development Channel
