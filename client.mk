@@ -38,6 +38,7 @@
 
 name              := snowl
 version           := 0.3pre1
+extension_id      := snowl@mozilla.org
 
 site_url_base     := https://people.mozilla.com/~myk/snowl
 site_path_local   := website

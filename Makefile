@@ -42,6 +42,36 @@
 # Include extension-specific makefiles.
 include *.mk
 
+
+################################################################################
+# Input Validation
+
+ifeq ($(MAKECMDGOALS),install)
+  ifndef profile
+    $(error when installing, you must specify the profile into which \
+            to install the extension via the "profile" variable)
+  endif
+  ifndef extension_id
+    $(error when installing, you must specify the ID of the extension \
+            via the "extension_id" variable)
+  endif
+endif
+
+ifeq ($(MAKECMDGOALS),uninstall)
+  ifndef profile
+    $(error when uninstalling, you must specify the profile from which \
+            to uninstall the extension via the "profile" variable)
+  endif
+  ifndef extension_id
+    $(error when uninstalling, you must specify the ID of the extension \
+            via the "extension_id" variable)
+  endif
+endif
+
+
+################################################################################
+# Variable Declarations
+
 date              := $(shell date --utc +%Y%m%d%H%M)
 revision_id       := $(shell hg tip --template '{node|short}')
 
@@ -100,9 +130,44 @@ else
   package_files   += $(chrome_files)
 endif
 
+# OS detection
+sys := $(shell uname -s)
+ifeq ($(sys), Darwin)
+  os = Darwin
+else
+ifeq ($(sys), Linux)
+  os = Linux
+else
+ifeq ($(sys), MINGW32_NT-6.0)
+  os = WINNT
+else
+ifeq ($(sys), MINGW32_NT-5.1)
+  os = WINNT
+else
+  $(error your os is unknown/unsupported: $(sys))
+endif
+endif
+endif
+endif
+
+# The path to the extension, in the native format, as required by the app
+# for extensions installed via a file in the $(profile)/extensions/ directory
+# that contains the path to the extension (which is how we install it).
+ifeq ($(os), WINNT)
+  extension_dir = $(subst /,\,$(shell pwd -W))
+else
+  extension_dir = $(shell pwd)
+endif
+
+# A command to substitute @variables@ for their values in .in files.
 substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
+
+# The variables to substitute for their values in .in files.
 export package_version update_url_tag package_url revision_id chrome_path channel
 
+
+################################################################################
+# Make Targets
 
 .PHONY: $(dotin_files) substitute build package publish clean
 
@@ -129,6 +194,15 @@ endif
 publish:
 	rsync -av $(site_path_local)/ $(site_path_remote)/
 
+install:
+	@if [ ! -e "$(profile)/extensions" ]; then \
+	  mkdir -p $(profile)/extensions; \
+	fi
+	echo "$(extension_dir)" > $(profile)/extensions/$(extension_id)
+
+uninstall:
+	rm $(profile)/extensions/$(extension_id)
+
 clean:
 	rm -f $(dotin_files) chrome.jar $(package_name)
 
@@ -137,6 +211,8 @@ help:
 	@echo '  build:     process .in files'
 	@echo '  package:   bundle the extension into a XPI'
 	@echo '  publish:   push package and update manifest to the website'
+	@echo '  install:   install extension to profile'
+	@echo '  uninstall: uninstall extension from profile'
 	@echo '  clean:     remove generated files'
 	@echo
 	@echo 'Variables:'
@@ -144,3 +220,5 @@ help:
 	@echo '  jar:       set to any value to archive chrome in JAR file,'
 	@echo '             which improves application startup performance'
 	@echo '             but requires you to rebuild after each change'
+	@echo '  profile:   the profile directory into which to install'
+	@echo '             (or from which to uninstall) the extension'
