@@ -56,6 +56,8 @@ ifeq ($(channel),dev)
   package_name    := $(name)-$(channel)-$(package_version).xpi
   package_alias   := $(name)-$(channel)-latest.xpi
   package_url     := $(site_url_base)/dist/$(package_name)
+  # Automatically archive chrome in JAR archive when building for this channel.
+  jar             := 1
 
 # Release Channel
 else ifeq ($(channel),rel)
@@ -66,6 +68,8 @@ else ifeq ($(channel),rel)
   package_version := $(version)
   package_name    := $(name)-$(version).xpi
   package_url     := 
+  # Automatically archive chrome in JAR archive when building for this channel.
+  jar             := 1
 
 # No Channel
 else
@@ -81,40 +85,40 @@ endif
 dotin_files       := $(shell find . -type f -name \*.in)
 dotin_files       := $(dotin_files:.in=)
 
-# FIXME: separate the question of whether or not to archive chrome files
-# from the question of whether or not we're packaging the build, so builders
-# can choose to archive chrome files while simply building or not to archive
-# chrome files even when packaging.
-ifeq ($(MAKECMDGOALS),package)
+chrome_files      := content/* locale/* skin/*
+
+# FIXME: use a package manifest to determine which files to package.
+package_files     := defaults modules chrome.manifest install.rdf
+
+ifdef jar
   chrome_path     := jar:chrome.jar!/
+  jar_dependency  := chrome.jar
+  package_files   += chrome.jar
 else
   chrome_path     :=
+  jar_dependency  :=
+  package_files   += $(chrome_files)
 endif
-
-
-all: build
-
-.PHONY: $(dotin_files) substitute build package publish clean
 
 substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
 export package_version update_url_tag package_url revision_id chrome_path channel
+
+
+.PHONY: $(dotin_files) substitute build package publish clean
+
+all: build
 
 $(dotin_files): $(dotin_files:=.in)
 	$(substitute) $@.in > $@
 
 substitute: $(dotin_files)
 
-build: substitute
-
-chrome_files      := content/* locale/* skin/*
-
 chrome.jar: $(chrome_files)
 	zip -ur chrome.jar $(chrome_files)
 
-# FIXME: use a package manifest to determine which files to package.
-package_files     := defaults modules chrome.manifest chrome.jar install.rdf
+build: substitute $(jar_dependency)
 
-package: build chrome.jar $(package_files)
+package: build $(package_files)
 	zip -ur $(package_name) $(package_files) -x \*.in
 ifneq ($(package_url),)
 	mv $(package_name) $(site_path_local)/dist/
@@ -133,7 +137,10 @@ help:
 	@echo '  build:     process .in files'
 	@echo '  package:   bundle the extension into a XPI'
 	@echo '  publish:   push package and update manifest to the website'
-	@echo '  clean'
+	@echo '  clean:     remove generated files'
 	@echo
 	@echo 'Variables:'
-	@echo '  channel: "rel", "dev", or blank'
+	@echo '  channel:   the distribution channel ("rel" or "dev")'
+	@echo '  jar:       set to any value to archive chrome in JAR file,'
+	@echo '             which improves application startup performance'
+	@echo '             but requires you to rebuild after each change'
