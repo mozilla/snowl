@@ -976,6 +976,36 @@ this._log.info("_buildCollectionTree: Convert to Places: END");
  * PlacesTreeView overrides here.
  */
 
+/* Do not drop a View shortcut into another View; it doesn't make sense and
+ * very bad things happen to the tree.
+ */
+PlacesTreeView.prototype._canDrop = PlacesTreeView.prototype.canDrop;
+PlacesTreeView.prototype.canDrop = SnowlTreeViewCanDrop;
+function SnowlTreeViewCanDrop(aRow, aOrientation) {
+  if (!this._result)
+    throw Cr.NS_ERROR_UNEXPECTED;
+
+  // drop position into a sorted treeview would be wrong
+  if (this.isSorted())
+    return false;
+
+  var ip = this._getInsertionPoint(aRow, aOrientation);
+
+  // Custom handling for View shortcut.  Allow move/drop of View only onto its
+  // parent (reorder); disallow any multiselection dnd if it contains a View node.
+  let isView = false;
+  let dropNodes = CollectionsView._tree.getSelectionNodes();
+  for (let i=0; i < dropNodes.length && !isView; i++)
+    isView = PlacesUtils.annotations.
+                         itemHasAnnotation(dropNodes[i].itemId,
+                                           SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO);
+  if (isView &&
+      (dropNodes.length > 1 || (ip && ip.itemId != SnowlPlaces.collectionsSystemID)))
+    return false;
+
+  return ip && PlacesControllerDragHelper.canDrop(ip);
+};
+
 /* Allow inline renaming and handle folder shortcut items */
 PlacesTreeView.prototype._setCellText = PlacesTreeView.prototype.setCellText;
 PlacesTreeView.prototype.setCellText = SnowlTreeViewSetCellText;

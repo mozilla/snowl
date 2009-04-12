@@ -54,10 +54,12 @@
 
       <!-- The system collections folder (default View) is necessarily readOnly,
            however we want to allow user ordering of custom View shorcuts within
-           the default View.  Do a check and unset readOnly; reset on dragend. -->
+           the default View.  Do a check and unset readOnly; reset on dragend.
+           Must be single selection. -->
       <handler event="dragstart"><![CDATA[
         let rootNodeId = this.getResultNode().itemId;
-        if (rootNodeId == SnowlPlaces.collectionsSystemID &&
+        if (this.selectedNode &&
+            rootNodeId == SnowlPlaces.collectionsSystemID &&
             this.selectedNode.parent.itemId == SnowlPlaces.collectionsSystemID &&
             this.selectedNode.itemId != SnowlPlaces.collectionsSourcesID &&
             this.selectedNode.itemId != SnowlPlaces.collectionsAuthorsID &&

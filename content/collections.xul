@@ -72,6 +72,12 @@
               forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
     <menuseparator id="placesContext_openSeparator"
               forcehideselection="Snowl/Collections/Source|Snowl/Collections/Author"/>
+    <menuitem id="placesContext_cut"
+              forcehideselection="Snowl/Collections|Snowl/User/ViewList"/>
+    <menuitem id="placesContext_copy"
+              forcehideselection="Snowl/Collections/System|Snowl/User/ViewList"/>
+    <menuitem id="placesContext_delete"
+              forcehideselection="Snowl/Collections|Snowl/User/ViewList"/>
     <menuitem id="placesContext_sortBy:name"
               forcehideselection="Snowl/Collections"/>
     <menuitem id="placesContext_show:info"
@@ -126,7 +132,7 @@
               accesskey="&cmd.context_sortby_name.accesskey;"
               closemenu="single"
               selection="Snowl/Collections"
-              forcehideselection="query"
+              forcehideselection="query|Snowl/Collections/System"
               oncommand="var view = PlacesUIUtils.getViewForNode(document.popupNode);
                          view.controller.sortFolderByName();"/>
     <menuseparator id="snowlPlacesContextExtensionSep"

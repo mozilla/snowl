@@ -303,7 +303,7 @@ let Snowl = {
       selectedIndex = this._prefs.get("message.headerView");
     else if (val == "Toggle") {
       // Toggled to next in 3 way
-      selectedIndex = parseInt(headerDeck.selectedIndex);
+      selectedIndex = parseInt(headerDeck.getAttribute("selectedIndex"));
       selectedIndex = ++selectedIndex > 2 ? 0 : selectedIndex++;
       this._prefs.set("message.headerView", selectedIndex);
     }

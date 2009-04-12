@@ -976,7 +976,7 @@ let SnowlPlaces = {
     return this._log;
   },
 
-  _placesVersion: 1,
+  _placesVersion: 2,
   _placesConverted: false,
   _placesInitialized: false,
 
@@ -1007,6 +1007,7 @@ this._log.info("setPlacesVersion: " + verInfo);
 
   SNOWL_ROOT_ANNO: "Snowl",
   SNOWL_COLLECTIONS_ANNO: "Snowl/Collections",
+  SNOWL_COLLECTIONS_SYSTEM_ANNO: "Snowl/Collections/System",
   SNOWL_COLLECTIONS_SOURCE_ANNO: "Snowl/Collections/Source",
   SNOWL_COLLECTIONS_AUTHOR_ANNO: "Snowl/Collections/Author",
   SNOWL_USER_ANNO: "Snowl/User",
@@ -1350,6 +1351,12 @@ this._log.info("init: Rebuilding Snowl Places...");
                                       "snowlCollectionsSystem",
                                       0,
                                       this.EXPIRE_NEVER);
+        PlacesUtils.annotations.
+                    setItemAnnotation(collsysID,
+                                      this.SNOWL_COLLECTIONS_SYSTEM_ANNO,
+                                      "snowlCollectionsSystem",
+                                      0,
+                                      this.EXPIRE_NEVER);
         // Ensure immediate children can't be removed.
         PlacesUtils.bookmarks.setFolderReadonly(collsysID, true);
 
@@ -1408,6 +1415,9 @@ this._log.info("init: Rebuilding Snowl Places...");
 
         // Build a map of all custom View folders and create the shortcuts,
         // initially this will just include the Custom entry included as sample.
+        // XXX: in a Places rebuild scenario, order of View shortcuts will not be
+        // maintained, as the rebuild will happen from the order of the base
+        // folders - need to change order there if shortcuts dnd reordered.
         viewItems = PlacesUtils.annotations
                                .getItemsWithAnnotation(this.SNOWL_USER_VIEW_ANNO, {});
         for (var i=0; i < viewItems.length; i++) {
