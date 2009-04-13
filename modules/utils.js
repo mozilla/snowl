@@ -317,6 +317,7 @@ let SnowlUtils = {
   // dnd handling without running a query resulting in content load.
   gRightMouseButtonDown: false,
   gMouseEvent: false,
+  gTwistyClicked: false,
   onTreeMouseDown: function(aEvent) {
     this.gMouseEvent = true;
     if (aEvent.button == 2)
@@ -342,10 +343,11 @@ let SnowlUtils = {
     if (modKey)
       return;
 
-    // Handle twisty click
+    // Handle twisty click, must set on mousedown as getCellAt is no longer valid
+    // in onClick for tree rows that move.
     if (obj.value == "twisty") {
-//this._log.info("ChangeSelectionWithoutContentLoad: twisty selCount - "+treeSelection.count);
-//      treeSelection.currentIndex = row.value;
+      this.gTwistyClicked = true;
+      treeSelection.currentIndex = row.value;
       return;
     }
 
@@ -396,6 +398,10 @@ let SnowlUtils = {
     // Reset mouse state to enable key navigation.
     this.gMouseEvent = false;
     this.gRightMouseButtonDown = false;
+
+    // No selection made, currentIndex may be 0 on autofocus, don't restore it.
+    if (tree.currentSelectedIndex == -1)
+      return;
 
     tree.currentSelectedIndex = treeSelection.currentIndex;
     // Make sure that currentIndex is valid so that we don't try to restore

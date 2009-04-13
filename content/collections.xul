@@ -75,7 +75,7 @@
     <menuitem id="placesContext_cut"
               forcehideselection="Snowl/Collections|Snowl/User/ViewList"/>
     <menuitem id="placesContext_copy"
-              forcehideselection="Snowl/Collections/System|Snowl/User/ViewList"/>
+              forcehideselection="Snowl/Collections|Snowl/User/ViewList"/>
     <menuitem id="placesContext_delete"
               forcehideselection="Snowl/Collections|Snowl/User/ViewList"/>
     <menuitem id="placesContext_sortBy:name"

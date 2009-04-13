@@ -260,8 +260,6 @@ let CollectionsView = {
   },
 
   onClick: function(aEvent) {
-    let row = { }, col = { }, obj = { };
-    let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
 /*
 this._log.info("onClick start: curIndex:curSelectedIndex = "+
   this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
@@ -271,49 +269,13 @@ this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
 this._log.info("onClick: currentSelectionCount = "+this._tree.currentSelectionCount);
 this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 */
+    let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
     SnowlUtils.gMouseEvent = false;
 
-    // XXX: Bug 477806 - closing container with selected child selects
-    // container, does not remember selected child on open.  Restoring original
-    // selection by traversing the tree for itemID is too expensive here.
-    this._tree.boxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, obj);
-    if (obj.value == "twisty") {
-//      this._tree.treeBoxObject.ensureRowIsVisible(row.value);
-//      this._tree.currentIndex = row.value;
-/*
-this._log.info("onClick: TWISTY visRow - "+row.value);
-this._log.info("onClick: TWISTY title - "+
-  this._tree.view.nodeForTreeIndex(row.value).title);
-*/
-      if (this._tree.view.selection.isSelected(row.value)) {
-this._log.info("onClick: twisty is SELECTED");
-        if (this._tree.selectedNode.containerOpen) {
-this._log.info("onClick: twisty OPEN title:itemId - " +
-  this._tree.selectedNode.title+" : "+this._tree.selectedNode.itemId);
-//        this._tree.restoreSelection();ensureRowIsVisible
-        }
-        else {
-this._log.info("onClick: twisty CLOSED title:itemId - " +
-  this._tree.selectedNode.title+" : "+this._tree.selectedNode.itemId);
-  
-  
-        }
-        if (this.itemIds.indexOf(this._tree.selectedNode.itemId) == -1) {
-//          this._tree.view.selection.toggleSelect(row.value);
-this._log.info("onClick: twisty CLEARED"); // clearSelection()
-        }
-//        else
-//          this._tree.currentIndex = row.value;
-  }
-//  else {
-//    let rangeFirst = { }, rangeLast = { };
-//    this._tree.view.selection.getRangeAt(0, rangeFirst, rangeLast);
-////          this._tree.currentIndex = -1;
-//  this._tree.view.selection.currentIndex = rangeFirst.value;
-//      this._tree.treeBoxObject.ensureRowIsVisible(row.value);
-//  }
-
-    return;
+    // Don't run query on twisty click.
+    if (SnowlUtils.gTwistyClicked) {
+      SnowlUtils.gTwistyClicked = false;
+      return;
     }
 
     // Update currentSelectionCount
@@ -332,9 +294,9 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
     if (modKey && !this._tree.view.selection.isSelected(this._tree.currentIndex))
       this._tree.currentIndex = -1;
 
-    // If mod key and multiselection, reset currentSelectedIndex so subsequent
-    // non mod key click will select on any previously selected row.
-    if (modKey && this._tree.view.selection.count > 1)
+    // If multiselection, reset currentSelectedIndex so subsequent click will
+    // select on any previously selected row.
+    if (this._tree.view.selection.count > 1)
       this._tree.currentSelectedIndex = -1;
     else
       this._tree.currentSelectedIndex = this._tree.currentIndex;
@@ -350,8 +312,11 @@ this._log.info("onClick: twisty CLEARED"); // clearSelection()
 
     // See if it can be opened like a bookmark.
     if (isBookmark) {
-      goDoCommand('placesCmd_open');
-      return;
+      this.itemIds = -1;
+      if (aEvent.keyCode == KeyEvent.DOM_VK_RETURN || aEvent.button == 0) {
+        goDoCommand('placesCmd_open');
+        return;
+      }
     }
 
     // Get constraints based on selected rows
@@ -1023,9 +988,24 @@ PlacesTreeView.prototype.itemRemoved = SnowlTreeViewItemRemoved;
 function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
   this._itemRemoved(aParent, aItem, aOldIndex);
 
-//CollectionsView._log.info("_itemRemoved: ");
   // Restore; note that itemRemoved is called on each item manipulated in a sort.
   CollectionsView._tree.restoreSelection();
+};
+
+/* XXX: Bug 477806 - closing container with selected child selects the container,
+ * does not remember selected child on open. */
+PlacesTreeView.prototype._toggleOpenState = PlacesTreeView.prototype.toggleOpenState;
+PlacesTreeView.prototype.toggleOpenState = SnowlTreeViewToggleOpenState;
+function SnowlTreeViewToggleOpenState(aRow) {
+  this._toggleOpenState(aRow);
+
+  // Restore itemdIds, even those in closed container, on open.
+  let node = this._visibleElements[aRow].node;
+  if (node.containerOpen) {
+    CollectionsView._tree.restoreSelection();
+    CollectionsView._tree.currentIndex = aRow;
+    CollectionsView._tree.treeBoxObject.ensureRowIsVisible(aRow);
+  }
 };
 
 /**
