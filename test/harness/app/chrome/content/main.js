@@ -34,6 +34,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// Provides nsHttpServer, an implementation of an HTTP server in JavaScript.
+Components.utils.import("resource://harness/modules/httpd.js");
+
 let cmdLine = window.arguments[0].
               QueryInterface(Components.interfaces.nsICommandLine);
 

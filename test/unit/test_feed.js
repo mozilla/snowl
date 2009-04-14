@@ -8,7 +8,7 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/feed.js");
 
 function run_test() {
-  let server = new Httpd.nsHttpServer();
+  let server = new nsHttpServer();
   let basePath = do_get_file("test/unit/");
   server.registerDirectory("/", basePath);
   server.start(8080);
