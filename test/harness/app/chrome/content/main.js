@@ -37,18 +37,18 @@
 let cmdLine = window.arguments[0].
               QueryInterface(Components.interfaces.nsICommandLine);
 
-let scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].
-                   getService(Components.interfaces.mozIJSSubScriptLoader);
-
-let ioService = Components.classes["@mozilla.org/network/io-service;1"].
-                getService(Components.interfaces.nsIIOService);
-
 // xpcshell provides this method, which some tests use, so we emulate it.
 // We also use it ourselves to load the files specified on our command line.
 function load(path) {
   // This throws if the file does not exist.
   let file = cmdLine.resolveFile(path);
+
+  let ioService = Components.classes["@mozilla.org/network/io-service;1"].
+                  getService(Components.interfaces.nsIIOService);
   let url = ioService.newFileURI(file);
+
+  let scriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"].
+                     getService(Components.interfaces.mozIJSSubScriptLoader);
   scriptLoader.loadSubScript(url.spec);
 }
 
