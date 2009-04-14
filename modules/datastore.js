@@ -1551,3 +1551,6 @@ InstrumentedStorageStatement.prototype = {
 
 
 SnowlDatastore._dbInit();
+
+// Intialize places
+SnowlPlaces.init();

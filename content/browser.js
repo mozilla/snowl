@@ -94,9 +94,6 @@ let Snowl = {
 
     this._prefs.set("lastVersion", this._version);
 
-    // Intialize places
-    SnowlPlaces.init();
-
     // Init tab listeners
     this._initTabListeners();
 
