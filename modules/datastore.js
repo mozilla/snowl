@@ -1537,7 +1537,7 @@ InstrumentedStorageStatement.prototype = {
     this._statement.initialize(statement);
   },
 
-  get statement() { return this._statement },
+  get statement() { return this._statement.statement },
   reset: function() { return this._statement.reset() },
 
   step: function() {
