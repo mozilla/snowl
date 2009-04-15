@@ -205,6 +205,7 @@ uninstall:
 
 clean:
 	rm -f $(dotin_files) chrome.jar $(package_name)
+	$(MAKE) -C test/unit clean
 
 help:
 	@echo 'Targets:'
