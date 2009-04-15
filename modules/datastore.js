@@ -297,6 +297,11 @@ let SnowlDatastore = {
 
   dbConnection: null,
 
+  // Statements that are created via the createStatement method.  We use this
+  // to finalize statements when finalizeStatements is called (so we can close
+  // the connection).
+  _statements: [],
+
   createStatement: function(aSQLString, aDBConnection) {
     let dbConnection = aDBConnection ? aDBConnection : this.dbConnection;
 
@@ -311,7 +316,19 @@ let SnowlDatastore = {
 
     var wrappedStatement = new InstrumentedStorageStatement(aSQLString);
     wrappedStatement.initialize(statement);
+    this._statements.push(wrappedStatement);
     return wrappedStatement;
+  },
+
+  finalizeStatements: function() {
+    for each (statement in this._statements) {
+      if (statement instanceof InstrumentedStorageStatement)
+        statement = statement._statement;
+      if (statement instanceof Ci.mozIStorageStatementWrapper)
+        statement = statement.statement;
+      if (statement instanceof Ci.mozIStorageStatement)
+        statement.finalize();
+    }
   },
 
   // _dbInit, the methods it calls (_dbCreateTables, _dbMigrate), and methods

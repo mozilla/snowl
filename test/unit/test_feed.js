@@ -6,6 +6,7 @@ Cu.import("resource://snowl/modules/URI.js");
 
 // Snowl-specific modules
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/datastore.js");
 
 let server;
 
@@ -24,6 +25,9 @@ function run_test() {
 
 function finish_test() {
   server.stop();
+  SnowlDatastore.finalizeStatements();
+  let databaseFile = SnowlDatastore.dbConnection.databaseFile;
+  SnowlDatastore.dbConnection.close();
+  databaseFile.remove(false);
   do_test_finished();
-  // FIXME: delete messages.sqlite
 }
