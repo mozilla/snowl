@@ -160,3 +160,5 @@ $(tests:.js=): $(tests)
 clean:
 	rm -rf $(profiledir)
 	rm -f test*.log
+	rm -f $(harnessdir)/app/update.test
+	rm -rf $(harnessdir)/app/updates
