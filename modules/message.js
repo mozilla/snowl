@@ -99,7 +99,7 @@ SnowlMessage.get = function(id) {
 SnowlMessage.prototype = {
   id: null,
   subject: null,
-  author: null,
+  authorName: null,
   // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,
