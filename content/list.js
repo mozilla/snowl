@@ -180,6 +180,7 @@ let SnowlMessageView = {
 
     // Init list with empty collection.
     this._collection = new SnowlCollection();
+    this._collection.clear();
     this._tree.view = this;
   },
 

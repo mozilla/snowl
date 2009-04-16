@@ -237,8 +237,7 @@ this._log.info("got " + groups.length + " groups");
   sortProperties: null,
   sortOrder: 1,
 
-  // No messages loaded initially, invalidate and rebuild on setCollection().
-  _messages: [],
+  _messages: null,
 
   get messages() {
     if (this._messages)
