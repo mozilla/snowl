@@ -74,13 +74,13 @@ let content;
 
 if (message) {
   // Brief headers
-  document.getElementById("briefAuthor").value = message.author;
+  document.getElementById("briefAuthor").value = message.authorName;
   document.getElementById("briefSubject").value = message.subject;
   document.getElementById("briefSubject").setAttribute("href", message.link);
   document.getElementById("briefTimestamp").value = SnowlDateUtils._formatDate(message.timestamp);
 
   // Full headers
-  document.getElementById("author").value = message.author;
+  document.getElementById("author").value = message.authorName;
   document.getElementById("subject").value = message.subject;
   document.documentElement.setAttribute("title", message.subject);
   document.getElementById("timestamp").value = SnowlDateUtils._formatDate(message.timestamp);

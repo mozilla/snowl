@@ -111,7 +111,7 @@ let SnowlMessageView = {
         return this._collection.messages[aRow].source.name;
 
       case "snowlAuthorCol":
-        return this._collection.messages[aRow].author;
+        return this._collection.messages[aRow].authorName;
 
       case "snowlSubjectCol":
         return this._collection.messages[aRow].subject ||

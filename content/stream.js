@@ -311,11 +311,11 @@ let SnowlMessageView = {
     messageBox.appendChild(centerColumn);
 
     // Author or Source
-    if (message.author || message.source) {
+    if (message.authorName || message.source) {
       let desc = this._document.createElementNS(XUL_NS, "description");
       desc.className = "author";
       desc.setAttribute("crop", "end");
-      desc.setAttribute("value", message.author || message.source.name);
+      desc.setAttribute("value", message.authorName || message.source.name);
       centerColumn.appendChild(desc);
     }
 
