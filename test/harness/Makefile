@@ -152,7 +152,7 @@ $(tests:.js=): $(tests)
 	  $(xulrunner) 2> /dev/null 1>&2; \
 	  sleep 5; \
 	fi
-	if [ $(os) = Darwin ]; then \
+	@if [ $(os) = Darwin ]; then \
 	  $(xulrunner_env) $(xulrunner) $(debug_flags) $(head) -f $(abspath $(@).js) $(tail) 2> $(@).log 1>&2; \
 	else \
 	  $(xulrunner_env) $(xulrunner) $(debug_flags) $(head) -f $(@).js $(tail) 2> $(@).log 1>&2; \
