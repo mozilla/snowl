@@ -181,14 +181,10 @@ SnowlMessage.prototype = {
       this._getPartStatement.params.messageID = this.id;
       this._getPartStatement.params.partType = aPartType;
       if (this._getPartStatement.step()) {
-        // FIXME: instead of a text construct, return a JS object that knows
-        // its ID and part type.
-        part = Cc["@mozilla.org/feed-textconstruct;1"].
-               createInstance(Ci.nsIFeedTextConstruct);
-        part.text = this._getPartStatement.row.content;
-        part.type = TEXT_CONSTRUCT_TYPES[this._getPartStatement.row.mediaType];
-        part.base = URI.get(this._getPartStatement.row.baseURI);
-        part.lang = this._getPartStatement.row.languageTag;
+        part = new SnowlMessagePart(this._getPartStatement.row.content,
+                                    this._getPartStatement.row.mediaType,
+                                    URI.get(this._getPartStatement.row.baseURI),
+                                    this._getPartStatement.row.languageTag);
       }
     }
     finally {
@@ -232,3 +228,15 @@ SnowlMessage.prototype = {
   }
 
 };
+
+// Make this constructor return itself instead of an nsIFeedTextConstruct.
+function SnowlMessagePart(content, mediaType, baseURI, languageTag) {
+  let part = Cc["@mozilla.org/feed-textconstruct;1"].
+             createInstance(Ci.nsIFeedTextConstruct);
+  part.text = content;
+  part.type = TEXT_CONSTRUCT_TYPES[mediaType];
+  part.base = baseURI;
+  part.lang = languageTag;
+
+  return part;
+}
