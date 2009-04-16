@@ -9,6 +9,6 @@ pref("browser.dom.window.dump.enabled", true);
 pref("extensions.checkCompatibility", false);
 
 // These are helpful for debugging the harness.
-// They don't need to be enabled during normal use.
-//pref("javascript.options.showInConsole", true);
+// FIXME: set these conditionally when starting with the -debug flag.
+pref("javascript.options.showInConsole", true);
 //pref("extensions.logging.enabled", true);

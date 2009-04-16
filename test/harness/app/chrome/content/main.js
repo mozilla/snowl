@@ -84,4 +84,5 @@ while (cmdLine.findFlag("f", false) != -1) {
   }
 }
 
-goQuitApplication();
+if (cmdLine.findFlag("debug", false) == -1)
+  goQuitApplication();
