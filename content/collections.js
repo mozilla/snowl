@@ -955,15 +955,20 @@ function SnowlTreeViewCanDrop(aRow, aOrientation) {
 
   var ip = this._getInsertionPoint(aRow, aOrientation);
 
-  // Custom handling for View shortcut.  Allow move/drop of View only onto its
-  // parent (reorder); disallow any multiselection dnd if it contains a View node.
-  let isView = false;
+  // Custom handling for Sys collections and View shortcut.  Disallow Sys folder
+  // dnd copy.  Allow move/drop of View only onto its parent (reorder);
+  // disallow any multiselection dnd if it contains a Sys or View node.
+  let isSys = false, isView = false;
   let dropNodes = CollectionsView._tree.getSelectionNodes();
-  for (let i=0; i < dropNodes.length && !isView; i++)
+  for (let i=0; i < dropNodes.length && (!isSys || !isView); i++) {
+    isSys = PlacesUtils.annotations.
+                        itemHasAnnotation(dropNodes[i].itemId,
+                                          SnowlPlaces.SNOWL_COLLECTIONS_ANNO);
     isView = PlacesUtils.annotations.
                          itemHasAnnotation(dropNodes[i].itemId,
                                            SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO);
-  if (isView &&
+  }
+  if ((isSys || isView) &&
       (dropNodes.length > 1 || (ip && ip.itemId != SnowlPlaces.collectionsSystemID)))
     return false;
 
