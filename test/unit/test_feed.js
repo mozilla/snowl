@@ -5,6 +5,7 @@ Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // Snowl-specific modules
+Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/service.js");
 
@@ -36,6 +37,13 @@ function finish_test() {
     do_check_eq(account.lastRefreshed, null);
     do_check_eq(account.importance, null);
     do_check_eq(account.placeID.constructor.name, "Number");
+
+    let collection = new SnowlCollection();
+    // Must invalidate because of bug 488615; FIXME: remove this once that bug
+    // is fixed.
+    collection.invalidate();
+    let messages = collection.messages;
+    do_check_eq(messages.length, 1);
   }
   finally {
     server.stop();
