@@ -39,9 +39,6 @@ function finish_test() {
     do_check_eq(account.placeID.constructor.name, "Number");
 
     let collection = new SnowlCollection();
-    // Must invalidate because of bug 488615; FIXME: remove this once that bug
-    // is fixed.
-    collection.invalidate();
     let messages = collection.messages;
     do_check_eq(messages.length, 1);
     let message = messages[0];
