@@ -24,10 +24,22 @@ function run_test() {
 }
 
 function finish_test() {
-  let accounts = SnowlService.getAccounts();
-  do_check_eq(accounts.length, 1);
-
-  server.stop();
-  deleteDatabase();
-  do_test_finished();
+  try {
+    do_check_eq(SnowlService.accounts.length, 1);
+    let account = SnowlService.accounts[0];
+    do_check_eq(account.id.constructor.name, "Number");
+    do_check_eq(account.constructor.name, "SnowlFeed");
+    do_check_eq(account.name, "Example Feed");
+    do_check_eq(account.machineURI.spec, "http://localhost:8080/feed.xml");
+    do_check_eq(account.humanURI.spec, "http://example.org/");
+    do_check_eq(account.username, null);
+    do_check_eq(account.lastRefreshed, null);
+    do_check_eq(account.importance, null);
+    do_check_eq(account.placeID.constructor.name, "Number");
+  }
+  finally {
+    server.stop();
+    deleteDatabase();
+    do_test_finished();
+  }
 }
