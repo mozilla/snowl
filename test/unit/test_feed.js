@@ -6,6 +6,7 @@ Cu.import("resource://snowl/modules/URI.js");
 
 // Snowl-specific modules
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/service.js");
 
 let server;
 
@@ -23,6 +24,9 @@ function run_test() {
 }
 
 function finish_test() {
+  let accounts = SnowlService.getAccounts();
+  do_check_eq(accounts.length, 1);
+
   server.stop();
   deleteDatabase();
   do_test_finished();
