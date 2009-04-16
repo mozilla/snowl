@@ -53,8 +53,12 @@ function finish_test() {
     do_check_eq(message.authorIcon, null);
     do_check_eq(message.received.constructor.name, "Date");
     do_check_eq(message.content, null);
+
     do_check_true(message.summary instanceof Ci.nsIFeedTextConstruct);
-    // FIXME: test attributes of summary.
+    do_check_eq(message.summary.text, "Some text.");
+    do_check_eq(message.summary.type, "text");
+    do_check_eq(message.summary.base.spec, "http://localhost:8080/feed.xml");
+    do_check_eq(message.summary.lang, null);
   }
   finally {
     server.stop();
