@@ -317,7 +317,6 @@ let SnowlUtils = {
   // dnd handling without running a query resulting in content load.
   gRightMouseButtonDown: false,
   gMouseEvent: false,
-  gTwistyClicked: false,
   onTreeMouseDown: function(aEvent) {
     this.gMouseEvent = true;
     if (aEvent.button == 2)
@@ -343,11 +342,17 @@ let SnowlUtils = {
     if (modKey)
       return;
 
-    // Handle twisty click, must set on mousedown as getCellAt is no longer valid
-    // in onClick for tree rows that move.
+    // Handle twisty click, don't let closed row be selected on multiselect.
+    // Must make sure, on single visible item, that its currentIndex is valid
+    // else closed state selection is wrong.  Lots of hoops with selection....
     if (obj.value == "twisty") {
-      this.gTwistyClicked = true;
-      treeSelection.currentIndex = row.value;
+      if (treeSelection.count > 1)
+        treeSelection.currentIndex = -1;
+      else if (treeSelection.count == 1 && treeSelection.currentIndex == -1) {
+        treeSelection.getRangeAt(0, rangeFirst, rangeLast);
+        treeSelection.currentIndex = rangeFirst.value;
+      }
+
       return;
     }
 
@@ -388,9 +393,8 @@ let SnowlUtils = {
   // All purpose function to make sure the right row is selected.  Restore the
   // original row currently indicated by dotted border without loading its query,
   // unless rows have been deleted/moved/inserted.  This is triggered when the
-  // context menu for the row is hidden/closed (onpopuphidden event) or mouseup
-  // for dnd.
-  RestoreSelection: function(tree, itemIds) {
+  // context menu for the row is hidden/closed (onpopuphidden event).
+  RestoreSelection: function(aEvent, tree) {
     let treeSelection = tree.view.selection;
 //this._log.info("RestoreSelection: curIndex:curSelectedIndex = "+
 //  tree.currentIndex+" : "+tree.currentSelectedIndex);

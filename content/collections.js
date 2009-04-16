@@ -266,20 +266,17 @@ this._log.info("onClick start: curIndex:curSelectedIndex = "+
 this._log.info("onClick start - gMouseEvent:gRtbutton:modKey = "+
   SnowlUtils.gMouseEvent+" : "+SnowlUtils.gRightMouseButtonDown+" : "+modKey);
 this._log.info("onClick: selectionCount = "+this._tree.view.selection.count);
-this._log.info("onClick: currentSelectionCount = "+this._tree.currentSelectionCount);
 this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 */
     let modKey = aEvent.metaKey || aEvent.ctrlKey || aEvent.shiftKey;
     SnowlUtils.gMouseEvent = false;
 
     // Don't run query on twisty click.
-    if (SnowlUtils.gTwistyClicked) {
-      SnowlUtils.gTwistyClicked = false;
+    let row = { }, col = { }, obj = { }, rangeFirst = { }, rangeLast = { };;
+    this._tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, col, obj);
+    if (obj.value == "twisty") {
       return;
     }
-
-    // Update currentSelectionCount
-    this._tree.currentSelectionCount = this._tree.view.selection.count;
 
     // Don't run query on right click, or already selected row (unless deselecting).
     if (SnowlUtils.gRightMouseButtonDown || this._tree.currentIndex == -1 ||
@@ -338,8 +335,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     SnowlUtils.onTreeMouseDown(aEvent);
   },
 
-  onTreeContextPopupHidden: function() {
-    SnowlUtils.RestoreSelection(this._tree, this.itemIds);
+  onTreeContextPopupHidden: function(aEvent) {
+    SnowlUtils.RestoreSelection(aEvent, this._tree);
   },
 
   onSubscribe: function() {
@@ -360,6 +357,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   onSearch: function(aValue) {
     this.Filters["searchterms"] = aValue ? aValue : null;
     gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
+    if (!aValue)
+      this._tree.place = this._tree.place;
   },
 
   onCommandUnreadButton: function(aChecked) {
@@ -997,15 +996,30 @@ function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
 PlacesTreeView.prototype._toggleOpenState = PlacesTreeView.prototype.toggleOpenState;
 PlacesTreeView.prototype.toggleOpenState = SnowlTreeViewToggleOpenState;
 function SnowlTreeViewToggleOpenState(aRow) {
+  let firstvisrow = CollectionsView._tree.treeBoxObject.getFirstVisibleRow();
+
   this._toggleOpenState(aRow);
 
-  // Restore itemdIds, even those in closed container, on open.
-  let node = this._visibleElements[aRow].node;
-  if (node.containerOpen) {
-    CollectionsView._tree.restoreSelection();
-    CollectionsView._tree.currentIndex = aRow;
-    CollectionsView._tree.treeBoxObject.ensureRowIsVisible(aRow);
+  // Restore itemdIds, if there are any selected in a closed container, on open.
+  let container = this._visibleElements[aRow].node;
+  let selItemIds = CollectionsView.itemIds;
+  if (container.containerOpen && container.hasChildren) {
+    for (let i=0; i < container.childCount; i++) {
+      let child = container.getChild(i);
+      if (selItemIds.indexOf(child.itemId) != -1)
+        CollectionsView._tree.view.selection.toggleSelect(child.viewIndex);
+    }
   }
+
+  // Don't autoselect folder on close.
+  if (selItemIds.indexOf(container.itemId) == -1 &&
+      CollectionsView._tree.view.selection.isSelected(container.viewIndex))
+    CollectionsView._tree.view.selection.toggleSelect(container.viewIndex);
+
+  // Ensure twisty row doesn't move in the view, otherwise getCellAt is no
+  // longer valid in onClick, plus it's annoying.  Usually restoreSelection()
+  // needs to make a selected row visible..
+  CollectionsView._tree.treeBoxObject.scrollToRow(firstvisrow);
 };
 
 /**

@@ -15,11 +15,6 @@
       <property name="currentSelectedIndex"
                 onget="return this._currentSelectedIndex;"
                 onset="return this._currentSelectedIndex = val;"/>
-      <!-- Selection count, used to track selected items on container toggles -->
-      <field name="_currentSelectionCount">0</field>
-      <property name="currentSelectionCount"
-                onget="return this._currentSelectionCount;"
-                onset="return this._currentSelectionCount = val;"/>
 
       <method name="restoreSelection">
         <parameter name="items"/>
