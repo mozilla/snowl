@@ -98,8 +98,10 @@ SnowlMessage.get = function(id) {
 
 SnowlMessage.prototype = {
   id: null,
+  externalID: null,
   subject: null,
   authorName: null,
+  authorID: null,
   // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,
@@ -198,6 +200,35 @@ SnowlMessage.prototype = {
 
   get source() {
     return SnowlService.sourcesByID[this.sourceID];
+  },
+
+  get _stmtInsertMessage() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link) \
+       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link)"
+    );
+    this.__defineGetter__("_stmtInsertMessage", function() { return statement });
+    return this._stmtInsertMessage;
+  },
+
+  /**
+   * Persist the message to the messages table.
+   *
+   * FIXME: make this update an existing record.
+   * 
+   * @returns {integer} the ID of the newly-created record
+   */
+  persist: function() {
+    this._stmtInsertMessage.params.sourceID   = this.sourceID;
+    this._stmtInsertMessage.params.externalID = this.externalID;
+    this._stmtInsertMessage.params.subject    = this.subject;
+    this._stmtInsertMessage.params.authorID   = this.authorID;
+    this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+    this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
+    this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
+    this._stmtInsertMessage.execute();
+
+    return this.id = SnowlDatastore.dbConnection.lastInsertRowID;
   }
 
 };

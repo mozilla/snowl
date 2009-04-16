@@ -359,7 +359,13 @@ SnowlFeed.prototype = {
    * @param aReceived     {Date}          when the message was received
    */
   _addMessage: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
-    let messageID;
+    let message = new SnowlMessage;
+    message.sourceID = this.id;
+    message.externalID = aExternalID;
+    message.subject = aEntry.title.text;
+    message.timestamp = aTimestamp;
+    message.received = aReceived;
+    message.link = aEntry.link;
 
     SnowlDatastore.dbConnection.beginTransaction();
     try {
@@ -380,13 +386,13 @@ SnowlFeed.prototype = {
         // automatically creates a person record with the provided name.
         identity = SnowlIdentity.get(this.id, externalID) ||
                    SnowlIdentity.create(this.id, externalID, name);
-        authorID = identity.personID;
+        message.authorID = identity.personID;
+        // message.authorName
+        // message.authorIcon
       }
 
-      // FIXME: handle titles that contain markup or are missing.
-      messageID = this.addSimpleMessage(this.id, aExternalID,
-                                        aEntry.title.text, authorID,
-                                        aTimestamp, aReceived, aEntry.link);
+      message.persist();
+      let messageID = message.id;
 
       // Add parts
       if (aEntry.content) {
@@ -468,9 +474,9 @@ SnowlFeed.prototype = {
       this._log.error("couldn't add " + aExternalID + ": " + ex);
     }
 
-    Observers.notify("snowl:message:added", SnowlMessage.get(messageID));
+    Observers.notify("snowl:message:added", message);
 
-    return messageID;
+    return message.id;
   },
 
   /**
