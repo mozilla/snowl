@@ -57,13 +57,8 @@
 <!ENTITY layoutStacked.label                  "Stacked">
 <!ENTITY layoutStacked.accesskey              "S">
 
-<!ENTITY headerNone.label                     "No Header">
-<!ENTITY headerNone.accesskey                 "N">
-<!ENTITY headerBrief.label                    "Brief Header">
-<!ENTITY headerBrief.accesskey                "B">
-<!ENTITY headerBrief.label                    "Brief Header">
-<!ENTITY headerFull.label                     "Full Header">
-<!ENTITY headerFull.accesskey                 "F">
+<!ENTITY showHeader.label                     "Show Header">
+<!ENTITY showHeader.accesskey                 "H">
 <!ENTITY toolbar.label                        "Sidebar Toolbar">
 <!ENTITY toolbar.accesskey                    "d">
 <!ENTITY viewtoolbar.label                    "List Toolbar">
@@ -77,5 +72,3 @@
 <!ENTITY toggleStream.tooltip                 "Toggle Stream View">
 <!ENTITY toggleRiver.label                    "Snowl Toggle River View">
 <!ENTITY toggleRiver.tooltip                  "Toggle River View">
-<!ENTITY toggleHeader.label                   "Snowl Toggle Header">
-<!ENTITY toggleHeader.tooltip                 "Toggle message header to none, brief, or full">

@@ -361,7 +361,7 @@ let SnowlMessageView = {
     let message = this._collection.messages[row];
 
     //window.loadURI(message.link, null, null, false);
-    let url = "chrome://snowl/content/message.xul?id=" + message.id;
+    let url = "chrome://snowl/content/message.xhtml?id=" + message.id;
     window.loadURI(url, null, null, false);
 
     // On conversion of list tree to places, this will be stored in
@@ -382,7 +382,7 @@ let SnowlMessageView = {
       return;
 
     // which is either the charCode or the keyCode, depending on which is set.
-    this._log.info("onKeyPress: which = " + aEvent.which);
+//    this._log.info("onKeyPress: which = " + aEvent.which);
 
     if (aEvent.charCode == "r".charCodeAt(0))
       this._toggleRead(false);

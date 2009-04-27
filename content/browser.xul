@@ -39,7 +39,12 @@
 
 <?xml-stylesheet href="chrome://snowl/content/browser.css" type="text/css"?>
 
-<!DOCTYPE overlay SYSTEM "chrome://snowl/locale/browser.dtd">
+<!DOCTYPE overlay [
+  <!ENTITY %  globalDTD SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % browserDTD SYSTEM "chrome://snowl/locale/browser.dtd">
+  %browserDTD;
+]>
 
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
          id="snowlBrowserOverlay">
@@ -76,6 +81,13 @@
                  type="checkbox"
                  persist="checked"
                  oncommand="Snowl.onRiverView()"/>
+    <broadcaster id="viewSnowlHeader"
+                 autoCheck="false"
+                 type="checkbox"
+                 checked="true"
+                 persist="checked headerIndex"
+                 headerIndex="1"
+                 oncommand="Snowl.onSetHeader(event)"/>
   </broadcasterset>
 
   <menupopup id="menu_ToolsPopup">
@@ -138,27 +150,9 @@
                       name="snowlLayoutMenuitemGroup"
                       oncommand="SnowlMessageView.switchLayout(SnowlMessageView.kStackedLayout)"/>
             <menuseparator/>
-            <menuitem id="snowlHeaderMenuitemNone"
-                      label="&headerNone.label;"
-                      type="radio"
-                      accesskey="&headerNone.accesskey;"
-                      name="snowlHeaderMenuitemGroup"
-                      headerType="Snowl.kNoHeader"
-                      oncommand="Snowl._toggleHeader(event)"/>
-            <menuitem id="snowlHeaderMenuitemBrief"
-                      label="&headerBrief.label;"
-                      type="radio"
-                      accesskey="&headerBrief.accesskey;"
-                      name="snowlHeaderMenuitemGroup"
-                      headerType="Snowl.kBriefHeader"
-                      oncommand="Snowl._toggleHeader(event)"/>
-            <menuitem id="snowlHeaderMenuitemFull"
-                      label="&headerFull.label;"
-                      type="radio"
-                      accesskey="&headerFull.accesskey;"
-                      name="snowlHeaderMenuitemGroup"
-                      headerType="Snowl.kFullHeader"
-                      oncommand="Snowl._toggleHeader(event)"/>
+            <menuitem observes="viewSnowlHeader"
+                      label="&showHeader.label;"
+                      accesskey="&showHeader.accesskey;"/>
             <menuseparator/>
             <menuitem id="snowlToolbarMenuitem"
                       label="&toolbar.label;"
@@ -194,6 +188,11 @@
     </menu>
   </menupopup>
 
+  <popupset id="mainPopupSet">
+    <tooltip id="snowlXulInXhtmlTooltip"
+             style="direction: &locale.dir;"/>
+  </popupset>
+
   <toolbarpalette id="BrowserToolbarPalette">
     <toolbarbutton id="snowlToolbarButton"
                    type="menu"
@@ -225,16 +224,7 @@
                    type="checkbox"
                    oncommand="Snowl.onRiverView()"
                    tooltiptext="&toggleRiver.tooltip;"/>
-
-    <toolbarbutton id="snowlToggleHeaderButton"
-                   class="toolbarbutton-1"
-                   oncommand="Snowl._toggleHeader('Toggle')"
-                   onmouseover="Snowl.onSnowlToggleHeaderButtonMouseover(event)"
-                   label="&toggleHeader.label;"
-                   snowlHeader="full"
-                   persist="disabled"
-                   tooltiptext="&toggleHeader.tooltip;"/>
-  </toolbarpalette>>
+  </toolbarpalette>
 
   <statusbar id="status-bar">
     <statusbarpanel id="snowlStatusbarButton"

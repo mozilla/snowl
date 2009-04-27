@@ -2,3 +2,8 @@
 <!ENTITY subject.label                "Subject:">
 <!ENTITY timestamp.label              "Date:">
 <!ENTITY link.label                   "Link:">
+
+<!ENTITY pinButton.label              "Pin Header">
+<!ENTITY pinButton.tooltip            "Toggle pin to set and unset permanent header">
+<!ENTITY toggleHeader.label           "Toggle Header">
+<!ENTITY toggleHeader.tooltip         "Toggle message header to brief, full, or custom">

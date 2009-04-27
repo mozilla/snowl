@@ -35,47 +35,101 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#snowlMenu,
-#snowlToolbarButton,
-#snowlStatusbarButton,
-tab[snowl] > image {
-  list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
+#body {
+  margin: 0px;
 }
 
-/******************************************************************************/
-/* Toolbar buttons */
-
-#snowlToolbarButton {
-/* temporary til bug 355143 */
-  -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu-vertical");
+#contentBody {
+  margin: 8px;
 }
 
-#snowlToggleListButton {
-  list-style-image: url("chrome://snowl/content/icons/layout.png");
+table#headerDeck {
+  border-spacing: 3px 1px;
 }
 
-#snowlToggleStreamButton {
-  list-style-image: url("chrome://snowl/content/icons/application_tile_horizontal.png");
+#headerDeck > tr > td {
+  padding: 0px;
 }
 
-#snowlToggleRiverButton {
-  list-style-image: url("chrome://snowl/content/icons/table_multiple.png");
+#noHeader {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 20px;
 }
 
-/* Temporarily disable the river tab's background color, as it is being
- * applied inconsistently across OSes and active/inactive tabs.  In particular,
- * on Mac OS X it applies only to a Snowl tab that is inactive, and it's
- * so bright that it stands out, which makes it look like the active tab
- * rather than an inactive one.  On Ubuntu Linux it doesn't appear at all.
- * This probably needs to be OS-specific to cope with varying -moz-appearance
- * overrides and fit into overall OS-specific browser styling. */
-/*tab[snowl] {*/
-/*  background: white;*/
-/*}*/
+#messageHeader {
+  background-color: -moz-dialog;
+}
 
-/******************************************************************************/
-/* Snowl search engine */
-/* disable until results page finalized
-#searchbar {
-  -moz-binding: url("chrome://snowl/content/snowlSearch.xml#search");
-}*/
+#headerDeck {
+  font: 9pt sans-serif;
+  padding: 1px;
+  overflow: auto;
+  width: 100%
+}
+
+#noHeader[collapsed="true"],
+#headerDeck[collapsed="true"],
+#headerDeck:not([header="brief"]) .briefHeader,
+#headerDeck:not([header="full"]) > tr.fullHeaderRow {
+  display: none;
+}
+
+.headerButtons {
+  white-space: nowrap;
+  width: 1%;
+}
+
+.headerLabel {
+  font-weight: bold;
+  text-align: right;
+  width: 1%;
+}
+
+.headerData {
+  font-weight: normal;
+  text-align: left;
+  white-space: nowrap;
+}
+
+#briefHeaderRow .headerData {
+  min-width: 4em;
+  max-width: 14em;
+  overflow: hidden;
+}
+
+#briefHeaderRow .headerDataLast {
+  width: 1%;
+}
+
+#briefHeaderRow > .flexer {
+  width: 2%;
+}
+
+#briefSubject {
+  margin-left: 1px;
+}
+
+.fullHeaderRowFirst > td > p {
+  margin-top: 4px;
+  margin-bottom: 0px;
+}
+
+/* Icon courtesy of http://sozai.7gates.net/en/docs/pushpin_icon01/ */
+#pinButton {
+  list-style-image: url("chrome://snowl/content/icons/pushpin.gif");
+}
+
+#headerDeck[header="brief"] > tr > td > #headerButton {
+  list-style-image: url("chrome://snowl/content/icons/application_split.png");
+}
+
+#headerDeck[header="full"] > tr > td > #headerButton {
+  list-style-image: url("chrome://snowl/content/icons/application_tile_vertical.png");
+}
+
+#headerDeck[header="custom"] > tr > td > #headerButton {
+  list-style-image: url("chrome://snowl/content/icons/application_view_list.png");
+}

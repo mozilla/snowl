@@ -126,7 +126,8 @@ let Snowl = {
     // to closed because the popup would already have been moved out from under
     // the toolbarbutton).
     if (event.target.id == "snowlMenuPopup")
-      window.setTimeout(function() document.getElementById("snowlMenu").appendChild(event.target), 0);
+      window.setTimeout(function() document.getElementById("snowlMenu").
+                                            appendChild(event.target), 0);
   },
 
   layoutName: ["classic", "vertical", "widemessage", "widethread", "stacked"],
@@ -148,28 +149,11 @@ let Snowl = {
       }
     }
 
-    // Header checked state
-    let menuitems = document.getElementsByAttribute("name", "snowlHeaderMenuitemGroup");
-    let selectedIndex = this._prefs.get("message.headerView");
-    if (menuitems) {
-      for (var i = 0; i < menuitems.length; i++) {
-        menuitems[i].setAttribute("disabled", !this._listMessageHeader());
-        if (i == selectedIndex)
-          menuitems[i].setAttribute("checked", true);
-      }
-    }
-
     // Toolbars
     document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
         (!lchecked && !schecked) ? true : false);
     document.getElementById("snowlViewToolbarMenuitem").setAttribute("disabled",
         (!lchecked) ? true : false)
-  },
-
-  // Correct state of button based on message in current tab
-  // XXX better to add url change listener?
-  onSnowlToggleHeaderButtonMouseover: function(event) {
-    event.target.setAttribute("disabled", !this._listMessageHeader());
   },
 
 
@@ -207,10 +191,10 @@ let Snowl = {
   },
 
   onTabSelect: function() {
-    // Make sure desired header view showing..
-    this._toggleHeader("TabSelect");
+    // Make sure desired header view showing.
+    this.onSetHeader();
 
-    // Set checkstate of River broadcaster
+    // Set checkstate of River broadcaster.
     if (gBrowser.selectedTab.hasAttribute("snowl"))
       this._riverBroadcaster.setAttribute("checked", true);
     else
@@ -263,7 +247,7 @@ let Snowl = {
   _initTabListeners: function() {
     // TabSelect - make sure header state correct
     gBrowser.tabContainer.addEventListener("TabSelect",
-        function() { Snowl.onTabSelect("TabSelect"); }, false);
+        function() { Snowl.onTabSelect(); }, false);
 
     gBrowser.tabContainer.addEventListener("SSTabRestoring",
         function(event) { Snowl.onSessionRestored(event); }, false);
@@ -272,69 +256,22 @@ let Snowl = {
   //**************************************************************************//
   // Buttons, menuitems, commands..
 
-  // Header toggle
-  kNoHeader: 0,
-  kBriefHeader: 1,
-  kFullHeader: 2,
-
-  _toggleHeader: function(val) {
-    let contentWindowDoc = gBrowser.selectedBrowser.contentDocument;
-    let selectedIndex = null;
-    let headerDeck = this._listMessageHeader();
-    let button = document.getElementById("snowlToggleHeaderButton");
-    if (button)
-      button.setAttribute("disabled", !headerDeck ? true : false);
-
-    // Not a snowl message in the tab..
-    if (!headerDeck)
-      return;
-
-    let briefHeader = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
-        .getElementById("briefHeader");
-    let fullHeader = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
-        .getElementById("fullHeader");
-    let menuitems = document.getElementsByAttribute("name", "snowlHeaderMenuitemGroup");
-
-    if (val == "TabSelect")
-      // Make sure tab switch reflects header state
-      selectedIndex = this._prefs.get("message.headerView");
-    else if (val == "Toggle") {
-      // Toggled to next in 3 way
-      selectedIndex = parseInt(headerDeck.getAttribute("selectedIndex"));
-      selectedIndex = ++selectedIndex > 2 ? 0 : selectedIndex++;
-      this._prefs.set("message.headerView", selectedIndex);
-    }
-    else if (val == this.kNoHeader) {
-      // Passed no header, temporary state, no pref/state changed
-      headerDeck.setAttribute("selectedIndex", this.kNoHeader);
-      briefHeader.setAttribute("collapsed", true);
-      fullHeader.setAttribute("collapsed", true);
-      return;
-    }
-    else {
-      // Passed an event from menuitem choice
-      selectedIndex = eval(val.target.getAttribute("headerType"));
-      val.target.setAttribute("checked", true);
-      this._prefs.set("message.headerView", selectedIndex);
+  onSetHeader: function(aEvent) {
+    if (aEvent) {
+      let checked = aEvent.target.getAttribute("checked") == "true";
+      document.getElementById("viewSnowlHeader").setAttribute("checked", checked);
     }
 
-    headerDeck.setAttribute("selectedIndex", selectedIndex);
-    briefHeader.setAttribute("collapsed", selectedIndex == 1 ? false : true);
-    fullHeader.setAttribute("collapsed", selectedIndex == 2 ? false : true);
+    let contentDoc = gBrowser.selectedBrowser.contentDocument;
+    let messageHeader = contentDoc.getElementById("messageHeader");
 
-    if (button)
-      button.setAttribute("snowlHeader", selectedIndex == 0 ?
-          "none" : (selectedIndex == 1 ? "brief" : "full"));
-    if (menuitems) {
-      menuitems[selectedIndex].setAttribute("checked", true);
+    // If a snowl message in the tab, send an event to the pin button.
+    if (messageHeader) {
+      let event = document.createEvent("Events");
+      event.initEvent("broadcast", false, true);
+      let pin = messageHeader.contentDocument.getElementById("pinButton");
+      pin.dispatchEvent(event);
     }
-  },
-
-  _listMessageHeader: function() {
-    let contentWindowDoc = gBrowser.selectedBrowser.contentDocument;
-    let headerDeck = new XPCNativeWrapper(contentWindowDoc, "getElementById()")
-        .getElementById("headerDeck");
-    return headerDeck;
   },
 
   // Need to init onLoad due to xul structure, toolbar exists in list and stream
