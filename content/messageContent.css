@@ -53,6 +53,7 @@ table#headerDeck {
 
 #noHeader {
   position: absolute;
+  background: no-repeat transparent url("chrome://snowl/content/icons/pagecurl.png");
   left: 0px;
   top: 0px;
   width: 100%;
