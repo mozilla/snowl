@@ -99,6 +99,12 @@
               selection="Snowl/User/ViewList"
               forcehideselection="query"
               oncommand="CollectionsView.removeView();"/>
+    <menuitem id="snowlCollectionMarkRead"
+              insertbefore="placesContext_show:info"
+              label="&markRead.label;"
+              accesskey="&markRead.accesskey;"
+              selection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"
+              oncommand="CollectionsView.markCollectionRead();"/>
     <menuitem id="snowlCollectionRefreshMenuitem"
               insertbefore="placesContext_show:info"
               label="&refresh.label;"

@@ -1,6 +1,8 @@
 <!ENTITY nameCol.label                "Name">
 
 <!-- Collections contextmenu -->
+<!ENTITY markRead.label               "Mark as Read">
+<!ENTITY markRead.accesskey           "d">
 <!ENTITY refresh.label                "Refresh Source">
 <!ENTITY refresh.accesskey            "R">
 <!ENTITY refreshAll.label             "Refresh All Sources">

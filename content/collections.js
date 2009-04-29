@@ -466,6 +466,50 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     SnowlService.refreshAllSources(selectedSources);
   },
 
+  markCollectionRead: function() {
+    // Mark all selected source/author collection messages as read.  Other than
+    // system collections, descendants of a folder level selection are not
+    // included and must be multiselected.
+    let sources = [], authors = [], query, all = false;
+
+    let selectedNodes = this._tree.getSelectionNodes();
+    for (let i=0; i < selectedNodes.length && !all; i++) {
+      // Create places query object from tree item uri
+      query = new SnowlQuery(selectedNodes[i].uri);
+      if (query.queryFolder == SnowlPlaces.collectionsAllID ||
+          query.queryFolder == SnowlPlaces.collectionsSourcesID ||
+          query.queryFolder == SnowlPlaces.collectionsAuthorsID) {
+        all = true;
+        break;
+      }
+      if (query.queryTypeSource && sources.indexOf(query.queryID, 0) < 0)
+        sources.push(query.queryID);
+      if (query.queryTypeAuthor && authors.indexOf(query.queryID, 0) < 0)
+        authors.push(query.queryID);
+    }
+
+    //XXX: need to implement collection level flag - hasUnread.
+    query = "";
+    if (!all) {
+      if (sources.length > 0)
+        query += "sourceID = " + sources.join(" OR sourceID = ");
+      if (authors.length > 0) {
+        if (sources.length > 0)
+          query += " OR ";
+        query += "authorID = " + authors.join(" OR authorID = ");
+      }
+
+      query = query ? "WHERE ( " + query + " AND read = 0 )" : null;
+    }
+
+
+    if (query != null) {
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+          "UPDATE messages SET read = 1 " + query);
+      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+    }
+  },
+
   removeSource: function() {
 //this._log.info("removeSource: START curIndex:curSelectedIndex = "+
 //  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
