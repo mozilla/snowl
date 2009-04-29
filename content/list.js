@@ -89,7 +89,7 @@ let SnowlMessageView = {
   // Maps XUL tree column IDs to collection properties.
   _columnProperties: {
     "snowlSourceCol": "source",
-    "snowlAuthorCol": "author",
+    "snowlAuthorCol": "authorName",
     "snowlSubjectCol": "subject",
     "snowlTimestampCol": "timestamp"
   },
