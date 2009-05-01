@@ -391,26 +391,24 @@ SnowlFeed.prototype = {
         // message.authorIcon
       }
 
-      message.persist();
-      let messageID = message.id;
-
       // Add parts
       if (aEntry.content) {
-        this.addPart(messageID,
-                     aEntry.content.text,
-                     INTERNET_MEDIA_TYPES[aEntry.content.type],
-                     PART_TYPE_CONTENT,
-                     aEntry.content.base,
-                     aEntry.content.lang);
+        message.content = new SnowlMessagePart({ partType:    PART_TYPE_CONTENT,
+                                                 content:     aEntry.content.text,
+                                                 mediaType:   INTERNET_MEDIA_TYPES[aEntry.content.type],
+                                                 baseURI:     aEntry.content.base,
+                                                 languageTag: aEntry.content.lang });
       }
       if (aEntry.summary) {
-        this.addPart(messageID,
-                     aEntry.summary.text,
-                     INTERNET_MEDIA_TYPES[aEntry.summary.type],
-                     PART_TYPE_SUMMARY,
-                     aEntry.summary.base,
-                     aEntry.summary.lang);
+        message.summary = new SnowlMessagePart({ partType:    PART_TYPE_SUMMARY,
+                                                 content:     aEntry.summary.text,
+                                                 mediaType:   INTERNET_MEDIA_TYPES[aEntry.summary.type],
+                                                 baseURI:     aEntry.summary.base,
+                                                 languageTag: aEntry.summary.lang });
       }
+
+      message.persist();
+      let messageID = message.id;
 
       // Add metadata.
       let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).

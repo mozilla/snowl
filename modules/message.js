@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["SnowlMessage"];
+let EXPORTED_SYMBOLS = ["SnowlMessage", "SnowlMessagePart"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -181,10 +181,11 @@ SnowlMessage.prototype = {
       this._getPartStatement.params.messageID = this.id;
       this._getPartStatement.params.partType = aPartType;
       if (this._getPartStatement.step()) {
-        part = new SnowlMessagePart(this._getPartStatement.row.content,
-                                    this._getPartStatement.row.mediaType,
-                                    URI.get(this._getPartStatement.row.baseURI),
-                                    this._getPartStatement.row.languageTag);
+        part = new SnowlMessagePart({ partType:    aPartType,
+                                      content:     this._getPartStatement.row.content,
+                                      mediaType:   this._getPartStatement.row.mediaType,
+                                      baseURI:     URI.get(this._getPartStatement.row.baseURI),
+                                      languageTag: this._getPartStatement.row.languageTag });
       }
     }
     finally {
@@ -224,19 +225,97 @@ SnowlMessage.prototype = {
     this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
     this._stmtInsertMessage.execute();
 
-    return this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+    if (this.content)
+      this.content.persist(this);
+    if (this.summary)
+      this.summary.persist(this);
+
+    return this.id;
   }
 
 };
 
-// Make this constructor return itself instead of an nsIFeedTextConstruct.
-function SnowlMessagePart(content, mediaType, baseURI, languageTag) {
-  let part = Cc["@mozilla.org/feed-textconstruct;1"].
-             createInstance(Ci.nsIFeedTextConstruct);
-  part.text = content;
-  part.type = TEXT_CONSTRUCT_TYPES[mediaType];
-  part.base = baseURI;
-  part.lang = languageTag;
-
-  return part;
+function SnowlMessagePart(properties) {
+  [this[name] = properties[name] for (name in properties)];
 }
+
+SnowlMessagePart.prototype = {
+  id:           null,
+  partType:     null,
+  content:      null,
+  mediaType:    null,
+  baseURI:      null,
+  languageTag:  null,
+
+  get textConstruct() {
+    let textConstruct = Cc["@mozilla.org/feed-textconstruct;1"].
+                        createInstance(Ci.nsIFeedTextConstruct);
+    textConstruct.text = this.content;
+    textConstruct.type = TEXT_CONSTRUCT_TYPES[this.mediaType];
+    textConstruct.base = this.baseURI;
+    textConstruct.lang = this.languageTag;
+    this.__defineGetter__("textConstruct", function() textConstruct);
+    return this.textConstruct;
+  },
+
+  // Implement nsIFeedTextConstruct properties for backwards-compatibility
+  // until we update all callers to use the new API for this object.
+  get text() this.textConstruct.text,
+  get type() this.textConstruct.type,
+  get base() this.textConstruct.base,
+  get lang() this.textConstruct.lang,
+
+  plainText: function() this.textConstruct.plainText(),
+  createDocumentFragment: function(element) this.textConstruct.createDocumentFragment(element),
+
+  get _stmtInsertPart() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO parts( messageID,  content,  mediaType,  partType,  baseURI,  languageTag) " +
+      "VALUES           (:messageID, :content, :mediaType, :partType, :baseURI, :languageTag)"
+    );
+    this.__defineGetter__("_stmtInsertPart", function() statement);
+    return this._stmtInsertPart;
+  },
+
+  get _stmtInsertPartText() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO partsText( docid,  content) " +
+      "VALUES               (:docid, :content)"
+    );
+    this.__defineGetter__("_stmtInsertPartText", function() statement);
+    return this._stmtInsertPartText;
+  },
+
+  persist: function(message) {
+    this._stmtInsertPart.params.messageID     = message.id;
+    this._stmtInsertPart.params.partType      = this.partType;
+    this._stmtInsertPart.params.content       = this.content;
+    this._stmtInsertPart.params.mediaType     = this.mediaType;
+    this._stmtInsertPart.params.baseURI       = (this.baseURI ? this.baseURI.spec : null);
+    this._stmtInsertPart.params.languageTag   = this.languageTag;
+    this._stmtInsertPart.execute();
+
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+    // Insert a plaintext version of the content into the partsText fulltext
+    // table, converting it to plaintext first if necessary (and possible).
+    switch (this.mediaType) {
+      case "text/html":
+      case "application/xhtml+xml":
+      case "text/plain":
+        // Give the fulltext record the same doc ID as the row ID of the parts
+        // record so we can join them together to get the part (and thence the
+        // message) when doing a fulltext search.
+        this._stmtInsertPartText.params.docid = this.id;
+        this._stmtInsertPartText.params.content = this.plainText();
+        this._stmtInsertPartText.execute();
+        break;
+
+      default:
+        // It isn't a type we understand, so don't do anything with it.
+        // XXX If it's text/*, shouldn't we fulltext index it anyway?
+    }
+  }
+};

@@ -7,6 +7,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // Snowl-specific modules
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/feed.js");
+Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 
 let server;
@@ -54,7 +55,7 @@ function finish_test() {
     do_check_eq(message.received.constructor.name, "Date");
     do_check_eq(message.content, null);
 
-    do_check_true(message.summary instanceof Ci.nsIFeedTextConstruct);
+    do_check_true(message.summary instanceof SnowlMessagePart);
     do_check_eq(message.summary.text, "Some text.");
     do_check_eq(message.summary.type, "text");
     do_check_eq(message.summary.base.spec, "http://localhost:8080/feed.xml");
