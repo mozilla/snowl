@@ -602,18 +602,6 @@ SnowlTwitter.prototype = {
       // Add the message's content.
       this.addPart(messageID, message.text, "text/plain");
 
-      // Add the message's metadata.
-      for (let [name, value] in Iterator(message)) {
-        // Ignore properties we have already handled specially.
-        // XXX Should we add them anyway?  It's redundant info but would let
-        // others access them who may know about the properties but don't know
-        // about how we handle them specially.
-        if (["user", "created_at", "text"].indexOf(name) != -1)
-          continue;
-        // FIXME: populate a "recipient" field with in_reply_to_user_id.
-        this._addMetadatum(messageID, name, value);
-      }
-
       SnowlDatastore.dbConnection.commitTransaction();
     }
     catch(ex) {

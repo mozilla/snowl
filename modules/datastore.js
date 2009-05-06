@@ -73,7 +73,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 12,
+  _dbVersion: 13,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -179,28 +179,6 @@ let SnowlDatastore = {
         ]
       },
 
-      attributes: {
-        type: TABLE_TYPE_NORMAL,
-        columns: [
-          "id INTEGER PRIMARY KEY",
-          "namespace TEXT",
-          "name TEXT NOT NULL"
-        ]
-      },
-
-      // FIXME: call this messageMetadata, since we have one for people, too
-      // (and might get one for sources in the future).
-      // XXX Should we call this "properties"?
-      metadata: {
-        type: TABLE_TYPE_FULLTEXT,
-        columns: [
-          "messageID INTEGER NOT NULL REFERENCES messages(id)",
-          "attributeID INTEGER NOT NULL REFERENCES attributes(id)",
-          "contentType TEXT NOT NULL",
-          "value BLOB"
-        ]
-      },
-
       people: {
         type: TABLE_TYPE_NORMAL,
         columns: [
@@ -212,15 +190,6 @@ let SnowlDatastore = {
           "homeURL TEXT",
           "iconURL TEXT",
           "placeID INTEGER"
-        ]
-      },
-
-      personMetadata: {
-        type: TABLE_TYPE_NORMAL,
-        columns: [
-          "personID INTEGER NOT NULL REFERENCES people(id)",
-          "attributeID INTEGER NOT NULL REFERENCES attributes(id)",
-          "value BLOB"
         ]
       },
 
@@ -501,11 +470,11 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * rename it every time we increase the schema version.
    */
-  _dbMigrate0To12: function(dbConnection) {
+  _dbMigrate0To13: function(dbConnection) {
     this._dbCreate(dbConnection);
   },
 
-  _dbMigrate4To12: function(dbConnection) {
+  _dbMigrate4To13: function(dbConnection) {
     this._dbMigrate4To5(dbConnection);
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
@@ -514,9 +483,10 @@ let SnowlDatastore = {
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
-  _dbMigrate5To12: function(dbConnection) {
+  _dbMigrate5To13: function(dbConnection) {
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
@@ -524,41 +494,52 @@ let SnowlDatastore = {
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
-  _dbMigrate6To12: function(dbConnection) {
+  _dbMigrate6To13: function(dbConnection) {
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
-  _dbMigrate7To12: function(dbConnection) {
+  _dbMigrate7To13: function(dbConnection) {
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
-  _dbMigrate8To12: function(dbConnection) {
+  _dbMigrate8To13: function(dbConnection) {
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
-  _dbMigrate9To12: function(dbConnection) {
+  _dbMigrate9To13: function(dbConnection) {
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
-  _dbMigrate10To12: function(dbConnection) {
+  _dbMigrate10To13: function(dbConnection) {
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
+  },
+
+  _dbMigrate11To13: function(dbConnection) {
+    this._dbMigrate11To12(dbConnection);
+    this._dbMigrate12To13(dbConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -720,6 +701,15 @@ let SnowlDatastore = {
     dbConnection.executeSimpleSQL("ALTER TABLE people ADD COLUMN placeID INTEGER");
   },
 
+  /**
+   * Migrate the database schema from version 12 to 13.
+   */
+  _dbMigrate12To13: function(dbConnection) {
+    dbConnection.executeSimpleSQL("DROP TABLE metadata");
+    dbConnection.executeSimpleSQL("DROP TABLE personMetadata");
+    dbConnection.executeSimpleSQL("DROP TABLE attributes");
+  },
+
   get _selectHasSourceStatement() {
     let statement = this.createStatement(
       "SELECT name FROM sources WHERE machineURI = :machineURI"
@@ -825,85 +815,6 @@ let SnowlDatastore = {
     this._insertMessageStatement.params.link = aLink;
     this._insertMessageStatement.execute();
 
-    return this.dbConnection.lastInsertRowID;
-  },
-
-  get _selectAttributeIDStatement() {
-    let statement = this.createStatement(
-      "SELECT id FROM attributes WHERE name = :name"
-    );
-    this.__defineGetter__("_selectAttributeIDStatement", function() { return statement });
-    return this._selectAttributeIDStatement;
-  },
-
-  selectAttributeID: function(aName) {
-    let id;
-
-    try {
-      this._selectAttributeIDStatement.params.name = aName;
-      if (this._selectAttributeIDStatement.step())
-        id = this._selectAttributeIDStatement.row["id"];
-    }
-    finally {
-      this._selectAttributeIDStatement.reset();
-    }
-
-    return id;
-  },
-
-  // FIXME: insert the namespace, too, if available.
-  get _insertAttributeStatement() {
-    let statement = this.createStatement(
-      "INSERT INTO attributes (name) VALUES (:name)"
-    );
-    this.__defineGetter__("_insertAttributeStatement", function() { return statement });
-    return this._insertAttributeStatement;
-  },
-
-  /**
-   * Insert a record into the attributes table.
-   * 
-   * @param aName         {string} the name of the attribute
-   *
-   * @returns {integer} the record ID of the newly-created record
-   */
-  insertAttribute: function(aName) {
-    this._insertAttributeStatement.params.name = aName;
-    this._insertAttributeStatement.execute();
-    return this.dbConnection.lastInsertRowID;
-  },
-
-  get _insertMetadatumStatement() {
-    let statement = this.createStatement(
-      "INSERT INTO metadata (messageID, attributeID, value) \
-       VALUES (:messageID, :attributeID, :value)"
-    );
-    this.__defineGetter__("_insertMetadatumStatement", function() { return statement });
-    return this._insertMetadatumStatement;
-  },
-
-  /**
-   * Insert a record into the metadata table.
-   * 
-   * @param aMessageID    {integer} the record ID of the message
-   * @param aAttributeID  {integer} the record ID of the attribute
-   * @param aValue        {string}  the value of the metadatum
-   *
-   * @returns {integer} the record ID of the newly-created record
-   */
-  insertMetadatum: function(aMessageID, aAttributeID, aValue) {
-    this._insertMetadatumStatement.params.messageID = aMessageID;
-    this._insertMetadatumStatement.params.attributeID = aAttributeID;
-
-    try {
-        this._insertMetadatumStatement.params.value = aValue;
-    }
-    catch(ex) {
-      //dump(ex + " with attribute ID: " + aAttributeID + " and value: " + aValue + "\n");
-      throw ex;
-    }
-
-    this._insertMetadatumStatement.execute();
     return this.dbConnection.lastInsertRowID;
   },
 

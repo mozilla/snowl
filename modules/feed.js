@@ -408,62 +408,6 @@ SnowlFeed.prototype = {
       }
 
       message.persist();
-      let messageID = message.id;
-
-      // Add metadata.
-      let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
-                   fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
-      while (fields.hasMoreElements()) {
-        let field = fields.getNext().QueryInterface(Ci.nsIProperty);
-
-        // FIXME: create people records for these.
-        if (field.name == "authors") {
-          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-          while (values.hasMoreElements()) {
-            let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
-            // FIXME: store people records in a separate table with individual
-            // columns for each person attribute (i.e. name, email, url)?
-            this._addMetadatum(messageID,
-                               "atom:author",
-                               value.name && value.email ? value.name + "<" + value.email + ">"
-                                                         : value.name ? value.name : value.email);
-          }
-        }
-
-        else if (field.name == "links") {
-          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-          while (values.hasMoreElements()) {
-            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            // FIXME: store link records in a separate table with individual
-            // colums for each link attribute (i.e. href, type, rel, title)?
-            this._addMetadatum(messageID,
-                               "atom:link_" + value.get("rel"),
-                               value.get("href"));
-          }
-        }
-
-        // For some reason, the values of certain simple fields (like RSS2 guid)
-        // are property bags containing the value instead of the value itself.
-        // For those, we need to unwrap the extra layer. This strange behavior
-        // has been filed as bug 427907.
-        else if (typeof field.value == "object") {
-          if (field.value instanceof Ci.nsIPropertyBag2) {
-            let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
-            this._addMetadatum(messageID, field.name, value);
-          }
-          else if (field.value instanceof Ci.nsIArray) {
-            let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-            while (values.hasMoreElements()) {
-              // FIXME: values might not always have this interface.
-              let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-              this._addMetadatum(messageID, field.name, value.get(field.name));
-            }
-          }
-        }
-
-        else
-          this._addMetadatum(messageID, field.name, field.value);
-      }
 
       SnowlDatastore.dbConnection.commitTransaction();
     }

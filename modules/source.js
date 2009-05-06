@@ -385,13 +385,6 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
     return messageID;
   },
 
-  _addMetadatum: function(aMessageID, aAttributeName, aValue) {
-    // FIXME: speed this up by caching the list of known attributes.
-    let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
-                      || SnowlDatastore.insertAttribute(aAttributeName);
-    SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
-  },
-
   get _stmtInsertPart() {
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO parts( messageID,  content,  mediaType,  partType,  baseURI,  languageTag) " +
