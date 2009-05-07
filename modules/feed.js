@@ -49,6 +49,7 @@ Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Mixin.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Request.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -401,31 +402,20 @@ SnowlFeed.prototype = {
 
   subscribe: function(callback) {
     Observers.notify("snowl:subscribe:connect:start", this);
-
     this._subscribeCallback = callback;
-
     this._log.info("subscribing to " + this.machineURI.spec);
 
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    request = request.QueryInterface(Ci.nsIDOMEventTarget);
-
-    let t = this;
-    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
-
-    request = request.QueryInterface(Ci.nsIXMLHttpRequest);
-
-    // The feed processor is going to parse the XML, so override the MIME type
-    // in order to turn off parsing by XMLHttpRequest itself.
-    request.overrideMimeType("text/plain");
-
-    request.open("GET", this.machineURI.spec, true);
-
-    // Register a listener for notification callbacks so we handle authentication.
-    request.channel.notificationCallbacks = this;
-
-    request.send(null);
+    let request = new Request({
+      loadCallback:           new Callback(this.onSubscribeLoad, this),
+      errorCallback:          new Callback(this.onSubscribeError, this),
+      // The feed processor is going to parse the XML, so override the MIME type
+      // in order to turn off parsing by XMLHttpRequest itself.
+      overrideMimeType:       "text/plain",
+      url:                    this.machineURI,
+      // Register a listener for notification callbacks so we handle
+      // authentication.
+      notificationCallbacks:  this
+    });
   },
 
   onSubscribeLoad: function(aEvent) {
@@ -439,7 +429,7 @@ SnowlFeed.prototype = {
 
     // XXX What's the right way to handle this?
     if (request.responseText.length == 0) {
-      this.onRefreshError(aEvent);
+      this.onSubscribeError(aEvent);
       return;
     }
 
@@ -462,7 +452,7 @@ SnowlFeed.prototype = {
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
     let statusText;
-    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
+    try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
 
     this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
     Observers.notify("snowl:subscribe:connect:end", this, request.status);
@@ -472,9 +462,21 @@ SnowlFeed.prototype = {
   },
 
   onSubscribeResult: strand(function(aResult) {
-    let feed;
+    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
+    // a valid feed?) and report a more descriptive error message.
+    if (aResult.doc == null) {
+      this._log.error("_processSubscribe: aResult.doc is null");
+      // FIXME: factor this out with similar code in onSubscribeError and make
+      // the observers of snowl:subscribe:connect:end understand the status
+      // we return.
+      Observers.notify("snowl:subscribe:connect:end", this, "result.doc is null");
+      if (this._subscribeCallback)
+        this._subscribeCallback();
+      return;
+    }
+
     try {
-      feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+      let feed = aResult.doc.QueryInterface(Ci.nsIFeed);
 
       // Extract the name (if we don't already have one) and human URI from the feed.
       if (!this.name)
@@ -483,12 +485,14 @@ SnowlFeed.prototype = {
 
       this.persist();
 
-//      Observers.notify("snowl:sources:changed");
+      //Observers.notify("snowl:sources:changed");
 
-      // Refresh the feed to import all its items.
       // FIXME: use a date provided by the subscriber so refresh times are the same
       // for all accounts subscribed at the same time (f.e. in an OPML import).
-      yield this._processSubscribe(aResult, new Date());
+      Observers.notify("snowl:subscribe:get:start", this);
+      this.messages = this._processFeed(feed, new Date());
+      this.persistMessages();
+      Observers.notify("snowl:subscribe:get:end", this);
     }
     catch(ex) {
       this._log.error("error on subscribe result: " + feed.toSource());
@@ -499,70 +503,6 @@ SnowlFeed.prototype = {
       if (this._subscribeCallback)
         this._subscribeCallback();
     }
-  }),
-
-  _processSubscribe: strand(function(aResult, refreshTime) {
-    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
-    // a valid feed?) and report a more descriptive error message.
-    if (aResult.doc == null) {
-      this._log.error("_processSubscribe: aResult.doc is null");
-//      Observers.notify("snowl:subscribe:get:end", this);
-      return;
-    }
-
-    Observers.notify("snowl:subscribe:get:start", this);
-
-    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
-
-    this.messages = this._processFeed(feed, refreshTime);
-    this.persistMessages();
-
-    Observers.notify("snowl:subscribe:get:end", this);
-  }),
-
-  _saveLogin: function() {
-    let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
-
-    // Create a new login with the auth information we obtained from the user.
-    let LoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1",
-                                               Ci.nsILoginInfo,
-                                               "init");
-    // XXX Should we be using channel.URI.prePath in case the old URI
-    // redirects us to a new one at a different hostname?
-    let newLogin = new LoginInfo(this.machineURI.prePath,
-                                 null,
-                                 this._authInfo.realm,
-                                 this._authInfo.username,
-                                 this._authInfo.password,
-                                 "",
-                                 "");
-
-    // Get existing logins that have the same hostname and realm.
-    let logins = lm.findLogins({}, this.machineURI.prePath, null, this._authInfo.realm);
-
-    // Try to figure out if we should replace one of the existing logins.
-    // If there's only one existing login, we replace it.  Otherwise, if
-    // there's a login with the same username, we replace that.  Otherwise,
-    // we add the new login instead of replacing an existing one.
-    let oldLogin;
-    if (logins.length == 1)
-      oldLogin = logins[0];
-    else if (logins.length > 1)
-      oldLogin = logins.filter(function(v) v.username == this._authInfo.username)[0];
-
-    if (oldLogin)
-      lm.modifyLogin(oldLogin, newLogin);
-    else
-      lm.addLogin(newLogin);
-
-    // Now that we've saved the login, we don't need the auth info anymore.
-    this._authInfo = null;
-  }
-
-};
-
-inmix(SnowlFeed.prototype, SnowlSource);
-SnowlService.addAccountType(SnowlFeed);
   }),
 
   _saveLogin: function() {
