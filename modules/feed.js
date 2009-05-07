@@ -87,6 +87,7 @@ SnowlFeed.prototype = {
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlFeed,
 
+  // XXX Move this to SnowlSource?
   get _log() {
     let logger = Log4Moz.repository.getLogger("Snowl.Feed " + this.name);
     this.__defineGetter__("_log", function() logger);
@@ -273,60 +274,6 @@ SnowlFeed.prototype = {
 
     this.messages = this._processFeed(feed, refreshTime);
     this.persistMessages();
-  }),
-
-  persistMessages: strand(function() {
-    // FIXME: store the feed itself if it isn't stored already.
-
-    // Sort the messages by date, so we insert them from oldest to newest,
-    // which makes them show up in the correct order in views that expect
-    // messages to be inserted in that order and sort messages by their IDs.
-    this.messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
-                                      a.timestamp > b.timestamp ?  1 : 0);
-
-    let currentMessageIDs = [];
-    let messagesChanged = false;
-
-    for each (let message in this.messages) {
-      // Ignore the message if we've already added it.
-      let internalID = this._getInternalIDForExternalID(message.externalID);
-      if (internalID) {
-        currentMessageIDs.push(internalID);
-        continue;
-      }
-
-      // Persist the message.
-      messagesChanged = true;
-      this._log.info("persisting message " + message.externalID);
-      try {
-        message.persist();
-      }
-      catch(ex) {
-        this._log.error("couldn't persist " + message.externalID + ": " + ex);
-        continue;
-      }
-
-      Observers.notify("snowl:message:added", message);
-
-      currentMessageIDs.push(message.id);
-
-      // Sleep for a bit to give other sources that are being refreshed
-      // at the same time the opportunity to insert messages themselves,
-      // so the messages appear mixed together in views that display messages
-      // by the order in which they are received, which is more pleasing
-      // than if the messages were clumped together by source.
-      // As a side effect, this might reduce horkage of the UI thread
-      // during refreshes.
-      yield sleep(50);
-    }
-
-    // Update the current flag.
-    this.updateCurrentMessages(currentMessageIDs);
-
-    // Notify list and collections views on completion of messages download, list
-    // also notified of each message addition.
-    if (messagesChanged)
-      Observers.notify("snowl:messages:changed", this.id);
   }),
 
   _resetRefresh: function() {
@@ -571,6 +518,51 @@ SnowlFeed.prototype = {
     this.persistMessages();
 
     Observers.notify("snowl:subscribe:get:end", this);
+  }),
+
+  _saveLogin: function() {
+    let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
+
+    // Create a new login with the auth information we obtained from the user.
+    let LoginInfo = new Components.Constructor("@mozilla.org/login-manager/loginInfo;1",
+                                               Ci.nsILoginInfo,
+                                               "init");
+    // XXX Should we be using channel.URI.prePath in case the old URI
+    // redirects us to a new one at a different hostname?
+    let newLogin = new LoginInfo(this.machineURI.prePath,
+                                 null,
+                                 this._authInfo.realm,
+                                 this._authInfo.username,
+                                 this._authInfo.password,
+                                 "",
+                                 "");
+
+    // Get existing logins that have the same hostname and realm.
+    let logins = lm.findLogins({}, this.machineURI.prePath, null, this._authInfo.realm);
+
+    // Try to figure out if we should replace one of the existing logins.
+    // If there's only one existing login, we replace it.  Otherwise, if
+    // there's a login with the same username, we replace that.  Otherwise,
+    // we add the new login instead of replacing an existing one.
+    let oldLogin;
+    if (logins.length == 1)
+      oldLogin = logins[0];
+    else if (logins.length > 1)
+      oldLogin = logins.filter(function(v) v.username == this._authInfo.username)[0];
+
+    if (oldLogin)
+      lm.modifyLogin(oldLogin, newLogin);
+    else
+      lm.addLogin(newLogin);
+
+    // Now that we've saved the login, we don't need the auth info anymore.
+    this._authInfo = null;
+  }
+
+};
+
+inmix(SnowlFeed.prototype, SnowlSource);
+SnowlService.addAccountType(SnowlFeed);
   }),
 
   _saveLogin: function() {

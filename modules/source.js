@@ -50,6 +50,10 @@ Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/utils.js");
 
+// FIXME: make strands.js into a module.
+let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
+loader.loadSubScript("chrome://snowl/content/strands.js");
+
 /**
  * SnowlSource: a source of messages.
  * 
@@ -322,6 +326,62 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
       statement.reset();
     }
   },
+
+  persistMessages: strand(function() {
+    // Sort the messages by date, so we insert them from oldest to newest,
+    // which makes them show up in the correct order in views that expect
+    // messages to be inserted in that order and sort messages by their IDs.
+    this.messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                      a.timestamp > b.timestamp ?  1 : 0);
+
+    let currentMessageIDs = [];
+    let messagesChanged = false;
+
+    for each (let message in this.messages) {
+      // Ignore the message if we've already added it.
+      let internalID = this._getInternalIDForExternalID(message.externalID);
+      if (internalID) {
+        currentMessageIDs.push(internalID);
+        continue;
+      }
+
+      // Persist the message.
+      messagesChanged = true;
+      this._log.info("persisting message " + message.externalID);
+      try {
+        message.persist();
+      }
+      catch(ex) {
+        this._log.error("couldn't persist " + message.externalID + ": " + ex);
+        continue;
+      }
+
+      Observers.notify("snowl:message:added", message);
+
+      currentMessageIDs.push(message.id);
+
+      // Sleep for a bit to give other sources that are being refreshed
+      // at the same time the opportunity to insert messages themselves,
+      // so the messages appear mixed together in views that display messages
+      // by the order in which they are received, which is more pleasing
+      // than if the messages were clumped together by source.
+      // As a side effect, this might reduce horkage of the UI thread
+      // during refreshes.
+      yield sleep(50);
+    }
+
+    // Update the current flag.
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE messages SET current = (CASE WHEN id IN " +
+      "(" + currentMessageIDs.join(", ") + ")" +
+      " THEN 1 ELSE 0 END) WHERE sourceID = " + this.id
+    );
+
+    // Notify list and collections views on completion of messages download, list
+    // also notified of each message addition.
+    if (messagesChanged)
+      Observers.notify("snowl:messages:changed", this.id);
+  }),
 
   get _stmtGetInternalIDForExternalID() {
     let statement = SnowlDatastore.createStatement(
