@@ -241,7 +241,7 @@ SnowlFeed.prototype = {
     parser.listener = {
       self: this,
       handleResult: function(result) {
-        this.self._processRefresh(result, this.self._refreshTime);
+        this.self.onRefreshResult(result);
       }
     };
     parser.parseFromString(request.responseText, request.channel.URI);
@@ -261,17 +261,17 @@ SnowlFeed.prototype = {
     this._resetRefresh();
   },
 
-  _processRefresh: strand(function(aResult, refreshTime) {
+  onRefreshResult: strand(function(aResult) {
     // FIXME: figure out why aResult.doc is sometimes null (its content isn't
     // a valid feed?) and report a more descriptive error message.
     if (aResult.doc == null) {
-      this._log.error("_processRefresh: aResult.doc is null");
+      this._log.error("onRefreshResult: result.doc is null");
       return;
     }
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    this.messages = this._processFeed(feed, refreshTime);
+    this.messages = this._processFeed(feed, this._refreshTime);
     this.persistMessages();
     Observers.notify("snowl:refresh:end", this);
   }),
@@ -442,7 +442,12 @@ SnowlFeed.prototype = {
 
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);
-    parser.listener = { t: this, handleResult: function(r) { this.t.onSubscribeResult(r) } };
+    parser.listener = {
+      self: this,
+      handleResult: function(result) {
+        this.self.onSubscribeResult(result);
+      }
+    };
     parser.parseFromString(request.responseText, request.channel.URI);
   },
 
@@ -464,7 +469,7 @@ SnowlFeed.prototype = {
     // FIXME: figure out why aResult.doc is sometimes null (its content isn't
     // a valid feed?) and report a more descriptive error message.
     if (aResult.doc == null) {
-      this._log.error("_processSubscribe: aResult.doc is null");
+      this._log.error("result.doc is null");
       // FIXME: factor this out with similar code in onSubscribeError and make
       // the observers of snowl:subscribe:connect:end understand the status
       // we return.
