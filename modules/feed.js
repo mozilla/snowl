@@ -278,30 +278,7 @@ SnowlFeed.prototype = {
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    let messages = [];
-
-    for (let i = 0; i < feed.items.length; i++) {
-      let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-
-      // Figure out the ID for the entry, then check if the entry has already
-      // been retrieved.  If the entry doesn't provide its own ID, we generate
-      // one for it based on its content.
-      let externalID;
-      try {
-        externalID = entry.id || this._generateID(entry);
-      }
-      catch(ex) {
-        this._log.warn("couldn't get an ID for a message: " + ex);
-        continue;
-      }
-
-      try {
-        messages.push(this._processEntry(feed, entry, externalID, refreshTime));
-      }
-      catch(ex) {
-        this._log.error("couldn't process " + externalID + ": " + ex);
-      }
-    }
+    let messages = this._processFeed(feed, refreshTime);
 
     // Sort the messages by date, so we insert them from oldest to newest,
     // which makes them show up in the correct order in views that expect
@@ -358,6 +335,34 @@ SnowlFeed.prototype = {
 
   _resetRefresh: function() {
     this._refreshTime = null;
+  },
+
+  /**
+   * Process a feed into an array of messages.
+   *
+   * @param feed        {nsIFeed}       the feed
+   * @param received    {Date}          when the messages were received
+   */
+  _processFeed: function(feed, received) {
+    let messages = [];
+
+    for (let i = 0; i < feed.items.length; i++) {
+      let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
+
+      // Figure out the ID for the entry, then check if the entry has already
+      // been retrieved.  If the entry doesn't provide its own ID, we generate
+      // one for it based on its content.
+      try {
+        let externalID = entry.id || this._generateID(entry);
+        let message = this._processEntry(feed, entry, externalID, received);
+        messages.push(message);
+      }
+      catch(ex) {
+        this._log.error("couldn't process message " + externalID + ": " + ex);
+      }
+    }
+
+    return messages;
   },
 
   /**
