@@ -266,22 +266,13 @@ SnowlFeed.prototype = {
     // a valid feed?) and report a more descriptive error message.
     if (aResult.doc == null) {
       this._log.error("_processRefresh: aResult.doc is null");
-//      Observers.notify("snowl:subscribe:get:end", this);
       return;
     }
-
-    // FIXME: Make this be "snowl:refresh:start" or move it into the subscribing
-    // caller so it makes sense that it's called "snowl:subscribe:get:start",
-    // since this method also gets called during periodically on feeds to which
-    // the user is already subscribed.
-    Observers.notify("snowl:subscribe:get:start", this);
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     this.messages = this._processFeed(feed, refreshTime);
     this.persistMessages();
-
-    Observers.notify("snowl:subscribe:get:end", this);
   }),
 
   persistMessages: strand(function() {
@@ -336,8 +327,6 @@ SnowlFeed.prototype = {
     // also notified of each message addition.
     if (messagesChanged)
       Observers.notify("snowl:messages:changed", this.id);
-
-    Observers.notify("snowl:subscribe:get:end", this);
   }),
 
   _resetRefresh: function() {
@@ -552,7 +541,7 @@ SnowlFeed.prototype = {
       // Refresh the feed to import all its items.
       // FIXME: use a date provided by the subscriber so refresh times are the same
       // for all accounts subscribed at the same time (f.e. in an OPML import).
-      yield this._processRefresh(aResult, new Date());
+      yield this._processSubscribe(aResult, new Date());
     }
     catch(ex) {
       this._log.error("error on subscribe result: " + feed.toSource());
@@ -563,6 +552,25 @@ SnowlFeed.prototype = {
       if (this._subscribeCallback)
         this._subscribeCallback();
     }
+  }),
+
+  _processSubscribe: strand(function(aResult, refreshTime) {
+    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
+    // a valid feed?) and report a more descriptive error message.
+    if (aResult.doc == null) {
+      this._log.error("_processSubscribe: aResult.doc is null");
+//      Observers.notify("snowl:subscribe:get:end", this);
+      return;
+    }
+
+    Observers.notify("snowl:subscribe:get:start", this);
+
+    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+
+    this.messages = this._processFeed(feed, refreshTime);
+    this.persistMessages();
+
+    Observers.notify("snowl:subscribe:get:end", this);
   }),
 
   _saveLogin: function() {
