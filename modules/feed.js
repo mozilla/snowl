@@ -278,18 +278,25 @@ SnowlFeed.prototype = {
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    let messages = this._processFeed(feed, refreshTime);
+    this.messages = this._processFeed(feed, refreshTime);
+    this.persistMessages();
+
+    Observers.notify("snowl:subscribe:get:end", this);
+  }),
+
+  persistMessages: strand(function() {
+    // FIXME: store the feed itself if it isn't stored already.
 
     // Sort the messages by date, so we insert them from oldest to newest,
     // which makes them show up in the correct order in views that expect
     // messages to be inserted in that order and sort messages by their IDs.
-    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
-                                 a.timestamp > b.timestamp ?  1 : 0);
+    this.messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                      a.timestamp > b.timestamp ?  1 : 0);
 
     let currentMessageIDs = [];
     let messagesChanged = false;
 
-    for each (let message in messages) {
+    for each (let message in this.messages) {
       // Ignore the message if we've already added it.
       let internalID = this._getInternalIDForExternalID(message.externalID);
       if (internalID) {
