@@ -272,7 +272,8 @@ SnowlFeed.prototype = {
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
     this.messages = this._processFeed(feed, this._refreshTime);
-    this.persistMessages();
+    if (this.id)
+      this.persistMessages();
     Observers.notify("snowl:refresh:end", this);
   }),
 
@@ -380,6 +381,7 @@ SnowlFeed.prototype = {
    * Given an entry, generate an ID for it based on a hash of its link,
    * published, and title attributes.  Useful for uniquely identifying entries
    * that don't provide their own IDs.
+   * XXX Push this into SnowlMessage?
    *
    * @param entry {nsIFeedEntry} the entry for which to generate an ID
    * @returns {string} an ID for the entry
