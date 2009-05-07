@@ -285,19 +285,9 @@ SnowlFeed.prototype = {
     // which makes them show up in the correct order in views that expect
     // messages to be inserted in that order and sort messages by their IDs.
     let messages = [];
+
     for (let i = 0; i < feed.items.length; i++) {
       let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-      let timestamp =   entry.updated               ? new Date(entry.updated)
-                      : entry.published             ? new Date(entry.published)
-                      : entry.fields.get("dc:date") ? ISO8601DateUtils.parse(entry.fields.get("dc:date"))
-                      : null;
-      messages.push({ entry: entry, timestamp: timestamp });
-    }
-    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
-                                 a.timestamp > b.timestamp ?  1 : 0);
-
-    for each (let messageInfo in messages) {
-      let entry = messageInfo.entry;
 
       // Figure out the ID for the entry, then check if the entry has already
       // been retrieved.  If the entry doesn't provide its own ID, we generate
@@ -311,24 +301,42 @@ SnowlFeed.prototype = {
         continue;
       }
 
+      try {
+        messages.push(this._processEntry(feed, entry, externalID, refreshTime));
+      }
+      catch(ex) {
+        this._log.error("couldn't process " + externalID + ": " + ex);
+      }
+    }
+
+    // Sort the messages by date, so we insert them from oldest to newest,
+    // which makes them show up in the correct order in views that expect
+    // messages to be inserted in that order and sort messages by their IDs.
+    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                 a.timestamp > b.timestamp ?  1 : 0);
+
+    let currentMessageIDs = [];
+    let messagesChanged = false;
+
+    for each (let message in messages) {
       // Ignore the message if we've already added it.
-      let internalID = this._getInternalIDForExternalID(externalID);
+      let internalID = this._getInternalIDForExternalID(message.externalID);
       if (internalID) {
         currentMessageIDs.push(internalID);
         continue;
       }
 
-      // Add the message.
+      // Persist the message.
       messagesChanged = true;
-      this._log.info("adding message " + externalID);
-      let message = this._processEntry(feed, entry, externalID, messageInfo.timestamp, refreshTime);
+      this._log.info("persisting message " + message.externalID);
       try {
         message.persist();
       }
       catch(ex) {
-        this._log.error("couldn't add " + externalID + ": " + ex);
+        this._log.error("couldn't persist " + message.externalID + ": " + ex);
+        continue;
       }
-  
+
       Observers.notify("snowl:message:added", message);
 
       currentMessageIDs.push(message.id);
@@ -359,7 +367,7 @@ SnowlFeed.prototype = {
   },
 
   /**
-   * Add a message to the datastore for the given feed entry.
+   * Process a feed entry into a message.
    *
    * @param aFeed         {nsIFeed}       the feed
    * @param aEntry        {nsIFeedEntry}  the entry
@@ -367,13 +375,16 @@ SnowlFeed.prototype = {
    * @param aTimestamp    {Date}          the message's timestamp
    * @param aReceived     {Date}          when the message was received
    */
-  _processEntry: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
+  _processEntry: function(aFeed, aEntry, aExternalID, aReceived) {
     let message = new SnowlMessage();
 
     message.sourceID = this.id;
     message.externalID = aExternalID;
     message.subject = aEntry.title.text;
-    message.timestamp = aTimestamp;
+    message.timestamp = aEntry.updated               ? new Date(aEntry.updated)
+                      : aEntry.published             ? new Date(aEntry.published)
+                      : aEntry.fields.get("dc:date") ? ISO8601DateUtils.parse(aEntry.fields.get("dc:date"))
+                      : null;
     message.received = aReceived;
     message.link = aEntry.link;
 
