@@ -216,21 +216,31 @@ SnowlMessage.prototype = {
    * @returns {integer} the ID of the newly-created record
    */
   persist: function() {
-    this._stmtInsertMessage.params.sourceID   = this.sourceID;
-    this._stmtInsertMessage.params.externalID = this.externalID;
-    this._stmtInsertMessage.params.subject    = this.subject;
-    this._stmtInsertMessage.params.authorID   = this.authorID;
-    this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
-    this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
-    this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
-    this._stmtInsertMessage.execute();
+    SnowlDatastore.dbConnection.beginTransaction();
 
-    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    try {
+      this._stmtInsertMessage.params.sourceID   = this.sourceID;
+      this._stmtInsertMessage.params.externalID = this.externalID;
+      this._stmtInsertMessage.params.subject    = this.subject;
+      this._stmtInsertMessage.params.authorID   = this.authorID;
+      this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+      this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
+      this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
+      this._stmtInsertMessage.execute();
+  
+      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+  
+      if (this.content)
+        this.content.persist(this);
+      if (this.summary)
+        this.summary.persist(this);
 
-    if (this.content)
-      this.content.persist(this);
-    if (this.summary)
-      this.summary.persist(this);
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      throw ex;
+    }
 
     return this.id;
   }

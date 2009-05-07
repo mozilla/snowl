@@ -360,6 +360,7 @@ SnowlFeed.prototype = {
    */
   _addMessage: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
     let message = new SnowlMessage;
+
     message.sourceID = this.id;
     message.externalID = aExternalID;
     message.subject = aEntry.title.text;
@@ -367,53 +368,49 @@ SnowlFeed.prototype = {
     message.received = aReceived;
     message.link = aEntry.link;
 
-    SnowlDatastore.dbConnection.beginTransaction();
+    let authorID = null;
+    let authors = (aEntry.authors.length > 0) ? aEntry.authors
+                  : (aFeed.authors.length > 0) ? aFeed.authors
+                  : null;
+    if (authors && authors.length > 0) {
+      let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
+      // The external ID for an author is her email address, if provided
+      // (many feeds don't); otherwise it's her name.  For the name, on the
+      // other hand, we use the name, if provided, but fall back to the
+      // email address if a name is not provided (which it probably was).
+      let externalID = author.email || author.name;
+      let name = author.name || author.email;
+
+      // Get an existing identity or create a new one.  Creating an identity
+      // automatically creates a person record with the provided name.
+      identity = SnowlIdentity.get(this.id, externalID) ||
+                 SnowlIdentity.create(this.id, externalID, name);
+      message.authorID = identity.personID;
+      // message.authorName
+      // message.authorIcon
+    }
+
+    // Add parts
+    if (aEntry.content) {
+      message.content = new SnowlMessagePart({ partType:    PART_TYPE_CONTENT,
+                                               content:     aEntry.content.text,
+                                               mediaType:   INTERNET_MEDIA_TYPES[aEntry.content.type],
+                                               baseURI:     aEntry.content.base,
+                                               languageTag: aEntry.content.lang });
+    }
+    if (aEntry.summary) {
+      message.summary = new SnowlMessagePart({ partType:    PART_TYPE_SUMMARY,
+                                               content:     aEntry.summary.text,
+                                               mediaType:   INTERNET_MEDIA_TYPES[aEntry.summary.type],
+                                               baseURI:     aEntry.summary.base,
+                                               languageTag: aEntry.summary.lang });
+    }
+
     try {
-      let authorID = null;
-      let authors = (aEntry.authors.length > 0) ? aEntry.authors
-                    : (aFeed.authors.length > 0) ? aFeed.authors
-                    : null;
-      if (authors && authors.length > 0) {
-        let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
-        // The external ID for an author is her email address, if provided
-        // (many feeds don't); otherwise it's her name.  For the name, on the
-        // other hand, we use the name, if provided, but fall back to the
-        // email address if a name is not provided (which it probably was).
-        let externalID = author.email || author.name;
-        let name = author.name || author.email;
-
-        // Get an existing identity or create a new one.  Creating an identity
-        // automatically creates a person record with the provided name.
-        identity = SnowlIdentity.get(this.id, externalID) ||
-                   SnowlIdentity.create(this.id, externalID, name);
-        message.authorID = identity.personID;
-        // message.authorName
-        // message.authorIcon
-      }
-
-      // Add parts
-      if (aEntry.content) {
-        message.content = new SnowlMessagePart({ partType:    PART_TYPE_CONTENT,
-                                                 content:     aEntry.content.text,
-                                                 mediaType:   INTERNET_MEDIA_TYPES[aEntry.content.type],
-                                                 baseURI:     aEntry.content.base,
-                                                 languageTag: aEntry.content.lang });
-      }
-      if (aEntry.summary) {
-        message.summary = new SnowlMessagePart({ partType:    PART_TYPE_SUMMARY,
-                                                 content:     aEntry.summary.text,
-                                                 mediaType:   INTERNET_MEDIA_TYPES[aEntry.summary.type],
-                                                 baseURI:     aEntry.summary.base,
-                                                 languageTag: aEntry.summary.lang });
-      }
-
       message.persist();
-
-      SnowlDatastore.dbConnection.commitTransaction();
     }
     catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      this._log.error("couldn't add " + aExternalID + ": " + ex);
+      this._log.error("couldn't add " + message.externalID + ": " + ex);
     }
 
     Observers.notify("snowl:message:added", message);
