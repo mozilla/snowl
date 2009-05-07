@@ -278,12 +278,6 @@ SnowlFeed.prototype = {
 
     let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
 
-    let currentMessageIDs = [];
-    let messagesChanged = false;
-
-    // Sort the messages by date, so we insert them from oldest to newest,
-    // which makes them show up in the correct order in views that expect
-    // messages to be inserted in that order and sort messages by their IDs.
     let messages = [];
 
     for (let i = 0; i < feed.items.length; i++) {
@@ -372,7 +366,6 @@ SnowlFeed.prototype = {
    * @param aFeed         {nsIFeed}       the feed
    * @param aEntry        {nsIFeedEntry}  the entry
    * @param aExternalID   {string}        the external ID of the entry
-   * @param aTimestamp    {Date}          the message's timestamp
    * @param aReceived     {Date}          when the message was received
    */
   _processEntry: function(aFeed, aEntry, aExternalID, aReceived) {
@@ -412,18 +405,24 @@ SnowlFeed.prototype = {
 
     // Add parts
     if (aEntry.content) {
-      message.content = new SnowlMessagePart({ partType:    PART_TYPE_CONTENT,
-                                               content:     aEntry.content.text,
-                                               mediaType:   INTERNET_MEDIA_TYPES[aEntry.content.type],
-                                               baseURI:     aEntry.content.base,
-                                               languageTag: aEntry.content.lang });
+      message.content =
+        new SnowlMessagePart({
+          partType:    PART_TYPE_CONTENT,
+          content:     aEntry.content.text,
+          mediaType:   INTERNET_MEDIA_TYPES[aEntry.content.type],
+          baseURI:     aEntry.content.base,
+          languageTag: aEntry.content.lang
+        });
     }
     if (aEntry.summary) {
-      message.summary = new SnowlMessagePart({ partType:    PART_TYPE_SUMMARY,
-                                               content:     aEntry.summary.text,
-                                               mediaType:   INTERNET_MEDIA_TYPES[aEntry.summary.type],
-                                               baseURI:     aEntry.summary.base,
-                                               languageTag: aEntry.summary.lang });
+      message.summary =
+        new SnowlMessagePart({
+          partType:    PART_TYPE_SUMMARY,
+          content:     aEntry.summary.text,
+          mediaType:   INTERNET_MEDIA_TYPES[aEntry.summary.type],
+          baseURI:     aEntry.summary.base,
+          languageTag: aEntry.summary.lang
+        });
     }
 
     return message;
