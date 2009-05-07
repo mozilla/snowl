@@ -188,21 +188,19 @@ SnowlFeed.prototype = {
     // messages to the datastore.
     this._refreshTime = refreshTime;
 
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-    request.QueryInterface(Ci.nsIDOMEventTarget);
-    let t = this;
-    request.addEventListener("load", function(e) { t.onRefreshLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onRefreshError(e) }, false);
+    this._log.info("refreshing " + this.machineURI.spec);
 
-    request.QueryInterface(Ci.nsIXMLHttpRequest);
-    // The feed processor is going to parse the XML, so override the MIME type
-    // in order to turn off parsing by XMLHttpRequest itself.
-    request.overrideMimeType("text/plain");
-    request.open("GET", this.machineURI.spec, true);
-    // Register a listener for notification callbacks so we handle authentication.
-    request.channel.notificationCallbacks = this;
-
-    request.send(null);
+    new Request({
+      loadCallback:           new Callback(this.onRefreshLoad, this),
+      errorCallback:          new Callback(this.onRefreshError, this),
+      // The feed processor is going to parse the XML, so override the MIME type
+      // in order to turn off parsing by XMLHttpRequest itself.
+      overrideMimeType:       "text/plain",
+      url:                    this.machineURI,
+      // Register a listener for notification callbacks so we handle
+      // authentication.
+      notificationCallbacks:  this
+    });
 
     // We set the last refreshed timestamp here even though the refresh
     // is asynchronous, so we don't yet know whether it has succeeded.
@@ -275,6 +273,7 @@ SnowlFeed.prototype = {
 
     this.messages = this._processFeed(feed, refreshTime);
     this.persistMessages();
+    Observers.notify("snowl:refresh:end", this);
   }),
 
   _resetRefresh: function() {

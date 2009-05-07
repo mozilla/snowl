@@ -11,6 +11,8 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 
 let server;
+let feed;
+let refreshTime = new Date();
 
 function run_test() {
   server = new nsHttpServer();
@@ -20,9 +22,14 @@ function run_test() {
 
   do_test_pending();
 
-  Observers.add("snowl:subscribe:get:end", finish_test);
-  let feed = new SnowlFeed(null, null, new URI("http://localhost:8080/feed.xml"), undefined, null);
+  Observers.add("snowl:subscribe:get:end", continue_test);
+  feed = new SnowlFeed(null, null, new URI("http://localhost:8080/feed.xml"), undefined, null);
   feed.subscribe();
+}
+
+function continue_test() {
+  Observers.add("snowl:refresh:end", finish_test);
+  feed.refresh(refreshTime);
 }
 
 function finish_test() {
@@ -35,7 +42,7 @@ function finish_test() {
     do_check_eq(account.machineURI.spec, "http://localhost:8080/feed.xml");
     do_check_eq(account.humanURI.spec, "http://example.org/");
     do_check_eq(account.username, null);
-    do_check_eq(account.lastRefreshed, null);
+    do_check_eq(account.lastRefreshed.getTime(), refreshTime.getTime());
     do_check_eq(account.importance, null);
     do_check_eq(account.placeID.constructor.name, "Number");
 
