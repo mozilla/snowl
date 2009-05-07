@@ -296,8 +296,8 @@ SnowlFeed.prototype = {
     messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
                                  a.timestamp > b.timestamp ?  1 : 0);
 
-    for each (let message in messages) {
-      let entry = message.entry;
+    for each (let messageInfo in messages) {
+      let entry = messageInfo.entry;
 
       // Figure out the ID for the entry, then check if the entry has already
       // been retrieved.  If the entry doesn't provide its own ID, we generate
@@ -321,8 +321,17 @@ SnowlFeed.prototype = {
       // Add the message.
       messagesChanged = true;
       this._log.info("adding message " + externalID);
-      internalID = this._addMessage(feed, entry, externalID, message.timestamp, refreshTime);
-      currentMessageIDs.push(internalID);
+      let message = this._processEntry(feed, entry, externalID, messageInfo.timestamp, refreshTime);
+      try {
+        message.persist();
+      }
+      catch(ex) {
+        this._log.error("couldn't add " + externalID + ": " + ex);
+      }
+  
+      Observers.notify("snowl:message:added", message);
+
+      currentMessageIDs.push(message.id);
 
       // Sleep for a bit to give other sources that are being refreshed
       // at the same time the opportunity to insert messages themselves,
@@ -358,8 +367,8 @@ SnowlFeed.prototype = {
    * @param aTimestamp    {Date}          the message's timestamp
    * @param aReceived     {Date}          when the message was received
    */
-  _addMessage: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
-    let message = new SnowlMessage;
+  _processEntry: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
+    let message = new SnowlMessage();
 
     message.sourceID = this.id;
     message.externalID = aExternalID;
@@ -406,16 +415,7 @@ SnowlFeed.prototype = {
                                                languageTag: aEntry.summary.lang });
     }
 
-    try {
-      message.persist();
-    }
-    catch(ex) {
-      this._log.error("couldn't add " + message.externalID + ": " + ex);
-    }
-
-    Observers.notify("snowl:message:added", message);
-
-    return message.id;
+    return message;
   },
 
   /**
