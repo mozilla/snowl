@@ -22,17 +22,15 @@ function run_test() {
 
   do_test_pending();
 
-  Observers.add("snowl:subscribe:get:end", continue_test);
+  Observers.add("snowl:subscribe:get:end", finish_test);
   feed = new SnowlFeed(null, null, new URI("http://localhost:8080/feed.xml"), undefined, null);
-  feed.subscribe();
-}
-
-function continue_test() {
-  Observers.add("snowl:refresh:end", finish_test);
   feed.refresh(refreshTime);
 }
 
 function finish_test() {
+  feed.persist();
+  feed.persistMessages();
+
   try {
     do_check_eq(SnowlService.accounts.length, 1);
     let account = SnowlService.accounts[0];
@@ -55,6 +53,9 @@ function finish_test() {
     do_check_eq(message.subject, "Atom-Powered Robots Run Amok");
     do_check_eq(message.authorName, "John Doe");
     // TODO: do_check_eq(message.authorID, authorID);
+    // TODO: test that the message's author is a real identity record
+    // with a real person record behind it and the values of those records
+    // are all correct.
     do_check_eq(message.link, "http://example.org/2003/12/13/atom03");
     do_check_eq(message.timestamp.getTime(), 1071340202000);
     do_check_eq(message._read, false);

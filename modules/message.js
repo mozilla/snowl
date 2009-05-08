@@ -219,10 +219,12 @@ SnowlMessage.prototype = {
     SnowlDatastore.dbConnection.beginTransaction();
 
     try {
+      this.author.persist();
+
       this._stmtInsertMessage.params.sourceID   = this.sourceID;
       this._stmtInsertMessage.params.externalID = this.externalID;
       this._stmtInsertMessage.params.subject    = this.subject;
-      this._stmtInsertMessage.params.authorID   = this.authorID;
+      this._stmtInsertMessage.params.authorID   = this.author.id;
       this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
       this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
       this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
