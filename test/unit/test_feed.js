@@ -29,7 +29,6 @@ function run_test() {
 
 function finish_test() {
   feed.persist();
-  feed.persistMessages();
 
   try {
     do_check_eq(SnowlService.accounts.length, 1);

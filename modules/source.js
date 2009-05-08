@@ -316,6 +316,8 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
         Observers.notify("snowl:source:added", placeID);
       }
 
+      this.persistMessages();
+
       SnowlDatastore.dbConnection.commitTransaction();
     }
     catch(ex) {
