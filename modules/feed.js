@@ -358,12 +358,7 @@ SnowlFeed.prototype = {
       // one for it based on its content.
       try {
         let externalID = entry.id || this._generateID(entry);
-if (typeof externalID == "undefined")
-  dump("no external ID\n");
-else
-  dump("external ID: " + externalID + "\n");
         let message = this._processEntry(feed, entry, externalID, received);
-dump("processed entry into message\n");
         messages.push(message);
       }
       catch(ex) {
