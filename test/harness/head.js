@@ -175,6 +175,47 @@ function do_throw(text) {
   throw Components.results.NS_ERROR_ABORT;
 }
 
+/**
+ * Get a callback that respects the test harness's mechanisms for catching
+ * and reporting exceptions.  This callback function wraps the one you provide,
+ * and when executed, exceptions in it get reported and halt execution just as
+ * they do in non-callback code.
+ *
+ * @param   callback    {Function}
+ *          the function to call back
+ *
+ * @param   thisObject  {Object}  [optional]
+ *          the object to use as the |this| object inside the callback
+ *
+ * @returns {Function} a function you can use as a callback
+ */
+function do_callback(callback, thisObject) {
+  // Mirror parameters into unusual names that we can use in the closure.
+  // This prevents our wrapper from breaking if the provided callback function
+  // happens to get called with same-named parameters.
+  let __callback   = callback;
+  let __thisObject = thisObject;
+
+  // Return a closure that wraps the provided callback function, calling it
+  // within a try block and reporting exceptions in it via _do_throw.
+  return function() {
+    try {
+      if (__thisObject)
+        __callback.apply(__thisObject, arguments);
+      else
+        __callback.apply(this, arguments);
+    }
+    catch(ex) {
+      // When we catch the exception and call do_throw here, do_throw dumps
+      // the stack, but the stack no longer includes the call to the callback
+      // that generated the exception, so it doesn't show the line/function/file
+      // where the exception occurred, so we warn about that.
+      dump("WARNING: exception in wrapped callback; stack inaccurate\n");
+      do_throw(ex);
+    }
+  };
+}
+
 function do_check_neq(left, right) {
   if (left == right)
     do_throw(left + " != " + right);
