@@ -22,7 +22,7 @@ function run_test() {
 
   do_test_pending();
 
-  Observers.add("snowl:subscribe:get:end", finish_test);
+  Observers.add("snowl:subscribe:get:end", do_callback(finish_test));
   feed = new SnowlFeed(null, null, new URI("http://localhost:8080/feed.xml"), undefined, null);
   feed.refresh(refreshTime);
 }
