@@ -210,7 +210,7 @@ function do_callback(callback, thisObject) {
       // the stack, but the stack no longer includes the call to the callback
       // that generated the exception, so it doesn't show the line/function/file
       // where the exception occurred, so we warn about that.
-      dump("WARNING: exception in wrapped callback; stack inaccurate\n");
+      dump("WARNING: exception in wrapped callback; below stack inaccurate\n");
       do_throw(ex);
     }
   };
