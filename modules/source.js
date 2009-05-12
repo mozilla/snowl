@@ -48,6 +48,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 // FIXME: make strands.js into a module.
@@ -170,6 +171,21 @@ SnowlSource.retrieve = function(id) {
     statement.reset();
   }
 
+  // FIXME: memoize this.
+  let messagesStatement = SnowlDatastore.createStatement(
+    "SELECT id FROM messages WHERE sourceID = :id"
+  );
+
+  try {
+    messagesStatement.params.id = id;
+    // FIXME: retrieve all messages at once instead of one at a time.
+    while (messagesStatement.step())
+      source.messages.push(SnowlMessage.retrieve(messagesStatement.row.id));
+  }
+  finally {
+    messagesStatement.reset();
+  }
+
   return source;
 }
 
@@ -246,6 +262,8 @@ SnowlSource.prototype = {
 
   // The ID of the place representing this source in a list of collections.
   placeID: null,
+
+  messages: [],
 
   // Favicon Service
   get faviconSvc() {

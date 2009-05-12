@@ -62,9 +62,11 @@ function SnowlMessage(props) {
 // FIXME: refactor this with the similar code in the SnowlCollection::messages getter.
 // FIXME: retrieve an author object instead of just specific properties of the author.
 // FIXME: retrieve all basic properties of the message in a single query.
-SnowlMessage.get = function(id) {
+// FIXME: retrieve multiple messages in a single query.
+SnowlMessage.retrieve = function(id) {
   let message;
 
+  // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
     "SELECT sourceID, subject, authors.name AS authorName, link, timestamp, read, " +
     "       authors.iconURL AS authorIcon, received, authorID " +

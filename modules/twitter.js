@@ -612,7 +612,7 @@ SnowlTwitter.prototype = {
       this._log.error("couldn't add " + message.id + ": " + ex);
     }
 
-    Observers.notify("snowl:message:added", SnowlMessage.get(messageID));
+    Observers.notify("snowl:message:added", SnowlMessage.retrieve(messageID));
 
     return messageID;
   },
