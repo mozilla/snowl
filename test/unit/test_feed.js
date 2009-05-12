@@ -27,8 +27,27 @@ function run_test() {
   feed.refresh(refreshTime);
 }
 
+function check_feed(feed) {
+  do_check_eq(feed.constructor.name, "SnowlFeed");
+  do_check_eq(feed.name, "Example Feed");
+  do_check_eq(feed.machineURI.spec, "http://localhost:8080/feed.xml");
+  do_check_eq(feed.humanURI.spec, "http://example.org/");
+  do_check_eq(feed.username, null);
+  // TODO: separate retrieval from storage of this value.
+  //do_check_eq(feed.lastRefreshed.getTime(), refreshTime.getTime());
+  do_check_eq(feed.importance, null);
+}
+
 function finish_test() {
-  feed.persist();
+  // Make sure the feed object is as expected both before and after persistence.
+  check_feed(feed);
+  let id = feed.persist();
+  do_check_eq(id.constructor.name, "Number");
+  do_check_eq(feed.placeID.constructor.name, "Number");
+  let feed2 = SnowlFeed.retrieve(id);
+  check_feed(feed2);
+  do_check_eq(feed2.id, feed.id);
+  do_check_eq(feed2.placeID, feed.placeID);
 
   try {
     do_check_eq(SnowlService.accounts.length, 1);

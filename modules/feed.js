@@ -492,5 +492,6 @@ SnowlFeed.prototype = {
 
 };
 
+Mixins.mix(SnowlSource).into(SnowlFeed);
 Mixins.mix(SnowlSource.prototype).into(SnowlFeed.prototype);
 SnowlService.addAccountType(SnowlFeed);

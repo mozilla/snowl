@@ -132,6 +132,47 @@ loader.loadSubScript("chrome://snowl/content/strands.js");
  * for other subclasses that access them via __lookupGetter__.
  */
 function SnowlSource() {}
+
+SnowlSource.retrieve = function(id) {
+  let source = null;
+
+  // FIXME: memoize this.
+  let statement = SnowlDatastore.createStatement(
+    "SELECT type, name, machineURI, humanURI, username, lastRefreshed, " +
+    "importance, placeID FROM sources WHERE id = :id"
+  );
+
+  try {
+    statement.params.id = id;
+    if (statement.step()) {
+      let row = statement.row;
+      let constructor;
+      // Bleh, this function is called within the JS context for this module,
+      // which means it doesn't know anything about other modules it doesn't
+      // import (like SnowlFeed and SnowlTwitter).  The current hack to deal
+      // with this is to set the constructor to |this| hoping that |this| is
+      // the right constructor (which it is as long as this function got mixed
+      // into the right constructor), but this isn't going to work when we want
+      // to use this to pull all accounts and make them available in the service,
+      // so we'll have to figure out something better to do then.
+      try { constructor = eval(row.type) } catch(ex) { constructor = this };
+      source = new constructor(id,
+                               row.name,
+                               URI.get(row.machineURI),
+                               URI.get(row.humanURI),
+                               row.username,
+                               SnowlDateUtils.julianToJSDate(row.lastRefreshed),
+                               row.importance,
+                               row.placeID);
+    }
+  }
+  finally {
+    statement.reset();
+  }
+
+  return source;
+}
+
 SnowlSource.prototype = {
   init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
     this.id = aID;
@@ -306,23 +347,23 @@ SnowlSource.prototype = {
           message.sourceID = this.id;
 
         // Create places record
-        placeID = SnowlPlaces.persistPlace("sources",
-                                           this.id,
-                                           this.name,
-                                           this.machineURI,
-                                           null, // this.username,
-                                           this.faviconURI,
-                                           this.id); // aSourceID
+        this.placeID = SnowlPlaces.persistPlace("sources",
+                                                this.id,
+                                                this.name,
+                                                this.machineURI,
+                                                null, // this.username,
+                                                this.faviconURI,
+                                                this.id); // aSourceID
 
         // Store placeID back into messages for db integrity
         SnowlDatastore.dbConnection.executeSimpleSQL(
           "UPDATE sources " +
-          "SET    placeID = " + placeID +
+          "SET    placeID = " + this.placeID +
           " WHERE      id = " + this.id);
-this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
+this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id);
 
         // Use 'added' here for collections observer for more specificity
-        Observers.notify("snowl:source:added", placeID);
+        Observers.notify("snowl:source:added", this.placeID);
       }
 
       this.persistMessages();
@@ -336,6 +377,8 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
     finally {
       statement.reset();
     }
+
+    return this.id;
   },
 
   persistMessages: strand(function() {
