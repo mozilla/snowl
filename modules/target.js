@@ -46,7 +46,8 @@ const Cu = Components.utils;
  *
  * @see SnowlSource.
  */
-let SnowlTarget = {
+function SnowlTarget() {}
+SnowlTarget.prototype = {
   init: function() {},
 
   /**

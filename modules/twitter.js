@@ -47,7 +47,7 @@ Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/Mixin.js");
+Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -749,6 +749,6 @@ SnowlTwitter.prototype = {
   }
 };
 
-inmix(SnowlTwitter.prototype, SnowlSource);
-inmix(SnowlTwitter.prototype, SnowlTarget);
+Mixins.mix(SnowlSource.prototype).into(SnowlTwitter.prototype);
+Mixins.mix(SnowlTarget.prototype).into(SnowlTwitter.prototype);
 SnowlService.addAccountType(SnowlTwitter);

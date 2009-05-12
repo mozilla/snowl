@@ -56,7 +56,10 @@ loader.loadSubScript("chrome://snowl/content/strands.js");
 
 /**
  * SnowlSource: a source of messages.
- * 
+ *
+ * FIXME: update this documentation now that we're using it via mixins
+ * instead of inheritance.
+ *
  * This is an abstract class that should not be instantiated. Rather, objects
  * should inherit it via one of two methods (depending on whether or not they
  * also inherit other functionality):
@@ -128,7 +131,8 @@ loader.loadSubScript("chrome://snowl/content/strands.js");
  * so that subclasses can call the getters directly without causing trouble
  * for other subclasses that access them via __lookupGetter__.
  */
-let SnowlSource = {
+function SnowlSource() {}
+SnowlSource.prototype = {
   init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
     this.id = aID;
     this.name = aName;
