@@ -296,6 +296,11 @@ let SnowlSource = {
       if (!this.id) {
         // Extract the ID of the source from the newly-created database record.
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+        // Update messages to include their source ID.
+        for each (let message in this.messages)
+          message.sourceID = this.id;
+
         // Create places record
         placeID = SnowlPlaces.persistPlace("sources",
                                            this.id,

@@ -61,7 +61,7 @@ SnowlIdentity.prototype = {
   person:     null,
 
   persist: function() {
-    this.person.persist(this.source.id);
+    this.person.persist(this.source, this);
 
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO identities ( sourceID,  externalID,  personID) " +
@@ -95,7 +95,7 @@ SnowlPerson.prototype = {
   homeURL: null,
   iconURL: null,
 
-  persist: function(sourceID) {
+  persist: function(source, identity) {
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO people ( name,  homeURL,  iconURL) " +
       "VALUES             (:name, :homeURL, :iconURL)"
@@ -116,15 +116,15 @@ SnowlPerson.prototype = {
   
       // Create places record, placeID stored into people table record.
       //SnowlPlaces._log.info("Author name:iconURI.spec - " + name + " : " + iconURI.spec);
-      // FIXME: break the dependency on sourceID, since people should only be
-      // connected to sources through identities.
+      // FIXME: break the dependency on sourceID and externalID, since those
+      // are attributes of identities, not people.
       this.placeID = SnowlPlaces.persistPlace("people",
                                               this.id,
-                                              name,
-                                              null,       // homeURL,
-                                              externalID, // externalID,
+                                              this.name,
+                                              this.homeURL,
+                                              identity.externalID,
                                               iconURI,
-                                              sourceID);
+                                              source.id);
       // Store placeID back into messages for DB integrity.
       SnowlDatastore.dbConnection.executeSimpleSQL(
         "UPDATE people " +

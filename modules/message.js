@@ -216,33 +216,27 @@ SnowlMessage.prototype = {
    * @returns {integer} the ID of the newly-created record
    */
   persist: function() {
-    SnowlDatastore.dbConnection.beginTransaction();
+    // We can't begin a transaction here because the database engine does not
+    // support nested transactions, and we get called from the message source's
+    // persist method, which calls us from within a transaction.
 
-    try {
-      this.author.persist();
+    this.author.persist();
 
-      this._stmtInsertMessage.params.sourceID   = this.sourceID;
-      this._stmtInsertMessage.params.externalID = this.externalID;
-      this._stmtInsertMessage.params.subject    = this.subject;
-      this._stmtInsertMessage.params.authorID   = this.author.id;
-      this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
-      this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
-      this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
-      this._stmtInsertMessage.execute();
-  
-      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-  
-      if (this.content)
-        this.content.persist(this);
-      if (this.summary)
-        this.summary.persist(this);
+    this._stmtInsertMessage.params.sourceID   = this.sourceID;
+    this._stmtInsertMessage.params.externalID = this.externalID;
+    this._stmtInsertMessage.params.subject    = this.subject;
+    this._stmtInsertMessage.params.authorID   = this.author.id;
+    this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+    this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
+    this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
+    this._stmtInsertMessage.execute();
 
-      SnowlDatastore.dbConnection.commitTransaction();
-    }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      throw ex;
-    }
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+    if (this.content)
+      this.content.persist(this);
+    if (this.summary)
+      this.summary.persist(this);
 
     return this.id;
   }
