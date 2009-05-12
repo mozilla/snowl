@@ -79,7 +79,7 @@ function stringToArray(string) {
 }
 
 function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
-  SnowlSource.init.call(this, aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+  this.init(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID);
 }
 
 SnowlFeed.prototype = {

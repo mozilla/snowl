@@ -121,8 +121,11 @@ const AUTH_REALM = "Snowl";
 // to the subscribe function.
 
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
-  SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
-  SnowlTarget.init.call(this);
+  // FIXME: figure out a better solution than hanging the first mixed in init()
+  // method on this object's prototype but calling the second one directly
+  // because it didn't actually get mixed in because it already existed!
+  this.init(aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+  SnowlTarget.prototype.init.call(this);
 }
 
 SnowlTwitter.prototype = {
