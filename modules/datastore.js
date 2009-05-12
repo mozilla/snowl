@@ -273,9 +273,11 @@ let SnowlDatastore = {
 
   createStatement: function(aSQLString, aDBConnection) {
     let dbConnection = aDBConnection ? aDBConnection : this.dbConnection;
+    let wrappedStatement;
 
     try {
-      var statement = dbConnection.createStatement(aSQLString);
+      let statement = dbConnection.createStatement(aSQLString);
+      wrappedStatement = new InstrumentedStorageStatement(aSQLString, statement);
     }
     catch(ex) {
       throw("error creating statement " + aSQLString + " - " +
@@ -283,8 +285,6 @@ let SnowlDatastore = {
             dbConnection.lastErrorString + " - " + ex);
     }
 
-    var wrappedStatement = new InstrumentedStorageStatement(aSQLString);
-    wrappedStatement.initialize(statement);
     this._statements.push(wrappedStatement);
     return wrappedStatement;
   },
@@ -297,6 +297,8 @@ let SnowlDatastore = {
         statement = statement.statement;
       if (statement instanceof Ci.mozIStorageStatement)
         statement.finalize();
+      else
+        this._log.warning("can't finalize " + statement + "\n");
     }
   },
 
@@ -1420,8 +1422,11 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
  * @param sqlString {string} the SQL string used to construct the statement
  *                           (optional, but essential for useful debugging)
  */
-function InstrumentedStorageStatement(sqlString) {
+function InstrumentedStorageStatement(sqlString, statement) {
   this._sqlString = sqlString;
+  this._statement = Cc["@mozilla.org/storage/statement-wrapper;1"].
+                    createInstance(Ci.mozIStorageStatementWrapper);
+  this._statement.initialize(statement);
   //this._log = Log4Moz.repository.getLogger("Snowl.Statement");
 }
 
@@ -1449,11 +1454,7 @@ InstrumentedStorageStatement.prototype = {
 
   // mozIStorageStatementWrapper
 
-  initialize: function(statement) {
-    this._statement = Cc["@mozilla.org/storage/statement-wrapper;1"].
-                      createInstance(Ci.mozIStorageStatementWrapper);
-    this._statement.initialize(statement);
-  },
+  initialize: function() {},
 
   get statement() { return this._statement.statement },
   reset: function() { return this._statement.reset() },
