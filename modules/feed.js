@@ -403,7 +403,8 @@ SnowlFeed.prototype = {
       // email address if a name is not provided (which it probably was).
       let externalID = author.email || author.name;
       let name = author.name || author.email;
-      message.author = new SnowlIdentity(null, this, externalID, name);
+      message.author = new SnowlIdentity(null, this.id, externalID);
+      message.author.person = new SnowlPerson(null, name, null, null, null);
       //identity = SnowlIdentity.get(this.id, externalID) ||
       //           SnowlIdentity.create(this.id, externalID, name);
     }

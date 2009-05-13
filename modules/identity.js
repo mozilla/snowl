@@ -42,26 +42,71 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
+
+// modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 
-function SnowlIdentity(id, source, externalID, name) {
+function SnowlIdentity(id, sourceID, externalID, personID) {
   this.id = id;
-  this.source = source;
+  this.sourceID = sourceID;
   this.externalID = externalID;
-  this.person = new SnowlPerson(null, name);
+  this.personID = personID;
 }
+
+SnowlIdentity.__defineGetter__("_log", function() {
+  delete this._log;
+  return this._log = Log4Moz.repository.getLogger("Snowl.Identity");
+});
+
+SnowlIdentity.retrieve = function(id) {
+  this._log.debug("retrieving " + id);
+
+  let identity;
+
+  let statement = SnowlDatastore.createStatement(
+    "SELECT sourceID, externalID, personID FROM identities WHERE id = :id"
+  );
+
+  try {
+    statement.params.id = id;
+    if (statement.step()) {
+      identity = new SnowlIdentity(id,
+                                   statement.row.sourceID,
+                                   statement.row.externalID,
+                                   statement.row.personID);
+      identity.person = SnowlPerson.retrieve(statement.row.personID);
+    }
+  }
+  finally {
+    statement.reset();
+  }
+
+
+  return identity;
+};
+
 
 SnowlIdentity.prototype = {
   id:         null,
-  source:     null,
+  sourceID:   null,
   externalID: null,
+  personID:   null,
   person:     null,
 
+  get _log() {
+    this.__defineGetter__("_log", function() SnowlIdentity._log);
+    return this._log;
+  },
+
   persist: function() {
-    this.person.persist(this.source, this);
+    this._log.debug("persisting " + this.sourceID + ":" + this.externalID);
+
+    this.person.persist(this.sourceID, this);
 
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO identities ( sourceID,  externalID,  personID) " +
@@ -69,7 +114,7 @@ SnowlIdentity.prototype = {
     );
 
     try {
-      statement.params.sourceID   = this.source.id;
+      statement.params.sourceID   = this.sourceID;
       statement.params.externalID = this.externalID;
       statement.params.personID   = this.person.id;
       statement.step();
@@ -87,15 +132,55 @@ function SnowlPerson(id, name, placeID, homeURL, iconURL) {
   this.id      = id;
   this.name    = name;
   this.placeID = placeID;
+  this.homeURL = homeURL;
+  this.iconURL = iconURL;
 }
 
+SnowlPerson.__defineGetter__("_log", function() {
+  delete this._log;
+  return this._log = Log4Moz.repository.getLogger("Snowl.Person");
+});
+
+SnowlPerson.retrieve = function(id) {
+  this._log.debug("retrieving " + id);
+
+  let person;
+
+  let statement = SnowlDatastore.createStatement(
+    "SELECT name, placeID, homeURL, iconURL FROM people WHERE id = :id"
+  );
+
+  try {
+    statement.params.id = id;
+    if (statement.step())
+      person = new SnowlPerson(id,
+                               statement.row.name,
+                               statement.row.placeID,
+                               statement.row.homeURL,
+                               statement.row.iconURL);
+  }
+  finally {
+    statement.reset();
+  }
+
+  return person;
+};
+
 SnowlPerson.prototype = {
+  id:      null,
   name:    null,
   placeID: null,
   homeURL: null,
   iconURL: null,
 
-  persist: function(source, identity) {
+  get _log() {
+    this.__defineGetter__("_log", function() SnowlPerson._log);
+    return this._log;
+  },
+
+  persist: function(sourceID, identity) {
+    this._log.debug("persisting " + this.name);
+
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO people ( name,  homeURL,  iconURL) " +
       "VALUES             (:name, :homeURL, :iconURL)"
@@ -124,7 +209,7 @@ SnowlPerson.prototype = {
                                               this.homeURL,
                                               identity.externalID,
                                               iconURI,
-                                              source.id);
+                                              sourceID);
       // Store placeID back into messages for DB integrity.
       SnowlDatastore.dbConnection.executeSimpleSQL(
         "UPDATE people " +

@@ -47,6 +47,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -83,12 +84,14 @@ SnowlMessage.retrieve = function(id) {
         subject:    statement.row.subject,
         authorName: statement.row.authorName,
         authorID:   statement.row.authorID,
-        link:       statement.row.link,
+        link:       statement.row.link ? URI.get(statement.row.link) : null,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
         _read:      (statement.row.read ? true : false),
         authorIcon: statement.row.authorIcon,
         received:   SnowlDateUtils.julianToJSDate(statement.row.received)
       });
+
+      message.author = SnowlIdentity.retrieve(message.authorID);
     }
   }
   finally {
@@ -104,6 +107,7 @@ SnowlMessage.prototype = {
   subject: null,
   authorName: null,
   authorID: null,
+  author: null,
   // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,

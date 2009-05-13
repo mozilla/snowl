@@ -36,12 +36,37 @@ function check_feed(feed) {
   // TODO: separate retrieval from storage of this value.
   //do_check_eq(feed.lastRefreshed.getTime(), refreshTime.getTime());
   do_check_eq(feed.importance, null);
+
+  let messages = feed.messages;
+  do_check_eq(messages.length, 1);
+  let message = messages[0];
+  do_check_eq(message.id.constructor.name, "Number");
+  do_check_eq(message.sourceID, feed.id);
+  do_check_eq(message.subject, "Atom-Powered Robots Run Amok");
+  do_check_eq(message.author.person.name, "John Doe");
+  // TODO: do_check_eq(message.authorID, authorID);
+  // TODO: test that the message's author is a real identity record
+  // with a real person record behind it and the values of those records
+  // are all correct.
+  do_check_eq(message.link.spec, "http://example.org/2003/12/13/atom03");
+  do_check_eq(message.timestamp.getTime(), 1071340202000);
+  // TODO: make this work before persistence
+  //do_check_eq(message._read, false);
+  do_check_eq(message.author.person.icon, null);
+  do_check_eq(message.received.constructor.name, "Date");
+  do_check_eq(message.content, null);
+
+  do_check_true(message.summary instanceof SnowlMessagePart);
+  do_check_eq(message.summary.text, "Some text.");
+  do_check_eq(message.summary.type, "text");
+  do_check_eq(message.summary.base.spec, "http://localhost:8080/feed.xml");
+  do_check_eq(message.summary.lang, null);
 }
 
 function finish_test() {
-  // Make sure the feed object is as expected both before and after persistence.
-  check_feed(feed);
   let id = feed.persist();
+  // Make sure the feed object is as expected both before and after retrieval.
+  check_feed(feed);
   do_check_eq(id.constructor.name, "Number");
   do_check_eq(feed.placeID.constructor.name, "Number");
   let feed2 = SnowlFeed.retrieve(id);
@@ -90,7 +115,6 @@ function finish_test() {
   }
   finally {
     server.stop();
-    deleteDatabase();
     do_test_finished();
   }
 }
