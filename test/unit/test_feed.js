@@ -24,6 +24,7 @@ function run_test() {
 
   Observers.add("snowl:subscribe:get:end", do_callback(finish_test));
   feed = new SnowlFeed(null, null, new URI("http://localhost:8080/feed.xml"), undefined, null);
+  do_check_eq(feed.id, null);
   feed.refresh(refreshTime);
 }
 
@@ -33,8 +34,7 @@ function check_feed(feed) {
   do_check_eq(feed.machineURI.spec, "http://localhost:8080/feed.xml");
   do_check_eq(feed.humanURI.spec, "http://example.org/");
   do_check_eq(feed.username, null);
-  // TODO: separate retrieval from storage of this value.
-  //do_check_eq(feed.lastRefreshed.getTime(), refreshTime.getTime());
+  do_check_eq(feed.lastRefreshed.getTime(), refreshTime.getTime());
   do_check_eq(feed.importance, null);
 
   let messages = feed.messages;
@@ -65,6 +65,8 @@ function check_feed(feed) {
 
 function finish_test() {
   let id = feed.persist();
+  do_check_eq(id, feed.id);
+
   // Make sure the feed object is as expected both before and after retrieval.
   check_feed(feed);
   do_check_eq(id.constructor.name, "Number");

@@ -162,7 +162,7 @@ SnowlSource.retrieve = function(id) {
                                URI.get(row.machineURI),
                                URI.get(row.humanURI),
                                row.username,
-                               SnowlDateUtils.julianToJSDate(row.lastRefreshed),
+                               row.lastRefreshed ? SnowlDateUtils.julianToJSDate(row.lastRefreshed) : null,
                                row.importance,
                                row.placeID);
     }
@@ -196,8 +196,10 @@ SnowlSource.prototype = {
     this.machineURI = aMachineURI;
     this.humanURI = aHumanURI;
     this.username = aUsername;
-    this._lastRefreshed = aLastRefreshed;
-    this.importance = aImportance;
+    this.lastRefreshed = aLastRefreshed;
+    // FIXME: make it so I don't have to set importance to null if it isn't
+    // specified in order for its non-set value to remain null.
+    this.importance = aImportance || null;
     this.placeID = aPlaceID;
   },
 
@@ -239,22 +241,7 @@ SnowlSource.prototype = {
 
   // A JavaScript Date object representing the last time this source
   // was checked for updates to its set of messages.
-  _lastRefreshed: null,
-
-  get lastRefreshed() {
-    return this._lastRefreshed;
-  },
-
-  set lastRefreshed(newValue) {
-    this._lastRefreshed = newValue;
-
-    let stmt = SnowlDatastore.createStatement("UPDATE sources " +
-                                              "SET lastRefreshed = :lastRefreshed " +
-                                              "WHERE id = :id");
-    stmt.params.lastRefreshed = SnowlDateUtils.jsToJulianDate(this._lastRefreshed);
-    stmt.params.id = this.id;
-    stmt.execute();
-  },
+  lastRefreshed: null,
 
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.
@@ -331,18 +318,20 @@ SnowlSource.prototype = {
     if (this.id) {
       statement = SnowlDatastore.createStatement(
         "UPDATE sources " +
-        "SET     name = :name,       " +
-        "        type = :type,       " +
-        "  machineURI = :machineURI, " +
-        "    humanURI = :humanURI,   " +
-        "    username = :username    " +
+        "SET      name = :name,         " +
+        "         type = :type,         " +
+        "   machineURI = :machineURI,   " +
+        "     humanURI = :humanURI,     " +
+        "     username = :username      " +
+        "lastRefreshed = :lastRefreshed " +
+        "   importance = :importance    " +
         "WHERE     id = :id"
       );
     }
     else {
       statement = SnowlDatastore.createStatement(
-        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username) " +
-        "VALUES              (:name, :type, :machineURI, :humanURI, :username)"
+        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username,  lastRefreshed,  importance) " +
+        "VALUES              (:name, :type, :machineURI, :humanURI, :username, :lastRefreshed, :importance)"
       );
     }
 
@@ -353,6 +342,9 @@ SnowlSource.prototype = {
       statement.params.machineURI = this.machineURI.spec;
       statement.params.humanURI = this.humanURI.spec;
       statement.params.username = this.username;
+      statement.params.lastRefreshed = this.lastRefreshed ? SnowlDateUtils.jsToJulianDate(this.lastRefreshed) : null;
+dump("importance: " + this.importance + "\n");
+      statement.params.importance = this.importance;
       if (this.id)
         statement.params.id = this.id;
       statement.step();
