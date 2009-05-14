@@ -41,14 +41,22 @@ function check_feed(feed) {
   do_check_eq(messages.length, 1);
 
   let message = messages[0];
+
+  // Check the primitive attributes of the message object.
   do_check_eq(message.id.constructor.name, "Number");
   do_check_eq(message.sourceID, feed.id);
   do_check_eq(message.subject, "Atom-Powered Robots Run Amok");
+  do_check_eq(message.link.spec, "http://example.org/2003/12/13/atom03");
+  do_check_eq(message.timestamp.getTime(), 1071340202000);
+  do_check_eq(message.read, false);
+  do_check_eq(message.received.getTime(), refreshTime.getTime());
 
+  // Check the attributes of the message author.
   do_check_eq(message.author.id.constructor.name, "Number");
   do_check_eq(message.author.sourceID, feed.id);
   do_check_eq(message.author.externalID, "John Doe");
 
+  // Check the attributes of the person associated with the message author.
   do_check_eq(message.author.person.constructor.name, "Object");
   do_check_eq(message.author.person.id.constructor.name, "Number");
   do_check_eq(message.author.person.name, "John Doe");
@@ -57,12 +65,10 @@ function check_feed(feed) {
   do_check_eq(message.author.person.iconURL, null);
   do_check_eq(message.author.person.icon, null);
 
-  do_check_eq(message.link.spec, "http://example.org/2003/12/13/atom03");
-  do_check_eq(message.timestamp.getTime(), 1071340202000);
-  do_check_eq(message.read, false);
-  do_check_eq(message.received.getTime(), refreshTime.getTime());
+  // Check the message's content.
   do_check_eq(message.content, null);
 
+  // Check the message's summary.
   do_check_true(message.summary instanceof SnowlMessagePart);
   do_check_eq(message.summary.text, "Some text.");
   do_check_eq(message.summary.type, "text");
