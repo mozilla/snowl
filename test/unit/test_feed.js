@@ -59,8 +59,7 @@ function check_feed(feed) {
 
   do_check_eq(message.link.spec, "http://example.org/2003/12/13/atom03");
   do_check_eq(message.timestamp.getTime(), 1071340202000);
-  // TODO: make this work before persistence
-  //do_check_eq(message._read, false);
+  do_check_eq(message.read, false);
   do_check_eq(message.received.getTime(), refreshTime.getTime());
   do_check_eq(message.content, null);
 
@@ -112,7 +111,7 @@ function finish_test() {
     // are all correct.
     do_check_eq(message.link, "http://example.org/2003/12/13/atom03");
     do_check_eq(message.timestamp.getTime(), 1071340202000);
-    do_check_eq(message._read, false);
+    do_check_eq(message.read, false);
     do_check_eq(message.authorIcon, null);
     do_check_eq(message.received.constructor.name, "Date");
     do_check_eq(message.content, null);

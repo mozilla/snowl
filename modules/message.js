@@ -53,9 +53,6 @@ Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 function SnowlMessage(props) {
-  // The way this currently works requires instantiators to pass the value
-  // of the read property via its private name _read, which seems wrong.
-  // FIXME: make it so callers can pass read via its public name.
   for (let name in props)
     this[name] = props[name];
 }
@@ -86,7 +83,7 @@ SnowlMessage.retrieve = function(id) {
         authorID:   statement.row.authorID,
         link:       statement.row.link ? URI.get(statement.row.link) : null,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-        _read:      (statement.row.read ? true : false),
+        read:       statement.row.read,
         authorIcon: statement.row.authorIcon,
         received:   SnowlDateUtils.julianToJSDate(statement.row.received)
       });
@@ -108,27 +105,10 @@ SnowlMessage.prototype = {
   authorName: null,
   authorID: null,
   author: null,
-  // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,
   received: null,
-
-  // FIXME: figure out whether or not setters should update the database.
-
-  _read: undefined,
-
-  get read() {
-    return this._read;
-  },
-
-  set read(newValue) {
-    if (this._read == newValue)
-      return;
-    this._read = newValue ? true : false;
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
-                                                 (this._read ? "1" : "0") +
-                                                 " WHERE id = " + this.id);
-  },
+  read: false,
 
   /**
    * The content of the message.  If undefined, we haven't retrieved it from
@@ -207,8 +187,8 @@ SnowlMessage.prototype = {
 
   get _stmtInsertMessage() {
     let statement = SnowlDatastore.createStatement(
-      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link) \
-       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link)"
+      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link, read) \
+       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, :read)"
     );
     this.__defineGetter__("_stmtInsertMessage", function() { return statement });
     return this._stmtInsertMessage;
@@ -235,6 +215,7 @@ SnowlMessage.prototype = {
     this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
     this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
     this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
+    this._stmtInsertMessage.params.read       = this.read;
     this._stmtInsertMessage.execute();
 
     this.id = SnowlDatastore.dbConnection.lastInsertRowID;

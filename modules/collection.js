@@ -268,7 +268,7 @@ this._log.info("got " + groups.length + " groups");
           authorID:   statement.row.authorID,
           link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-          _read:      (statement.row.read ? true : false),
+          read:       statement.row.read,
           authorIcon: statement.row.authorIcon,
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           content:    content
