@@ -55,13 +55,13 @@ function check_feed(feed) {
   do_check_eq(message.author.person.placeID.constructor.name, "Number");
   do_check_eq(message.author.person.homeURL, null);
   do_check_eq(message.author.person.iconURL, null);
+  do_check_eq(message.author.person.icon, null);
 
   do_check_eq(message.link.spec, "http://example.org/2003/12/13/atom03");
   do_check_eq(message.timestamp.getTime(), 1071340202000);
   // TODO: make this work before persistence
   //do_check_eq(message._read, false);
-  do_check_eq(message.author.person.icon, null);
-  do_check_eq(message.received.constructor.name, "Date");
+  do_check_eq(message.received.getTime(), refreshTime.getTime());
   do_check_eq(message.content, null);
 
   do_check_true(message.summary instanceof SnowlMessagePart);
