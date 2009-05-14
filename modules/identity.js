@@ -51,11 +51,10 @@ Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 
-function SnowlIdentity(id, sourceID, externalID, personID) {
+function SnowlIdentity(id, sourceID, externalID) {
   this.id = id;
   this.sourceID = sourceID;
   this.externalID = externalID;
-  this.personID = personID;
 }
 
 SnowlIdentity.__defineGetter__("_log", function() {
@@ -77,8 +76,7 @@ SnowlIdentity.retrieve = function(id) {
     if (statement.step()) {
       identity = new SnowlIdentity(id,
                                    statement.row.sourceID,
-                                   statement.row.externalID,
-                                   statement.row.personID);
+                                   statement.row.externalID);
       identity.person = SnowlPerson.retrieve(statement.row.personID);
     }
   }
@@ -95,7 +93,6 @@ SnowlIdentity.prototype = {
   id:         null,
   sourceID:   null,
   externalID: null,
-  personID:   null,
   person:     null,
 
   get _log() {
