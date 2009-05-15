@@ -212,34 +212,6 @@ let SnowlService = {
                            row.placeID);
   },
 
-  get _getAccountStatement() {
-    delete this._getAccountStatement;
-    return this._getAccountStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance, placeID " +
-      "FROM sources WHERE id = :id"
-    );
-  },
-
-  /**
-   * Get the account with the given ID.
-   * 
-   * @param   id  {integer}   the ID of the account to retrieve
-   */
-  getAccount: function(id) {
-    let account = null;
-
-    try {
-      this._getAccountStatement.params.id = id;
-      if (this._getAccountStatement.step())
-        account = this._constructAccount(this._getAccountStatement.row);
-    }
-    finally {
-      this._getAccountStatement.reset();
-    }
-
-    return account;
-  },
-
   get _accountsStatement() {
     delete this._accountsStatement;
     return this._accountsStatement = SnowlDatastore.createStatement(
