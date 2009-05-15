@@ -282,7 +282,8 @@ SnowlTwitter.prototype = {
     request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", "https://" + this.username + "@twitter.com/statuses/friends_timeline.json?count=200", true);
+    request.open("GET", MACHINE_URI.replace("^https://", "https://" + this.username + "@") +
+                        "/statuses/friends_timeline.json?count=200", true);
     request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
                                                               ":" +
                                                               credentials.password));
@@ -438,7 +439,8 @@ SnowlTwitter.prototype = {
         params.push("since_id=" + maxID);
     }
 
-    let url = "https://" + this.username + "@twitter.com/statuses/friends_timeline.json?" + params.join("&");
+    let url = MACHINE_URI.replace("^https://", "https://" + this.username + "@") +
+              "/statuses/friends_timeline.json?" + params.join("&");
     this._log.debug("refresh: this.name = " + this.name + "; url = " + url);
     request.open("GET", url, true);
 
@@ -675,7 +677,7 @@ SnowlTwitter.prototype = {
     }
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("POST", "https://" + this.username + "@twitter.com/statuses/update.json", true);
+    request.open("POST", MACHINE_URI.replace("^https://", "https://" + this.username + "@") + "/statuses/update.json", true);
     // If the login manager has saved credentials for this account, provide them
     // to the server.  Otherwise, no worries, Necko will automatically call our
     // notification callback, which will prompt the user to enter their credentials.
