@@ -6,4 +6,4 @@
 <!ENTITY pinButton.label              "Pin Header">
 <!ENTITY pinButton.tooltip            "Toggle pin to set and unset permanent header">
 <!ENTITY toggleHeader.label           "Toggle Header">
-<!ENTITY toggleHeader.tooltip         "Toggle message header to brief, full, or custom">
+<!ENTITY toggleHeader.tooltip         "Toggle message header to brief or full; in full header, toggle to save height after adjustment">

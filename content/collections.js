@@ -347,7 +347,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     SnowlService.refreshAllSources();
   },
 
-  onToggleListToolbar: function() {
+  onToggleListToolbar: function(aEvent) {
+    aEvent.target.checked = !aEvent.target.checked;
     if (this._listToolbar.hasAttribute("hidden"))
       this._listToolbar.removeAttribute("hidden");
     else
@@ -361,11 +362,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       this._tree.place = this._tree.place;
   },
 
-  onCommandUnreadButton: function(aChecked) {
+  onCommandUnreadButton: function(aEvent) {
     // XXX Instead of rebuilding from scratch each time, when going from
     // all to unread, simply hide the ones that are read (f.e. by setting a CSS
     // class on read items and then using a CSS rule to hide them)?
-    this.Filters["unread"] = aChecked ? true : false;
+    aEvent.target.checked = !aEvent.target.checked;
+    this.Filters["unread"] = aEvent.target.checked ? true : false;
     gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
   },
 
@@ -501,7 +503,6 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
       query = query ? "WHERE ( " + query + " AND read = 0 )" : null;
     }
-
 
     if (query != null) {
       SnowlDatastore.dbConnection.executeSimpleSQL(

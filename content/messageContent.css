@@ -64,6 +64,11 @@ table#headerDeck {
   background-color: -moz-dialog;
 }
 
+/* Set visibility when header collapsed to prevent tab stops */
+#messageFrame[rows="0,*"] > #messageHeader {
+  visibility: collapse;
+}
+
 #headerDeck {
   font: 9pt sans-serif;
   padding: 1px;
@@ -72,7 +77,6 @@ table#headerDeck {
 }
 
 #noHeader[collapsed="true"],
-#headerDeck[collapsed="true"],
 #headerDeck:not([header="brief"]) .briefHeader,
 #headerDeck:not([header="full"]) > tr.fullHeaderRow {
   display: none;

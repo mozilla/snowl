@@ -127,15 +127,17 @@
     <toolbarbutton id="listToolbarButton"
                    class="tabbable"
                    type="checkbox"
+                   autoCheck="false"
                    persist="checked"
-                   oncommand="CollectionsView.onToggleListToolbar()"
+                   oncommand="CollectionsView.onToggleListToolbar(event)"
                    tooltiptext="&listToolbarButton.tooltip;"/>
     <toolbarspring/>
     <toolbarbutton id="snowlUnreadButton"
                    class="tabbable"
                    type="checkbox"
+                   autoCheck="false"
                    persist="checked"
-                   oncommand="CollectionsView.onCommandUnreadButton(this.checked)"
+                   oncommand="CollectionsView.onCommandUnreadButton(event)"
                    tooltiptext="&unreadButton.tooltip;"/>
     <toolbarbutton id="writeButton"
                    class="tabbable"

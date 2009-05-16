@@ -62,8 +62,9 @@
 <!--  -->
   <body id="body"
         dir="&locale.dir;"
-        onload="messageContent.createHeader();">
-    <table id="headerDeck" headerIndex="">
+        onload="messageContent.createHeader();"
+        onpageshow="messageHeaderUtils.init();">
+    <table id="headerDeck">
       <tr id="briefHeaderRow">
         <td class="headerButtons" valign="top" rowspan="3">
           <xul:toolbarbutton id="pinButton"
@@ -76,12 +77,13 @@
                              onmouseout="messageHeaderUtils.tooltip(event, 'hide');"
                              tooltiptext="&pinButton.tooltip;"/>
           <xul:toolbarbutton id="headerButton"
-                             class="toolbarbutton-1"
+                             class="toolbarbutton-1 tabbable"
                              header="full"
                              oncommand="messageHeaderUtils.toggleHeader(null, 'toggle');"
                              onmouseover="messageHeaderUtils.tooltip(event, 'show');"
                              onmousedown="messageHeaderUtils.tooltip(event, 'hide');"
                              onmouseout="messageHeaderUtils.tooltip(event, 'hide');"
+                             onkeypress="messageHeaderUtils.onButtonKeyPress(event);"
                              tooltiptext="&toggleHeader.tooltip;"/>
         </td>
 <!-- -->

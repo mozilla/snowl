@@ -37,7 +37,7 @@
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
-//const Cr = Components.results;
+const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
@@ -100,6 +100,7 @@ var messageContent = {
     var messageContent = parent.wrappedJSObject.messageContent;
     var id = messageContent.id;
     var message = messageContent.message;
+    var headerDeck = document.getElementById("headerDeck");
 
 //window.SnowlUtils._log.info("createHeader: START - onInit: id - "+id);
     if (!id)
@@ -133,16 +134,13 @@ var messageContent = {
       document.getElementById("link").target = "messageBody";
       document.getElementById("link").
                appendChild(document.createTextNode(message.link));
+
+      headerDeck.removeAttribute("notfound");
     }
     else {
       // Message no longer exists (removed source/author/message) but is in history.
-//window.SnowlUtils._log.info("createHeader: msg GONE");
-      var headerDeck = document.getElementById("headerDeck");
-      headerDeck.setAttribute("collapsed", true);
-      return;
-  }
-
-   messageHeaderUtils.init();
+      headerDeck.setAttribute("notfound", true);
+    }
   },
 
   createBody: function(aType) {
@@ -151,8 +149,6 @@ var messageContent = {
     var id = messageContent.id;
     var message = messageContent.message;
     var content;
-
-//window.SnowlUtils._log.info("createBody: START - onInit: id - "+id);
 
     if (message) {
       content = message.content || message.summary;
@@ -207,19 +203,19 @@ var messageHeaderUtils = {
     var checked = headerBcaster.getAttribute("checked") == "true";
     pin.checked = checked;
 
+    if (headerDeck.hasAttribute("notfound"))
+      return;
+
     if (checked) {
-      // Collapse hover area, show headerDeck.
+      // Collapse hover area, set header.
       noHeader.setAttribute("collapsed", true);
-      headerDeck.removeAttribute("collapsed");
-      this.toggleHeader(headerDeck);
+      this.toggleHeader(headerDeck, "init");
     }
     else {
-      // Uncollapse hover area, collapse headerDeck to prevent tab stops when
-      // frame rows = 0.
+      // Uncollapse hover area, hide header frame.
       parent.document.body.setAttribute("border", "0");
       parent.document.body.rows = "0,*";
       noHeader.removeAttribute("collapsed");
-      headerDeck.setAttribute("collapsed", true);
     }
   },
 
@@ -235,7 +231,6 @@ var messageHeaderUtils = {
                          messageHeaderUtils.toggleHeader(headerDeck);
                          document.getElementById("noHeader").
                                   setAttribute("collapsed", true);
-                         headerDeck.removeAttribute("collapsed");
                        }, 500);
   },
 
@@ -245,7 +240,6 @@ var messageHeaderUtils = {
 //window.SnowlUtils._log.info("onMouseOut: START");
     var node = aEvent.target;
     var messageHeader = document.getElementById("messageHeader");
-    var headerDeck = messageHeader.contentDocument.getElementById("headerDeck");
     var pin = messageHeader.contentDocument.getElementById("pinButton");
     if (node.id != "messageHeader" || pin.hasAttribute("checked"))
       return;
@@ -253,14 +247,22 @@ var messageHeaderUtils = {
     document.getElementById("messageFrame").setAttribute("border", "0");
     document.getElementById("messageFrame").setAttribute("rows", "0,*");
     document.getElementById("noHeader").removeAttribute("collapsed");
-    headerDeck.setAttribute("collapsed", true);
+  },
+
+  onButtonKeyPress: function(aEvent) {
+    if (aEvent.keyCode == KeyEvent.DOM_VK_RETURN ||
+        aEvent.keyCode == KeyEvent.DOM_VK_TAB)
+      return;
+
+    // Remove focus from tabbable buttons for back/forward.
+    // XXX: due to the button binding, an arrow key while the header button is
+    // focused will throw once; no event cancelling functions cancel the event.
+    aEvent.target.blur();
+//    window = aEvent.target.ownerDocument.defaultView.gBrowserWindow;
   },
 
   togglePin: function(aEvent) {
     var pin = aEvent.target;
-    if (pin.id != "pinButton")
-      return;
-
     var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
     headerBcaster.setAttribute("checked", pin.checked);
   },
@@ -268,6 +270,14 @@ var messageHeaderUtils = {
   toggleHeader: function(headerDeck, aType) {
     var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
     var headerIndex = parseInt(headerBcaster.getAttribute("headerIndex"));
+    var rows = headerBcaster.getAttribute("rows");
+
+    if (headerIndex != 0 && aType != "init" &&
+        headerBcaster.getAttribute("checked") == "true")
+      // To set a header height: must first be in non Brief header, pin must be
+      // checked, height can be dnd adjusted as desired, then header must be
+      // toggled to save the height.
+      headerBcaster.setAttribute("rows", parent.document.body.rows);
 
     if (aType == "toggle") {
       // Toggled to next in 3 way
@@ -280,9 +290,8 @@ var messageHeaderUtils = {
     headerDeck.setAttribute("header", headerIndex == 0 ? "brief" :
                                       headerIndex == 1 ? "full" : "custom");
     parent.document.body.setAttribute("border", "6");
-    // XXX: store whatever rows the user wants..
     parent.document.body.rows = headerIndex == 0 ? "28,*" :
-                                headerIndex == 1 ? "80,*" : "72,*";
+                                headerIndex == 1 ? rows : "72,*";
   },
 
   tooltip: function(aEvent, aShow) {
@@ -300,6 +309,8 @@ var messageHeaderUtils = {
       delete this.tiptimer;
       tooltip.label = "";
       tooltip.hidePopup();
+      // Remove focus (for header button, arrow key binding issue).
+      aEvent.target.blur();
     }
   }
 
