@@ -121,10 +121,15 @@ const AUTH_REALM = "Snowl";
 // to the subscribe function.
 
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
+  // Use the given machine URI, if available.  We use this in unit tests
+  // to point the account to a test server rather than the actual Twitter
+  // servers.
+  let machineURI = aMachineURI || MACHINE_URI;
+
   // FIXME: figure out a better solution than hanging the first mixed in init()
   // method on this object's prototype but calling the second one directly
   // because it didn't actually get mixed in because it already existed!
-  this.init(aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+  this.init(aID, aName, machineURI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
   SnowlTarget.prototype.init.call(this);
 }
 
@@ -282,7 +287,7 @@ SnowlTwitter.prototype = {
     request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", MACHINE_URI.replace("^https://", "https://" + this.username + "@") +
+    request.open("GET", this.machineURI.replace("^(https?://)", "$1" + this.username + "@") +
                         "/statuses/friends_timeline.json?count=200", true);
     request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
                                                               ":" +
@@ -439,7 +444,7 @@ SnowlTwitter.prototype = {
         params.push("since_id=" + maxID);
     }
 
-    let url = MACHINE_URI.replace("^https://", "https://" + this.username + "@") +
+    let url = this.machineURI.replace("^(https?://)", "$1" + this.username + "@") +
               "/statuses/friends_timeline.json?" + params.join("&");
     this._log.debug("refresh: this.name = " + this.name + "; url = " + url);
     request.open("GET", url, true);
@@ -677,7 +682,7 @@ SnowlTwitter.prototype = {
     }
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("POST", MACHINE_URI.replace("^https://", "https://" + this.username + "@") + "/statuses/update.json", true);
+    request.open("POST", this.machineURI.replace("^(https?://)", "$1" + this.username + "@") + "/statuses/update.json", true);
     // If the login manager has saved credentials for this account, provide them
     // to the server.  Otherwise, no worries, Necko will automatically call our
     // notification callback, which will prompt the user to enter their credentials.
