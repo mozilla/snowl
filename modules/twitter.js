@@ -300,8 +300,7 @@ SnowlTwitter.prototype = {
     try {
       let request = event.target;
 
-      // FIXME: don't log this huge string.
-      this._log.info("onSubscribeLoad: " + request.responseText);
+      this._log.trace("onSubscribeLoad: " + request.responseText);
 
       // The load event can fire even with a non 2xx code, so handle as error
       if (request.status < 200 || request.status > 299) {
