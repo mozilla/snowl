@@ -21,11 +21,10 @@ function run_test() {
 
   do_test_pending();
 
-  Observers.add("snowl:subscribe:get:end", do_callback(finish_test));
   twitter = new SnowlTwitter(null, "snowl_test", new URI("http://localhost:8080/"));
   // FIXME: provide credentials { username: "snowl_test", password: "whatever" }
   twitter.username = "snowl_test";
-  twitter.refresh(refreshTime);
+  twitter.refresh(refreshTime, do_callback(finish_test));
 }
 
 function check_account(twitter) {

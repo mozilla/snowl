@@ -382,6 +382,7 @@ SnowlTwitter.prototype = {
   // and will create concurrency problems with long-lived account objects.
 
   _refreshTime: null,
+  _refreshCallback: null,
 
   get _stmtGetMaxExternalID() {
     let statement = SnowlDatastore.createStatement(
@@ -414,13 +415,38 @@ SnowlTwitter.prototype = {
     return maxID;
   },
 
-  refresh: function(refreshTime) {
-    this._log.info("refresh at " + refreshTime);
-    Observers.notify("snowl:subscribe:get:start", this);
+  /**
+   * Refresh the feed, retrieving the latest information in it.
+   *
+   * @param time        {Date}      [optional]
+   *        when the refresh occurs; determines the received time of new
+   *        messages; we let the caller specify this so a caller refreshing
+   *        multiple feeds can give their messages the same received time
+   *
+   * @param callback    {Function}  [optional]
+   *        a function to call when the refresh is complete
+   *
+   * @param thisObject  {Object}    [optional]
+   *        the object to set to |this| within the callback function;
+   *        causes the function to be called as a method of the object;
+   *        if you don't provide a value for this parameter, the function
+   *        will be called without reference to an object, and |this|
+   *        will be set to the global object within the callback function
+   */
+  refresh: function(time, callback, thisObject) {
+    if (typeof time == "undefined" || time == null)
+      time = new Date();
+    this._log.info("start refresh " + this.username + " at " + time);
 
-    // Cache the refresh time so we can use it as the received time when adding
-    // messages to the datastore.
-    this._refreshTime = refreshTime;
+    this._refreshTime = time;
+
+    if (callback) {
+      this._refreshCallback =
+        thisObject ? function(source) callback.call(thisObject, source)
+                   : callback;
+    }
+
+    Observers.notify("snowl:subscribe:get:start", this);
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -473,7 +499,7 @@ SnowlTwitter.prototype = {
     // period of time.  We should instead keep trying when a source fails,
     // but with a progressively longer interval (up to the standard one).
     // FIXME: implement the approach described above.
-    this.lastRefreshed = refreshTime;
+    this.lastRefreshed = time;
   },
 
   onRefreshLoad: function(event) {
@@ -511,6 +537,9 @@ SnowlTwitter.prototype = {
     let items = JSON.parse(request.responseText);
     this.messages = this._processItems(items, this._refreshTime);
 
+    if (this._refreshCallback)
+      this._refreshCallback();
+
     this._resetRefresh();
 
     Observers.notify("snowl:subscribe:get:end", this);
@@ -524,6 +553,9 @@ SnowlTwitter.prototype = {
     try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
+
+    if (this._refreshCallback)
+      this._refreshCallback();
 
     this._resetRefresh();
   },
@@ -634,6 +666,7 @@ SnowlTwitter.prototype = {
 
   _resetRefresh: function() {
     this._refreshTime = null;
+    this._refreshCallback = null;
     this._authInfo = null;
   },
 

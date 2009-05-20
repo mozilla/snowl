@@ -191,33 +191,36 @@ SnowlFeed.prototype = {
   /**
    * Refresh the feed, retrieving the latest information in it.
    *
-   * @param time        {Date}
-   *        The time the refresh was initiated; determines new messages'
-   *        received time.  We let the caller specify this so a caller
-   *        refreshing multiple feeds can give their messages the same
-   *        received time.
-   * @param callback    {Function}
+   * @param time        {Date}      [optional]
+   *        when the refresh occurs; determines the received time of new
+   *        messages; we let the caller specify this so a caller refreshing
+   *        multiple feeds can give their messages the same received time
+   *
+   * @param callback    {Function}  [optional]
    *        a function to call when the refresh is complete
+   *
    * @param thisObject  {Object}    [optional]
    *        the object to set to |this| within the callback function;
-   *        causes the function to be called as a method of this object;
+   *        causes the function to be called as a method of the object;
    *        if you don't provide a value for this parameter, the function
    *        will be called without reference to an object, and |this|
    *        will be set to the global object within the callback function
    */
   refresh: function(time, callback, thisObject) {
+    if (typeof time == "undefined" || time == null)
+      time = new Date();
+    this._log.info("start refresh " + this.machineURI.spec + " at " + time);
+
     this._refreshTime = time;
+
     if (callback) {
-      if (thisObject)
-        this._refreshCallback = function(source) callback.call(thisObject,
-                                                               source);
-      else
-        this._refreshCallback = callback;
+      this._refreshCallback =
+        thisObject ? function(source) callback.call(thisObject, source)
+                   : callback;
     }
 
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:start", this);
-    this._log.info("refreshing " + this.machineURI.spec);
 
     new Request({
       loadCallback:           new Callback(this.onRefreshLoad, this),
