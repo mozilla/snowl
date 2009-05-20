@@ -13,6 +13,7 @@ Cu.import("resource://snowl/modules/service.js");
 let server;
 let feed;
 let refreshTime = new Date();
+let feedURI = new URI("http://localhost:8080/feed.xml");
 
 function run_test() {
   server = new nsHttpServer();
@@ -22,16 +23,15 @@ function run_test() {
 
   do_test_pending();
 
-  Observers.add("snowl:subscribe:get:end", do_callback(finish_test));
-  feed = new SnowlFeed(null, null, new URI("http://localhost:8080/feed.xml"), undefined, null);
+  feed = new SnowlFeed(null, null, feedURI, undefined, null);
   do_check_eq(feed.id, null);
-  feed.refresh(refreshTime);
+  feed.refresh(refreshTime, do_callback(finish_test));
 }
 
 function check_feed(feed) {
   do_check_eq(feed.constructor.name, "SnowlFeed");
   do_check_eq(feed.name, "Example Feed");
-  do_check_eq(feed.machineURI.spec, "http://localhost:8080/feed.xml");
+  do_check_eq(feed.machineURI.spec, feedURI.spec);
   do_check_eq(feed.humanURI.spec, "http://example.org/");
   do_check_eq(feed.username, null);
   do_check_eq(feed.lastRefreshed.getTime(), refreshTime.getTime());
@@ -72,7 +72,7 @@ function check_feed(feed) {
   do_check_true(message.summary instanceof SnowlMessagePart);
   do_check_eq(message.summary.text, "Some text.");
   do_check_eq(message.summary.type, "text");
-  do_check_eq(message.summary.base.spec, "http://localhost:8080/feed.xml");
+  do_check_eq(message.summary.base.spec, feedURI.spec);
   do_check_eq(message.summary.lang, null);
 }
 
@@ -95,7 +95,7 @@ function finish_test() {
     do_check_eq(account.id.constructor.name, "Number");
     do_check_eq(account.constructor.name, "SnowlFeed");
     do_check_eq(account.name, "Example Feed");
-    do_check_eq(account.machineURI.spec, "http://localhost:8080/feed.xml");
+    do_check_eq(account.machineURI.spec, feedURI.spec);
     do_check_eq(account.humanURI.spec, "http://example.org/");
     do_check_eq(account.username, null);
     // TODO: separate retrieval from storage of this value.
@@ -125,7 +125,7 @@ function finish_test() {
     do_check_true(message.summary instanceof SnowlMessagePart);
     do_check_eq(message.summary.text, "Some text.");
     do_check_eq(message.summary.type, "text");
-    do_check_eq(message.summary.base.spec, "http://localhost:8080/feed.xml");
+    do_check_eq(message.summary.base.spec, feedURI.spec);
     do_check_eq(message.summary.lang, null);
   }
   finally {

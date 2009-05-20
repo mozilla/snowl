@@ -191,16 +191,29 @@ SnowlFeed.prototype = {
   /**
    * Refresh the feed, retrieving the latest information in it.
    *
-   * @param time      {Date}
+   * @param time        {Date}
    *        The time the refresh was initiated; determines new messages'
    *        received time.  We let the caller specify this so a caller
    *        refreshing multiple feeds can give their messages the same
    *        received time.
-   * @param callback  {Function}
+   * @param callback    {Function}
+   *        a function to call when the refresh is complete
+   * @param thisObject  {Object}    [optional]
+   *        the object to set to |this| within the callback function;
+   *        causes the function to be called as a method of this object;
+   *        if you don't provide a value for this parameter, the function
+   *        will be called without reference to an object, and |this|
+   *        will be set to the global object within the callback function
    */
-  refresh: function(time, callback) {
+  refresh: function(time, callback, thisObject) {
     this._refreshTime = time;
-    this._refreshCallback = callback;
+    if (callback) {
+      if (thisObject)
+        this._refreshCallback = function(source) callback.call(thisObject,
+                                                               source);
+      else
+        this._refreshCallback = callback;
+    }
 
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:start", this);
@@ -286,6 +299,8 @@ SnowlFeed.prototype = {
 
     if (this._subscribeCallback)
       this._subscribeCallback();
+    if (this._refreshCallback)
+      this._refreshCallback();
   },
 
   onRefreshResult: strand(function(result) {
@@ -300,6 +315,8 @@ SnowlFeed.prototype = {
       Observers.notify("snowl:subscribe:connect:end", this, "result.doc is null");
       if (this._subscribeCallback)
         this._subscribeCallback();
+      if (this._refreshCallback)
+        this._refreshCallback();
       return;
     }
 
@@ -330,11 +347,15 @@ SnowlFeed.prototype = {
     finally {
       if (this._subscribeCallback)
         this._subscribeCallback();
+
+      if (this._refreshCallback)
+        this._refreshCallback();
     }
   }),
 
   _resetRefresh: function() {
     this._refreshTime = null;
+    this._refreshCallback = null;
   },
 
 
