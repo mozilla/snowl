@@ -508,9 +508,12 @@ SnowlTwitter.prototype = {
       this._saveLogin(this._authInfo);
     }
 
-    this._processRefresh(request.responseText, this._refreshTime);
+    let items = JSON.parse(request.responseText);
+    this.messages = this._processItems(items, this._refreshTime);
 
     this._resetRefresh();
+
+    Observers.notify("snowl:subscribe:get:end", this);
   },
 
   onRefreshError: function(event) {
@@ -523,6 +526,54 @@ SnowlTwitter.prototype = {
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
 
     this._resetRefresh();
+  },
+
+
+  //**************************************************************************//
+  // Processing
+
+  /**
+   * Process an array of items (from the server) into an array of messages.
+   *
+   * @param items     {Array}   the items to process
+   * @param received  {Date}    when the items were received
+   */
+  _processItems: function(items, received) {
+    let messages = [];
+
+    for each (let item in items) {
+      let externalID;
+      try {
+        externalID = item.id;
+        let message = this._processItem(item, received);
+        messages.push(message);
+      }
+      catch(ex) {
+        this._log.error("couldn't process item " + externalID + ": " + ex);
+      }
+    }
+
+    return messages;
+  },
+
+  _processItem: function(item, received) {
+    let message = new SnowlMessage();
+
+    message.sourceID = this.id;
+    message.externalID = item.id;
+    message.timestamp = new Date(item.created_at);
+    message.received = received;
+    message.author = new SnowlIdentity(null, this.id, item.user.id);
+    message.author.person = new SnowlPerson(null, item.user.screen_name, null, item.user.url, item.user.profile_image_url);
+
+    message.content =
+      new SnowlMessagePart({
+        partType:    PART_TYPE_CONTENT,
+        content:     item.text,
+        mediaType:   "text/plain"
+      });
+
+    return message;
   },
 
   _processRefresh: strand(function(responseText, refreshTime) {
@@ -758,6 +809,8 @@ SnowlTwitter.prototype = {
   }
 };
 
+Mixins.mix(SnowlSource).into(SnowlTwitter);
 Mixins.mix(SnowlSource.prototype).into(SnowlTwitter.prototype);
+Mixins.mix(SnowlTarget).into(SnowlTwitter);
 Mixins.mix(SnowlTarget.prototype).into(SnowlTwitter.prototype);
 SnowlService.addAccountType(SnowlTwitter);
