@@ -282,8 +282,6 @@ SnowlFeed.prototype = {
       }
     };
     parser.parseFromString(request.responseText, request.channel.URI);
-
-    this._resetRefresh();
   },
 
   onRefreshError: function(event) {
@@ -298,12 +296,12 @@ SnowlFeed.prototype = {
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
-    this._resetRefresh();
-
     if (this._subscribeCallback)
       this._subscribeCallback();
     if (this._refreshCallback)
       this._refreshCallback();
+
+    this._resetRefresh();
   },
 
   onRefreshResult: strand(function(result) {

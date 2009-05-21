@@ -206,26 +206,69 @@ SnowlMessage.prototype = {
     // support nested transactions, and we get called from the message source's
     // persist method, which calls us from within a transaction.
 
+    let added = false;
+
     this.author.persist();
 
-    this._stmtInsertMessage.params.sourceID   = this.sourceID;
-    this._stmtInsertMessage.params.externalID = this.externalID;
-    this._stmtInsertMessage.params.subject    = this.subject;
-    this._stmtInsertMessage.params.authorID   = this.author.id;
-    this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
-    this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
-    this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
-    this._stmtInsertMessage.params.read       = this.read;
-    this._stmtInsertMessage.execute();
+    if (!this.id)
+      this.id = this._getInternalID();
 
-    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    if (this.id) {
+      // FIXME: update the existing record as appropriate.
+    }
+    else {
+      added = true;
+
+      this._stmtInsertMessage.params.sourceID   = this.sourceID;
+      this._stmtInsertMessage.params.externalID = this.externalID;
+      this._stmtInsertMessage.params.subject    = this.subject;
+      this._stmtInsertMessage.params.authorID   = this.author.id;
+      this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+      this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
+      this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
+      this._stmtInsertMessage.params.read       = this.read;
+      this._stmtInsertMessage.execute();
+  
+      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    }
 
     if (this.content)
       this.content.persist(this);
     if (this.summary)
       this.summary.persist(this);
 
-    return this.id;
+    return added;
+  },
+
+  get _getInternalIDStmt() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
+    );
+    this.__defineGetter__("_getInternalIDStmt", function() statement);
+    return this._getInternalIDStmt;
+  },
+
+  /**
+   * Get the internal ID of the message.
+   *
+   * @returns  {Number}
+   *           the internal ID of the message, or undefined if the message
+   *           doesn't exist in the datastore
+   */
+  _getInternalID: function() {
+    let internalID;
+
+    try {
+      this._getInternalIDStmt.params.sourceID = this.source.id;
+      this._getInternalIDStmt.params.externalID = this.externalID;
+      if (this._getInternalIDStmt.step())
+        internalID = this._getInternalIDStmt.row["id"];
+    }
+    finally {
+      this._getInternalIDStmt.reset();
+    }
+
+    return internalID;
   }
 
 };

@@ -25,7 +25,7 @@ function run_test() {
 
   feed = new SnowlFeed(null, null, feedURI, undefined, null);
   do_check_eq(feed.id, null);
-  feed.refresh(refreshTime, do_callback(finish_test));
+  feed.refresh(refreshTime, do_callback(continue_test));
 }
 
 function check_feed(feed) {
@@ -76,7 +76,7 @@ function check_feed(feed) {
   do_check_eq(message.summary.lang, null);
 }
 
-function finish_test() {
+function continue_test() {
   let id = feed.persist();
   do_check_eq(id, feed.id);
 
@@ -88,6 +88,19 @@ function finish_test() {
   check_feed(feed2);
   do_check_eq(feed2.id, feed.id);
   do_check_eq(feed2.placeID, feed.placeID);
+
+  // Persist the feed again and make sure everything stays the same.
+  feed.persist();
+  check_feed(feed);
+
+  // Refresh the feed again to make sure we don't create duplicate data
+  // on multiple refreshes.
+  feed.refresh(refreshTime, do_callback(finish_test));
+}
+
+function finish_test() {
+  feed.persist();
+  check_feed(feed);
 
   try {
     do_check_eq(SnowlService.accounts.length, 1);

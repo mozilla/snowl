@@ -318,13 +318,13 @@ SnowlSource.prototype = {
     if (this.id) {
       statement = SnowlDatastore.createStatement(
         "UPDATE sources " +
-        "SET      name = :name,         " +
-        "         type = :type,         " +
-        "   machineURI = :machineURI,   " +
-        "     humanURI = :humanURI,     " +
-        "     username = :username      " +
-        "lastRefreshed = :lastRefreshed " +
-        "   importance = :importance    " +
+        "SET      name = :name,          " +
+        "         type = :type,          " +
+        "   machineURI = :machineURI,    " +
+        "     humanURI = :humanURI,      " +
+        "     username = :username,      " +
+        "lastRefreshed = :lastRefreshed, " +
+        "   importance = :importance     " +
         "WHERE     id = :id"
       );
     }
@@ -343,7 +343,6 @@ SnowlSource.prototype = {
       statement.params.humanURI = this.humanURI.spec;
       statement.params.username = this.username;
       statement.params.lastRefreshed = this.lastRefreshed ? SnowlDateUtils.jsToJulianDate(this.lastRefreshed) : null;
-dump("importance: " + this.importance + "\n");
       statement.params.importance = this.importance;
       if (this.id)
         statement.params.id = this.id;
@@ -404,27 +403,20 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     let messagesChanged = false;
 
     for each (let message in this.messages) {
-      // Ignore the message if we've already added it.
-      let internalID = this._getInternalIDForExternalID(message.externalID);
-      if (internalID) {
-        currentMessageIDs.push(internalID);
-        continue;
-      }
-
-      // Persist the message.
-      messagesChanged = true;
       this._log.info("persisting message " + message.externalID);
+
+      let added = false;
       try {
-        message.persist();
+        added = message.persist();
       }
       catch(ex) {
         this._log.error("couldn't persist " + message.externalID + ": " + ex);
         continue;
       }
-
-      Observers.notify("snowl:message:added", message);
-
+      if (messagesChanged == false && added)
+        messagesChanged = true;
       currentMessageIDs.push(message.id);
+      Observers.notify("snowl:message:added", message);
 
       // Sleep for a bit to give other sources that are being refreshed
       // at the same time the opportunity to insert messages themselves,
@@ -448,40 +440,6 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     if (messagesChanged)
       Observers.notify("snowl:messages:changed", this.id);
   }),
-
-  get _stmtGetInternalIDForExternalID() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
-    );
-    this.__defineGetter__("_stmtGetInternalIDForExternalID", function() statement);
-    return this._stmtGetInternalIDForExternalID;
-  },
-
-  /**
-   * Get the internal ID of the message with the given external ID.
-   *
-   * @param    externalID   {String}
-   *           the external ID of the message
-   *
-   * @returns  {Number}
-   *           the internal ID of the message, or undefined if the message
-   *           doesn't exist
-   */
-  _getInternalIDForExternalID: function(externalID) {
-    let internalID;
-
-    try {
-      this._stmtGetInternalIDForExternalID.params.sourceID = this.id;
-      this._stmtGetInternalIDForExternalID.params.externalID = externalID;
-      if (this._stmtGetInternalIDForExternalID.step())
-        internalID = this._stmtGetInternalIDForExternalID.row["id"];
-    }
-    finally {
-      this._stmtGetInternalIDForExternalID.reset();
-    }
-
-    return internalID;
-  },
 
   /**
    * Add a message with a single part to the datastore.
