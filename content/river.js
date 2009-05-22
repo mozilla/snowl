@@ -43,6 +43,7 @@
 const Cu = Components.utils;
 
 // modules that are generic
+Cu.import("resource://snowl/modules/async.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -56,6 +57,8 @@ Cu.import("resource://snowl/modules/utils.js");
 const XML_NS = "http://www.w3.org/XML/1998/namespace";
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+Function.prototype.async = Async.sugar;
 
 let gBrowserWindow = SnowlService.gBrowserWindow;
 
@@ -400,7 +403,7 @@ let SnowlMessageView = {
     else
       this._collection.invalidate();
 
-    this._rebuildView();
+    this._rebuildView.async(this, function() {});
   },
 
   onCommandBodyButton: function() {
@@ -529,7 +532,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // not the message content matches the string.
     if (this._filter.value) {
       this._collection.invalidate();
-      this._rebuildView();
+      this._rebuildView.async(this, function() {});
       return;
     }
 
@@ -553,12 +556,12 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     this._updateURI();
     this._collection.clear();
     this._collection.constraints = null;
-    this._rebuildView();
+    this._rebuildView.async(this, function() {});
   },
 
   onMidnight: function() {
     this._setMidnightTimout();
-    this._rebuildView();
+    this._rebuildView.async(this, function() {});
   },
 
   doPageMove: function(direction) {
@@ -640,27 +643,9 @@ this._log.info("onMessageAdded: REFRESH RIVER");
   //**************************************************************************//
   // Content Generation
 
-  /**
-   * A JavaScript Strands Future with which we pause the rebuilding of the view
-   * for a bit after each message so as not to hork the UI thread.
-   */
-  _futureRebuildView: null,
+  _rebuildView: function() {
+    let self = yield;
 
-  /**
-   * Sleep the specified number of milliseconds before continuing at the point
-   * in the caller where this function was called.  For the most part, this is
-   * a generic sleep routine like the one provided by JavaScript Strands,
-   * but we store the Future this function creates in the _futureRebuildView
-   * property so we can interrupt it when rebuildView gets called again
-   * while it is currently running.
-   */
-  _sleepRebuildView: strand(function(millis) {
-    this._futureRebuildView = new Future();
-    setTimeout(this._futureRebuildView.fulfill, millis);
-    yield this._futureRebuildView.result();
-  }),
-
-  _rebuildView: strand(function() {
     let begin = new Date();
 
     // Reset the view by removing all its groups and messages.
@@ -668,13 +653,6 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // by setting innerHTML to an empty string?
     while (this._contentBox.hasChildNodes())
       this._contentBox.removeChild(this._contentBox.lastChild);
-
-    // Interrupt a strand currently rebuilding the view so we don't both try
-    // to rebuild the view at the same time.
-    // FIXME: figure out how to suppress the exception this throws to the error
-    // console, since this interruption is expected and normal behavior.
-    if (this._futureRebuildView)
-      this._futureRebuildView.interrupt();
 
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
     let groups = SnowlDateUtils.periods[period];
@@ -709,11 +687,11 @@ this._log.info("onMessageAdded: REFRESH RIVER");
 
       let messageBox = this._buildMessageBox(message);
       groupBoxes[groupIndex].appendChild(messageBox);
-      yield this._sleepRebuildView(this._rebuildViewTimeout);
+      yield setTimeout(self.cb, this._rebuildViewTimeout);
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
-  }),
+  },
 
   _buildMessageBox: function(message) {
     let messageBox = this._document.createElementNS(HTML_NS, "div");

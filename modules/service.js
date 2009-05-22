@@ -45,6 +45,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
+Cu.import("resource://snowl/modules/async.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/Preferences.js");
@@ -119,6 +120,10 @@ let SnowlService = {
 
     Observers.add("snowl:source:added", this.onSourcesChanged, this);
     Observers.add("snowl:source:removed", this.onSourcesChanged, this);
+
+    // Initialize the Async module, which needs to know how to log stuff.
+    Async.Log4Moz = Log4Moz;
+    Async.logLevel = Log4Moz.Level[this._prefs.get("log.logger.async.level")];
 
     // FIXME: refresh stale sources on startup in a way that doesn't hang
     // the UI thread.
