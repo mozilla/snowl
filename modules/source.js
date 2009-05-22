@@ -417,7 +417,6 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
       if (messagesChanged == false && added)
         messagesChanged = true;
       currentMessageIDs.push(message.id);
-      Observers.notify("snowl:message:added", message);
 
       // Sleep for a bit to give other sources that are being refreshed
       // at the same time the opportunity to insert messages themselves,

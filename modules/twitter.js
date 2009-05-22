@@ -485,7 +485,7 @@ SnowlTwitter.prototype = {
     message.sourceID = this.id;
     message.externalID = item.id;
     message.timestamp = new Date(item.created_at);
-    message.received = received;
+    message.received = received || new Date();
     message.author = new SnowlIdentity(null, this.id, item.user.id);
     message.author.person = new SnowlPerson(null, item.user.screen_name, null, item.user.url, item.user.profile_image_url);
 
@@ -497,43 +497,6 @@ SnowlTwitter.prototype = {
       });
 
     return message;
-  },
-
-  _addMessage: function(message, aReceived) {
-    let messageID;
-
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      // Get an existing identity or create a new one.  Creating an identity
-      // automatically creates a person record with the provided name.
-      let identity = SnowlIdentity.get(this.id, message.user.id) ||
-                     SnowlIdentity.create(this.id,
-                                          message.user.id,
-                                          message.user.screen_name,
-                                          message.user.url,
-                                          message.user.profile_image_url);
-      // FIXME: update the identity record with the latest info about the person.
-      //identity.updateProperties(this.machineURI, message.user);
-      let authorID = identity.personID;
-  
-      // Add the message.
-      messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
-                                        new Date(message.created_at), aReceived,
-                                        null);
-
-      // Add the message's content.
-      this.addPart(messageID, message.text, "text/plain");
-
-      SnowlDatastore.dbConnection.commitTransaction();
-    }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      this._log.error("couldn't add " + message.id + ": " + ex);
-    }
-
-    Observers.notify("snowl:message:added", SnowlMessage.retrieve(messageID));
-
-    return messageID;
   },
 
   // XXX Perhaps factor this out with the identical function in feed.js,
@@ -660,8 +623,9 @@ SnowlTwitter.prototype = {
 
   _processSend: function(responseText) {
     let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-    let message = JSON.decode(responseText);
-    this._addMessage(message, new Date());
+    let item = JSON.decode(responseText);
+    let message = this._processItem(item);
+    message.persist();
   },
 
   _resetSend: function() {

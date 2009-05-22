@@ -42,6 +42,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
+Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -237,6 +238,9 @@ SnowlMessage.prototype = {
       this.content.persist(this);
     if (this.summary)
       this.summary.persist(this);
+
+    if (added)
+      Observers.notify("snowl:message:added", this);
 
     return added;
   },
