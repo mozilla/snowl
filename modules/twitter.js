@@ -571,17 +571,17 @@ SnowlTwitter.prototype = {
    * @param received  {Date}    when the items were received
    */
   _processItems: function(items, received) {
+    this._log.trace("processing items");
+
     let messages = [];
 
     for each (let item in items) {
-      let externalID;
       try {
-        externalID = item.id;
         let message = this._processItem(item, received);
         messages.push(message);
       }
       catch(ex) {
-        this._log.error("couldn't process item " + externalID + ": " + ex);
+        this._log.error("couldn't process item " + item.id + ": " + ex);
       }
     }
 
@@ -589,6 +589,8 @@ SnowlTwitter.prototype = {
   },
 
   _processItem: function(item, received) {
+    this._log.trace("processing item " + item.id);
+
     let message = new SnowlMessage();
 
     message.sourceID = this.id;
