@@ -257,123 +257,6 @@ SnowlTwitter.prototype = {
 
 
   //**************************************************************************//
-  // Subscription
-
-  _subscribeCallback: null,
-
-  subscribe: function(credentials, callback) {
-    Observers.notify("snowl:subscribe:connect:start", this);
-
-    this._subscribeCallback = callback;
-
-    this.username = credentials.username;
-    this.name = NAME + " - " + this.username;
-
-    this._log.info("subscribing");
-
-    // credentials isn't a real nsIAuthInfo, but it's close enough for what
-    // we do with it, which is to retrieve the username and password from it
-    // and save them via the login manager if the user asked us to remember
-    // their credentials.
-    if (credentials.remember)
-      this._authInfo = credentials;
-
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    // Add load and error callbacks.
-    request.QueryInterface(Ci.nsIDOMEventTarget);
-    let t = this;
-    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
-
-    request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", this.machineURI.spec.replace("^(https?://)", "$1" + this.username + "@") +
-                        "/statuses/friends_timeline.json?count=200", true);
-    request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
-                                                              ":" +
-                                                              credentials.password));
-    request.channel.notificationCallbacks = this;
-    request.send(null);
-  },
-
-  onSubscribeLoad: strand(function(event) {
-    try {
-      let request = event.target;
-
-      this._log.trace("onSubscribeLoad: " + request.responseText);
-
-      // The load event can fire even with a non 2xx code, so handle as error
-      if (request.status < 200 || request.status > 299) {
-        this.onSubscribeError(event);
-        return;
-      }
-
-      // XXX What's the right way to handle this?
-      if (request.responseText.length == 0) {
-        this.onSubscribeError(event);
-        return;
-      }
-
-      Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-      // _authInfo only gets set if we prompted the user to authenticate
-      // and the user checked the "remember password" box.  Since we're here,
-      // it means the request succeeded, so we save the login.
-      if (this._authInfo)
-        this._saveLogin(this._authInfo);
-
-      // Save the source to the database.
-      this.persist();
-
-//      Observers.notify("snowl:sources:changed");
-
-      // FIXME: use a date provided by the subscriber so refresh times are the same
-      // for all accounts subscribed at the same time (f.e. in an OPML import).
-      yield this._processRefresh(request.responseText, new Date());
-    }
-    catch(ex) {
-      this._log.error("error on subscribe load: " + ex);
-    }
-    finally {
-      try {
-        if (this._subscribeCallback)
-          this._subscribeCallback();
-      }
-      finally {
-        this._resetSubscribe();
-      }
-    }
-  }),
-
-  onSubscribeError: function(event) {
-    let request = event.target;
-
-    // request.responseText should be: Could not authenticate you.
-    this._log.info("onSubscribeError: " + request.responseText);
-
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
-    let statusText;
-    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
-
-    this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-    try {
-      if (this._subscribeCallback)
-        this._subscribeCallback();
-    }
-    finally {
-      this._resetSubscribe();
-    }
-  },
-
-  _resetSubscribe: function() {
-    this._authInfo = null;
-    this._subscribeCallback = null;
-  },
-
-
-  //**************************************************************************//
   // Refreshment
 
   // FIXME: create a refresher object that encapsulates the functionality
@@ -560,6 +443,12 @@ SnowlTwitter.prototype = {
     this._resetRefresh();
   },
 
+  _resetRefresh: function() {
+    this._refreshTime = null;
+    this._refreshCallback = null;
+    this._authInfo = null;
+  },
+
 
   //**************************************************************************//
   // Processing
@@ -608,68 +497,6 @@ SnowlTwitter.prototype = {
       });
 
     return message;
-  },
-
-  _processRefresh: strand(function(responseText, refreshTime) {
-    //this._log.debug("_processRefresh: this.name = " + this.name + "; responseText = " + responseText);
-
-    // FIXME: make this work in Firefox 3.0 using the same technique as Personas.
-    let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-
-    let messages = JSON.decode(responseText);
-
-    // Sort the messages by date.
-    // We do this before adding them to the datastore so that we add them
-    // from oldest to newest, which makes them display in that order in views
-    // that display messages by the order in which they are received.
-    messages.sort(function(a, b) new Date(a.created_at) < new Date(b.created_at) ? -1 :
-                                 new Date(a.created_at) > new Date(b.created_at) ?  1 : 0);
-
-    let currentMessageIDs = [];
-    let messagesChanged = false;
-
-    for each (let message in messages) {
-      // Ignore the message if we've already added it.
-      let externalID = message.id;
-      let internalID = this._getInternalIDForExternalID(externalID);
-      if (internalID) {
-        currentMessageIDs.push(internalID);
-        continue;
-      }
-
-      // Add the message.
-      messagesChanged = true;
-      this._log.info(this.name + " adding message " + externalID);
-      internalID = this._addMessage(message, refreshTime);
-      currentMessageIDs.push(internalID);
-
-      // Sleep for a bit to give other sources that are being refreshed
-      // at the same time the opportunity to insert messages themselves,
-      // so the messages appear mixed together in views that display messages
-      // by the order in which they are received, which is more pleasing
-      // than if the messages were clumped together by source.
-      // As a side effect, this might reduce horkage of the UI thread
-      // during refreshes.
-      yield sleep(50);
-    }
-
-    // Update the current flag.
-    this.updateCurrentMessages(currentMessageIDs);
-
-    // Notify list and collections views on completion of messages download, list
-    // also notified of each message addition.
-    if (messagesChanged)
-      Observers.notify("snowl:messages:changed", this.id);
-
-    // FIXME: if we added people, refresh the collections view too.
-
-    Observers.notify("snowl:subscribe:get:end", this);
-  }),
-
-  _resetRefresh: function() {
-    this._refreshTime = null;
-    this._refreshCallback = null;
-    this._authInfo = null;
   },
 
   _addMessage: function(message, aReceived) {
