@@ -251,7 +251,19 @@ let Subscriber = {
   subscribeTwitter: strand(function(name, credentials, callback) {
     this._log.info("subscribing to Twitter account " + name + " with username " + credentials.username);
 
+    // FIXME: pass name and credentials to the SnowlTwitter constructor
+    // and make it be responsible for constructing the name from the username
+    // if necessary and setting up the credentials.
+    if (!name)
+      name = "Twitter - " + credentials.username;
     this.account = new SnowlTwitter(null, name);
+    this.account.username = credentials.username;
+    // credentials isn't a real nsIAuthInfo, but it's close enough for what
+    // we do with it, which is to retrieve the username and password from it
+    // and save them via the login manager if the user asked us to remember
+    // their credentials.
+    if (credentials.remember)
+      this.account._authInfo = credentials;
 
     if (!credentials.username) {
       this._log.info("can't subscribe to Twitter account " + name + ": no username");
@@ -269,8 +281,9 @@ let Subscriber = {
     }
 
     let future = new Future();
-    this.account.subscribe(credentials, future.fulfill);
+    this.account.refresh(null, future.fulfill);
     yield future.result();
+    this.account.persist();
 
     this.account = null;
 
