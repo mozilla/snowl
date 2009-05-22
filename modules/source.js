@@ -354,7 +354,8 @@ SnowlSource.prototype = {
         // Update messages and their authors to include the source ID.
         for each (let message in this.messages) {
           message.sourceID = this.id;
-          message.author.sourceID = this.id;
+          if (message.author)
+            message.author.sourceID = this.id;
         }
 
         // Create places record

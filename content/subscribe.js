@@ -307,8 +307,9 @@ let Subscriber = {
     }
 
     let future = new Future();
-    this.account.subscribe(future.fulfill);
+    this.account.refresh(null, future.fulfill);
     yield future.result();
+    this.account.persist();
 
     this.account = null;
 
