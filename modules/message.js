@@ -208,7 +208,8 @@ SnowlMessage.prototype = {
 
     let added = false;
 
-    this.author.persist();
+    if (this.author)
+      this.author.persist();
 
     if (!this.id)
       this.id = this._getInternalID();
@@ -222,7 +223,7 @@ SnowlMessage.prototype = {
       this._stmtInsertMessage.params.sourceID   = this.sourceID;
       this._stmtInsertMessage.params.externalID = this.externalID;
       this._stmtInsertMessage.params.subject    = this.subject;
-      this._stmtInsertMessage.params.authorID   = this.author.id;
+      this._stmtInsertMessage.params.authorID   = this.author ? this.author.id : null;
       this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
       this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
       this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
