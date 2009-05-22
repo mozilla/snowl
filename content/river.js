@@ -710,7 +710,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
 
     // Author and/or Source
     if (message.authorName)
-      bylineBox.appendChild(this._document.createTextNode(message.author));
+      bylineBox.appendChild(this._document.createTextNode(message.authorName));
     if (message.source) {
       if (message.authorName)
         bylineBox.appendChild(this._document.createTextNode(" - "));
