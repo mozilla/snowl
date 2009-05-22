@@ -299,7 +299,7 @@ SnowlFeed.prototype = {
     if (this._subscribeCallback)
       this._subscribeCallback();
     if (this._refreshCallback)
-      this._refreshCallback();
+      this._refreshCallback(this);
 
     this._resetRefresh();
   },
@@ -317,7 +317,7 @@ SnowlFeed.prototype = {
       if (this._subscribeCallback)
         this._subscribeCallback();
       if (this._refreshCallback)
-        this._refreshCallback();
+        this._refreshCallback(this);
       return;
     }
 
@@ -350,7 +350,7 @@ SnowlFeed.prototype = {
         this._subscribeCallback();
 
       if (this._refreshCallback)
-        this._refreshCallback();
+        this._refreshCallback(this);
     }
   }),
 

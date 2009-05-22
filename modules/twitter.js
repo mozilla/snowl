@@ -538,7 +538,7 @@ SnowlTwitter.prototype = {
     this.messages = this._processItems(items, this._refreshTime);
 
     if (this._refreshCallback)
-      this._refreshCallback();
+      this._refreshCallback(this);
 
     this._resetRefresh();
 
@@ -555,7 +555,7 @@ SnowlTwitter.prototype = {
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
 
     if (this._refreshCallback)
-      this._refreshCallback();
+      this._refreshCallback(this);
 
     this._resetRefresh();
   },
