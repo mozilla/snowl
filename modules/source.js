@@ -481,6 +481,25 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
         // It isn't a type we understand, so don't do anything with it.
         // XXX If it's text/*, shouldn't we fulltext index it anyway?
     }
+  },
+
+  /**
+   * Update the current flag for messages in a source, after a refresh.
+   * If message's current flag = 1 set to 0, then set current flag for messages
+   * in the current refresh list to 1.
+   *
+   * @param aCurrentMessageIDs  {array} messages table ids of the current list
+   */
+  updateCurrentMessages: function(aCurrentMessageIDs) {
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE messages SET current =  0" +
+      " WHERE sourceID = " + this.id + " AND current = 1"
+    );
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE messages SET current = 1" +
+      " WHERE sourceID = " + this.id + " AND id IN " +
+      "(" + aCurrentMessageIDs.join(", ") + ")"
+    );
   }
 
 };

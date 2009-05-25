@@ -335,11 +335,7 @@ SnowlFeed.prototype = {
     }
 
     // Update the current flag.
-    SnowlDatastore.dbConnection.executeSimpleSQL(
-      "UPDATE messages SET current = (CASE WHEN id IN " +
-      "(" + currentMessageIDs.join(", ") + ")" +
-      " THEN 1 ELSE 0 END) WHERE sourceID = " + this.id
-    );
+    this.updateCurrentMessages(currentMessageIDs);
 
     // Notify list and collections views on completion of messages download, list
     // also notified of each message addition.

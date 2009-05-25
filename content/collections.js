@@ -478,7 +478,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     for (let i=0; i < selectedNodes.length && !all; i++) {
       // Create places query object from tree item uri
       query = new SnowlQuery(selectedNodes[i].uri);
-      if (query.queryFolder == SnowlPlaces.collectionsAllID ||
+      if (query.queryFolder == SnowlPlaces.collectionsSystemID ||
           query.queryFolder == SnowlPlaces.collectionsSourcesID ||
           query.queryFolder == SnowlPlaces.collectionsAuthorsID) {
         all = true;
@@ -937,7 +937,8 @@ this._log.info("_buildCollectionTree: Convert to Places: START");
             break;
         }
         for each (let group in collection.groups) {
-//this._log.info(table+" group.name:group.groupID - " + group.name + " : " + group.groupID);
+//this._log.info(table+" group.name:group.groupID - " + 
+//  group.name + " : " + group.groupID);
           if (table == "sources") {
             value = group.groupID;
             machineURI = SnowlService.sourcesByID[group.groupID].machineURI;
@@ -965,8 +966,8 @@ this._log.info("_buildCollectionTree: Convert to Places: START");
           gMessageViewWindow.XULBrowserWindow.
                              setOverLink("Converted to Places: " +
                                          table + " - " + group.name);
-this._log.info("Converted to places - " +
-  group.name + " : " + group.groupID + " : " + placeID);
+//this._log.info("Converted to places - " +
+//  group.name + " : " + group.groupID + " : " + placeID);
 
           yield sleep(10);
         }

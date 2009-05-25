@@ -1242,12 +1242,19 @@ this._log.info("buildNameItemMap: " + queryName + " - " + items[i]);
     return map;
   },
 
-  // Check for snowl Places structure and create if not found
+  // Init snowl Places structure, delay to allow logger to set up.
   init: function() {
-    // Only do once for session
+    // Only do once for session.
     if (this._placesInitialized)
       return;
 
+    let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let callback = { notify: function(aTimer) { SnowlPlaces.delayedInit() } };
+    timer.initWithCallback(callback, 10, Ci.nsITimer.TYPE_ONE_SHOT);
+  },
+
+  // Check for snowl Places structure and create if not found.
+  delayedInit: function() {
     let items, itemID, collsysID, colluserID;
     let snowlPlacesRoot = -1;
     items = PlacesUtils.annotations

@@ -206,8 +206,8 @@ let SnowlMessageView = {
   onMessageAdded: function(message) {
     // Refresh list view on each new message, if collection selected.
 //this._log.info("onMessageAdded: REFRESH LIST");
-      this._collection.invalidate();
-      this._rebuildView();
+    this._collection.messages.push(message);
+    this._rebuildView();
   },
 
   onFilter: function(aFilters) {

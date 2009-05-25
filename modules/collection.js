@@ -137,7 +137,7 @@ SnowlCollection.prototype = {
                            parameters: { groupValue: statement.row.name } });
 
         let group = new SnowlCollection(null, name, iconURL, constraints, this);
-this._log.info("got group name: " + group.name);
+//this._log.info("got group name: " + group.name);
 
         if (this.groupIDColumn)
           group.groupID = statement.row.groupID;
