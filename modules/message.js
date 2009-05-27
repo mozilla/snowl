@@ -110,6 +110,12 @@ SnowlMessage.prototype = {
   timestamp: null,
   received: null,
   read: false,
+  // FIXME: we don't need to set sourceID if we always set source,
+  // so figure out if that's the case and update this code accordingly.
+  sourceID: null,
+  // FIXME: make sure there aren't any consumers that expect us to provide this
+  // automatically from the persistent datastore, which we used to do.
+  source: null,
 
   /**
    * The content of the message.  If undefined, we haven't retrieved it from
@@ -180,10 +186,6 @@ SnowlMessage.prototype = {
     }
 
     return part;
-  },
-
-  get source() {
-    return SnowlService.sourcesByID[this.sourceID];
   },
 
   get _stmtInsertMessage() {

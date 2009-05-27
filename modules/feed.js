@@ -378,8 +378,9 @@ SnowlFeed.prototype = {
       // Figure out the ID for the entry, then check if the entry has already
       // been retrieved.  If the entry doesn't provide its own ID, we generate
       // one for it based on its content.
+      let externalID;
       try {
-        let externalID = entry.id || this._generateID(entry);
+        externalID = entry.id || this._generateID(entry);
         let message = this._processEntry(feed, entry, externalID, received);
         messages.push(message);
       }
@@ -402,6 +403,9 @@ SnowlFeed.prototype = {
   _processEntry: function(aFeed, aEntry, aExternalID, aReceived) {
     let message = new SnowlMessage();
 
+    // FIXME: we don't need to set sourceID if we always set source,
+    // so figure out if that's the case and update this code accordingly.
+    message.source = this;
     message.sourceID = this.id;
     message.externalID = aExternalID;
     message.subject = aEntry.title.text;

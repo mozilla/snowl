@@ -374,6 +374,17 @@ let SnowlMessageView = {
     if (CollectionsView.itemIds != -1) {
       CollectionsView._tree.restoreSelection();
     }
+
+    if ("feed" in this._params) {
+      let title = "title" in this._params ? this._params.title : null;
+      let feed = new SnowlFeed(null, null, new URI(this._params.feed), undefined, null);
+      feed.refresh(null, this.onFeedRefresh, this);
+    }
+  },
+
+  onFeedRefresh: function(feed) {
+    this._collection = feed;
+    this._rebuildView.async(this, function() {});
   },
 
   onFilter: function() {
