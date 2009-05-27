@@ -36,14 +36,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!-- Places overlays need to be done here so that overrides may be done
-   - in any code defined in collections.xul -->
 <?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
-<?xml-stylesheet href="chrome://browser/content/places/places.css"?>
-<?xml-stylesheet href="chrome://browser/skin/places/places.css"?>
-<?xul-overlay    href="chrome://global/content/editMenuOverlay.xul"?>
-<?xul-overlay    href="chrome://browser/content/places/placesOverlay.xul"?>
-
 <?xml-stylesheet href="chrome://snowl/content/river.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/riverContent.css" type="text/css"?>
 <?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
@@ -52,7 +45,6 @@
    - chrome.manifest instructions because manifest instructions require us
    - to specify the exact URL to overlay, and our URL changes based on
    - query parameters that get set in response to user searches. -->
-<?xul-overlay href="chrome://snowl/content/collections.xul"?>
 <?xul-overlay href="chrome://snowl/content/write.xul"?>
 
 <!-- toolbar.dtd gives us writeButton.tooltip -->
@@ -70,15 +62,6 @@
       xmlns:html="http://www.w3.org/1999/xhtml"
       title="&page.title;"
       onload="SnowlMessageView.onLoad()">
-
-  <!-- Note: this is for implementation of Places functions in the collections
-     - view within a page -->
-  <script type="application/x-javascript"
-          src="chrome://browser/content/bookmarks/sidebarUtils.js"/>
-
-  <commandset id="placesCommands"/>
-  <commandset id="editMenuCommands"/>
-  <popup id="placesContext"/>
 
   <!-- Note: the page intentionally has no onunload handler, as onunload
      - would suppress the bfcache, which would cause Firefox to reload the view
