@@ -40,16 +40,21 @@
 // FIXME: remove this import of XPCOMUtils, as it is no longer being used.
 //Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
@@ -366,8 +371,23 @@ let SnowlMessageView = {
       CollectionsView.itemIds = this._params.collection;
     }
 
+    // FIXME: make this work with the new architecture.
     // Restore saved selection
 //this._log.info("_updateToolbar: itemIds = "+CollectionsView.itemIds);
+    //if (CollectionsView.itemIds != -1) {
+    //  CollectionsView._tree.restoreSelection();
+    //}
+
+    if ("feed" in this._params) {
+      let title = "title" in this._params ? this._params.title : null;
+      let feed = new SnowlFeed(null, null, new URI(this._params.feed), undefined, null);
+      feed.refresh(null, this.onFeedRefresh, this);
+    }
+  },
+
+  onFeedRefresh: function(feed) {
+    this._collection = feed;
+    this._rebuildView(this);
     if (CollectionsView.itemIds != -1) {
       CollectionsView._tree.restoreSelection();
     }
@@ -394,13 +414,14 @@ let SnowlMessageView = {
 
     this._collection.filters = filters;
 
-    if (CollectionsView.itemIds == -1)
-      // No selection, don't show anything
-      this._collection.clear();
-    else
-      this._collection.invalidate();
+    // FIXME: make this work with the new architecture.
+    //if (CollectionsView.itemIds == -1)
+    //  // No selection, don't show anything
+    //  this._collection.clear();
+    //else
+    //  this._collection.invalidate();
 
-    this._rebuildView();
+    this._rebuildView(this);
   },
 
   onCommandBodyButton: function() {
@@ -457,8 +478,9 @@ let SnowlMessageView = {
     if (this._columnsButton.checked)
       params.push("columns");
 
-    if (CollectionsView.itemIds && CollectionsView.itemIds != -1)
-      params.push("collection=" + CollectionsView.itemIds)
+    // FIXME: make this work with the new architecture.
+    //if (CollectionsView.itemIds && CollectionsView.itemIds != -1)
+    //  params.push("collection=" + CollectionsView.itemIds)
 
     if (this._filter.value)
       params.push("filter=" + encodeURIComponent(this._filter.value));
@@ -529,7 +551,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // not the message content matches the string.
     if (this._filter.value) {
       this._collection.invalidate();
-      this._rebuildView();
+      this._rebuildView(this);
       return;
     }
 
@@ -553,12 +575,12 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     this._updateURI();
     this._collection.clear();
     this._collection.constraints = null;
-    this._rebuildView();
+    this._rebuildView(this);
   },
 
   onMidnight: function() {
     this._setMidnightTimout();
-    this._rebuildView();
+    this._rebuildView(this);
   },
 
   doPageMove: function(direction) {
@@ -640,27 +662,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
   //**************************************************************************//
   // Content Generation
 
-  /**
-   * A JavaScript Strands Future with which we pause the rebuilding of the view
-   * for a bit after each message so as not to hork the UI thread.
-   */
-  _futureRebuildView: null,
-
-  /**
-   * Sleep the specified number of milliseconds before continuing at the point
-   * in the caller where this function was called.  For the most part, this is
-   * a generic sleep routine like the one provided by JavaScript Strands,
-   * but we store the Future this function creates in the _futureRebuildView
-   * property so we can interrupt it when rebuildView gets called again
-   * while it is currently running.
-   */
-  _sleepRebuildView: strand(function(millis) {
-    this._futureRebuildView = new Future();
-    setTimeout(this._futureRebuildView.fulfill, millis);
-    yield this._futureRebuildView.result();
-  }),
-
-  _rebuildView: strand(function() {
+  _rebuildView: function() {
     let begin = new Date();
 
     // Reset the view by removing all its groups and messages.
@@ -668,13 +670,6 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // by setting innerHTML to an empty string?
     while (this._contentBox.hasChildNodes())
       this._contentBox.removeChild(this._contentBox.lastChild);
-
-    // Interrupt a strand currently rebuilding the view so we don't both try
-    // to rebuild the view at the same time.
-    // FIXME: figure out how to suppress the exception this throws to the error
-    // console, since this interruption is expected and normal behavior.
-    if (this._futureRebuildView)
-      this._futureRebuildView.interrupt();
 
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
     let groups = SnowlDateUtils.periods[period];
@@ -709,11 +704,16 @@ this._log.info("onMessageAdded: REFRESH RIVER");
 
       let messageBox = this._buildMessageBox(message);
       groupBoxes[groupIndex].appendChild(messageBox);
-      yield this._sleepRebuildView(this._rebuildViewTimeout);
+      try {
+        Sync.sleep(this._rebuildViewTimeout);
+      }
+      catch(ex) {
+        alert(ex);
+      }
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
-  }),
+  },
 
   _buildMessageBox: function(message) {
     let messageBox = this._document.createElementNS(HTML_NS, "div");
@@ -731,10 +731,10 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     bylineBox.className = "byline";
 
     // Author and/or Source
-    if (message.author.name)
-      bylineBox.appendChild(this._document.createTextNode(message.author.name));
+    if (message.authorName)
+      bylineBox.appendChild(this._document.createTextNode(message.authorName));
     if (message.source) {
-      if (message.author.name)
+      if (message.authorName)
         bylineBox.appendChild(this._document.createTextNode(" - "));
       bylineBox.appendChild(this._document.createTextNode(message.source.name));
     }
