@@ -89,7 +89,7 @@ function setTimeout(func, delay) {
 }
 
 function sleep(callback, milliseconds) {
-  setTimeout(function() callback(), milliseconds);
+  setTimeout(callback, milliseconds);
 }
 
 Function.prototype.sync = sync;
