@@ -151,10 +151,6 @@
       <vbox id="writeForm"/>
 
       <toolbar id="snowlToolbar">
-        <toolbarbutton id="snowlSubscribeButton"
-                       class="tabbable"
-                       oncommand="CollectionsView.onSubscribe()"
-                       tooltiptext="&subscribeButton.tooltip;"/>
         <toolbarbutton id="snowlRefreshButton"
                        class="tabbable"
                        oncommand="CollectionsView.onRefresh()"
