@@ -148,8 +148,6 @@
     <splitter/>
 
     <vbox style="width: 200px;">
-      <vbox id="collectionsViewBox"/>
-
       <vbox id="writeForm"/>
 
       <toolbar id="snowlToolbar">
