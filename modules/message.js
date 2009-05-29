@@ -99,6 +99,9 @@ SnowlMessage.retrieve = function(id) {
     statement.reset();
   }
 
+  this.summary = this._getPart(PART_TYPE_SUMMARY);
+  this.content = this._getPart(PART_TYPE_CONTENT);
+
   return message;
 };
 
@@ -119,34 +122,8 @@ SnowlMessage.prototype = {
   // FIXME: make sure there aren't any consumers that expect us to provide this
   // automatically from the persistent datastore, which we used to do.
   source: null,
-
-  /**
-   * The content of the message.  If undefined, we haven't retrieved it from
-   * the datastore.  If null, on the other hand, the message has no content.
-   */
-  _content: undefined,
-  get content() {
-    if (typeof this._content == "undefined")
-      this._content = this._getPart(PART_TYPE_CONTENT);
-    return this._content;
-  },
-  set content(newValue) {
-    this._content = newValue;
-  },
-
-  /**
-   * The summary of the message.  If undefined, we haven't retrieved it from
-   * the datastore.  If null, on the other hand, the message has no summary.
-   */
-  _summary: undefined,
-  get summary() {
-    if (typeof this._summary == "undefined")
-      this._summary = this._getPart(PART_TYPE_SUMMARY);
-    return this._summary;
-  },
-  set summary(newValue) {
-    this._summary = newValue;
-  },
+  summary: null,
+  content: null,
 
   get excerpt() {
     let construct = this.content || this.summary;
