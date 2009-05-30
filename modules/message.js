@@ -196,6 +196,62 @@ SnowlMessage.prototype = {
     return part;
   },
 
+  get _getAttributesStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT attributeID, value" +
+      " FROM metadata" +
+      " WHERE messageID = :messageID"
+    );
+    this.__defineGetter__("_getAttributesStatement", function() { return statement });
+    return this._getAttributesStatement;
+  },
+
+  _attributes: {},
+  get attributes() {
+    let attributeID, namespace, name, attributes = {};
+
+    try {
+      this._getAttributesStatement.params.messageID = this.id;
+      while (this._getAttributesStatement.step()) {
+        attributeID = this._getAttributesStatement.row.attributeID;
+        [namespace, name] = this.attributeName(attributeID);
+        attributes[name] = this._getAttributesStatement.row.value;
+      }
+    }
+    finally {
+      this._getAttributesStatement.reset();
+    }
+
+    return this._attributes = attributes;
+  },
+
+  get _getAttributeNameStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT namespace, name" +
+      " FROM attributes" +
+      " WHERE id = :id"
+    );
+    this.__defineGetter__("_getAttributeNameStatement", function() { return statement });
+    return this._getAttributeNameStatement;
+  },
+
+  attributeName: function(aAttributeID) {
+    let namespace, name;
+
+    try {
+      this._getAttributeNameStatement.params.id = aAttributeID;
+      if (this._getAttributeNameStatement.step()) {
+        namespace = this._getAttributeNameStatement.row.namespace;
+        name = this._getAttributeNameStatement.row.name;
+      }
+    }
+    finally {
+      this._getAttributeNameStatement.reset();
+    }
+
+    return [namespace, name];
+  },
+
   get source() {
     return SnowlService.sourcesByID[this.sourceID];
   }

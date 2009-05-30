@@ -85,8 +85,9 @@
                  autoCheck="false"
                  type="checkbox"
                  checked="true"
-                 rows="80,*"
-                 persist="checked headerIndex rows"
+                 rowsBasic="56,*"
+                 rowsFull="130,*"
+                 persist="checked headerIndex rowsBasic rowsFull"
                  headerIndex="1"
                  oncommand="Snowl.onSetHeader(event)"/>
   </broadcasterset>

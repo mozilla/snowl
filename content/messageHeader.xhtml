@@ -66,7 +66,7 @@
         onpageshow="messageHeaderUtils.init();">
     <table id="headerDeck">
       <tr id="briefHeaderRow">
-        <td class="headerButtons" valign="top" rowspan="3">
+        <td class="headerButtons" valign="top" rowspan="2">
           <xul:toolbarbutton id="pinButton"
                              class="toolbarbutton-1"
                              type="checkbox"
@@ -87,37 +87,48 @@
                              tooltiptext="&toggleHeader.tooltip;"/>
         </td>
 <!-- -->
-        <td class="headerLabel briefHeader" align="right">&subject.label;</td>
-        <td class="headerData briefHeader"><a id="briefSubject"/></td>
+        <td class="headerLabel headerLabelSubject" align="right">&subject.label;</td>
+        <td class="headerData headerDataSubject"><a id="subject"/></td>
         <td class="briefHeader flexer"/>
 
         <td class="headerLabel briefHeader">&author.label;</td>
-        <td id="baTD" class="briefHeader">
+        <td class="briefHeader">
           <xul:description id="briefAuthor" crop="end" class="headerData"/>
         </td>
         <td class="briefHeader flexer"/>
 
         <td class="headerLabel briefHeader">&timestamp.label;</td>
         <td id="briefTimestamp" class="headerData headerDataLast briefHeader"/>
+
+        <td class="headerButtons basicHeaderRow" valign="top" rowspan="2">
+          <xul:toolbarbutton id="deleteMessageButton"
+                             class="toolbarbutton-1 tabbable"
+                             disabled="true"
+                             oncommand="gBrowserWindow.SnowlMessageView.deleteMessages()"
+                             onmouseover="messageHeaderUtils.tooltip(event, 'show');"
+                             onmousedown="messageHeaderUtils.tooltip(event, 'hide');"
+                             onmouseout="messageHeaderUtils.tooltip(event, 'hide');"
+                             tooltiptext="&deleteMessagesButton.tooltip;"/>
+        </td>
       </tr>
 
-      <tr class="fullHeaderRow fullHeaderRowFirst">
-        <td class="headerLabel"><p>&subject.label;</p></td>
-        <td class="headerData"><p id="subject"/></td>
-      </tr>
-      <tr class="fullHeaderRow">
+      <tr class="basicHeaderRow">
         <td class="headerLabel">&author.label;</td>
-        <td id="author" class="headerData" colspan="3"/>
+        <td id="author" class="headerData"/>
       </tr>
-      <tr class="fullHeaderRow">
+      <tr class="basicHeaderRow">
         <td class="headerLabel" colspan="2">&timestamp.label;</td>
-        <td id="timestamp" class="headerData" colspan="3"/>
+        <td id="timestamp" class="headerData" colspan="2"/>
       </tr>
-      <tr class="fullHeaderRow">
-        <td class="headerLabel" colspan="2">&link.label;</td>
-        <td class="headerData" colspan="3"><a id="link"/></td>
-      </tr>
+<!-- -->
     </table>
+      <div id="headerFull">
+        <table id="headerFullTable" class="fullHeaderTable">
+          <tr class="fullHeaderRow">
+            <td class="fullHeaderRowSeparator" colspan="3"/>
+          </tr>
+        </table>
+      </div>
   </body>
 
 </html>

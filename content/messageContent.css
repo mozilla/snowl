@@ -43,14 +43,6 @@
   margin: 8px;
 }
 
-table#headerDeck {
-  border-spacing: 3px 1px;
-}
-
-#headerDeck > tr > td {
-  padding: 0px;
-}
-
 #noHeader {
   position: absolute;
   background: no-repeat transparent url("chrome://snowl/content/icons/pagecurl.png");
@@ -69,18 +61,27 @@ table#headerDeck {
   visibility: collapse;
 }
 
-#headerDeck {
+#headerDeck, #headerFullTable {
   font: 9pt sans-serif;
-  padding: 1px;
-  overflow: auto;
-  width: 100%
+  border-spacing: 2px 0px;
+  width: 100%;
+}
+
+#headerFull {
+  overflow-x: auto;
 }
 
 #noHeader[collapsed="true"],
 #headerDeck:not([header="brief"]) .briefHeader,
-#headerDeck:not([header="full"]) > tr.fullHeaderRow {
+#headerDeck[header="brief"] .basicHeaderRow,
+#headerDeck[header="brief"] + #headerFull,
+#headerDeck[header="basic"] + #headerFull {
   display: none;
 }
+/*
+td {
+  border: 1px solid red;
+}*/
 
 .headerButtons {
   white-space: nowrap;
@@ -99,8 +100,9 @@ table#headerDeck {
   white-space: nowrap;
 }
 
-#briefHeaderRow .headerData {
-  min-width: 4em;
+#briefHeaderRow > .headerData,
+.basicHeaderRow > .headerData {
+  min-width: 2em;
   max-width: 14em;
   overflow: hidden;
 }
@@ -113,13 +115,14 @@ table#headerDeck {
   width: 2%;
 }
 
-#briefSubject {
-  margin-left: 1px;
+#headerDeck:not([header="brief"]) > #briefHeaderRow > .headerDataSubject,
+#headerDeck:not([header="brief"]) > #briefHeaderRow > .headerLabelSubject {
+  padding-top: 6px;
 }
 
-.fullHeaderRowFirst > td > p {
-  margin-top: 4px;
-  margin-bottom: 0px;
+.fullHeaderRowSeparator {
+  border-bottom: 1px solid threedshadow;
+  margin: 0 10px;
 }
 
 /* Icon courtesy of http://sozai.7gates.net/en/docs/pushpin_icon01/ */
@@ -131,10 +134,14 @@ table#headerDeck {
   list-style-image: url("chrome://snowl/content/icons/application_split.png");
 }
 
-#headerDeck[header="full"] > tr > td > #headerButton {
+#headerDeck[header="basic"] > tr > td > #headerButton {
   list-style-image: url("chrome://snowl/content/icons/application_tile_vertical.png");
 }
 
-#headerDeck[header="custom"] > tr > td > #headerButton {
+#headerDeck[header="full"] > tr > td > #headerButton {
   list-style-image: url("chrome://snowl/content/icons/application_view_list.png");
+}
+
+#deleteMessageButton {
+  list-style-image: url("chrome://snowl/content/icons/delete.png");
 }

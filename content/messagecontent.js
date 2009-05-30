@@ -61,12 +61,20 @@ var messageContent = {
   title: null,
   message: null,
 
+  _attributes: null,
+  get attributes() {
+    if (this._attributes)
+      return this._attributes;
+
+    return this._attributes = this.message.attributes;
+  },
+
   init: function() {
     // When message.xhtml is loaded on new message selection, onload handlers in
     // the messageHeader.xhtml and messageBody.xhtml frames run independently,
     // and before its own onload handler.  So we must have init() as inline script
     // to run first and set up the message.
-//window.SnowlUtils._log.info("init");
+//window.SnowlUtils._log.info("messageContent.init: START");
     this.getMessageId();
     this.message = SnowlMessage.get(this.id);
     this.createTitle();
@@ -109,37 +117,51 @@ var messageContent = {
 //window.SnowlUtils._log.info("createHeader: CONTINUE");
 
     if (message) {
-      // XXX: make headers construction dynamic based on passed array, or json
-      // representation etc.
-
       // Brief headers
+      document.getElementById("subject").
+               appendChild(document.createTextNode(message.subject));
+      document.getElementById("subject").href = message.link;
+      document.getElementById("subject").target = "messageBody";
       document.getElementById("briefAuthor").
                setAttribute("value", message.authorName);
 //               appendChild(document.createTextNode(message.authorName));
-      document.getElementById("briefSubject").
-               appendChild(document.createTextNode(message.subject));
-      document.getElementById("briefSubject").href = message.link;
-      document.getElementById("briefSubject").target = "messageBody";
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
-    
-      // Full headers
+
+      // Basic headers
       document.getElementById("author").
                appendChild(document.createTextNode(message.authorName));
-      document.getElementById("subject").
-               appendChild(document.createTextNode(message.subject));
       document.getElementById("timestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
-      document.getElementById("link").href = message.link;
-      document.getElementById("link").target = "messageBody";
-      document.getElementById("link").
-               appendChild(document.createTextNode(message.link));
 
       headerDeck.removeAttribute("notfound");
     }
     else {
       // Message no longer exists (removed source/author/message) but is in history.
       headerDeck.setAttribute("notfound", true);
+    }
+  },
+
+  createFullHeader: function(headerDeck) {
+//window.SnowlUtils._log.info("createHeader: attributes - "+this.attributes.toSource());
+    // Iterate through message attributes object and create full header.
+    var name, value, headerRow, headerRowLabel, headerRowData;
+    var fullHeaderTable = headerDeck.parentNode.getElementsByClassName("fullHeaderTable")[0];
+    if (fullHeaderTable.className != "fullHeaderTable")
+      return;
+
+    for ([name, value] in Iterator(this.attributes)) {
+      headerRow = document.createElementNS(HTML_NS, "tr");
+      headerRow.className = "fullHeaderRow";
+      headerRowLabel = document.createElementNS(HTML_NS, "td");
+      headerRowLabel.className = "headerLabel " + name;
+      headerRowLabel.textContent = name + ":";
+      headerRow.appendChild(headerRowLabel);
+      headerRowData = document.createElementNS(HTML_NS, "td");
+      headerRowData.className = "headerData " + name;
+      headerRowData.textContent = value;
+      headerRow.appendChild(headerRowData);
+      fullHeaderTable.appendChild(headerRow);
     }
   },
 
@@ -195,6 +217,8 @@ var messageContent = {
 // Utils for headers.
 
 var messageHeaderUtils = {
+  ROWS_BRIEF: "28,*",
+
   init: function() {
     var pin = document.getElementById("pinButton");
     var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
@@ -270,28 +294,36 @@ var messageHeaderUtils = {
   toggleHeader: function(headerDeck, aType) {
     var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
     var headerIndex = parseInt(headerBcaster.getAttribute("headerIndex"));
-    var rows = headerBcaster.getAttribute("rows");
+    var rowsBasic = headerBcaster.getAttribute("rowsBasic");
+    var rowsFull = headerBcaster.getAttribute("rowsFull");
 
-    if (headerIndex != 0 && aType != "init" &&
-        headerBcaster.getAttribute("checked") == "true")
+    if (aType != "init" && headerBcaster.getAttribute("checked") == "true") {
       // To set a header height: must first be in non Brief header, pin must be
       // checked, height can be dnd adjusted as desired, then header must be
       // toggled to save the height.
-      headerBcaster.setAttribute("rows", parent.document.body.rows);
+      if (headerIndex == 1)
+        headerBcaster.setAttribute("rowsBasic", parent.document.body.rows);
+      if (headerIndex == 2)
+        headerBcaster.setAttribute("rowsFull", parent.document.body.rows);
+    }
 
     if (aType == "toggle") {
       // Toggled to next in 3 way
-      // XXX: customize header will be index 2..
       headerDeck = document.getElementById("headerDeck");
-      headerIndex = ++headerIndex > 1 ? 0 : headerIndex++;
+      headerIndex = ++headerIndex > 2 ? 0 : headerIndex++;
       headerBcaster.setAttribute("headerIndex", headerIndex);
     }
 
     headerDeck.setAttribute("header", headerIndex == 0 ? "brief" :
-                                      headerIndex == 1 ? "full" : "custom");
+                                      headerIndex == 1 ? "basic" : "full");
     parent.document.body.setAttribute("border", "6");
-    parent.document.body.rows = headerIndex == 0 ? "28,*" :
-                                headerIndex == 1 ? rows : "72,*";
+    parent.document.body.rows = headerIndex == 0 ? this.ROWS_BRIEF :
+                                headerIndex == 1 ? rowsBasic : rowsFull;
+
+    // The message is found in the scope of the parent frameset document.
+    var messageContent = parent.wrappedJSObject.messageContent;
+    if (headerIndex == 2 && !messageContent._attributes)
+      messageContent.createFullHeader(headerDeck);
   },
 
   tooltip: function(aEvent, aShow) {

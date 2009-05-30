@@ -576,6 +576,10 @@ this._log.info("_toggleRead: all? " + aAll);
       }
   },
 
+  deleteMessages: function() {
+this._log.info("deleteMessages: START");
+  },
+
   onListTreeMouseDown: function(aEvent) {
 //    SnowlUtils.onTreeMouseDown(aEvent, this._tree);
   },
