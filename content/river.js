@@ -387,7 +387,7 @@ let SnowlMessageView = {
   },
 
   onFeedRefresh: function(feed) {
-    this._collection = feed;
+    this._collection = feed.messages;
     this._rebuildView(this);
   },
 
