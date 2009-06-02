@@ -178,6 +178,7 @@ SnowlSource.retrieve = function(id) {
 
   try {
     messagesStatement.params.id = id;
+    this.messages = [];
     // FIXME: retrieve all messages at once instead of one at a time.
     while (messagesStatement.step())
       source.messages.push(SnowlMessage.retrieve(messagesStatement.row.id));
@@ -250,7 +251,8 @@ SnowlSource.prototype = {
   // The ID of the place representing this source in a list of collections.
   placeID: null,
 
-  messages: [],
+  // The collection of messages from this source.
+  messages: null,
 
   // Favicon Service
   get faviconSvc() {
@@ -352,10 +354,12 @@ SnowlSource.prototype = {
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
 
         // Update messages and their authors to include the source ID.
-        for each (let message in this.messages) {
-          message.sourceID = this.id;
-          if (message.author)
-            message.author.sourceID = this.id;
+        if (this.messages) {
+          for each (let message in this.messages) {
+            message.sourceID = this.id;
+            if (message.author)
+              message.author.sourceID = this.id;
+          }
         }
 
         // Create places record
@@ -378,7 +382,8 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
         Observers.notify("snowl:source:added", this.placeID);
       }
 
-      this.persistMessages();
+      if (this.messages)
+        this.persistMessages();
 
       SnowlDatastore.dbConnection.commitTransaction();
     }

@@ -52,7 +52,7 @@ Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
-Cu.import("resource://snowl/modules/collection.js");
+Cu.import("resource://snowl/modules/collection2.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/service.js");
@@ -262,7 +262,7 @@ let SnowlMessageView = {
     this._document = this._window.document;
 
     // Init list with empty collection.
-    this._collection = new SnowlCollection();
+    //this._collection = new SnowlCollection();
 
     // _updateToolbar selects a collection, which triggers a view rebuild,
     // so we don't have to call rebuildView here.  This is pretty convoluted,
@@ -367,9 +367,10 @@ let SnowlMessageView = {
       this._setColumns(this._columnsButton.hasAttribute("checked"));
     }
 
-    if ("collection" in this._params) {
-      CollectionsView.itemIds = this._params.collection;
-    }
+    // FIXME: make this work with the new architecture.
+    //if ("collection" in this._params) {
+    //  CollectionsView.itemIds = this._params.collection;
+    //}
 
     // FIXME: make this work with the new architecture.
     // Restore saved selection
@@ -388,9 +389,6 @@ let SnowlMessageView = {
   onFeedRefresh: function(feed) {
     this._collection = feed;
     this._rebuildView(this);
-    if (CollectionsView.itemIds != -1) {
-      CollectionsView._tree.restoreSelection();
-    }
   },
 
   onFilter: function() {
@@ -695,9 +693,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // Build the box for each message and add it to the view.
     let groupBoxes = this._contentBox.getElementsByClassName("groupBox");
     let groupIndex = 0;
-    for (let i = 0; i < this._collection.messages.length; ++i) {
-      let message = this._collection.messages[i];
-
+    for each (let message in this._collection) {
       // Find the group to which the message belongs.
       while (message.received < groups[groupIndex].epoch)
         ++groupIndex;
@@ -855,6 +851,73 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     return timeout;
   }
 };
+
+let Sources = {
+  //**************************************************************************//
+  // Shortcuts
+
+  get _list() {
+    delete this._list;
+    return this._list = document.getElementById("sourcesList");
+  },
+
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.repository.getLogger("Snowl.Sources");
+  },
+
+
+  //**************************************************************************//
+  // Event Handlers
+
+  onLoad: function() {
+    this._rebuild();
+  },
+
+  onSelect: function(event) {
+    let source = this._list.selectedItem.source;
+    this._log.info("selected " + source.name + " with ID " + source.id);
+
+    if (!source.messages) {
+      let constraints = [];
+
+      constraints.push({ expression: "sources.id = " + source.id });
+
+      // FIXME: use a left join here once the SQLite bug breaking left joins to
+      // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+      if (SnowlMessageView._filter.value) {
+        constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
+                           parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
+      }
+
+      if (SnowlMessageView._periodMenu.selectedItem) {
+        constraints.push({ expression: "received >= :startTime AND received < :endTime",
+                           parameters: { startTime: SnowlMessageView._periodStartTime,
+                                           endTime: SnowlMessageView._periodEndTime } });
+      }
+
+      source.messages = new Collection2({ constraints: constraints,
+                                                order: "messages.id DESC" });
+    }
+
+    SnowlMessageView._collection = source.messages;
+    SnowlMessageView._rebuildView();
+  },
+
+
+  //**************************************************************************//
+  // View Construction
+
+  _rebuild: function() {
+    for each (let source in SnowlService.sources) {
+      //let item = document.createElement("richlistitem");
+      let item = this._list.appendItem(source.name);
+      item.source = source;
+    }
+  }
+};
+
+window.addEventListener("load", function() Sources.onLoad(), false);
 
 let splitterDragObserver = {
   onMouseDown: function(event) {

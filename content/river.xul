@@ -148,6 +148,8 @@
     <splitter/>
 
     <vbox style="width: 200px;">
+      <richlistbox id="sourcesList" flex="1" onselect="Sources.onSelect(event)"/>
+
       <vbox id="writeForm"/>
 
       <toolbar id="snowlToolbar">
