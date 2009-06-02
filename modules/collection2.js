@@ -72,11 +72,35 @@ Sync(Function);
  *   for each (let message in collection)
  *     dump("retrieved message " + message.id + "\n");
  */
-function Collection2() {
+function Collection2(args) {
+  // Extract values from arguments and assign them to member properties.
+  this.constraints = "constraints" in args ? args.constraints : [];
+  if ("order" in args) this.order = args.order;
+  if ("limit" in args) this.limit = args.limit;
+
+  // Execute the query so its results are available once the constructor returns.
   this.execute.syncBind(this)();
 }
 
 Collection2.prototype = {
+  //**************************************************************************//
+  // Properties
+
+  /**
+   * An array of Constraint objects with expression and parameters properties
+   * that let you constrain the messages returned by the datastore, f.e.:
+   *
+   *   [ { expression: "messages.timestamp > :timestamp",
+   *       parameters: { name: "timestamp", value: 2454985 } } ]
+   *
+   * Constraint.parameters is optional.
+   */
+  constraints: null,
+
+  order: null,
+  limit: null,
+
+
   //**************************************************************************//
   // Shortcuts
 
@@ -143,9 +167,27 @@ Collection2.prototype = {
       // all messages whether or not they have a content part.
       "AND parts.partType = " + PART_TYPE_CONTENT;
 
-    this._log.info(query);
+    let conditions = [];
+    for each (let constraint in this.constraints)
+      conditions.push(constraint.expression);
+
+    if (conditions.length > 0)
+      query += " WHERE " + conditions.join(" AND ");
+
+    if (this.order)
+      query += " ORDER BY " + this.order;
+
+    if (this.limit)
+      query += " LIMIT " + this.limit;
 
     let statement = SnowlDatastore.createStatement(query);
+
+    for each (let constraint in this.constraints)
+      if ("parameters" in constraint)
+        for (let [name, value] in Iterator(constraint.parameters))
+          statement.params[name] = value;
+
+    this._log.info(query);
 
     return statement;
   },
