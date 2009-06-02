@@ -25,18 +25,12 @@ function run_test() {
   feed.refresh(refreshTime, do_callback(continue_test));
 }
 
-let collection;
 function continue_test() {
   feed.persist();
-  collection = new Collection2(do_callback(finish_test));
-}
+  let collection = new Collection2();
 
-function finish_test() {
-  dump("finish_test\n");
-  
   for each (let message in collection) {
-    dump("message: " + message + "\n");
-    dump("message.id: " + message.id + "\n");
+    do_check_eq(message.id.constructor.name, "Number");
   }
 
   do_test_finished();

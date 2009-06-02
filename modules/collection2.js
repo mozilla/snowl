@@ -44,6 +44,7 @@ const Cu = Components.utils;
 // modules that are generic
 Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Sync.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
@@ -52,24 +53,27 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
+Sync(Function);
+
 /**
  * A set of messages.  Use this to retrieve messages from the datastore.
  * This implementation differs from the one in collection.js in that it:
  *   * doesn't support grouping;
- *   * asynchronously queries the datastore;
- *   * retrieves messages as complete objects.
+ *   * queries asynchronously;
+ *   * retrieves messages as complete objects;
+ *   * provides a custom iterator.
  *
  * To use this object, create a new instance, passing the constructor
- * the criteria that define the set of objects to retrieve.  The instance
+ * the criteria that define the set of objects to retrieve.  The constructor
  * will retrieve messages without blocking execution of events on the same
- * thread, although it will appear synchronous to the caller.
+ * thread, although the call will appear synchronous to the caller.
  *
- * let collection = new Collection();
- * for each (let message in collection)
- *   dump("retrieved message " + message.id + "\n");
+ *   let collection = new Collection2();
+ *   for each (let message in collection)
+ *     dump("retrieved message " + message.id + "\n");
  */
-function Collection2(callback) {
-  this.execute(callback);
+function Collection2() {
+  this.execute.syncBind(this)();
 }
 
 Collection2.prototype = {
@@ -89,6 +93,10 @@ Collection2.prototype = {
     this._log.info("pending statement: " + this._pendingStatement);
   },
 
+
+  //**************************************************************************//
+  // mozIStorageStatementCallback
+
   handleResult: function(resultSet) {
     this._log.info("handleResult: " + resultSet);
     this._resultSet = resultSet;
@@ -102,6 +110,7 @@ Collection2.prototype = {
     this._log.info("handleCompletion: " + reason);
     (this._callback)();
   },
+
 
   get _statement() {
     let columns = [
@@ -141,9 +150,17 @@ Collection2.prototype = {
     return statement;
   },
 
+
+  /**
+   * An iterator across the messages in the collection.  Allows callers
+   * to iterate messages via |for each... in|, i.e.:
+   *
+   *   let collection = new Collection2();
+   *   for each (let message in collection) ...
+   */
   __iterator__: function(wantKeys) {
     let row;
-    while (row = this._resultSet.getNextRow()) {
+    while ((row = this._resultSet.getNextRow())) {
       let content = null;
       if (row.getResultByName("partID")) {
         content = Cc["@mozilla.org/feed-textconstruct;1"].
