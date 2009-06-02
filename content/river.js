@@ -314,20 +314,7 @@ let SnowlMessageView = {
   // Toolbar
 
   _updateToolbar: function() {
-    this._params = {};
-    let query = window.location.search.substr(1);
-    for each (let param in query.split("&")) {
-      let name, value;
-      if (param.indexOf("=") != -1) {
-        [name, value] = param.split("=");
-        value = decodeURIComponent(value);
-      }
-      else
-        name = param;
-      this._params[name] = value;
-    }
-
-    if ("body" in this._params) {
+    if ("body" in params) {
       this._bodyButton.checked = true;
       this._setBody(true);
     }
@@ -335,11 +322,11 @@ let SnowlMessageView = {
       this._setBody(this._bodyButton.hasAttribute("checked"));
     }
 
-    if ("filter" in this._params)
-      this._filter.value = this._params.filter;
+    if ("filter" in params)
+      this._filter.value = params.filter;
 
-    if ("period" in this._params) {
-      let item = this._periodMenuPopup.getElementsByAttribute("value", this._params.period)[0];
+    if ("period" in params) {
+      let item = this._periodMenuPopup.getElementsByAttribute("value", params.period)[0];
       if (item) {
         this._periodMenu.selectedItem = item;
         this._periodMenu.setAttribute("selectedindex", this._periodMenu.selectedIndex);
@@ -356,7 +343,7 @@ let SnowlMessageView = {
       }
     }
 
-    if ("columns" in this._params) {
+    if ("columns" in params) {
       this._columnsButton.checked = true;
       // XXX This feels like the wrong place to do this, but I don't see
       // a better place at the moment.  Yuck, the whole process by which
@@ -368,8 +355,8 @@ let SnowlMessageView = {
     }
 
     // FIXME: make this work with the new architecture.
-    //if ("collection" in this._params) {
-    //  CollectionsView.itemIds = this._params.collection;
+    //if ("collection" in params) {
+    //  CollectionsView.itemIds = params.collection;
     //}
 
     // FIXME: make this work with the new architecture.
@@ -378,12 +365,6 @@ let SnowlMessageView = {
     //if (CollectionsView.itemIds != -1) {
     //  CollectionsView._tree.restoreSelection();
     //}
-
-    if ("feed" in this._params) {
-      let title = "title" in this._params ? this._params.title : null;
-      let feed = new SnowlFeed(null, null, new URI(this._params.feed), undefined, null);
-      feed.refresh(null, this.onFeedRefresh, this);
-    }
   },
 
   onFeedRefresh: function(feed) {
@@ -909,6 +890,14 @@ let Sources = {
   // View Construction
 
   _rebuild: function() {
+    if ("feed" in params) {
+      let title = "title" in params ? params.title : null;
+      let item = this._list.appendItem(title);
+      let feed = new SnowlFeed(null, null, new URI(params.feed), undefined, null);
+      feed.refresh(null, SnowlMessageView.onFeedRefresh, SnowlMessageView);
+      this._list.selectItem(item);
+    }
+
     for each (let source in SnowlService.sources) {
       //let item = document.createElement("richlistitem");
       let item = this._list.appendItem(source.name);
@@ -973,5 +962,23 @@ var XULBrowserWindow = {
       this.statusTextField.label = text;
       this.statusText = text;
     }
+  }
+}
+
+// FIXME: modularize this.
+let params = {};
+{
+  let query = window.location.search.substr(1);
+  for each (let param in query.split("&")) {
+    let name, value;
+    if (param.indexOf("=") != -1) {
+      [name, value] = param.split("=");
+      value = decodeURIComponent(value);
+    }
+    else
+      name = param;
+    // FIXME: make this support multiple same-named params
+    // (put them into an array?).
+    params[name] = value;
   }
 }
