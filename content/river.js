@@ -890,12 +890,18 @@ let Sources = {
   // View Construction
 
   _rebuild: function() {
-    if ("feed" in params) {
-      let title = "title" in params ? params.title : null;
-      let item = this._list.appendItem(title);
-      let feed = new SnowlFeed(null, null, new URI(params.feed), undefined, null);
-      feed.refresh(null, SnowlMessageView.onFeedRefresh, SnowlMessageView);
-      this._list.selectItem(item);
+    if ("feeds" in params) {
+      let feeds = JSON.parse(params.feeds);
+      for each (let feedToPreview in feeds) {
+        let feed = new SnowlFeed(null, null, new URI(feedToPreview.href), undefined, null);
+        // FIXME: automatically show the first feed rather than the one
+        // that gets loaded last.
+        feed.refresh(null, SnowlMessageView.onFeedRefresh, SnowlMessageView);
+        // ??? select all feeds at once once multi-select is working?
+        let item = this._list.appendItem(feedToPreview.title);
+        item.source = feed;
+        this._list.selectItem(item);
+      }
     }
 
     for each (let source in SnowlService.sources) {

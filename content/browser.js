@@ -349,25 +349,27 @@ let Snowl = {
 
   _onClickFeedButton: function(event) {
     let feeds = gBrowser.selectedBrowser.feeds;
+
+    // How could this happen?  Users shouldn't be able to click the button
+    // if there are no feeds.
     if (feeds == null)
       return;
 
-    // The title of the feed(s) we're going to show the user.
-    // We use the title of the page by default, falling back on a title
-    // provided by the feed(s) if necessary.
-    let title = gBrowser.selectedBrowser.contentTitle;
+    // The page's title. We use this as the feed title if the feed doesn't
+    // provide its own title.
+    // FIXME: figure out how to differentiate multiple feeds that don't provide
+    // titles.
+    let pageTitle = gBrowser.selectedBrowser.contentTitle;
 
-    let params = [];
+    let feedsToPreview = [];
     for (let i = 0; i < feeds.length; ++i) {
       let feed = feeds[i];
-      params.push("feed=" + encodeURIComponent(feed.href));
-      if (!title && feed.title)
-        title = feed.title;
+      feedsToPreview.push({ href: feed.href, title: feed.title || pageTitle });
     }
-    if (title)
-      params.push("title=" + encodeURIComponent(title));
 
-    let href = "chrome://snowl/content/river.xul" + (params.length > 0 ? "?" + params.join("&") : "");
+    let param = "feeds=" + encodeURIComponent(JSON.stringify(feedsToPreview));
+
+    let href = "chrome://snowl/content/river.xul?" + param;
     openUILink(href, event, false, true, false, null);
   },
 
