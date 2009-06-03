@@ -352,23 +352,32 @@ let Snowl = {
 
     // How could this happen?  Users shouldn't be able to click the button
     // if there are no feeds.
+    // FIXME: figure out if we need this and what to do if we encounter it.
     if (feeds == null)
       return;
 
-    // The page's title. We use this as the feed title if the feed doesn't
-    // provide its own title.
-    // FIXME: figure out how to differentiate multiple feeds that don't provide
-    // titles.
-    let pageTitle = gBrowser.selectedBrowser.contentTitle;
+    let feedsToPreview = feeds;
 
-    let feedsToPreview = [];
-    for (let i = 0; i < feeds.length; ++i) {
-      let feed = feeds[i];
-      feedsToPreview.push({ href: feed.href, title: feed.title || pageTitle });
+    // If there are two feeds, one of which seems to be an Atom feed, the other
+    // of which seems to be RSS, assume they're duplicates and only preview one
+    // (in this case we choose the Atom feed).
+    let areDupes = function(a, b) (/atom/i.test(a) && /rss/i.test(b)) ||
+                                  (/atom/i.test(b) && /rss/i.test(a));
+    if (feeds.length == 2 && areDupes(feeds[0].title, feeds[1].title)) {
+      // FIXME: log this so developers/testers know it happened.
+
+      // Filter the array for the item whose title contains "atom", but only
+      // grab the first item from the filtered array on the off chance that both
+      // items contain "atom".
+      feedsToPreview = [feeds.filter(function(v) /atom/i.test(v.title))[0]];
+
+      // Use the title of the page instead of the Atom-specific feed title.
+      if (gBrowser.selectedBrowser.contentTitle)
+        feedsToPreview[0].title = gBrowser.selectedBrowser.contentTitle;
     }
 
-    let param = "feeds=" + encodeURIComponent(JSON.stringify(feedsToPreview));
-
+    // Open the river view, passing it the feeds to preview.
+    let param = "feedsToPreview=" + encodeURIComponent(JSON.stringify(feedsToPreview));
     let href = "chrome://snowl/content/river.xul?" + param;
     openUILink(href, event, false, true, false, null);
   },

@@ -246,15 +246,6 @@ let SnowlMessageView = {
                             function() SnowlMessageView.resizeContentBox(),
                             false);
 
-    // Remove/restore observers for paging with river view or bookmarks
-    window.addEventListener("pageshow",
-                            function() { SnowlMessageView.onPageShow(); },
-                            false);
-
-    window.addEventListener("pagehide",
-                            function() { SnowlMessageView.onPageHide(); },
-                            false);
-
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
     // get a non-native object.
@@ -503,14 +494,6 @@ let SnowlMessageView = {
 
   onLoad: function() {
     this._init();
-  },
-
-  onPageShow: function() {
-    CollectionsView.loadObservers();
-  },
-
-  onPageHide: function() {
-    CollectionsView.unloadObservers();
   },
 
   onMessageAdded: function(message) {
@@ -890,9 +873,9 @@ let Sources = {
   // View Construction
 
   _rebuild: function() {
-    if ("feeds" in params) {
-      let feeds = JSON.parse(params.feeds);
-      for each (let feedToPreview in feeds) {
+    if ("feedsToPreview" in params) {
+      let feedsToPreview = JSON.parse(params.feedsToPreview);
+      for each (let feedToPreview in feedsToPreview) {
         let feed = new SnowlFeed(null, null, new URI(feedToPreview.href), undefined, null);
         // FIXME: automatically show the first feed rather than the one
         // that gets loaded last.
