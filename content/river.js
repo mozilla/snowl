@@ -164,6 +164,11 @@ let SnowlMessageView = {
     return this._writeForm = document.getElementById("writeForm");
   },
 
+  get _dogmark() {
+    delete this._dogmark;
+    return this._dogmark = document.getElementById("dogmark");
+  },
+
   // The set of messages to display in the view.
   _collection: null,
   
@@ -233,8 +238,8 @@ let SnowlMessageView = {
   },
 
   _initDelayed: function() {
-    // Resize the content box to the initial size of the browser.
-    this.resizeContentBox();
+    // Position/size stuff relative to the initial size of the browser.
+    this.onResize();
 
     // Listen for resize events so we can resize the content box when the size
     // of the browser changes.  We set this event listener here rather than
@@ -243,7 +248,7 @@ let SnowlMessageView = {
     // (and thus before SnowlMessageView has been defined), which would cause
     // an attribute-based listener to throw an exception.
     window.addEventListener("resize",
-                            function() SnowlMessageView.resizeContentBox(),
+                            function() SnowlMessageView.onResize(),
                             false);
 
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
@@ -276,6 +281,16 @@ let SnowlMessageView = {
     // the content box until the content actually overflows horizontally.
 
     this.contentHeight = window.innerHeight - this.scrollbarBreadth - toolbarHeight;
+  },
+
+  /**
+   * Move the dogmark to the right hand side of the browser.  We have to do this
+   * programmatically on window resize because elements in stacks can't be
+   * positioned relative to the right-hand side of the stack.
+   * FIXME: file a bug on the missing functionality.
+   */
+  repositionDogmark: function() {
+    this._dogmark.setAttribute("left", window.innerWidth - this._dogmark.boxObject.width);
   },
 
   _setMidnightTimout: function() {
@@ -356,6 +371,26 @@ let SnowlMessageView = {
     //if (CollectionsView.itemIds != -1) {
     //  CollectionsView._tree.restoreSelection();
     //}
+  },
+
+  onResize: function() {
+    this.resizeContentBox();
+    this.repositionDogmark();
+  },
+
+  onClickDogmark: function() {
+    if (this._dogmark.getAttribute("state") == "open") {
+      document.getElementById("toolbar").hidden = true;
+      document.getElementById("sidebar").hidden = true;
+      document.getElementById("sidebarSplitter").hidden = true;
+      this._dogmark.setAttribute("state", "closed");
+    }
+    else {
+      document.getElementById("toolbar").hidden = false;
+      document.getElementById("sidebar").hidden = false;
+      document.getElementById("sidebarSplitter").hidden = false;
+      this._dogmark.setAttribute("state", "open");
+    }
   },
 
   onFeedRefresh: function(feed) {

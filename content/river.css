@@ -225,3 +225,15 @@ richlistitem.source[selected="true"]:hover {
 richlistitem.source:hover {
   background-color: #cccccc;
 }
+
+
+/******************************************************************************/
+/* Dogmark */
+
+#dogmark[state="open"] {
+  list-style-image: url(chrome://snowl/content/dogmark-opened.png);
+}
+
+#dogmark[state="closed"] {
+  list-style-image: url(chrome://snowl/content/dogmark-closed.png);
+}

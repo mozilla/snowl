@@ -81,6 +81,7 @@
     <key keycode="VK_END" oncommand="SnowlMessageView.onEnd()"/>
   </keyset>
 
+  <stack flex="1" align="start" pack="end" >
   <hbox flex="1">
     <vbox flex="1">
       <toolbar id="toolbar">
@@ -145,9 +146,9 @@
       </stack>
     </vbox>
 
-    <splitter/>
+    <splitter id="sidebarSplitter"/>
 
-    <vbox style="width: 200px;">
+    <vbox id="sidebar" style="width: 200px;">
       <richlistbox id="sourcesList" flex="1" onselect="Sources.onSelect(event)"/>
 
       <vbox id="writeForm"/>
@@ -167,4 +168,7 @@
 
   </hbox>
 
+    <image id="dogmark" left="0" top="0" state="open"
+           onclick="SnowlMessageView.onClickDogmark(event)"/>
+  </stack>
 </page>
