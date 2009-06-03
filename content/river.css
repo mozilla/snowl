@@ -201,10 +201,23 @@ a > img {
 /******************************************************************************/
 /* Sources */
 
+#sourcesList {
+  -moz-appearance: none;
+  color: -moz-dialogtext;
+  background-color: -moz-dialog;
+}
+
 richlistitem {
   -moz-binding: url("chrome://snowl/content/sources.xml#source");
 }
 
-richlistitem[selected="true"] {
+richlistitem[selected="true"],
+richlistitem[selected="true"]:hover {
   -moz-binding: url("chrome://snowl/content/sources.xml#source-selected");
+  color: -moz-dialogtext;
+  background-color: #aaaaaa;
+}
+
+richlistitem:hover {
+  background-color: #cccccc;
 }
