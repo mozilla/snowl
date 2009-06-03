@@ -58,6 +58,18 @@
     </implementation>
   </binding>
 
+  <binding id="header" extends="chrome://snowl/content/sources.xml#source-base">
+    <resources>
+      <stylesheet src="chrome://snowl/content/sources.css"/>
+    </resources>
+    <content>
+      <xul:hbox flex="1" align="center">
+        <xul:image height="16" width="16"/>
+        <xul:label xbl:inherits="value=label"/>
+      </xul:hbox>
+    </content>
+  </binding>
+
   <binding id="source" extends="chrome://snowl/content/sources.xml#source-base">
     <resources>
       <stylesheet src="chrome://snowl/skin/sources.css"/>

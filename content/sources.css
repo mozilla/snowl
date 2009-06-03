@@ -1,0 +1,9 @@
+.header {
+  margin-top: 0.5em;
+  -moz-user-focus: ignore;
+  -moz-user-select: -moz-none;
+}
+
+.header label {
+  color: #666666;
+}

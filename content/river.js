@@ -883,15 +883,23 @@ let Sources = {
         // ??? select all feeds at once once multi-select is working?
         let item = this._list.appendItem(feedToPreview.title);
         item.source = feed;
+        item.className = "source";
         this._list.selectItem(item);
       }
     }
+
+    let item = document.createElementNS(XUL_NS, "richlistitem");
+    // FIXME: make this localizable.
+    item.setAttribute("label", "Subscriptions");
+    item.className = "header";
+    this._list.appendChild(item);
 
     for each (let source in SnowlService.sources) {
       //let item = document.createElement("richlistitem");
       let item = this._list.appendItem(source.name);
       item.source = source;
       item.setAttribute("subscription", "true");
+      item.className = "source";
     }
   }
 };

@@ -207,17 +207,21 @@ a > img {
   background-color: -moz-dialog;
 }
 
-richlistitem {
+richlistitem.header {
+  -moz-binding: url("chrome://snowl/content/sources.xml#header");
+}
+
+richlistitem.source {
   -moz-binding: url("chrome://snowl/content/sources.xml#source");
 }
 
-richlistitem[selected="true"],
-richlistitem[selected="true"]:hover {
+richlistitem.source[selected="true"],
+richlistitem.source[selected="true"]:hover {
   -moz-binding: url("chrome://snowl/content/sources.xml#source-selected");
   color: -moz-dialogtext;
   background-color: #aaaaaa;
 }
 
-richlistitem:hover {
+richlistitem.source:hover {
   background-color: #cccccc;
 }
