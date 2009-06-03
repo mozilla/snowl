@@ -59,25 +59,29 @@
   </binding>
 
   <binding id="source" extends="chrome://snowl/content/sources.xml#source-base">
+    <resources>
+      <stylesheet src="chrome://snowl/skin/sources.css"/>
+    </resources>
     <content>
-      <xul:hbox flex="1">
+      <xul:hbox flex="1" align="center">
         <xul:image src="moz-icon://goat?size=16"
                    xbl:inherits="src=icon" height="16" width="16"/>
         <children/>
-        <xul:image src="chrome://browser/skin/places/pageStarred.png"
-                   height="16" width="16"/>
+        <xul:image class="star-button" xbl:inherits="starred=subscription"/>
       </xul:hbox>
     </content>
   </binding>
 
   <binding id="source-selected" extends="chrome://snowl/content/sources.xml#source-base">
+    <resources>
+      <stylesheet src="chrome://snowl/skin/sources.css"/>
+    </resources>
     <content>
-      <xul:hbox flex="1">
+      <xul:hbox flex="1" align="center">
         <xul:image src="moz-icon://goat?size=16"
                    xbl:inherits="src=icon" height="16" width="16"/>
         <children/>
-        <xul:image src="chrome://browser/skin/places/pageStarred.png"
-                   height="16" width="16"/>
+        <xul:image class="star-button" xbl:inherits="starred=subscription"/>
       </xul:hbox>
     </content>
 

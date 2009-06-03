@@ -1,0 +1,8 @@
+.star-button {
+  padding: 1px;
+  list-style-image: url("chrome://browser/skin/places/starPage.png");
+}
+
+.star-button[starred="true"] {
+  list-style-image: url("chrome://browser/skin/places/pageStarred.png");
+}

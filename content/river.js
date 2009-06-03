@@ -891,6 +891,7 @@ let Sources = {
       //let item = document.createElement("richlistitem");
       let item = this._list.appendItem(source.name);
       item.source = source;
+      item.setAttribute("subscription", "true");
     }
   }
 };
