@@ -919,6 +919,7 @@ let Sources = {
         let item = this._list.appendItem(feedToPreview.title);
         item.source = feed;
         item.className = "source";
+        item.setAttribute("preview", "true");
         this._list.selectItem(item);
       }
     }

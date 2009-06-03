@@ -226,6 +226,10 @@ richlistitem.source:hover {
   background-color: #cccccc;
 }
 
+richlistitem.source[preview="true"][selected="true"] {
+  -moz-binding: url("chrome://snowl/content/sources.xml#source-preview");
+}
+
 
 /******************************************************************************/
 /* Dogmark */

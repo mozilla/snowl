@@ -36,11 +36,11 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<!DOCTYPE overlay [
-  <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd">
-  <!ENTITY % applicationsDTD SYSTEM "chrome://browser/locale/preferences/applications.dtd">
-  %brandDTD;
-  %applicationsDTD;
+<!DOCTYPE bindings [
+  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+   %globalDTD;
+   <!ENTITY % feedDTD SYSTEM "chrome://browser/locale/feeds/subscribe.dtd">
+   %feedDTD;
 ]>
 
 <bindings id="sourceBindings"
@@ -100,6 +100,38 @@
     <implementation>
       <constructor>
         //gApplicationsPane.rebuildActionsMenu();
+      </constructor>
+    </implementation>
+
+  </binding>
+
+  <binding id="source-preview" extends="chrome://snowl/content/sources.xml#source-base">
+    <resources>
+      <stylesheet src="chrome://snowl/skin/sources.css"/>
+    </resources>
+    <content>
+      <xul:vbox>
+        <xul:hbox flex="1" align="center">
+          <xul:image src="moz-icon://goat?size=16"
+                     xbl:inherits="src=icon" height="16" width="16"/>
+          <children/>
+          <xul:image class="star-button" xbl:inherits="starred=subscription"/>
+        </xul:hbox>
+        <!-- FIXME: localize it -->
+        <xul:label id="subscribeUsingDescription" value="Subscribe using:"/>
+        <xul:menulist id="handlersMenuList" aria-labelledby="subscribeUsingDescription">
+          <xul:menupopup menugenerated="true" id="handlersMenuPopup">
+            <xul:menuitem id="liveBookmarksMenuItem" label="&feedLiveBookmarks;" class="menuitem-iconic" image="chrome://browser/skin/page-livemarks.png" selected="true"/>
+            <xul:menuseparator/>
+          </xul:menupopup>
+        </xul:menulist>
+        <xul:button label="&feedSubscribeNow;" id="subscribeButton"/>
+      </xul:vbox>
+    </content>
+
+    <implementation>
+      <constructor>
+        // build the list of possible feed readers
       </constructor>
     </implementation>
 
