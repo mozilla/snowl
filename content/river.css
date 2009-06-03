@@ -196,3 +196,15 @@ a > img {
   border: 0;
   -moz-padding-end: 1px;
 }
+
+
+/******************************************************************************/
+/* Sources */
+
+richlistitem {
+  -moz-binding: url("chrome://snowl/content/sources.xml#source");
+}
+
+richlistitem[selected="true"] {
+  -moz-binding: url("chrome://snowl/content/sources.xml#source-selected");
+}
