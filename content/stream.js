@@ -295,8 +295,8 @@ let SnowlMessageView = {
     leftColumn.className = "leftColumn";
     let icon = document.createElementNS(XUL_NS, "image");
     icon.className = "icon";
-    if (message.authorIcon)
-      icon.setAttribute("src", message.authorIcon);
+    if (message.author.iconURL)
+      icon.setAttribute("src", message.author.iconURL);
     else if (message.source.faviconURI)
       icon.setAttribute("src", message.source.faviconURI.spec)
     else
@@ -311,11 +311,11 @@ let SnowlMessageView = {
     messageBox.appendChild(centerColumn);
 
     // Author or Source
-    if (message.authorName || message.source) {
+    if (message.author.name || message.source) {
       let desc = this._document.createElementNS(XUL_NS, "description");
       desc.className = "author";
       desc.setAttribute("crop", "end");
-      desc.setAttribute("value", message.authorName || message.source.name);
+      desc.setAttribute("value", message.author.name || message.source.name);
       centerColumn.appendChild(desc);
     }
 

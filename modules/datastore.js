@@ -770,26 +770,26 @@ let SnowlDatastore = {
     return [name, username];
   },
 
-
-  get _selectHasMessageStatement() {
+  get _selectHasAuthorMessageStatement() {
     let statement = this.createStatement(
-      "SELECT 1 FROM messages WHERE externalID = :externalID"
+      "SELECT 1 FROM messages WHERE authorID = :authorID"
     );
-    this.__defineGetter__("_selectHasMessageStatement", function() { return statement });
-    return this._selectHasMessageStatement;
+    this.__defineGetter__("_selectHasAuthorMessageStatement", function() { return statement });
+    return this._selectHasAuthorMessageStatement;
   },
 
-  selectHasMessage: function(aExternalID) {
+  selectHasAuthorMessage: function(aAuthorID) {
+    let hasMessage = false;
     try {
-      this._selectHasMessageStatement.params.externalID = aExternalID;
-      if (this._selectHasMessageStatement.step())
-        return true;
+      this._selectHasAuthorMessageStatement.params.authorID = aAuthorID;
+      if (this._selectHasAuthorMessageStatement.step())
+        hasMessage = true;
     }
     finally {
-      this._selectHasMessageStatement.reset();
+      this._selectHasAuthorMessageStatement.reset();
     }
 
-    return false;
+    return hasMessage;
   },
 
   get _insertMessageStatement() {

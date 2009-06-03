@@ -317,14 +317,14 @@ let SnowlService = {
   },
 
   /**
-   * Determine whether or not the datastore contains the message with the given ID.
+   * Determine whether or not an author has at least one message in the database.
    *
-   * @param aExternalID {string}  the external ID of the message
+   * @param aAuthorID {string}  the author ID of the message
    *
-   * @returns {boolean} whether or not the datastore contains the message
+   * @returns {boolean} whether or not the author has a message
    */
-  hasMessage: function(aExternalID) {
-    return SnowlDatastore.selectHasMessage(aExternalID);
+  hasAuthorMessage: function(aAuthorID) {
+    return SnowlDatastore.selectHasAuthorMessage(aAuthorID);
   },
 
   /**

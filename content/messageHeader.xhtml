@@ -103,8 +103,7 @@
         <td class="headerButtons basicHeaderRow" valign="top" rowspan="2">
           <xul:toolbarbutton id="deleteMessageButton"
                              class="toolbarbutton-1 tabbable"
-                             disabled="true"
-                             oncommand="gBrowserWindow.SnowlMessageView.deleteMessages()"
+                             oncommand="messageHeaderUtils.onDeleteMessage()"
                              onmouseover="messageHeaderUtils.tooltip(event, 'show');"
                              onmousedown="messageHeaderUtils.tooltip(event, 'hide');"
                              onmouseout="messageHeaderUtils.tooltip(event, 'hide');"

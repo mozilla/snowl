@@ -123,14 +123,14 @@ var messageContent = {
       document.getElementById("subject").href = message.link;
       document.getElementById("subject").target = "messageBody";
       document.getElementById("briefAuthor").
-               setAttribute("value", message.authorName);
+               setAttribute("value", message.author.name);
 //               appendChild(document.createTextNode(message.authorName));
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       // Basic headers
       document.getElementById("author").
-               appendChild(document.createTextNode(message.authorName));
+               appendChild(document.createTextNode(message.author.name));
       document.getElementById("timestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
@@ -324,6 +324,14 @@ var messageHeaderUtils = {
     var messageContent = parent.wrappedJSObject.messageContent;
     if (headerIndex == 2 && !messageContent._attributes)
       messageContent.createFullHeader(headerDeck);
+  },
+
+  onDeleteMessage: function() {
+//window.SnowlUtils._log.info("onDeleteMessage: START");
+    // Delete button.
+    var messageContent = parent.wrappedJSObject.messageContent;
+    var messages = [messageContent.message];
+    gBrowserWindow.SnowlMessageView._deleteMessages(messages)
   },
 
   tooltip: function(aEvent, aShow) {

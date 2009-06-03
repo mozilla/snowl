@@ -49,6 +49,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
@@ -94,6 +95,8 @@ let SnowlMessageView = {
     "snowlTimestampCol": "timestamp"
   },
 
+  MESSAGE_URI: "chrome://snowl/content/message.xhtml?id=",
+
 
   //**************************************************************************//
   // nsITreeView
@@ -111,7 +114,7 @@ let SnowlMessageView = {
         return this._collection.messages[aRow].source.name;
 
       case "snowlAuthorCol":
-        return this._collection.messages[aRow].authorName;
+        return this._collection.messages[aRow].author.name;
 
       case "snowlSubjectCol":
         return this._collection.messages[aRow].subject ||
@@ -224,8 +227,12 @@ let SnowlMessageView = {
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (aFilters["searchterms"])
-      filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: SnowlUtils.appendAsterisks(aFilters["searchterms"]) } });
+      filters.push({ expression: "messages.id IN " +
+                                 "(SELECT messageID FROM parts " +
+                                 "JOIN partsText ON parts.id = partsText.docid " +
+                                 "WHERE partsText.content MATCH :filter)",
+                     parameters: { filter: SnowlUtils.appendAsterisks(
+                                             aFilters["searchterms"]) } });
 
     this._collection.filters = filters;
     this._collection.invalidate();
@@ -361,7 +368,7 @@ let SnowlMessageView = {
     let message = this._collection.messages[row];
 
     //window.loadURI(message.link, null, null, false);
-    let url = "chrome://snowl/content/message.xhtml?id=" + message.id;
+    let url = this.MESSAGE_URI + message.id;
     window.loadURI(url, null, null, false);
 
     // On conversion of list tree to places, this will be stored in
@@ -576,8 +583,115 @@ this._log.info("_toggleRead: all? " + aAll);
       }
   },
 
-  deleteMessages: function() {
-this._log.info("deleteMessages: START");
+  onDeleteMessages: function() {
+//this._log.info("onDeleteMessages: START ids - ");
+    // Create an array of selected messages.
+  },
+
+  _deleteMessages: function(aMessages) {
+//this._log.info("_deleteMessages: START #ids - "+aMessages.length);
+    // Delete messages.  Remove author if a deleted message is the only one left.
+
+    // Delete loop here, if multiple selections..
+    let message, messageID, authorID, messageIDs = [];
+    for (let i = 0; i < aMessages.length; ++i) {
+      message = aMessages[i];
+      messageID = message.id;
+      messageIDs.push(messageID)
+      authorID = message.authorID;
+      authorPlaceID = message.author.placeID;
+
+      if (!SnowlMessage.get(messageID)) {
+//this._log.info("_deleteMessages: Delete messages NOTFOUND - "+messageID);
+        continue;
+      }
+
+      SnowlDatastore.dbConnection.beginTransaction();
+      try {
+        // Delete messages
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
+            "WHERE messageID = " + messageID);
+//this._log.info("_deleteMessages: Delete messages METADATA DONE");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
+            "WHERE docid IN " +
+            "(SELECT id FROM parts WHERE messageID = " + messageID + ")");
+//this._log.info("_deleteMessages: Delete messages PARTSTEXT DONE");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
+            "WHERE messageID  = " + messageID);
+//this._log.info("_deleteMessages: Delete messages PARTS DONE");
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
+            "WHERE id = " + messageID);
+//this._log.info("_deleteMessages: Delete messages DONE");
+        if (!SnowlService.hasAuthorMessage(authorID)) {
+          // Delete people/identities; author's only message has been deleted.
+          SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
+              "WHERE id IN " +
+              "(SELECT personID FROM identities WHERE id = " + authorID + ")");
+          SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
+              "WHERE id = " + authorID);
+          // Finally, clean up Places bookmark by author's placeID.
+        PlacesUtils.bookmarks.removeItem(authorPlaceID);
+//this._log.info("_deleteMessages: Delete DONE authorID - "+authorID);
+        }
+//        PlacesUtils.history.removePage(URI(this.MESSAGE_URI + messageID));
+//        PlacesUtils.history.hidePage(URI(this.MESSAGE_URI + messageID));
+//this._log.info("_deleteMessages: Delete DONE messageID - "+messageID);
+
+        SnowlDatastore.dbConnection.commitTransaction();
+      }
+      catch(ex) {
+        SnowlDatastore.dbConnection.rollbackTransaction();
+        throw ex;
+      }
+    }
+
+    this._cleanSessionHistory(messageIDs);
+  },
+
+  _cleanSessionHistory: function(aMessageIDs) {
+    // Remove any deleted messages from tab's session history and set the b/f
+    // index to the immediate prior message.  Due to context linking, a number of
+    // pages belonging to the same message may be removed upon that message's
+    // deletion.
+    // XXX: clean across all tabs' history, not just current tab?
+//this._log.info("_cleanSessionHistory: messageIDs - "+aMessageIDs);
+
+    let sh = getBrowser().webNavigation.sessionHistory;
+    let shEntry, uri, msgUri, msgId;
+    let currIndex = sh.index, newCount = 0, restoreIndex = 0;
+    let newHistory = [];
+
+    for (i = 0; i < sh.count; i++){
+      shEntry = sh.getEntryAtIndex(i, false).QueryInterface(Ci.nsISHEntry);
+      uri = shEntry.URI.spec;
+      msgUri = uri.split("=")[0] + "=";
+      msgId = parseInt(uri.split("=")[1]);
+
+      if (msgUri == this.MESSAGE_URI && aMessageIDs.indexOf(msgId) != -1) {
+//this._log.info("_cleanSessionHistory: Delete from HISTORY - "+uri);
+        if (currIndex == i)
+          restoreIndex = newCount > 0 ? --newCount : newCount;
+        continue;
+      }
+
+      newHistory.push(shEntry);
+      newCount++;
+    }
+
+    if (newCount == 0) {
+      // Only message deleted, close tab.
+      getBrowser().removeTab(getBrowser().selectedTab);
+      return;
+    }
+
+    sh.PurgeHistory(sh.count);
+    sh.QueryInterface(Ci.nsISHistoryInternal);
+    newHistory.forEach(function(shEntry) {
+//SnowlMessageView._log.info("_cleanSessionHistory: Restore to HISTORY - "+uri);
+      sh.addEntry(shEntry, true);
+    })
+
+    sh.QueryInterface(Ci.nsIWebNavigation).gotoIndex(restoreIndex);
   },
 
   onListTreeMouseDown: function(aEvent) {

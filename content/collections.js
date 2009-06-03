@@ -559,7 +559,7 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
         // Delete people/identities
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
             "WHERE id IN " +
-            "(SELECT personId FROM identities WHERE sourceID = " + sourceID + ")");
+            "(SELECT personID FROM identities WHERE sourceID = " + sourceID + ")");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
             "WHERE sourceID = " + sourceID);
 //this._log.info("removeSource: Delete people/identities DONE");
@@ -629,7 +629,7 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
         // Delete people/identities
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
             "WHERE id IN " +
-            "(SELECT personId FROM identities WHERE id = " + authorID + ")");
+            "(SELECT personID FROM identities WHERE id = " + authorID + ")");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
             "WHERE id = " + authorID);
 //this._log.info("removeAuthor: Delete people/identities DONE");

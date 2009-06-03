@@ -45,12 +45,12 @@ function finish_test() {
     do_check_eq(message.id.constructor.name, "Number");
     do_check_eq(message.sourceID, account.id);
     do_check_eq(message.subject, "Atom-Powered Robots Run Amok");
-    do_check_eq(message.authorName, "John Doe");
+    do_check_eq(message.author.name, "John Doe");
     // TODO: do_check_eq(message.authorID, authorID);
     do_check_eq(message.link, "http://example.org/2003/12/13/atom03");
     do_check_eq(message.timestamp.getTime(), 1071340202000);
     do_check_eq(message._read, false);
-    do_check_eq(message.authorIcon, null);
+    do_check_eq(message.author.iconURL, null);
     do_check_eq(message.received.constructor.name, "Date");
     do_check_eq(message.content, null);
     do_check_true(message.summary instanceof Ci.nsIFeedTextConstruct);

@@ -264,12 +264,10 @@ this._log.info("got " + groups.length + " groups");
           id:         statement.row.messageID,
           sourceID:   statement.row.sourceID,
           subject:    statement.row.subject,
-          authorName: statement.row.authorName,
           authorID:   statement.row.authorID,
           link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
           _read:      (statement.row.read ? true : false),
-          authorIcon: statement.row.authorIcon,
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           content:    content
         });
@@ -306,8 +304,6 @@ this._log.info("got " + groups.length + " groups");
       "messages.timestamp",
       "messages.read",
       "messages.received",
-      "authors.name AS authorName",
-      "authors.iconURL AS authorIcon",
       "parts.id AS partID",
       "parts.content",
       "parts.mediaType",

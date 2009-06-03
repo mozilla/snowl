@@ -60,16 +60,13 @@ function SnowlMessage(props) {
 }
 
 // FIXME: refactor this with the similar code in the SnowlCollection::messages getter.
-// FIXME: retrieve an author object instead of just specific properties of the author.
 // FIXME: retrieve all basic properties of the message in a single query.
 SnowlMessage.get = function(id) {
   let message;
 
   let statement = SnowlDatastore.createStatement(
-    "SELECT sourceID, subject, authors.name AS authorName, link, timestamp, read, " +
-    "       authors.iconURL AS authorIcon, received, authorID " +
-    "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
-    "WHERE messages.id = :id"
+    "SELECT sourceID, subject, link, timestamp, read, received, authorID " +
+    "FROM messages WHERE messages.id = :id"
   );
 
   try {
@@ -79,12 +76,10 @@ SnowlMessage.get = function(id) {
         id:         id,
         sourceID:   statement.row.sourceID,
         subject:    statement.row.subject,
-        authorName: statement.row.authorName,
         authorID:   statement.row.authorID,
         link:       statement.row.link,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
         _read:      (statement.row.read ? true : false),
-        authorIcon: statement.row.authorIcon,
         received:   SnowlDateUtils.julianToJSDate(statement.row.received)
       });
     }
@@ -99,16 +94,50 @@ SnowlMessage.get = function(id) {
 SnowlMessage.prototype = {
   id: null,
   subject: null,
-  author: null,
   // FIXME: make this an nsIURI.
   link: null,
   timestamp: null,
   received: null,
 
+  /**
+   * The author object from the people table, include identities externalID.
+   */
+  _author: null,
+  get author() {
+    let author = {}, sID, externalID;
+
+    if (this._author)
+      return this._author;
+
+    try {
+      this._getAuthorStatement.params.id = this.authorID;
+      if (this._getAuthorStatement.step()) {
+        author["name"] = this._getAuthorStatement.row.name;
+        author["homeURL"] = this._getAuthorStatement.row.homeURL;
+        author["iconURL"] = this._getAuthorStatement.row.iconURL;
+        author["placeID"] = this._getAuthorStatement.row.placeID;
+        [sID, externalID] = SnowlDatastore.selectIdentitiesSourceID(this.authorID);
+        author["externalID"] = externalID;
+      }
+    }
+    finally {
+      this._getAuthorStatement.reset();
+    }
+
+    return this._author = author;
+  },
+
+  get _getAuthorStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT name, homeURL, iconURL, placeID " +
+      "FROM people WHERE id = :id"
+    );
+    this.__defineGetter__("_getAuthorStatement", function() { return statement });
+    return this._getAuthorStatement;
+  },
+
   // FIXME: figure out whether or not setters should update the database.
-
   _read: undefined,
-
   get read() {
     return this._read;
   },
@@ -196,19 +225,15 @@ SnowlMessage.prototype = {
     return part;
   },
 
-  get _getAttributesStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT attributeID, value" +
-      " FROM metadata" +
-      " WHERE messageID = :messageID"
-    );
-    this.__defineGetter__("_getAttributesStatement", function() { return statement });
-    return this._getAttributesStatement;
-  },
-
-  _attributes: {},
+  /**
+   * The attributes object, from which the message header is derived.
+   */
+  _attributes: null,
   get attributes() {
     let attributeID, namespace, name, attributes = {};
+
+    if (this._attributes)
+      return this._attributes;
 
     try {
       this._getAttributesStatement.params.messageID = this.id;
@@ -225,14 +250,13 @@ SnowlMessage.prototype = {
     return this._attributes = attributes;
   },
 
-  get _getAttributeNameStatement() {
+  get _getAttributesStatement() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT namespace, name" +
-      " FROM attributes" +
-      " WHERE id = :id"
+      "SELECT attributeID, value " +
+      "FROM metadata WHERE messageID = :messageID"
     );
-    this.__defineGetter__("_getAttributeNameStatement", function() { return statement });
-    return this._getAttributeNameStatement;
+    this.__defineGetter__("_getAttributesStatement", function() { return statement });
+    return this._getAttributesStatement;
   },
 
   attributeName: function(aAttributeID) {
@@ -250,6 +274,15 @@ SnowlMessage.prototype = {
     }
 
     return [namespace, name];
+  },
+
+  get _getAttributeNameStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT namespace, name " +
+      "FROM attributes WHERE id = :id"
+    );
+    this.__defineGetter__("_getAttributeNameStatement", function() { return statement });
+    return this._getAttributeNameStatement;
   },
 
   get source() {
