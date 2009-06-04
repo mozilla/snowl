@@ -110,7 +110,7 @@
       <stylesheet src="chrome://snowl/skin/sources.css"/>
     </resources>
     <content>
-      <xul:vbox>
+      <xul:vbox flex="1">
         <xul:hbox flex="1" align="center">
           <xul:image src="moz-icon://goat?size=16"
                      xbl:inherits="src=icon" height="16" width="16"/>
@@ -125,7 +125,9 @@
             <xul:menuseparator/>
           </xul:menupopup>
         </xul:menulist>
-        <xul:button label="&feedSubscribeNow;" id="subscribeButton"/>
+        <xul:hbox>
+          <xul:button label="Subscribe" id="subscribeButton"/>
+        </xul:hbox>
       </xul:vbox>
     </content>
 
