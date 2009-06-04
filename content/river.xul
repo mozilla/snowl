@@ -168,7 +168,7 @@
 
   </hbox>
 
-    <image id="dogmark" left="0" top="0" state="open"
+    <image id="dogmark" left="0" top="0" state="open" width="24" height="24"
            onclick="SnowlMessageView.onClickDogmark(event)"/>
   </stack>
 </page>
