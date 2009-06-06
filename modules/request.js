@@ -76,8 +76,24 @@ function Request(args) {
 
 Request.prototype = {
   method: "GET",
-  async: true,
-  body: null
+  async: false,
+  body: null,
+
+  get status() this._request.status,
+
+  // Sometimes getting statusText throws.  When it does, we return the exception
+  // instead, which seems more useful.
+  get statusText() {
+    try {
+      return this._request.statusText;
+    }
+    catch(ex) {
+      return ex;
+    }
+  },
+
+  get responseText() this._request.responseText,
+  get channel() this._request.channel
 };
 
 function Callback(func, thisObject) {
