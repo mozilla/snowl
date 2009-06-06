@@ -590,6 +590,123 @@ let SnowlUtils = {
         container.appendChild(desc);
       }
     }
+  },
+
+  /**
+   * Canonicalize the feeds provided by a web page by removing probable
+   * duplicates that use different protocols (Atom, RSS) and titling them
+   * after the page itself, since we treat feeds as the transport protocol
+   * for updates from web pages, so the web page itself is the first-class
+   * object to which we expose users, and its title is the more memorable
+   * in that regard.
+   *
+   * @param   feeds       {Array}
+   *          the feeds to canonicalize; each element is a feed {Object}
+   *          with two properties:
+   *            href  {String} URL of the feed
+   *            title {String} title of the feed
+   *
+   * @param   pageTitle   {String}
+   *          title of page providing the feeds
+   *
+   * @returns {Array} canonicalized array of feeds
+   */
+  canonicalizeFeeds: function(feeds, pageTitle) {
+    // Operate on a copy of the feeds array so we don't hork other extensions
+    // or core code that expect that array to remain intact.
+    let canonicalFeeds = feeds.concat();
+
+    if (canonicalFeeds.length == 1) {
+      // If the page title is available, name the feed after the page,
+      // as the page's title is likely to be better than the feed title.
+      if (pageTitle)
+        canonicalFeeds[0].title = pageTitle;
+    }
+    else if (canonicalFeeds.length == 2) {
+      // If the two feeds appear to be duplicates (i.e. one RSS, the other
+      // Atom), then remove one.  We remove the RSS feed by default, assuming
+      // that the Atom feed is better because Atom is better specified, but we
+      // could just as well remove the Atom feed if the RSS feed seems better
+      // under certain circumstances.
+      let areDupes = function(a, b) (/atom/i.test(a) && /rss/i.test(b)) ||
+                                    (/atom/i.test(b) && /rss/i.test(a));
+      if (areDupes(canonicalFeeds[0].title, canonicalFeeds[1].title)) {
+        // This code is overly complicated (filtering to an array, extracting
+        // its first element, and then putting that into another array)
+        // to ensure we always reduce the array to a single element even if
+        // both of their names happen to contain the string "atom"
+        // (f.e. if one was called "Atom Feed" and the other was called
+        // "RSS Feed - Not Atom").
+        canonicalFeeds =
+          [canonicalFeeds.filter(function(v) /atom/i.test(v.title))[0]];
+      }
+
+      // If the page title is available, name the feed after the page,
+      // as the page's title is likely to be better than the feed title.
+      if (pageTitle)
+        canonicalFeeds[0].title = pageTitle;
+    }
+
+    // If there are more than two feeds, we don't currently do anything.
+    // Perhaps there are things we could do?  Use cases would be handy.
+
+    return canonicalFeeds;
+  },
+
+  /**
+   * Canonicalize feeds provided by multiple web pages.  This calls
+   * canonicalizeFeeds on the feeds for each individual page, then it removes
+   * any exact duplicates from the list, so if you generate a list of feeds
+   * from a set of pages (f.e. pages open in tabs), and you have the same page
+   * in the set twice (or two pages from the same site that both provide
+   * the same feeds), you don't get duplicate feeds.
+   *
+   * @param   pages {Array}
+   *          the pages to canonicalize; each element is a page {Object}
+   *          with two properties:
+   *            feeds {Array}  the feeds to canonicalize (@see canonicalizeFeeds
+   *                           for a description of feed objects)
+   *            title {String} the title of the page
+   *
+   * @returns {Array} canonicalized array of feeds
+   */
+  canonicalizeFeedsFromMultiplePages: function(pages) {
+    let feeds = [];
+
+    // Convert the array of pages into an array of feeds from those pages
+    // which have been canonicalized with respect to each individual page.
+    for each (let page in pages)
+      feeds = feeds.concat(this.canonicalizeFeeds(page.feeds, page.title));
+
+    // We can do the above with a single statement, but I don't think we gain
+    // anything, since I can't find a way to make the statement more compact
+    // while retaining readability.
+    //feeds = 
+    //  pages.map(function(page) this.canonicalizeFeeds(page.feeds, page.title),
+    //            this).reduce(function(feeds, feed) feeds.concat(feed), []);
+
+    // Convert the array of feeds into an array of feeds that have been
+    // canonicalized with respect to the set of pages as a whole (i.e. remove
+    // exact duplicates from the list of feeds from all pages).  We consider
+    // two feeds to be duplicates if their URLs match, even if their titles
+    // are different, since users only benefit from subscribing to any given
+    // feed once, even if the feed is offered by two different pages
+    // with different titles.
+    let uniqueFeeds = {};
+    for each (let feed in feeds)
+      uniqueFeeds[feed.href] = feed;
+    feeds = [feed for ([, feed] in Iterator(uniqueFeeds))];
+
+    // We can do the above with a single statement, but I don't think we gain
+    // anything, since I can't find a way to make the statement more compact
+    // while retaining readibility.  I suppose there's benefit to not having
+    // to declare the temporary uniqueFeeds object.
+    //feeds = [feed for ([, feed] in
+    //  Iterator(feeds.reduce(function(uniqueFeeds, feed) {
+    //                          uniqueFeeds[feed.href] = feed; return uniqueFeeds
+    //                        }, {})))];
+
+    return feeds;
   }
 
 };

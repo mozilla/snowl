@@ -878,25 +878,32 @@ let Sources = {
     this._log.info("selected " + source.name + " with ID " + source.id);
 
     if (!source.messages) {
-      let constraints = [];
-
-      constraints.push({ expression: "sources.id = " + source.id });
-
-      // FIXME: use a left join here once the SQLite bug breaking left joins to
-      // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-      if (SnowlMessageView._filter.value) {
-        constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                           parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
+      if (source.id) {
+        let constraints = [];
+  
+        constraints.push({ expression: "sources.id = " + source.id });
+  
+        // FIXME: use a left join here once the SQLite bug breaking left joins to
+        // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+        if (SnowlMessageView._filter.value) {
+          constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
+                             parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
+        }
+  
+        if (SnowlMessageView._periodMenu.selectedItem) {
+          constraints.push({ expression: "received >= :startTime AND received < :endTime",
+                             parameters: { startTime: SnowlMessageView._periodStartTime,
+                                             endTime: SnowlMessageView._periodEndTime } });
+        }
+  
+        // XXX replace this with a SnowlSource::retrieve method that handles
+        // constraints (and ultimately multiple source IDs)?
+        source.messages = new Collection2({ constraints: constraints,
+                                                  order: "messages.id DESC" });
       }
-
-      if (SnowlMessageView._periodMenu.selectedItem) {
-        constraints.push({ expression: "received >= :startTime AND received < :endTime",
-                           parameters: { startTime: SnowlMessageView._periodStartTime,
-                                           endTime: SnowlMessageView._periodEndTime } });
+      else {
+        source.refresh();
       }
-
-      source.messages = new Collection2({ constraints: constraints,
-                                                order: "messages.id DESC" });
     }
 
     SnowlMessageView._collection = source.messages;
@@ -924,6 +931,22 @@ let Sources = {
       }
     }
 
+    let otherTabFeeds = this._getFeedsInOtherTabs();
+    if (otherTabFeeds.length > 0) {
+      let item = document.createElementNS(XUL_NS, "richlistitem");
+      // FIXME: make this localizable.
+      item.setAttribute("label", "Other Tabs");
+      item.className = "header";
+      this._list.appendChild(item);
+
+      for each (let otherTabFeed in otherTabFeeds) {
+        let feed = new SnowlFeed(null, otherTabFeed.title, new URI(otherTabFeed.href), undefined, null);
+        let item = this._list.appendItem(otherTabFeed.title);
+        item.source = feed;
+        item.className = "source";
+      }
+    }
+
     let item = document.createElementNS(XUL_NS, "richlistitem");
     // FIXME: make this localizable.
     item.setAttribute("label", "Subscriptions");
@@ -937,6 +960,22 @@ let Sources = {
       item.setAttribute("subscription", "true");
       item.className = "source";
     }
+  },
+
+  _getFeedsInOtherTabs: function() {
+    // I would use FUEL here, but its tab API doesn't provide access to feeds.
+
+    let tabBrowser = gBrowserWindow.gBrowser;
+    let tabs = tabBrowser.mTabs;
+    let pages = [];
+    for (let i = 0; i < tabs.length; i++) {
+      let tab = tabs[i];
+      let browser = tabBrowser.getBrowserForTab(tab);
+      if (browser.feeds)
+        pages.push({ feeds: browser.feeds, title: browser.contentTitle });
+    }
+
+    return SnowlUtils.canonicalizeFeedsFromMultiplePages(pages);
   }
 };
 

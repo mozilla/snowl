@@ -348,36 +348,17 @@ let Snowl = {
   // Feed Button
 
   _onClickFeedButton: function(event) {
-    let feeds = gBrowser.selectedBrowser.feeds;
-
     // How could this happen?  Users shouldn't be able to click the button
     // if there are no feeds.
     // FIXME: figure out if we need this and what to do if we encounter it.
-    if (feeds == null)
+    if (gBrowser.selectedBrowser.feeds == null)
       return;
 
-    let feedsToPreview = feeds;
-
-    // If there are two feeds, one of which seems to be an Atom feed, the other
-    // of which seems to be RSS, assume they're duplicates and only preview one
-    // (in this case we choose the Atom feed).
-    let areDupes = function(a, b) (/atom/i.test(a) && /rss/i.test(b)) ||
-                                  (/atom/i.test(b) && /rss/i.test(a));
-    if (feeds.length == 2 && areDupes(feeds[0].title, feeds[1].title)) {
-      // FIXME: log this so developers/testers know it happened.
-
-      // Filter the array for the item whose title contains "atom", but only
-      // grab the first item from the filtered array on the off chance that both
-      // items contain "atom".
-      feedsToPreview = [feeds.filter(function(v) /atom/i.test(v.title))[0]];
-
-      // Use the title of the page instead of the Atom-specific feed title.
-      if (gBrowser.selectedBrowser.contentTitle)
-        feedsToPreview[0].title = gBrowser.selectedBrowser.contentTitle;
-    }
+    let feeds = SnowlUtils.canonicalizeFeeds(gBrowser.selectedBrowser.feeds,
+                                             gBrowser.selectedBrowser.contentTitle);
 
     // Open the river view, passing it the feeds to preview.
-    let param = "feedsToPreview=" + encodeURIComponent(JSON.stringify(feedsToPreview));
+    let param = "feedsToPreview=" + encodeURIComponent(JSON.stringify(feeds));
     let href = "chrome://snowl/content/river.xul?" + param;
     openUILink(href, event, false, true, false, null);
   },
