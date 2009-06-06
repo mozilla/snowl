@@ -57,7 +57,6 @@
                 catch(ex) { /* before script loaded */ }">
     <!-- FIXME: set the onresize handler in stream.js so we don't have to catch this exception -->
 
-  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
   <toolbar id="snowlToolbar">

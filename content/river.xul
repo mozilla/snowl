@@ -69,7 +69,6 @@
      - and we want the user to be able to return to the page without causing it
      - to be reloaded, since a reload will lose the user's place on it. -->
 
-  <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/river.js"/>
 
   <keyset>
