@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["SnowlMessage"];
+let EXPORTED_SYMBOLS = ["SnowlMessage", "SnowlMessagePart"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -42,11 +42,13 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
+Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -60,13 +62,18 @@ function SnowlMessage(props) {
 }
 
 // FIXME: refactor this with the similar code in the SnowlCollection::messages getter.
+// FIXME: retrieve an author object instead of just specific properties of the author.
 // FIXME: retrieve all basic properties of the message in a single query.
-SnowlMessage.get = function(id) {
+// FIXME: retrieve multiple messages in a single query.
+SnowlMessage.retrieve = function(id) {
   let message;
 
+  // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
-    "SELECT sourceID, subject, link, timestamp, read, received, authorID " +
-    "FROM messages WHERE messages.id = :id"
+    "SELECT sourceID, subject, authors.name AS authorName, link, timestamp, read, " +
+    "       authors.iconURL AS authorIcon, received, authorID " +
+    "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
+    "WHERE messages.id = :id"
   );
 
   try {
@@ -76,12 +83,16 @@ SnowlMessage.get = function(id) {
         id:         id,
         sourceID:   statement.row.sourceID,
         subject:    statement.row.subject,
+        authorName: statement.row.authorName,
         authorID:   statement.row.authorID,
-        link:       statement.row.link,
+        link:       statement.row.link ? URI.get(statement.row.link) : null,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-        _read:      (statement.row.read ? true : false),
+        read:       statement.row.read,
+        authorIcon: statement.row.authorIcon,
         received:   SnowlDateUtils.julianToJSDate(statement.row.received)
       });
+
+      message.author = SnowlIdentity.retrieve(message.authorID);
     }
   }
   finally {
@@ -93,63 +104,21 @@ SnowlMessage.get = function(id) {
 
 SnowlMessage.prototype = {
   id: null,
+  externalID: null,
   subject: null,
-  // FIXME: make this an nsIURI.
+  authorName: null,
+  authorID: null,
+  author: null,
   link: null,
   timestamp: null,
   received: null,
-
-  /**
-   * The author object from the people table, include identities externalID.
-   */
-  _author: null,
-  get author() {
-    let author = {}, sID, externalID;
-
-    if (this._author)
-      return this._author;
-
-    try {
-      this._getAuthorStatement.params.id = this.authorID;
-      if (this._getAuthorStatement.step()) {
-        author["name"] = this._getAuthorStatement.row.name;
-        author["homeURL"] = this._getAuthorStatement.row.homeURL;
-        author["iconURL"] = this._getAuthorStatement.row.iconURL;
-        author["placeID"] = this._getAuthorStatement.row.placeID;
-        [sID, externalID] = SnowlDatastore.selectIdentitiesSourceID(this.authorID);
-        author["externalID"] = externalID;
-      }
-    }
-    finally {
-      this._getAuthorStatement.reset();
-    }
-
-    return this._author = author;
-  },
-
-  get _getAuthorStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT name, homeURL, iconURL, placeID " +
-      "FROM people WHERE id = :id"
-    );
-    this.__defineGetter__("_getAuthorStatement", function() { return statement });
-    return this._getAuthorStatement;
-  },
-
-  // FIXME: figure out whether or not setters should update the database.
-  _read: undefined,
-  get read() {
-    return this._read;
-  },
-
-  set read(newValue) {
-    if (this._read == newValue)
-      return;
-    this._read = newValue ? true : false;
-    SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages SET read = " +
-                                                 (this._read ? "1" : "0") +
-                                                 " WHERE id = " + this.id);
-  },
+  read: false,
+  // FIXME: we don't need to set sourceID if we always set source,
+  // so figure out if that's the case and update this code accordingly.
+  sourceID: null,
+  // FIXME: make sure there aren't any consumers that expect us to provide this
+  // automatically from the persistent datastore, which we used to do.
+  source: null,
 
   /**
    * The content of the message.  If undefined, we haven't retrieved it from
@@ -208,14 +177,11 @@ SnowlMessage.prototype = {
       this._getPartStatement.params.messageID = this.id;
       this._getPartStatement.params.partType = aPartType;
       if (this._getPartStatement.step()) {
-        // FIXME: instead of a text construct, return a JS object that knows
-        // its ID and part type.
-        part = Cc["@mozilla.org/feed-textconstruct;1"].
-               createInstance(Ci.nsIFeedTextConstruct);
-        part.text = this._getPartStatement.row.content;
-        part.type = TEXT_CONSTRUCT_TYPES[this._getPartStatement.row.mediaType];
-        part.base = URI.get(this._getPartStatement.row.baseURI);
-        part.lang = this._getPartStatement.row.languageTag;
+        part = new SnowlMessagePart({ partType:    aPartType,
+                                      content:     this._getPartStatement.row.content,
+                                      mediaType:   this._getPartStatement.row.mediaType,
+                                      baseURI:     URI.get(this._getPartStatement.row.baseURI),
+                                      languageTag: this._getPartStatement.row.languageTag });
       }
     }
     finally {
@@ -225,68 +191,177 @@ SnowlMessage.prototype = {
     return part;
   },
 
+  get _stmtInsertMessage() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link, read) \
+       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, :read)"
+    );
+    this.__defineGetter__("_stmtInsertMessage", function() { return statement });
+    return this._stmtInsertMessage;
+  },
+
   /**
-   * The attributes object, from which the message header is derived.
+   * Persist the message to the messages table.
+   *
+   * FIXME: make this update an existing record.
+   * 
+   * @returns {integer} the ID of the newly-created record
    */
-  _attributes: null,
-  get attributes() {
-    let attributeID, namespace, name, attributes = {};
+  persist: function() {
+    // We can't begin a transaction here because the database engine does not
+    // support nested transactions, and we get called from the message source's
+    // persist method, which calls us from within a transaction.
 
-    if (this._attributes)
-      return this._attributes;
+    let added = false;
+
+    if (this.author)
+      this.author.persist();
+
+    if (!this.id)
+      this.id = this._getInternalID();
+
+    if (this.id) {
+      // FIXME: update the existing record as appropriate.
+    }
+    else {
+      added = true;
+
+      this._stmtInsertMessage.params.sourceID   = this.sourceID;
+      this._stmtInsertMessage.params.externalID = this.externalID;
+      this._stmtInsertMessage.params.subject    = this.subject;
+      this._stmtInsertMessage.params.authorID   = this.author ? this.author.id : null;
+      this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+      this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
+      this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
+      this._stmtInsertMessage.params.read       = this.read;
+      this._stmtInsertMessage.execute();
+  
+      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    }
+
+    if (this.content)
+      this.content.persist(this);
+    if (this.summary)
+      this.summary.persist(this);
+
+    if (added)
+      Observers.notify("snowl:message:added", this);
+
+    return added;
+  },
+
+  get _getInternalIDStmt() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
+    );
+    this.__defineGetter__("_getInternalIDStmt", function() statement);
+    return this._getInternalIDStmt;
+  },
+
+  /**
+   * Get the internal ID of the message.
+   *
+   * @returns  {Number}
+   *           the internal ID of the message, or undefined if the message
+   *           doesn't exist in the datastore
+   */
+  _getInternalID: function() {
+    let internalID;
 
     try {
-      this._getAttributesStatement.params.messageID = this.id;
-      while (this._getAttributesStatement.step()) {
-        attributeID = this._getAttributesStatement.row.attributeID;
-        [namespace, name] = this.attributeName(attributeID);
-        attributes[name] = this._getAttributesStatement.row.value;
-      }
+      this._getInternalIDStmt.params.sourceID = this.source.id;
+      this._getInternalIDStmt.params.externalID = this.externalID;
+      if (this._getInternalIDStmt.step())
+        internalID = this._getInternalIDStmt.row["id"];
     }
     finally {
-      this._getAttributesStatement.reset();
+      this._getInternalIDStmt.reset();
     }
 
-    return this._attributes = attributes;
-  },
-
-  get _getAttributesStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT attributeID, value " +
-      "FROM metadata WHERE messageID = :messageID"
-    );
-    this.__defineGetter__("_getAttributesStatement", function() { return statement });
-    return this._getAttributesStatement;
-  },
-
-  attributeName: function(aAttributeID) {
-    let namespace, name;
-
-    try {
-      this._getAttributeNameStatement.params.id = aAttributeID;
-      if (this._getAttributeNameStatement.step()) {
-        namespace = this._getAttributeNameStatement.row.namespace;
-        name = this._getAttributeNameStatement.row.name;
-      }
-    }
-    finally {
-      this._getAttributeNameStatement.reset();
-    }
-
-    return [namespace, name];
-  },
-
-  get _getAttributeNameStatement() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT namespace, name " +
-      "FROM attributes WHERE id = :id"
-    );
-    this.__defineGetter__("_getAttributeNameStatement", function() { return statement });
-    return this._getAttributeNameStatement;
-  },
-
-  get source() {
-    return SnowlService.sourcesByID[this.sourceID];
+    return internalID;
   }
 
+};
+
+function SnowlMessagePart(properties) {
+  [this[name] = properties[name] for (name in properties)];
+}
+
+SnowlMessagePart.prototype = {
+  id:           null,
+  partType:     null,
+  content:      null,
+  mediaType:    null,
+  baseURI:      null,
+  languageTag:  null,
+
+  get textConstruct() {
+    let textConstruct = Cc["@mozilla.org/feed-textconstruct;1"].
+                        createInstance(Ci.nsIFeedTextConstruct);
+    textConstruct.text = this.content;
+    textConstruct.type = TEXT_CONSTRUCT_TYPES[this.mediaType];
+    textConstruct.base = this.baseURI;
+    textConstruct.lang = this.languageTag;
+    this.__defineGetter__("textConstruct", function() textConstruct);
+    return this.textConstruct;
+  },
+
+  // Implement nsIFeedTextConstruct properties for backwards-compatibility
+  // until we update all callers to use the new API for this object.
+  get text() this.textConstruct.text,
+  get type() this.textConstruct.type,
+  get base() this.textConstruct.base,
+  get lang() this.textConstruct.lang,
+
+  plainText: function() this.textConstruct.plainText(),
+  createDocumentFragment: function(element) this.textConstruct.createDocumentFragment(element),
+
+  get _stmtInsertPart() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO parts( messageID,  content,  mediaType,  partType,  baseURI,  languageTag) " +
+      "VALUES           (:messageID, :content, :mediaType, :partType, :baseURI, :languageTag)"
+    );
+    this.__defineGetter__("_stmtInsertPart", function() statement);
+    return this._stmtInsertPart;
+  },
+
+  get _stmtInsertPartText() {
+    let statement = SnowlDatastore.createStatement(
+      "INSERT INTO partsText( docid,  content) " +
+      "VALUES               (:docid, :content)"
+    );
+    this.__defineGetter__("_stmtInsertPartText", function() statement);
+    return this._stmtInsertPartText;
+  },
+
+  persist: function(message) {
+    this._stmtInsertPart.params.messageID     = message.id;
+    this._stmtInsertPart.params.partType      = this.partType;
+    this._stmtInsertPart.params.content       = this.content;
+    this._stmtInsertPart.params.mediaType     = this.mediaType;
+    this._stmtInsertPart.params.baseURI       = (this.baseURI ? this.baseURI.spec : null);
+    this._stmtInsertPart.params.languageTag   = this.languageTag;
+    this._stmtInsertPart.execute();
+
+    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+    // Insert a plaintext version of the content into the partsText fulltext
+    // table, converting it to plaintext first if necessary (and possible).
+    switch (this.mediaType) {
+      case "text/html":
+      case "application/xhtml+xml":
+      case "text/plain":
+        // Give the fulltext record the same doc ID as the row ID of the parts
+        // record so we can join them together to get the part (and thence the
+        // message) when doing a fulltext search.
+        this._stmtInsertPartText.params.docid = this.id;
+        this._stmtInsertPartText.params.content = this.plainText();
+        this._stmtInsertPartText.execute();
+        break;
+
+      default:
+        // It isn't a type we understand, so don't do anything with it.
+        // XXX If it's text/*, shouldn't we fulltext index it anyway?
+    }
+  }
 };

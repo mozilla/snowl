@@ -498,12 +498,13 @@ this._log.info("_toggleRead: all? " + aAll);
     let row = this._tree.currentIndex;
     let message = this._collection.messages[row];
     message.read = aRead;
+    message.persist();
     this._tree.boxObject.invalidateRow(row);
   },
 
   _setAllRead: function(aRead) {
     let ids = this._collection.messages.map(function(v) { return v.id });
-    this._collection.messages.forEach(function(v) { v.read = aRead });
+    this._collection.messages.forEach(function(v) { v.read = aRead; v.persist(); });
     this._tree.boxObject.invalidate();
   },
 

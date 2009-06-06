@@ -47,8 +47,9 @@ Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/Mixin.js");
+Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Request.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -78,7 +79,7 @@ function stringToArray(string) {
 }
 
 function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
-  SnowlSource.init.call(this, aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+  this.init(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID);
 }
 
 SnowlFeed.prototype = {
@@ -87,6 +88,7 @@ SnowlFeed.prototype = {
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlFeed,
 
+  // XXX Move this to SnowlSource?
   get _log() {
     let logger = Log4Moz.repository.getLogger("Snowl.Feed " + this.name);
     this.__defineGetter__("_log", function() logger);
@@ -179,28 +181,58 @@ SnowlFeed.prototype = {
     throw Cr.NS_ERROR_NOT_IMPLEMENTED;
   },
 
+
+  //**************************************************************************//
+  // Refreshment
+
   _refreshTime: null,
+  _refreshCallback: null,
 
-  refresh: function(refreshTime) {
-    // Cache the refresh time so we can use it as the received time when adding
-    // messages to the datastore.
-    this._refreshTime = refreshTime;
+  /**
+   * Refresh the feed, retrieving the latest information in it.
+   *
+   * @param time        {Date}      [optional]
+   *        when the refresh occurs; determines the received time of new
+   *        messages; we let the caller specify this so a caller refreshing
+   *        multiple feeds can give their messages the same received time
+   *
+   * @param callback    {Function}  [optional]
+   *        a function to call when the refresh is complete
+   *
+   * @param thisObject  {Object}    [optional]
+   *        the object to set to |this| within the callback function;
+   *        causes the function to be called as a method of the object;
+   *        if you don't provide a value for this parameter, the function
+   *        will be called without reference to an object, and |this|
+   *        will be set to the global object within the callback function
+   */
+  refresh: function(time, callback, thisObject) {
+    if (typeof time == "undefined" || time == null)
+      time = new Date();
+    this._log.info("start refresh " + this.machineURI.spec + " at " + time);
 
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-    request.QueryInterface(Ci.nsIDOMEventTarget);
-    let t = this;
-    request.addEventListener("load", function(e) { t.onRefreshLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onRefreshError(e) }, false);
+    this._refreshTime = time;
 
-    request.QueryInterface(Ci.nsIXMLHttpRequest);
-    // The feed processor is going to parse the XML, so override the MIME type
-    // in order to turn off parsing by XMLHttpRequest itself.
-    request.overrideMimeType("text/plain");
-    request.open("GET", this.machineURI.spec, true);
-    // Register a listener for notification callbacks so we handle authentication.
-    request.channel.notificationCallbacks = this;
+    if (callback) {
+      this._refreshCallback =
+        thisObject ? function(source) callback.call(thisObject, source)
+                   : callback;
+    }
 
-    request.send(null);
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:connect:start", this);
+
+    new Request({
+      loadCallback:           new Callback(this.onRefreshLoad, this),
+      errorCallback:          new Callback(this.onRefreshError, this),
+      // The feed processor is going to parse the XML, so override the MIME type
+      // in order to turn off parsing by XMLHttpRequest itself.
+      overrideMimeType:       "text/plain",
+      url:                    this.machineURI,
+      // Register a listener for notification callbacks so we handle
+      // authentication.
+      notificationCallbacks:  this
+    });
 
     // We set the last refreshed timestamp here even though the refresh
     // is asynchronous, so we don't yet know whether it has succeeded.
@@ -210,23 +242,28 @@ SnowlFeed.prototype = {
     // period of time.  We should instead keep trying when a source fails,
     // but with a progressively longer interval (up to the standard one).
     // FIXME: implement the approach described above.
-    this.lastRefreshed = refreshTime;
+    this.lastRefreshed = time;
   },
 
-  onRefreshLoad: function(aEvent) {
-    let request = aEvent.target;
+  onRefreshLoad: function(event) {
+    let request = event.target;
 
     // The load event can fire even with a non 2xx code, so handle as error
     if (request.status < 200 || request.status > 299) {
-      this.onRefreshError(aEvent);
+      this.onRefreshError(event);
       return;
     }
 
     // XXX What's the right way to handle this?
     if (request.responseText.length == 0) {
-      this.onRefreshError(aEvent);
+      this.onRefreshError(event);
       return;
     }
+
+    // XXX Perhaps we should set this._lastStatus = request.status so we don't
+    // need to pass it in this notification and it's available at any time.
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     // _authInfo only gets set if we prompted the user to authenticate
     // and the user checked the "remember password" box.  Since we're here,
@@ -241,63 +278,102 @@ SnowlFeed.prototype = {
     parser.listener = {
       self: this,
       handleResult: function(result) {
-        this.self._processRefresh(result, this.self._refreshTime);
+        this.self.onRefreshResult(result);
       }
     };
     parser.parseFromString(request.responseText, request.channel.URI);
-
-    this._resetRefresh();
   },
 
-  onRefreshError: function(aEvent) {
-    let request = aEvent.target;
+  onRefreshError: function(event) {
+    let request = event.target;
 
     // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
     let statusText;
-    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
-
+    try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
+    // XXX Perhaps we should set this._lastStatus = request.status so we don't
+    // need to pass it in this notification and it's available at any time.
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
+
+    if (this._subscribeCallback)
+      this._subscribeCallback();
+    if (this._refreshCallback)
+      this._refreshCallback(this);
 
     this._resetRefresh();
   },
 
-  _processRefresh: strand(function(aResult, refreshTime) {
-    // FIXME: figure out why aResult.doc is sometimes null (its content isn't
-    // a valid feed?) and report a more descriptive error message.
-    if (aResult.doc == null) {
-      this._log.error("_processRefresh: aResult.doc is null");
-//      Observers.notify("snowl:subscribe:get:end", this);
+  onRefreshResult: strand(function(result) {
+    // FIXME: figure out why result.doc is sometimes null (perhaps its content
+    // isn't a valid feed?) and report a more descriptive error message.
+    if (result.doc == null) {
+      this._log.error("onRefreshResult: result.doc is null");
+      // FIXME: factor this out with similar code in onSubscribeError and make
+      // the observers of snowl:subscribe:connect:end understand the status
+      // we return.
+      // FIXME: remove subscribe from this notification's name.
+      Observers.notify("snowl:subscribe:connect:end", this, "result.doc is null");
+      if (this._subscribeCallback)
+        this._subscribeCallback();
+      if (this._refreshCallback)
+        this._refreshCallback(this);
       return;
     }
 
-    // FIXME: Make this be "snowl:refresh:start" or move it into the subscribing
-    // caller so it makes sense that it's called "snowl:subscribe:get:start",
-    // since this method also gets called during periodically on feeds to which
-    // the user is already subscribed.
-    Observers.notify("snowl:subscribe:get:start", this);
+    try {
+      let feed = result.doc.QueryInterface(Ci.nsIFeed);
 
-    let feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
+      // Extract the name and human URI (if we don't already have them)
+      // from the feed.
+      // ??? Should we update these if they've changed?
+      if (!this.name)
+        this.name = feed.title.plainText();
+      if (!this.humanURI)
+        this.humanURI = feed.link;
 
-    let currentMessageIDs = [];
-    let messagesChanged = false;
+      // FIXME: remove subscribe from this notification's name.
+      Observers.notify("snowl:subscribe:get:start", this);
+      this.messages = this._processFeed(feed, this._refreshTime);
+      // FIXME: remove subscribe from this notification's name.
+      Observers.notify("snowl:subscribe:get:end", this);
+    }
+    catch(ex) {
+      this._log.error("error on subscribe result: " + ex);
+      // FIXME: remove subscribe from this notification's name.
+      // FIXME: make this something besides "connect:end" since we've already
+      // issued one of those notifications by now.
+      Observers.notify("snowl:subscribe:connect:end", this, "error: " + ex);
+    }
+    finally {
+      if (this._subscribeCallback)
+        this._subscribeCallback();
 
-    // Sort the messages by date, so we insert them from oldest to newest,
-    // which makes them show up in the correct order in views that expect
-    // messages to be inserted in that order and sort messages by their IDs.
+      if (this._refreshCallback)
+        this._refreshCallback(this);
+    }
+  }),
+
+  _resetRefresh: function() {
+    this._refreshTime = null;
+    this._refreshCallback = null;
+  },
+
+
+  //**************************************************************************//
+  // Processing
+
+  /**
+   * Process a feed into an array of messages.
+   *
+   * @param feed        {nsIFeed}       the feed
+   * @param received    {Date}          when the messages were received
+   */
+  _processFeed: function(feed, received) {
     let messages = [];
+
     for (let i = 0; i < feed.items.length; i++) {
       let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
-      let timestamp =   entry.updated               ? new Date(entry.updated)
-                      : entry.published             ? new Date(entry.published)
-                      : entry.fields.get("dc:date") ? ISO8601DateUtils.parse(entry.fields.get("dc:date"))
-                      : null;
-      messages.push({ entry: entry, timestamp: timestamp });
-    }
-    messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
-                                 a.timestamp > b.timestamp ?  1 : 0);
-
-    for each (let message in messages) {
-      let entry = message.entry;
 
       // Figure out the ID for the entry, then check if the entry has already
       // been retrieved.  If the entry doesn't provide its own ID, we generate
@@ -305,178 +381,90 @@ SnowlFeed.prototype = {
       let externalID;
       try {
         externalID = entry.id || this._generateID(entry);
+        let message = this._processEntry(feed, entry, externalID, received);
+        messages.push(message);
       }
       catch(ex) {
-        this._log.warn("couldn't get an ID for a message: " + ex);
-        continue;
+        this._log.error("couldn't process message " + externalID + ": " + ex);
       }
-
-      // Ignore the message if we've already added it.
-      let internalID = this._getInternalIDForExternalID(externalID);
-      if (internalID) {
-        currentMessageIDs.push(internalID);
-        continue;
-      }
-
-      // Add the message.
-      messagesChanged = true;
-      this._log.info("adding message " + externalID);
-      internalID = this._addMessage(feed, entry, externalID, message.timestamp, refreshTime);
-      currentMessageIDs.push(internalID);
-
-      // Sleep for a bit to give other sources that are being refreshed
-      // at the same time the opportunity to insert messages themselves,
-      // so the messages appear mixed together in views that display messages
-      // by the order in which they are received, which is more pleasing
-      // than if the messages were clumped together by source.
-      // As a side effect, this might reduce horkage of the UI thread
-      // during refreshes.
-      yield sleep(50);
     }
 
-    // Update the current flag.
-    this.updateCurrentMessages(currentMessageIDs);
-
-    // Notify list and collections views on completion of messages download, list
-    // also notified of each message addition.
-    if (messagesChanged)
-      Observers.notify("snowl:messages:changed", this.id);
-
-    Observers.notify("snowl:subscribe:get:end", this);
-  }),
-
-  _resetRefresh: function() {
-    this._refreshTime = null;
+    return messages;
   },
 
   /**
-   * Add a message to the datastore for the given feed entry.
+   * Process a feed entry into a message.
    *
    * @param aFeed         {nsIFeed}       the feed
    * @param aEntry        {nsIFeedEntry}  the entry
    * @param aExternalID   {string}        the external ID of the entry
-   * @param aTimestamp    {Date}          the message's timestamp
    * @param aReceived     {Date}          when the message was received
    */
-  _addMessage: function(aFeed, aEntry, aExternalID, aTimestamp, aReceived) {
-    let messageID;
+  _processEntry: function(aFeed, aEntry, aExternalID, aReceived) {
+    let message = new SnowlMessage();
 
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      let authorID = null;
-      let authors = (aEntry.authors.length > 0) ? aEntry.authors
-                    : (aFeed.authors.length > 0) ? aFeed.authors
-                    : null;
-      if (authors && authors.length > 0) {
-        let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
-        // The external ID for an author is her email address, if provided
-        // (many feeds don't); otherwise it's her name.  For the name, on the
-        // other hand, we use the name, if provided, but fall back to the
-        // email address if a name is not provided (which it probably was).
-        let externalID = author.email || author.name;
-        let name = author.name || author.email;
+    // FIXME: we don't need to set sourceID if we always set source,
+    // so figure out if that's the case and update this code accordingly.
+    message.source = this;
+    message.sourceID = this.id;
+    message.externalID = aExternalID;
+    message.subject = aEntry.title.text;
+    message.timestamp = aEntry.updated               ? new Date(aEntry.updated)
+                      : aEntry.published             ? new Date(aEntry.published)
+                      : aEntry.fields.get("dc:date") ? ISO8601DateUtils.parse(aEntry.fields.get("dc:date"))
+                      : null;
+    message.received = aReceived;
+    message.link = aEntry.link;
 
-        // Get an existing identity or create a new one.  Creating an identity
-        // automatically creates a person record with the provided name.
-        identity = SnowlIdentity.get(this.id, externalID) ||
-                   SnowlIdentity.create(this.id, externalID, name);
-        authorID = identity.personID;
-      }
-
-      // FIXME: handle titles that contain markup or are missing.
-      messageID = this.addSimpleMessage(this.id, aExternalID,
-                                        aEntry.title.text, authorID,
-                                        aTimestamp, aReceived, aEntry.link);
-
-      // Add parts
-      if (aEntry.content) {
-        this.addPart(messageID,
-                     aEntry.content.text,
-                     INTERNET_MEDIA_TYPES[aEntry.content.type],
-                     PART_TYPE_CONTENT,
-                     aEntry.content.base,
-                     aEntry.content.lang);
-      }
-      if (aEntry.summary) {
-        this.addPart(messageID,
-                     aEntry.summary.text,
-                     INTERNET_MEDIA_TYPES[aEntry.summary.type],
-                     PART_TYPE_SUMMARY,
-                     aEntry.summary.base,
-                     aEntry.summary.lang);
-      }
-
-      // Add metadata.
-      let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
-                   fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
-      while (fields.hasMoreElements()) {
-        let field = fields.getNext().QueryInterface(Ci.nsIProperty);
-
-        // FIXME: create people records for these.
-        if (field.name == "authors") {
-          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-          while (values.hasMoreElements()) {
-            let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
-            // FIXME: store people records in a separate table with individual
-            // columns for each person attribute (i.e. name, email, url)?
-            this._addMetadatum(messageID,
-                               "atom:author",
-                               value.name && value.email ? value.name + "<" + value.email + ">"
-                                                         : value.name ? value.name : value.email);
-          }
-        }
-
-        else if (field.name == "links") {
-          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-          while (values.hasMoreElements()) {
-            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            // FIXME: store link records in a separate table with individual
-            // colums for each link attribute (i.e. href, type, rel, title)?
-            this._addMetadatum(messageID,
-                               "atom:link_" + value.get("rel"),
-                               value.get("href"));
-          }
-        }
-
-        // For some reason, the values of certain simple fields (like RSS2 guid)
-        // are property bags containing the value instead of the value itself.
-        // For those, we need to unwrap the extra layer. This strange behavior
-        // has been filed as bug 427907.
-        else if (typeof field.value == "object") {
-          if (field.value instanceof Ci.nsIPropertyBag2) {
-            let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
-            this._addMetadatum(messageID, field.name, value);
-          }
-          else if (field.value instanceof Ci.nsIArray) {
-            let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
-            while (values.hasMoreElements()) {
-              // FIXME: values might not always have this interface.
-              let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-              this._addMetadatum(messageID, field.name, value.get(field.name));
-            }
-          }
-        }
-
-        else
-          this._addMetadatum(messageID, field.name, field.value);
-      }
-
-      SnowlDatastore.dbConnection.commitTransaction();
-    }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      this._log.error("couldn't add " + aExternalID + ": " + ex);
+    let authorID = null;
+    let authors = (aEntry.authors.length > 0) ? aEntry.authors
+                  : (aFeed.authors.length > 0) ? aFeed.authors
+                  : null;
+    // FIXME: process all authors, not just the first one.
+    if (authors && authors.length > 0) {
+      let author = authors.queryElementAt(0, Ci.nsIFeedPerson);
+      // The external ID for an author is her email address, if provided
+      // (many feeds don't); otherwise it's her name.  For the name, on the
+      // other hand, we use the name, if provided, but fall back to the
+      // email address if a name is not provided (which it probably was).
+      let externalID = author.email || author.name;
+      let name = author.name || author.email;
+      message.author = new SnowlIdentity(null, this.id, externalID);
+      message.author.person = new SnowlPerson(null, name, null, null, null);
+      //identity = SnowlIdentity.get(this.id, externalID) ||
+      //           SnowlIdentity.create(this.id, externalID, name);
     }
 
-    Observers.notify("snowl:message:added", SnowlMessage.get(messageID));
+    // Add parts
+    if (aEntry.content) {
+      message.content =
+        new SnowlMessagePart({
+          partType:    PART_TYPE_CONTENT,
+          content:     aEntry.content.text,
+          mediaType:   INTERNET_MEDIA_TYPES[aEntry.content.type],
+          baseURI:     aEntry.content.base,
+          languageTag: aEntry.content.lang
+        });
+    }
+    if (aEntry.summary) {
+      message.summary =
+        new SnowlMessagePart({
+          partType:    PART_TYPE_SUMMARY,
+          content:     aEntry.summary.text,
+          mediaType:   INTERNET_MEDIA_TYPES[aEntry.summary.type],
+          baseURI:     aEntry.summary.base,
+          languageTag: aEntry.summary.lang
+        });
+    }
 
-    return messageID;
+    return message;
   },
 
   /**
    * Given an entry, generate an ID for it based on a hash of its link,
    * published, and title attributes.  Useful for uniquely identifying entries
    * that don't provide their own IDs.
+   * XXX Push this into SnowlMessage?
    *
    * @param entry {nsIFeedEntry} the entry for which to generate an ID
    * @returns {string} an ID for the entry
@@ -489,114 +477,6 @@ SnowlFeed.prototype = {
     hasher.update(identity, identity.length);
     return "urn:" + hasher.finish(true);
   },
-
-
-  //**************************************************************************//
-  // Subscription
-
-  _subscribeCallback: null,
-
-  subscribe: function(callback) {
-    Observers.notify("snowl:subscribe:connect:start", this);
-
-    this._subscribeCallback = callback;
-
-    this._log.info("subscribing to " + this.machineURI.spec);
-
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    request = request.QueryInterface(Ci.nsIDOMEventTarget);
-
-    let t = this;
-    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
-
-    request = request.QueryInterface(Ci.nsIXMLHttpRequest);
-
-    // The feed processor is going to parse the XML, so override the MIME type
-    // in order to turn off parsing by XMLHttpRequest itself.
-    request.overrideMimeType("text/plain");
-
-    request.open("GET", this.machineURI.spec, true);
-
-    // Register a listener for notification callbacks so we handle authentication.
-    request.channel.notificationCallbacks = this;
-
-    request.send(null);
-  },
-
-  onSubscribeLoad: function(aEvent) {
-    let request = aEvent.target;
-
-    // The load event can fire even with a non 2xx code, so handle as error
-    if (request.status < 200 || request.status > 299) {
-      this.onSubscribeError(aEvent);
-      return;
-    }
-
-    // XXX What's the right way to handle this?
-    if (request.responseText.length == 0) {
-      this.onRefreshError(aEvent);
-      return;
-    }
-
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-    // _authInfo only gets set if we prompted the user to authenticate
-    // and the user checked the "remember password" box.  Since we're here,
-    // it means the request succeeded, so we save the login.
-    if (this._authInfo)
-      this._saveLogin();
-
-    let parser = Cc["@mozilla.org/feed-processor;1"].
-                 createInstance(Ci.nsIFeedProcessor);
-    parser.listener = { t: this, handleResult: function(r) { this.t.onSubscribeResult(r) } };
-    parser.parseFromString(request.responseText, request.channel.URI);
-  },
-
-  onSubscribeError: function(aEvent) {
-    let request = aEvent.target;
-
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
-    let statusText;
-    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
-
-    this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-    if (this._subscribeCallback)
-      this._subscribeCallback();
-  },
-
-  onSubscribeResult: strand(function(aResult) {
-    let feed;
-    try {
-      feed = aResult.doc.QueryInterface(Components.interfaces.nsIFeed);
-
-      // Extract the name (if we don't already have one) and human URI from the feed.
-      if (!this.name)
-        this.name = feed.title.plainText();
-      this.humanURI = feed.link;
-
-      this.persist();
-
-//      Observers.notify("snowl:sources:changed");
-
-      // Refresh the feed to import all its items.
-      // FIXME: use a date provided by the subscriber so refresh times are the same
-      // for all accounts subscribed at the same time (f.e. in an OPML import).
-      yield this._processRefresh(aResult, new Date());
-    }
-    catch(ex) {
-      this._log.error("error on subscribe result: " + feed.toSource());
-      this._log.error("error on subscribe result: " + ex);
-      Observers.notify("snowl:subscribe:connect:end", this, "error:" + ex);
-    }
-    finally {
-      if (this._subscribeCallback)
-        this._subscribeCallback();
-    }
-  }),
 
   _saveLogin: function() {
     let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
@@ -639,5 +519,6 @@ SnowlFeed.prototype = {
 
 };
 
-inmix(SnowlFeed.prototype, SnowlSource);
+Mixins.mix(SnowlSource).into(SnowlFeed);
+Mixins.mix(SnowlSource.prototype).into(SnowlFeed.prototype);
 SnowlService.addAccountType(SnowlFeed);

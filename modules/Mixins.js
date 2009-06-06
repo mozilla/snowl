@@ -34,35 +34,52 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["inmix"];
+let EXPORTED_SYMBOLS = ["Mixins"];
 
 /**
- * Inmix attributes (properties, methods, getters/setters) from the source
- * object into the target object.  Doesn't inmix attributes that already exist
- * in the target object (i.e. doesn't override existing attributes).
+ * Mix attributes (properties, methods, getters/setters) from the source object
+ * into the target object.
  *
+ * Note: doesn't mix in attributes that already exist in the target object
+ * (i.e. doesn't override existing attributes).
+ * ??? Should it?
+ * 
  * FIXME: give the target object access in some way to the source's version
  * of attributes it overrides.
  *
- * @param   target  {Object}  the object that receives attributes
  * @param   source  {Object}  the object that provides attributes
+ * @param   target  {Object}  the object that receives attributes
  */
-function inmix(target, source) {
-  for (let attr in source) {
-    // Don't inmix attributes that already exist in the target.
-    if (attr in target)
+function mixin(source, target) {
+  for (let attribute in source) {
+    // Don't mix in attributes that already exist in the target.
+    if (attribute in target)
       continue;
 
-    let getter = source.__lookupGetter__(attr);
-    let setter = source.__lookupSetter__(attr);
+    let getter = source.__lookupGetter__(attribute);
+    let setter = source.__lookupSetter__(attribute);
 
+    // We can have a getter, a setter, or both.  If we have either, we only
+    // define one or both of them.  Otherwise, we assign the property directly.
     if (getter || setter) {
       if (getter)
-        target.__defineGetter__(attr, getter);
+        target.__defineGetter__(attribute, getter);
       if (setter)
-        target.__defineSetter__(attr, setter);
+        target.__defineSetter__(attribute, setter);
     }
     else
-       target[attr] = source[attr];
+       target[attribute] = source[attribute];
   }
 }
+
+// FIXME: support both source and target arguments accepting arrays of objects.
+let Mixins = {
+  mix: function(source) {
+    return {
+      source: source,
+      into: function(target) {
+        mixin(this.source, target);
+      }
+    };
+  }
+};

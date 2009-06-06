@@ -47,7 +47,7 @@ Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
-Cu.import("resource://snowl/modules/Mixin.js");
+Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -121,8 +121,16 @@ const AUTH_REALM = "Snowl";
 // to the subscribe function.
 
 function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
-  SnowlSource.init.call(this, aID, aName, MACHINE_URI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
-  SnowlTarget.init.call(this);
+  // Use the given machine URI, if available.  We use this in unit tests
+  // to point the account to a test server rather than the actual Twitter
+  // servers.
+  let machineURI = aMachineURI || MACHINE_URI;
+
+  // FIXME: figure out a better solution than hanging the first mixed in init()
+  // method on this object's prototype but calling the second one directly
+  // because it didn't actually get mixed in because it already existed!
+  this.init(aID, aName, machineURI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+  SnowlTarget.prototype.init.call(this);
 }
 
 SnowlTwitter.prototype = {
@@ -249,123 +257,6 @@ SnowlTwitter.prototype = {
 
 
   //**************************************************************************//
-  // Subscription
-
-  _subscribeCallback: null,
-
-  subscribe: function(credentials, callback) {
-    Observers.notify("snowl:subscribe:connect:start", this);
-
-    this._subscribeCallback = callback;
-
-    this.username = credentials.username;
-    this.name = NAME + " - " + this.username;
-
-    this._log.info("subscribing");
-
-    // credentials isn't a real nsIAuthInfo, but it's close enough for what
-    // we do with it, which is to retrieve the username and password from it
-    // and save them via the login manager if the user asked us to remember
-    // their credentials.
-    if (credentials.remember)
-      this._authInfo = credentials;
-
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    // Add load and error callbacks.
-    request.QueryInterface(Ci.nsIDOMEventTarget);
-    let t = this;
-    request.addEventListener("load", function(e) { t.onSubscribeLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onSubscribeError(e) }, false);
-
-    request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("GET", "https://" + this.username + "@twitter.com/statuses/friends_timeline.json?count=200", true);
-    request.setRequestHeader("Authorization", "Basic " + btoa(credentials.username +
-                                                              ":" +
-                                                              credentials.password));
-    request.channel.notificationCallbacks = this;
-    request.send(null);
-  },
-
-  onSubscribeLoad: strand(function(event) {
-    try {
-      let request = event.target;
-
-      // FIXME: don't log this huge string.
-      this._log.info("onSubscribeLoad: " + request.responseText);
-
-      // The load event can fire even with a non 2xx code, so handle as error
-      if (request.status < 200 || request.status > 299) {
-        this.onSubscribeError(event);
-        return;
-      }
-
-      // XXX What's the right way to handle this?
-      if (request.responseText.length == 0) {
-        this.onSubscribeError(event);
-        return;
-      }
-
-      Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-      // _authInfo only gets set if we prompted the user to authenticate
-      // and the user checked the "remember password" box.  Since we're here,
-      // it means the request succeeded, so we save the login.
-      if (this._authInfo)
-        this._saveLogin(this._authInfo);
-
-      // Save the source to the database.
-      this.persist();
-
-//      Observers.notify("snowl:sources:changed");
-
-      // FIXME: use a date provided by the subscriber so refresh times are the same
-      // for all accounts subscribed at the same time (f.e. in an OPML import).
-      yield this._processRefresh(request.responseText, new Date());
-    }
-    catch(ex) {
-      this._log.error("error on subscribe load: " + ex);
-    }
-    finally {
-      try {
-        if (this._subscribeCallback)
-          this._subscribeCallback();
-      }
-      finally {
-        this._resetSubscribe();
-      }
-    }
-  }),
-
-  onSubscribeError: function(event) {
-    let request = event.target;
-
-    // request.responseText should be: Could not authenticate you.
-    this._log.info("onSubscribeError: " + request.responseText);
-
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
-    let statusText;
-    try {statusText = request.statusText;} catch(ex) {statusText = "[no status text]"}
-
-    this._log.error("onSubscribeError: " + request.status + " (" + statusText + ")");
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-    try {
-      if (this._subscribeCallback)
-        this._subscribeCallback();
-    }
-    finally {
-      this._resetSubscribe();
-    }
-  },
-
-  _resetSubscribe: function() {
-    this._authInfo = null;
-    this._subscribeCallback = null;
-  },
-
-
-  //**************************************************************************//
   // Refreshment
 
   // FIXME: create a refresher object that encapsulates the functionality
@@ -374,6 +265,7 @@ SnowlTwitter.prototype = {
   // and will create concurrency problems with long-lived account objects.
 
   _refreshTime: null,
+  _refreshCallback: null,
 
   get _stmtGetMaxExternalID() {
     let statement = SnowlDatastore.createStatement(
@@ -406,13 +298,38 @@ SnowlTwitter.prototype = {
     return maxID;
   },
 
-  refresh: function(refreshTime) {
-    this._log.info("refresh at " + refreshTime);
-    Observers.notify("snowl:subscribe:get:start", this);
+  /**
+   * Refresh the feed, retrieving the latest information in it.
+   *
+   * @param time        {Date}      [optional]
+   *        when the refresh occurs; determines the received time of new
+   *        messages; we let the caller specify this so a caller refreshing
+   *        multiple feeds can give their messages the same received time
+   *
+   * @param callback    {Function}  [optional]
+   *        a function to call when the refresh is complete
+   *
+   * @param thisObject  {Object}    [optional]
+   *        the object to set to |this| within the callback function;
+   *        causes the function to be called as a method of the object;
+   *        if you don't provide a value for this parameter, the function
+   *        will be called without reference to an object, and |this|
+   *        will be set to the global object within the callback function
+   */
+  refresh: function(time, callback, thisObject) {
+    if (typeof time == "undefined" || time == null)
+      time = new Date();
+    this._log.info("start refresh " + this.username + " at " + time);
 
-    // Cache the refresh time so we can use it as the received time when adding
-    // messages to the datastore.
-    this._refreshTime = refreshTime;
+    this._refreshTime = time;
+
+    if (callback) {
+      this._refreshCallback =
+        thisObject ? function(source) callback.call(thisObject, source)
+                   : callback;
+    }
+
+    Observers.notify("snowl:subscribe:get:start", this);
 
     let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
 
@@ -435,7 +352,8 @@ SnowlTwitter.prototype = {
         params.push("since_id=" + maxID);
     }
 
-    let url = "https://" + this.username + "@twitter.com/statuses/friends_timeline.json?" + params.join("&");
+    let url = this.machineURI.spec.replace("^(https?://)", "$1" + this.username + "@") +
+              "/statuses/friends_timeline.json?" + params.join("&");
     this._log.debug("refresh: this.name = " + this.name + "; url = " + url);
     request.open("GET", url, true);
 
@@ -464,7 +382,7 @@ SnowlTwitter.prototype = {
     // period of time.  We should instead keep trying when a source fails,
     // but with a progressively longer interval (up to the standard one).
     // FIXME: implement the approach described above.
-    this.lastRefreshed = refreshTime;
+    this.lastRefreshed = time;
   },
 
   onRefreshLoad: function(event) {
@@ -499,9 +417,15 @@ SnowlTwitter.prototype = {
       this._saveLogin(this._authInfo);
     }
 
-    this._processRefresh(request.responseText, this._refreshTime);
+    let items = JSON.parse(request.responseText);
+    this.messages = this._processItems(items, this._refreshTime);
+
+    if (this._refreshCallback)
+      this._refreshCallback(this);
 
     this._resetRefresh();
+
+    Observers.notify("snowl:subscribe:get:end", this);
   },
 
   onRefreshError: function(event) {
@@ -513,117 +437,67 @@ SnowlTwitter.prototype = {
 
     this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
 
+    if (this._refreshCallback)
+      this._refreshCallback(this);
+
     this._resetRefresh();
   },
 
-  _processRefresh: strand(function(responseText, refreshTime) {
-    //this._log.debug("_processRefresh: this.name = " + this.name + "; responseText = " + responseText);
-
-    // FIXME: make this work in Firefox 3.0 using the same technique as Personas.
-    let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-
-    let messages = JSON.decode(responseText);
-
-    // Sort the messages by date.
-    // We do this before adding them to the datastore so that we add them
-    // from oldest to newest, which makes them display in that order in views
-    // that display messages by the order in which they are received.
-    messages.sort(function(a, b) new Date(a.created_at) < new Date(b.created_at) ? -1 :
-                                 new Date(a.created_at) > new Date(b.created_at) ?  1 : 0);
-
-    let currentMessageIDs = [];
-    let messagesChanged = false;
-
-    for each (let message in messages) {
-      // Ignore the message if we've already added it.
-      let externalID = message.id;
-      let internalID = this._getInternalIDForExternalID(externalID);
-      if (internalID) {
-        currentMessageIDs.push(internalID);
-        continue;
-      }
-
-      // Add the message.
-      messagesChanged = true;
-      this._log.info(this.name + " adding message " + externalID);
-      internalID = this._addMessage(message, refreshTime);
-      currentMessageIDs.push(internalID);
-
-      // Sleep for a bit to give other sources that are being refreshed
-      // at the same time the opportunity to insert messages themselves,
-      // so the messages appear mixed together in views that display messages
-      // by the order in which they are received, which is more pleasing
-      // than if the messages were clumped together by source.
-      // As a side effect, this might reduce horkage of the UI thread
-      // during refreshes.
-      yield sleep(50);
-    }
-
-    // Update the current flag.
-    this.updateCurrentMessages(currentMessageIDs);
-
-    // Notify list and collections views on completion of messages download, list
-    // also notified of each message addition.
-    if (messagesChanged)
-      Observers.notify("snowl:messages:changed", this.id);
-
-    // FIXME: if we added people, refresh the collections view too.
-
-    Observers.notify("snowl:subscribe:get:end", this);
-  }),
-
   _resetRefresh: function() {
     this._refreshTime = null;
+    this._refreshCallback = null;
     this._authInfo = null;
   },
 
-  _addMessage: function(message, aReceived) {
-    let messageID;
 
-    SnowlDatastore.dbConnection.beginTransaction();
-    try {
-      // Get an existing identity or create a new one.  Creating an identity
-      // automatically creates a person record with the provided name.
-      let identity = SnowlIdentity.get(this.id, message.user.id) ||
-                     SnowlIdentity.create(this.id,
-                                          message.user.id,
-                                          message.user.screen_name,
-                                          message.user.url,
-                                          message.user.profile_image_url);
-      // FIXME: update the identity record with the latest info about the person.
-      //identity.updateProperties(this.machineURI, message.user);
-      let authorID = identity.personID;
-  
-      // Add the message.
-      messageID = this.addSimpleMessage(this.id, message.id, null, authorID,
-                                        new Date(message.created_at), aReceived,
-                                        null);
+  //**************************************************************************//
+  // Processing
 
-      // Add the message's content.
-      this.addPart(messageID, message.text, "text/plain");
+  /**
+   * Process an array of items (from the server) into an array of messages.
+   *
+   * @param items     {Array}   the items to process
+   * @param received  {Date}    when the items were received
+   */
+  _processItems: function(items, received) {
+    this._log.trace("processing items");
 
-      // Add the message's metadata.
-      for (let [name, value] in Iterator(message)) {
-        // Ignore properties we have already handled specially.
-        // XXX Should we add them anyway?  It's redundant info but would let
-        // others access them who may know about the properties but don't know
-        // about how we handle them specially.
-        if (["user", "created_at", "text"].indexOf(name) != -1)
-          continue;
-        // FIXME: populate a "recipient" field with in_reply_to_user_id.
-        this._addMetadatum(messageID, name, value);
+    let messages = [];
+
+    for each (let item in items) {
+      try {
+        let message = this._processItem(item, received);
+        messages.push(message);
       }
-
-      SnowlDatastore.dbConnection.commitTransaction();
-    }
-    catch(ex) {
-      SnowlDatastore.dbConnection.rollbackTransaction();
-      this._log.error("couldn't add " + message.id + ": " + ex);
+      catch(ex) {
+        this._log.error("couldn't process item " + item.id + ": " + ex);
+      }
     }
 
-    Observers.notify("snowl:message:added", SnowlMessage.get(messageID));
+    return messages;
+  },
 
-    return messageID;
+  _processItem: function(item, received) {
+    this._log.trace("processing item " + item.id);
+
+    let message = new SnowlMessage();
+
+    message.source = this;
+    message.sourceID = this.id;
+    message.externalID = item.id;
+    message.timestamp = new Date(item.created_at);
+    message.received = received || new Date();
+    message.author = new SnowlIdentity(null, this.id, item.user.id);
+    message.author.person = new SnowlPerson(null, item.user.screen_name, null, item.user.url, item.user.profile_image_url);
+
+    message.content =
+      new SnowlMessagePart({
+        partType:    PART_TYPE_CONTENT,
+        content:     item.text,
+        mediaType:   "text/plain"
+      });
+
+    return message;
   },
 
   // XXX Perhaps factor this out with the identical function in feed.js,
@@ -684,7 +558,7 @@ SnowlTwitter.prototype = {
     }
 
     request.QueryInterface(Ci.nsIXMLHttpRequest);
-    request.open("POST", "https://" + this.username + "@twitter.com/statuses/update.json", true);
+    request.open("POST", this.machineURI.spec.replace("^(https?://)", "$1" + this.username + "@") + "/statuses/update.json", true);
     // If the login manager has saved credentials for this account, provide them
     // to the server.  Otherwise, no worries, Necko will automatically call our
     // notification callback, which will prompt the user to enter their credentials.
@@ -750,8 +624,9 @@ SnowlTwitter.prototype = {
 
   _processSend: function(responseText) {
     let JSON = Cc["@mozilla.org/dom/json;1"].createInstance(Ci.nsIJSON);
-    let message = JSON.decode(responseText);
-    this._addMessage(message, new Date());
+    let item = JSON.decode(responseText);
+    let message = this._processItem(item);
+    message.persist();
   },
 
   _resetSend: function() {
@@ -761,6 +636,8 @@ SnowlTwitter.prototype = {
   }
 };
 
-inmix(SnowlTwitter.prototype, SnowlSource);
-inmix(SnowlTwitter.prototype, SnowlTarget);
+Mixins.mix(SnowlSource).into(SnowlTwitter);
+Mixins.mix(SnowlSource.prototype).into(SnowlTwitter.prototype);
+Mixins.mix(SnowlTarget).into(SnowlTwitter);
+Mixins.mix(SnowlTarget.prototype).into(SnowlTwitter.prototype);
 SnowlService.addAccountType(SnowlTwitter);

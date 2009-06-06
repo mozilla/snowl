@@ -76,7 +76,7 @@ var messageContent = {
     // to run first and set up the message.
 //window.SnowlUtils._log.info("messageContent.init: START");
     this.getMessageId();
-    this.message = SnowlMessage.get(this.id);
+    this.message = SnowlMessage.retrieve(this.id);
     this.createTitle();
   },
 

@@ -34,38 +34,72 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["SnowlTarget"];
+let EXPORTED_SYMBOLS = ["Request", "Callback"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
-/**
- * SnowlTarget: a target for messages.
- *
- * @see SnowlSource.
- */
-function SnowlTarget() {}
-SnowlTarget.prototype = {
-  init: function() {},
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
-  /**
-   * The maximum number of characters a message can contain. By default,
-   * this is null, which means a message can contain an arbitrary number
-   * of characters.
-   */
-  maxMessageLength: null,
+function Request(args) {
+  for (let name in args)
+    this[name] = args[name];
 
-  /**
-   * Send a message to this target.
-   *
-   * This method is a stub that should be implemented by objects that inmix it.
-   *
-   * @param content {string} the content of the message
-   * @param callback {Function} a function to call when the send completes
-   *
-   * FIXME: add an error callback to call if the send fails.
-   */
-  send: function(content, callback) {}
+  this._request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].
+                  createInstance();
+
+  this._request.QueryInterface(Ci.nsIDOMEventTarget);
+
+  if (this.loadCallback)
+    this._request.addEventListener("load", this.loadCallback, false);
+
+  if (this.errorCallback)
+    this._request.addEventListener("error", this.errorCallback, false);
+
+  this._request.QueryInterface(Ci.nsIXMLHttpRequest);
+
+  if (this.overrideMimeType)
+    this._request.overrideMimeType("text/plain");
+
+  this._request.open(this.method,
+                     this.url instanceof Ci.nsIURI ? this.url.spec : this.url,
+                     this.async);
+
+  // Register a listener for notification callbacks so we handle authentication.
+  if (this.notificationCallbacks)
+    this._request.channel.notificationCallbacks = this.notificationCallbacks;
+
+  return this._request.send(this.body);
+}
+
+Request.prototype = {
+  method: "GET",
+  async: true,
+  body: null
+};
+
+function Callback(func, thisObject) {
+  this.func = func;
+  this.thisObject = thisObject;
+}
+
+Callback.prototype = {
+  func:       null,
+  thisObject: null,
+
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIDOMEventListener,
+                                         Ci.nsISupportsWeakReference]),
+
+  //**************************************************************************//
+  // nsIDOMEventListener
+
+  handleEvent: function(event) {
+    if (this.thisObject)
+      this.func.call(this.thisObject, event);
+    else
+      this.func(event);
+  }
+
 };

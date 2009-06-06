@@ -49,6 +49,7 @@ Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 // FIXME: make SnowlCollection take a hash so it can have named parameters,
@@ -263,11 +264,14 @@ this._log.info("got " + groups.length + " groups");
         message = new SnowlMessage({
           id:         statement.row.messageID,
           sourceID:   statement.row.sourceID,
+          source:     SnowlService.sourcesByID[statement.row.sourceID],
           subject:    statement.row.subject,
+          authorName: statement.row.authorName,
           authorID:   statement.row.authorID,
           link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-          _read:      (statement.row.read ? true : false),
+          read:       statement.row.read,
+          authorIcon: statement.row.authorIcon,
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           content:    content
         });
@@ -304,6 +308,8 @@ this._log.info("got " + groups.length + " groups");
       "messages.timestamp",
       "messages.read",
       "messages.received",
+      "authors.name AS authorName",
+      "authors.iconURL AS authorIcon",
       "parts.id AS partID",
       "parts.content",
       "parts.mediaType",

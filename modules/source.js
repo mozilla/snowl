@@ -48,11 +48,19 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/utils.js");
+
+// FIXME: make strands.js into a module.
+let loader = Cc["@mozilla.org/moz/jssubscript-loader;1"].getService(Ci.mozIJSSubScriptLoader);
+loader.loadSubScript("chrome://snowl/content/strands.js");
 
 /**
  * SnowlSource: a source of messages.
- * 
+ *
+ * FIXME: update this documentation now that we're using it via mixins
+ * instead of inheritance.
+ *
  * This is an abstract class that should not be instantiated. Rather, objects
  * should inherit it via one of two methods (depending on whether or not they
  * also inherit other functionality):
@@ -124,15 +132,74 @@ Cu.import("resource://snowl/modules/utils.js");
  * so that subclasses can call the getters directly without causing trouble
  * for other subclasses that access them via __lookupGetter__.
  */
-let SnowlSource = {
+function SnowlSource() {}
+
+SnowlSource.retrieve = function(id) {
+  let source = null;
+
+  // FIXME: memoize this.
+  let statement = SnowlDatastore.createStatement(
+    "SELECT type, name, machineURI, humanURI, username, lastRefreshed, " +
+    "importance, placeID FROM sources WHERE id = :id"
+  );
+
+  try {
+    statement.params.id = id;
+    if (statement.step()) {
+      let row = statement.row;
+      let constructor;
+      // Bleh, this function is called within the JS context for this module,
+      // which means it doesn't know anything about other modules it doesn't
+      // import (like SnowlFeed and SnowlTwitter).  The current hack to deal
+      // with this is to set the constructor to |this| hoping that |this| is
+      // the right constructor (which it is as long as this function got mixed
+      // into the right constructor), but this isn't going to work when we want
+      // to use this to pull all accounts and make them available in the service,
+      // so we'll have to figure out something better to do then.
+      try { constructor = eval(row.type) } catch(ex) { constructor = this };
+      source = new constructor(id,
+                               row.name,
+                               URI.get(row.machineURI),
+                               URI.get(row.humanURI),
+                               row.username,
+                               row.lastRefreshed ? SnowlDateUtils.julianToJSDate(row.lastRefreshed) : null,
+                               row.importance,
+                               row.placeID);
+    }
+  }
+  finally {
+    statement.reset();
+  }
+
+  // FIXME: memoize this.
+  let messagesStatement = SnowlDatastore.createStatement(
+    "SELECT id FROM messages WHERE sourceID = :id"
+  );
+
+  try {
+    messagesStatement.params.id = id;
+    // FIXME: retrieve all messages at once instead of one at a time.
+    while (messagesStatement.step())
+      source.messages.push(SnowlMessage.retrieve(messagesStatement.row.id));
+  }
+  finally {
+    messagesStatement.reset();
+  }
+
+  return source;
+}
+
+SnowlSource.prototype = {
   init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
     this.id = aID;
     this.name = aName;
     this.machineURI = aMachineURI;
     this.humanURI = aHumanURI;
     this.username = aUsername;
-    this._lastRefreshed = aLastRefreshed;
-    this.importance = aImportance;
+    this.lastRefreshed = aLastRefreshed;
+    // FIXME: make it so I don't have to set importance to null if it isn't
+    // specified in order for its non-set value to remain null.
+    this.importance = aImportance || null;
     this.placeID = aPlaceID;
   },
 
@@ -174,22 +241,7 @@ let SnowlSource = {
 
   // A JavaScript Date object representing the last time this source
   // was checked for updates to its set of messages.
-  _lastRefreshed: null,
-
-  get lastRefreshed() {
-    return this._lastRefreshed;
-  },
-
-  set lastRefreshed(newValue) {
-    this._lastRefreshed = newValue;
-
-    let stmt = SnowlDatastore.createStatement("UPDATE sources " +
-                                              "SET lastRefreshed = :lastRefreshed " +
-                                              "WHERE id = :id");
-    stmt.params.lastRefreshed = SnowlDateUtils.jsToJulianDate(this._lastRefreshed);
-    stmt.params.id = this.id;
-    stmt.execute();
-  },
+  lastRefreshed: null,
 
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.
@@ -197,6 +249,8 @@ let SnowlSource = {
 
   // The ID of the place representing this source in a list of collections.
   placeID: null,
+
+  messages: [],
 
   // Favicon Service
   get faviconSvc() {
@@ -264,18 +318,20 @@ let SnowlSource = {
     if (this.id) {
       statement = SnowlDatastore.createStatement(
         "UPDATE sources " +
-        "SET     name = :name,       " +
-        "        type = :type,       " +
-        "  machineURI = :machineURI, " +
-        "    humanURI = :humanURI,   " +
-        "    username = :username    " +
+        "SET      name = :name,          " +
+        "         type = :type,          " +
+        "   machineURI = :machineURI,    " +
+        "     humanURI = :humanURI,      " +
+        "     username = :username,      " +
+        "lastRefreshed = :lastRefreshed, " +
+        "   importance = :importance     " +
         "WHERE     id = :id"
       );
     }
     else {
       statement = SnowlDatastore.createStatement(
-        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username) " +
-        "VALUES              (:name, :type, :machineURI, :humanURI, :username)"
+        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username,  lastRefreshed,  importance) " +
+        "VALUES              (:name, :type, :machineURI, :humanURI, :username, :lastRefreshed, :importance)"
       );
     }
 
@@ -286,31 +342,43 @@ let SnowlSource = {
       statement.params.machineURI = this.machineURI.spec;
       statement.params.humanURI = this.humanURI.spec;
       statement.params.username = this.username;
+      statement.params.lastRefreshed = this.lastRefreshed ? SnowlDateUtils.jsToJulianDate(this.lastRefreshed) : null;
+      statement.params.importance = this.importance;
       if (this.id)
         statement.params.id = this.id;
       statement.step();
       if (!this.id) {
         // Extract the ID of the source from the newly-created database record.
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+
+        // Update messages and their authors to include the source ID.
+        for each (let message in this.messages) {
+          message.sourceID = this.id;
+          if (message.author)
+            message.author.sourceID = this.id;
+        }
+
         // Create places record
-        placeID = SnowlPlaces.persistPlace("sources",
-                                           this.id,
-                                           this.name,
-                                           this.machineURI,
-                                           null, // this.username,
-                                           this.faviconURI,
-                                           this.id); // aSourceID
+        this.placeID = SnowlPlaces.persistPlace("sources",
+                                                this.id,
+                                                this.name,
+                                                this.machineURI,
+                                                null, // this.username,
+                                                this.faviconURI,
+                                                this.id); // aSourceID
 
         // Store placeID back into messages for db integrity
         SnowlDatastore.dbConnection.executeSimpleSQL(
           "UPDATE sources " +
-          "SET    placeID = " + placeID +
+          "SET    placeID = " + this.placeID +
           " WHERE      id = " + this.id);
-this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
+this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id);
 
         // Use 'added' here for collections observer for more specificity
-        Observers.notify("snowl:source:added", placeID);
+        Observers.notify("snowl:source:added", this.placeID);
       }
+
+      this.persistMessages();
 
       SnowlDatastore.dbConnection.commitTransaction();
     }
@@ -321,41 +389,53 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
     finally {
       statement.reset();
     }
+
+    return this.id;
   },
 
-  get _stmtGetInternalIDForExternalID() {
-    let statement = SnowlDatastore.createStatement(
-      "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
-    );
-    this.__defineGetter__("_stmtGetInternalIDForExternalID", function() statement);
-    return this._stmtGetInternalIDForExternalID;
-  },
+  persistMessages: strand(function() {
+    // Sort the messages by date, so we insert them from oldest to newest,
+    // which makes them show up in the correct order in views that expect
+    // messages to be inserted in that order and sort messages by their IDs.
+    this.messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                      a.timestamp > b.timestamp ?  1 : 0);
 
-  /**
-   * Get the internal ID of the message with the given external ID.
-   *
-   * @param    externalID   {String}
-   *           the external ID of the message
-   *
-   * @returns  {Number}
-   *           the internal ID of the message, or undefined if the message
-   *           doesn't exist
-   */
-  _getInternalIDForExternalID: function(externalID) {
-    let internalID;
+    let currentMessageIDs = [];
+    let messagesChanged = false;
 
-    try {
-      this._stmtGetInternalIDForExternalID.params.sourceID = this.id;
-      this._stmtGetInternalIDForExternalID.params.externalID = externalID;
-      if (this._stmtGetInternalIDForExternalID.step())
-        internalID = this._stmtGetInternalIDForExternalID.row["id"];
+    for each (let message in this.messages) {
+      this._log.info("persisting message " + message.externalID);
+
+      let added = false;
+      try {
+        added = message.persist();
+      }
+      catch(ex) {
+        this._log.error("couldn't persist " + message.externalID + ": " + ex);
+        continue;
+      }
+      if (messagesChanged == false && added)
+        messagesChanged = true;
+      currentMessageIDs.push(message.id);
+
+      // Sleep for a bit to give other sources that are being refreshed
+      // at the same time the opportunity to insert messages themselves,
+      // so the messages appear mixed together in views that display messages
+      // by the order in which they are received, which is more pleasing
+      // than if the messages were clumped together by source.
+      // As a side effect, this might reduce horkage of the UI thread
+      // during refreshes.
+      yield sleep(50);
     }
-    finally {
-      this._stmtGetInternalIDForExternalID.reset();
-    }
 
-    return internalID;
-  },
+    // Update the current flag.
+    this.updateCurrentMessages(currentMessageIDs);
+
+    // Notify list and collections views on completion of messages download, list
+    // also notified of each message addition.
+    if (messagesChanged)
+      Observers.notify("snowl:messages:changed", this.id);
+  }),
 
   /**
    * Add a message with a single part to the datastore.
@@ -383,13 +463,6 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
                                    aLink ? aLink.spec : null);
 
     return messageID;
-  },
-
-  _addMetadatum: function(aMessageID, aAttributeName, aValue) {
-    // FIXME: speed this up by caching the list of known attributes.
-    let attributeID = SnowlDatastore.selectAttributeID(aAttributeName)
-                      || SnowlDatastore.insertAttribute(aAttributeName);
-    SnowlDatastore.insertMetadatum(aMessageID, attributeID, aValue);
   },
 
   get _stmtInsertPart() {

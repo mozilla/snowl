@@ -540,10 +540,6 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
       SnowlDatastore.dbConnection.beginTransaction();
       try {
         // Delete messages
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
-            "WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-//this._log.info("removeSource: Delete messages METADATA DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
             "WHERE docid IN " +
             "(SELECT id FROM parts WHERE messageID IN " +
