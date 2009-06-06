@@ -43,64 +43,110 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// Define some constants to specify various sync. callback states
+const CB_READY = {};
+const CB_COMPLETE = {};
+const CB_FAIL = {};
+
+// Share a secret only for functions in this file to prevent outside access
+const SECRET = {};
+
+/**
+ * Create a callback that remembers state like whether it's been called
+ */
+function makeCallback() {
+  // Initialize private callback data to prepare to be called
+  let _ = {
+    state: CB_READY,
+    value: null
+  };
+
+  // The main callback remembers the value it's passed and that it got data
+  let onComplete = function makeCallback_onComplete(data) {
+    _.state = CB_COMPLETE;
+    _.value = data;
+  };
+
+  // Only allow access to the private data if the secret matches
+  onComplete._ = function onComplete__(secret) secret == SECRET ? _ : {};
+
+  // Allow an alternate callback to trigger an exception to be thrown
+  onComplete.throw = function onComplete_throw(data) {
+    _.state = CB_FAIL;
+    _.value = data;
+
+    // Cause the caller to get an exception and stop execution
+    throw data;
+  };
+
+  return onComplete;
+}
+
 /**
  * Make a synchronous version of the function object that will be called with
  * the provided thisArg.
  *
- * @param this {Function}
+ * @param func {Function}
  *        The asynchronous function to make a synchronous function
  * @param thisArg {Object} [optional]
  *        The object that the function accesses with "this"
- * @usage let syncFunc = syncBind.call(asyncFunc, thisArg);
+ * @param callback {Function} [optional] [internal]
+ *        The callback that will trigger the end of the async. call
+ * @usage let ret = Sync(asyncFunc, obj)(arg1, arg2);
+ * @usage let ret = Sync(ignoreThisFunc)(arg1, arg2);
+ * @usage let sync = Sync(async); let ret = sync(arg1, arg2);
  */
-function syncBind(thisArg) {
-  // Save for which function we're creating a sync version
-  let func = this;
-
-  // Hold the value passed in from the callback to return
-  let retval;
-
-  // Track if the onComplete has been called
-  let gotComplete = false;
-  let onComplete = function(data) {
-    retval = data;
-    gotComplete = true;
-  };
-
-  // Determine if the custom callback should be passed in as the first arg
-  let insertCallback = true;
-
-  let syncFunc = function(/* arg1, arg2, ... */) {
+function Sync(func, thisArg, callback) {
+  return function syncFunc(/* arg1, arg2, ... */) {
     // Grab the current thread so we can make it give up priority
     let thread = Cc["@mozilla.org/thread-manager;1"].getService().currentThread;
 
     // Save the original arguments into an array
     let args = Array.slice(arguments);
 
-    // Inject our custom callback as the first argument for the async function
-    if (insertCallback)
-      args.unshift(onComplete);
+    let instanceCallback = callback;
+    // We need to create a callback and insert it if we weren't given one
+    if (instanceCallback == null) {
+      // Create a new callback for this invocation instance and pass it in
+      instanceCallback = makeCallback();
+      args.unshift(instanceCallback);
+    }
 
     // Call the async function bound to thisArg with the passed args
     func.apply(thisArg, args);
 
     // Keep waiting until our callback is triggered
-    while (!gotComplete)
+    let callbackData = instanceCallback._(SECRET);
+    while (callbackData.state == CB_READY)
       thread.processNextEvent(true);
 
+    // Reset the state of the callback to prepare for another call
+    let state = callbackData.state;
+    callbackData.state = CB_READY;
+
+    // Throw the value the callback decided to fail with
+    if (state == CB_FAIL)
+      throw callbackData.value;
+
     // Return the value passed to the callback
-    return retval;
+    return callbackData.value;
   };
-
-  // Grabbing the onComplete converts the sync. function to not assume the first
-  // argument is our custom callback
-  syncFunc.__defineGetter__("onComplete", function() {
-    insertCallback = false;
-    return onComplete;
-  });
-
-  return syncFunc;
 }
+
+/**
+ * Make a synchronous version of an async. function and the callback to trigger
+ * the end of the async. call.
+ *
+ * @param func {Function}
+ *        The asynchronous function to make a synchronous function
+ * @param thisArg {Object} [optional]
+ *        The object that the function accesses with "this"
+ * @usage let [sync, cb] = Sync.withCb(async); let ret = sync(arg1, arg2, cb);
+ */
+Sync.withCb = function Sync_withCb(func, thisArg) {
+  let cb = makeCallback();
+  return [Sync(func, thisArg, cb), cb];
+};
 
 /**
  * Set a timer, simulating the API for the window.setTimeout call.
@@ -131,38 +177,6 @@ function sleep(callback, milliseconds) {
 }
 
 /**
- * Prepare the Function object to make synchronous functions
- *
- * @usage Cu.import(".../Sync.js"); Sync(Function);
- */
-let Sync = function Sync(Function) {
-  // Basic case with undefined/global for thisArg for the synchronous function
-  // @usage let ret = ignoreThisFunc.sync(arg1, arg2);
-  // @usage let func = ignoreThisFunc.sync; let ret = func(arg1, arg2);
-  Function.prototype.__defineGetter__("sync", syncBind);
-
-  // Allow binding of an arbitrary thisArg for the synchronous function
-  // @usage let ret = obj.asyncFunc.syncBind(obj)(arg1, arg2);
-  // @usage let func = obj.asyncFunc.syncBind(obj); let ret = func(arg1, arg2);
-  Function.prototype.syncBind = syncBind;
-};
-
-/**
- * Make a synchronous version of the provided function, optionally binding a
- * "this" for the sync function.
- *
- * @param func {Function}
- *        Async function that takes an onComplete callback as its first arg
- * @param thisArg {Object} [optional]
- *        The object that the function accesses with "this"
- * @usage let ret = Sync.sync(ignoreThisFunc)(arg1, arg2);
- */
-Sync.sync = function Sync_sync(func, thisArg) syncBind.call(func, thisArg);
-
-// Make functions in this module be sync-able (Sync.sync does something else)
-Sync(Function);
-
-/**
  * Sleep the specified number of milliseconds, pausing execution of the caller
  * without halting the current thread.
  * For example, the following code pauses 1000ms between dumps:
@@ -176,4 +190,4 @@ Sync(Function);
  * @param milliseconds {Number}
  *        The number of milliseconds to sleep
  */
-Sync.sleep = sleep.sync;
+Sync.sleep = Sync(sleep);

@@ -53,8 +53,6 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
-Sync(Function);
-
 /**
  * A set of messages.  Use this to retrieve messages from the datastore.
  * This implementation differs from the one in collection.js in that it:
@@ -79,7 +77,7 @@ function Collection2(args) {
   if ("limit" in args) this.limit = args.limit;
 
   // Execute the query so its results are available once the constructor returns.
-  this.execute.syncBind(this)();
+  Sync(this.execute, this)();
 }
 
 Collection2.prototype = {
