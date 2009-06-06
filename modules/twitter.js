@@ -49,6 +49,7 @@ Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Request.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -259,14 +260,6 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // Refreshment
 
-  // FIXME: create a refresher object that encapsulates the functionality
-  // provided by this code, since it creates properties that are essentially
-  // global variables (like _authInfo and _refreshTime)
-  // and will create concurrency problems with long-lived account objects.
-
-  _refreshTime: null,
-  _refreshCallback: null,
-
   get _stmtGetMaxExternalID() {
     let statement = SnowlDatastore.createStatement(
       "SELECT MAX(externalID) AS maxID FROM messages WHERE sourceID = :sourceID"
@@ -305,48 +298,21 @@ SnowlTwitter.prototype = {
    *        when the refresh occurs; determines the received time of new
    *        messages; we let the caller specify this so a caller refreshing
    *        multiple feeds can give their messages the same received time
-   *
-   * @param callback    {Function}  [optional]
-   *        a function to call when the refresh is complete
-   *
-   * @param thisObject  {Object}    [optional]
-   *        the object to set to |this| within the callback function;
-   *        causes the function to be called as a method of the object;
-   *        if you don't provide a value for this parameter, the function
-   *        will be called without reference to an object, and |this|
-   *        will be set to the global object within the callback function
    */
-  refresh: function(time, callback, thisObject) {
+  refresh: function(time) {
     if (typeof time == "undefined" || time == null)
       time = new Date();
     this._log.info("start refresh " + this.username + " at " + time);
 
-    this._refreshTime = time;
-
-    if (callback) {
-      this._refreshCallback =
-        thisObject ? function(source) callback.call(thisObject, source)
-                   : callback;
-    }
-
     Observers.notify("snowl:subscribe:get:start", this);
 
-    let request = Cc["@mozilla.org/xmlextras/xmlhttprequest;1"].createInstance();
-
-    request.QueryInterface(Ci.nsIDOMEventTarget);
-    let t = this;
-    request.addEventListener("load", function(e) { t.onRefreshLoad(e) }, false);
-    request.addEventListener("error", function(e) { t.onRefreshError(e) }, false);
-
-    request.QueryInterface(Ci.nsIXMLHttpRequest);
-
-    // URL parameters that modify the return value of the request
+    // URL parameters that modify the return value of the request.
     let params = [];
-    // Retrieve up to 200 messages, the maximum we're allowed to retrieve
-    // in one request.
+
+    // Retrieve up to 200 messages, the maximum we're allowed to retrieve.
     params.push("count=200");
-    // Retrieve only messages newer than the most recent one we've previously
-    // retrieved.
+
+    // Retrieve only messages newer than the most recent one already retrieved.
     let (maxID = this._getMaxExternalID()) {
       if (maxID)
         params.push("since_id=" + maxID);
@@ -355,7 +321,8 @@ SnowlTwitter.prototype = {
     let url = this.machineURI.spec.replace("^(https?://)", "$1" + this.username + "@") +
               "/statuses/friends_timeline.json?" + params.join("&");
     this._log.debug("refresh: this.name = " + this.name + "; url = " + url);
-    request.open("GET", url, true);
+
+    let requestHeaders = {};
 
     // If the login manager has saved credentials for this account, provide them
     // to the server.  Otherwise, no worries, Necko will automatically call our
@@ -363,40 +330,22 @@ SnowlTwitter.prototype = {
     if (this._savedLogin) {
       this._log.info("setting Authorization header with username " + this.username);
       let credentials = btoa(this.username + ":" + this._savedLogin.password);
-      request.setRequestHeader("Authorization", "Basic " + credentials);
+      requestHeaders.Authorization = "Basic " + credentials;
     }
 
-    // Register a callback for notifications to handle authentication failures.
-    // We do this whether or not we're providing credentials to the server via
-    // the Authorization header, as the credentials we provide via that header
-    // might be wrong, so we might need this in any case.
-    request.channel.notificationCallbacks = this;
+    let request = new Request({
+      url: url,
+      notificationCallbacks: this,
+      requestHeaders: requestHeaders
+    });
 
-    request.send(null);
-
-    // We set the last refreshed timestamp here even though the refresh
-    // is asynchronous, so we don't yet know whether it has succeeded.
-    // The upside of this approach is that we don't keep trying to refresh
-    // a source that isn't responding, but the downside is that it takes
-    // a long time for us to refresh a source that is only down for a short
-    // period of time.  We should instead keep trying when a source fails,
-    // but with a progressively longer interval (up to the standard one).
-    // FIXME: implement the approach described above.
-    this.lastRefreshed = time;
-  },
-
-  onRefreshLoad: function(event) {
-    let request = event.target;
-
-    // The load event can fire even with a non 2xx code, so handle as error
-    if (request.status < 200 || request.status > 299) {
-      this.onRefreshError(event);
-      return;
-    }
-
-    // XXX What's the right way to handle this?
-    if (request.responseText.length == 0) {
-      this.onRefreshError(event);
+    if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
+      // XXX Perhaps we should set this._lastStatus = request.status so we don't
+      // need to pass it in this notification and it's available at any time.
+      // FIXME: remove subscribe from this notification's name.
+      Observers.notify("snowl:subscribe:connect:end", this, request.status);
+      // XXX Should we throw instead?
+      this._log.error("refresh error: " + request.status + " (" + request.statusText + ")");
       return;
     }
 
@@ -404,49 +353,16 @@ SnowlTwitter.prototype = {
     // and the user checked the "remember password" box.  Since we're here,
     // it means the request succeeded, so we save the login.
     if (this._authInfo) {
-      // Fix the name and username attributes of Twitter accounts from earlier
-      // versions of Snowl that didn't support multiple accounts (i.e. anything
-      // before 0.2pre3).
-      if (!this.username) {
-        this.username = this._authInfo.username;
-        this.name = NAME + " - " + this._authInfo.username;
-        this.persist();
-//        Observers.notify("snowl:sources:changed");
-      }
-
       this._saveLogin(this._authInfo);
+      this._authInfo = null;
     }
 
     let items = JSON.parse(request.responseText);
-    this.messages = this._processItems(items, this._refreshTime);
+    this.messages = this._processItems(items, time);
 
-    if (this._refreshCallback)
-      this._refreshCallback(this);
-
-    this._resetRefresh();
+    this.lastRefreshed = time;
 
     Observers.notify("snowl:subscribe:get:end", this);
-  },
-
-  onRefreshError: function(event) {
-    let request = event.target;
-
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
-    let statusText;
-    try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
-
-    this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
-
-    if (this._refreshCallback)
-      this._refreshCallback(this);
-
-    this._resetRefresh();
-  },
-
-  _resetRefresh: function() {
-    this._refreshTime = null;
-    this._refreshCallback = null;
-    this._authInfo = null;
   },
 
 
