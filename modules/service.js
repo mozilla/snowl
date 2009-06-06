@@ -284,12 +284,9 @@ let SnowlService = {
     let refreshTime = new Date();
     for each (let source in allSources) {
       this._log.info("refreshing source " + source.name);
-      source.refresh(refreshTime, this.onRefresh, this);
+      source.refresh(refreshTime);
+      source.persist();
     }
-  },
-
-  onRefresh: function(source) {
-    source.persist();
   },
 
   /**
