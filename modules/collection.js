@@ -48,6 +48,7 @@ Cu.import("resource://snowl/modules/log4moz.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -275,6 +276,8 @@ this._log.info("got " + groups.length + " groups");
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           content:    content
         });
+
+        message.author = SnowlIdentity.retrieve(message.authorID);
 
         this._messages.push(message);
         this._messageIndex[message.id] = message;
