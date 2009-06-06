@@ -243,14 +243,6 @@ SnowlFeed.prototype = {
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
-    // We set the last refreshed timestamp here even though the refresh
-    // is asynchronous, so we don't yet know whether it has succeeded.
-    // The upside of this approach is that we don't keep trying to refresh
-    // a source that isn't responding, but the downside is that it takes
-    // a long time for us to refresh a source that is only down for a short
-    // period of time.  We should instead keep trying when a source fails,
-    // but with a progressively longer interval (up to the standard one).
-    // FIXME: implement the approach described above.
     this.lastRefreshed = time;
 
   },
