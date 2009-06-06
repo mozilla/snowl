@@ -46,6 +46,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -235,35 +236,8 @@ let SnowlMessageView = {
   //**************************************************************************//
   // Content Generation
 
-  /**
-   * A JavaScript Strands Future with which we pause the writing of messages
-   * so as not to hork the UI thread.
-   */
-  _rebuildViewFuture: null,
-
-  /**
-   * Sleep the specified number of milliseconds before continuing at the point
-   * in the caller where this function was called.  For the most part, this is
-   * a generic sleep routine like the one provided by JavaScript Strands,
-   * but we store the Future this function creates in the _rebuildViewFuture
-   * property so we can interrupt it when writeMessages gets called again
-   * while it is currently writing messages.
-   */
-  _sleepRebuildView: strand(function(millis) {
-    this._rebuildViewFuture = new Future();
-    setTimeout(this._rebuildViewFuture.fulfill, millis);
-    yield this._rebuildViewFuture.result();
-  }),
-
-  _rebuildView: strand(function() {
+  _rebuildView: function() {
     let begin = new Date();
-
-    // Interrupt a strand currently writing messages so we don't both try
-    // to write messages at the same time.
-    // FIXME: figure out how to suppress the exception this throws to the error
-    // console, since this interruption is expected and normal behavior.
-    if (this._rebuildViewFuture)
-      this._rebuildViewFuture.interrupt();
 
     let contentBox = this._document.getElementById("contentBox");
     while (contentBox.hasChildNodes())
@@ -276,7 +250,7 @@ let SnowlMessageView = {
 
       // Sleep a bit after every message so we don't hork the UI thread and users
       // can immediately start reading messages while we finish writing them.
-      yield this._sleepRebuildView(0);
+      Sync.sleep(0);
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
@@ -284,7 +258,7 @@ let SnowlMessageView = {
     //let serializer = Cc["@mozilla.org/xmlextras/xmlserializer;1"].
     //                 createInstance(Ci.nsIDOMSerializer);
     //this._log.info(serializer.serializeToString(document.getElementById("contentBox")));
-  }),
+  },
 
   _buildMessageView: function(message) {
     let messageBox = this._document.createElementNS(XUL_NS, "hbox");
@@ -295,8 +269,8 @@ let SnowlMessageView = {
     leftColumn.className = "leftColumn";
     let icon = document.createElementNS(XUL_NS, "image");
     icon.className = "icon";
-    if (message.author.iconURL)
-      icon.setAttribute("src", message.author.iconURL);
+    if (message.author && message.author.person.iconURL)
+      icon.setAttribute("src", message.author.person.iconURL);
     else if (message.source.faviconURI)
       icon.setAttribute("src", message.source.faviconURI.spec)
     else
@@ -311,11 +285,14 @@ let SnowlMessageView = {
     messageBox.appendChild(centerColumn);
 
     // Author or Source
-    if (message.author.name || message.source) {
+    if (message.author || message.source) {
       let desc = this._document.createElementNS(XUL_NS, "description");
+      let value = message.author && message.author.person.name ?
+                                    message.author.person.name :
+                                    message.source.name;
       desc.className = "author";
       desc.setAttribute("crop", "end");
-      desc.setAttribute("value", message.author.name || message.source.name);
+      desc.setAttribute("value", value);
       centerColumn.appendChild(desc);
     }
 
