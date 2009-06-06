@@ -228,16 +228,9 @@ let SnowlMessageView = {
     // FIXME: simplify the way the view gets built after the collections view
     // gets loaded to make this code less buggy and easier to hack.
 
-    // Finish initializing after a brief timeout to give the collections view
-    // time to initialize itself.
-    let t = this;
-    window.setTimeout(function() { t._initDelayed() }, 0);
-
     this._initWriteForm();
     this._updateWriteButton();
-  },
 
-  _initDelayed: function() {
     // Position/size stuff relative to the initial size of the browser.
     this.onResize();
 
