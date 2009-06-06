@@ -99,8 +99,8 @@ SnowlMessage.retrieve = function(id) {
     statement.reset();
   }
 
-  this.summary = this._getPart(PART_TYPE_SUMMARY);
-  this.content = this._getPart(PART_TYPE_CONTENT);
+  message.summary = message._getPart(PART_TYPE_SUMMARY);
+  message.content = message._getPart(PART_TYPE_CONTENT);
 
   return message;
 };
