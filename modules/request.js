@@ -67,6 +67,10 @@ function Request(args) {
                      this.url instanceof Ci.nsIURI ? this.url.spec : this.url,
                      this.async);
 
+  if (this.requestHeaders)
+    for (let [name, value] in Iterator(this.requestHeaders))
+      this._request.setRequestHeader(name, value);
+
   // Register a listener for notification callbacks so we handle authentication.
   if (this.notificationCallbacks)
     this._request.channel.notificationCallbacks = this.notificationCallbacks;
@@ -78,6 +82,7 @@ Request.prototype = {
   method: "GET",
   async: false,
   body: null,
+  requestHeaders: null,
 
   get status() this._request.status,
 
