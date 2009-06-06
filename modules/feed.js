@@ -185,9 +185,6 @@ SnowlFeed.prototype = {
   //**************************************************************************//
   // Refreshment
 
-  _refreshTime: null,
-  _refreshCallback: null,
-
   /**
    * Refresh the feed, retrieving the latest information in it.
    *
@@ -195,44 +192,56 @@ SnowlFeed.prototype = {
    *        when the refresh occurs; determines the received time of new
    *        messages; we let the caller specify this so a caller refreshing
    *        multiple feeds can give their messages the same received time
-   *
-   * @param callback    {Function}  [optional]
-   *        a function to call when the refresh is complete
-   *
-   * @param thisObject  {Object}    [optional]
-   *        the object to set to |this| within the callback function;
-   *        causes the function to be called as a method of the object;
-   *        if you don't provide a value for this parameter, the function
-   *        will be called without reference to an object, and |this|
-   *        will be set to the global object within the callback function
    */
-  refresh: function(time, callback, thisObject) {
+  refresh: function(time) {
     if (typeof time == "undefined" || time == null)
       time = new Date();
     this._log.info("start refresh " + this.machineURI.spec + " at " + time);
 
-    this._refreshTime = time;
-
-    if (callback) {
-      this._refreshCallback =
-        thisObject ? function(source) callback.call(thisObject, source)
-                   : callback;
-    }
-
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:start", this);
 
-    new Request({
-      loadCallback:           new Callback(this.onRefreshLoad, this),
-      errorCallback:          new Callback(this.onRefreshError, this),
-      // The feed processor is going to parse the XML, so override the MIME type
-      // in order to turn off parsing by XMLHttpRequest itself.
+    let request = new Request({
+      // The feed processor is going to parse the response, so we override
+      // the MIME type in order to turn off parsing by XMLHttpRequest itself.
       overrideMimeType:       "text/plain",
       url:                    this.machineURI,
-      // Register a listener for notification callbacks so we handle
-      // authentication.
+      // Listen for notification callbacks so we can handle authentication.
       notificationCallbacks:  this
     });
+
+    if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
+      // XXX Perhaps we should set this._lastStatus = request.status so we don't
+      // need to pass it in this notification and it's available at any time.
+      // FIXME: remove subscribe from this notification's name.
+      Observers.notify("snowl:subscribe:connect:end", this, request.status);
+      // XXX Should we throw instead?
+      this._log.error("refresh error: " + request.status + " (" + request.statusText + ")");
+      return;
+    }
+
+    // _authInfo only gets set if we prompted the user to authenticate
+    // and the user checked the "remember password" box.  Since we're here,
+    // it means the request succeeded, so we save the login.
+    if (this._authInfo)
+      this._saveLogin();
+
+    // Parse the response.
+    // Note: this happens synchronously, even though it uses a listener
+    // callback, which makes it look like it happens asynchronously.
+    let parser = Cc["@mozilla.org/feed-processor;1"].
+                 createInstance(Ci.nsIFeedProcessor);
+    parser.listener = {
+      _self: this,
+      _refreshTime: time,
+      handleResult: function(result) {
+        this._self.onRefreshResult(result, this._refreshTime);
+      }
+    };
+    parser.parseFromString(request.responseText, request.channel.URI);
+
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     // We set the last refreshed timestamp here even though the refresh
     // is asynchronous, so we don't yet know whether it has succeeded.
@@ -243,120 +252,33 @@ SnowlFeed.prototype = {
     // but with a progressively longer interval (up to the standard one).
     // FIXME: implement the approach described above.
     this.lastRefreshed = time;
+
   },
 
-  onRefreshLoad: function(event) {
-    let request = event.target;
-
-    // The load event can fire even with a non 2xx code, so handle as error
-    if (request.status < 200 || request.status > 299) {
-      this.onRefreshError(event);
-      return;
-    }
-
-    // XXX What's the right way to handle this?
-    if (request.responseText.length == 0) {
-      this.onRefreshError(event);
-      return;
-    }
-
-    // XXX Perhaps we should set this._lastStatus = request.status so we don't
-    // need to pass it in this notification and it's available at any time.
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-    // _authInfo only gets set if we prompted the user to authenticate
-    // and the user checked the "remember password" box.  Since we're here,
-    // it means the request succeeded, so we save the login.
-    if (this._authInfo)
-      this._saveLogin();
-
-    // Use the built-in feed processor to parse the response synchronously
-    // (but we process the result asynchronously using a coroutine).
-    let parser = Cc["@mozilla.org/feed-processor;1"].
-                 createInstance(Ci.nsIFeedProcessor);
-    parser.listener = {
-      self: this,
-      handleResult: function(result) {
-        this.self.onRefreshResult(result);
-      }
-    };
-    parser.parseFromString(request.responseText, request.channel.URI);
-  },
-
-  onRefreshError: function(event) {
-    let request = event.target;
-
-    // Sometimes an attempt to retrieve status text throws NS_ERROR_NOT_AVAILABLE.
-    let statusText;
-    try { statusText = request.statusText } catch(ex) { statusText = "[no status text]" }
-    this._log.error("onRefreshError: " + request.status + " (" + statusText + ")");
-    // XXX Perhaps we should set this._lastStatus = request.status so we don't
-    // need to pass it in this notification and it's available at any time.
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
-
-    if (this._subscribeCallback)
-      this._subscribeCallback();
-    if (this._refreshCallback)
-      this._refreshCallback(this);
-
-    this._resetRefresh();
-  },
-
-  onRefreshResult: strand(function(result) {
+  onRefreshResult: function(result, time) {
     // FIXME: figure out why result.doc is sometimes null (perhaps its content
     // isn't a valid feed?) and report a more descriptive error message.
     if (result.doc == null) {
+      // XXX Should we throw instead?
       this._log.error("onRefreshResult: result.doc is null");
-      // FIXME: factor this out with similar code in onSubscribeError and make
-      // the observers of snowl:subscribe:connect:end understand the status
-      // we return.
-      // FIXME: remove subscribe from this notification's name.
-      Observers.notify("snowl:subscribe:connect:end", this, "result.doc is null");
-      if (this._subscribeCallback)
-        this._subscribeCallback();
-      if (this._refreshCallback)
-        this._refreshCallback(this);
       return;
     }
 
-    try {
-      let feed = result.doc.QueryInterface(Ci.nsIFeed);
+    let feed = result.doc.QueryInterface(Ci.nsIFeed);
 
-      // Extract the name and human URI (if we don't already have them)
-      // from the feed.
-      // ??? Should we update these if they've changed?
-      if (!this.name)
-        this.name = feed.title.plainText();
-      if (!this.humanURI)
-        this.humanURI = feed.link;
+    // Extract the name and human URI (if we don't already have them)
+    // from the feed.
+    // ??? Should we update these if they've changed?
+    if (!this.name)
+      this.name = feed.title.plainText();
+    if (!this.humanURI)
+      this.humanURI = feed.link;
 
-      // FIXME: remove subscribe from this notification's name.
-      Observers.notify("snowl:subscribe:get:start", this);
-      this.messages = this._processFeed(feed, this._refreshTime);
-      // FIXME: remove subscribe from this notification's name.
-      Observers.notify("snowl:subscribe:get:end", this);
-    }
-    catch(ex) {
-      this._log.error("error on subscribe result: " + ex);
-      // FIXME: remove subscribe from this notification's name.
-      // FIXME: make this something besides "connect:end" since we've already
-      // issued one of those notifications by now.
-      Observers.notify("snowl:subscribe:connect:end", this, "error: " + ex);
-    }
-    finally {
-      if (this._subscribeCallback)
-        this._subscribeCallback();
-
-      if (this._refreshCallback)
-        this._refreshCallback(this);
-    }
-  }),
-
-  _resetRefresh: function() {
-    this._refreshTime = null;
-    this._refreshCallback = null;
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:get:start", this);
+    this.messages = this._processFeed(feed, time);
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:get:end", this);
   },
 
 
