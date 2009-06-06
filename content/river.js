@@ -916,6 +916,12 @@ let Sources = {
 
   _rebuild: function() {
     if ("feedsToPreview" in params) {
+      let item = document.createElementNS(XUL_NS, "richlistitem");
+      // FIXME: make this localizable.
+      item.setAttribute("label", "Preview");
+      item.className = "header";
+      this._list.appendChild(item);
+
       let feedsToPreview = JSON.parse(params.feedsToPreview);
       for each (let feedToPreview in feedsToPreview) {
         let feed = new SnowlFeed(null, null, new URI(feedToPreview.href), undefined, null);
@@ -923,6 +929,7 @@ let Sources = {
         // that gets loaded last.
         feed.refresh(null, SnowlMessageView.onFeedRefresh, SnowlMessageView);
         // ??? select all feeds at once once multi-select is working?
+
         let item = this._list.appendItem(feedToPreview.title);
         item.source = feed;
         item.className = "source";
