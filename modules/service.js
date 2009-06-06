@@ -284,20 +284,27 @@ let SnowlService = {
     let refreshTime = new Date();
     for each (let source in allSources) {
       this._log.info("refreshing source " + source.name);
-      source.refresh(refreshTime);
-      source.persist();
+      // FIXME: initiate more than one of these at the same time instead of
+      // waiting for each one to complete before doing the next one.
+      try {
+        source.refresh(refreshTime);
+        source.persist();
+      }
+      catch(ex) {
+        this._log.error("error refreshing source " + source.name + ": " + ex);
+      }
     }
   },
 
   /**
-   * Determine whether or not an author has at least one message in the database.
+   * Determine whether or not the datastore contains the message with the given ID.
    *
-   * @param aAuthorID {string}  the author ID of the message
+   * @param aExternalID {string}  the external ID of the message
    *
-   * @returns {boolean} whether or not the author has a message
+   * @returns {boolean} whether or not the datastore contains the message
    */
-  hasAuthorMessage: function(aAuthorID) {
-    return SnowlDatastore.selectHasAuthorMessage(aAuthorID);
+  hasMessage: function(aExternalID) {
+    return SnowlDatastore.selectHasMessage(aExternalID);
   },
 
   /**
