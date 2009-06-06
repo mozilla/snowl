@@ -601,19 +601,15 @@ this._log.info("_toggleRead: all? " + aAll);
       messageID = message.id;
       messageIDs.push(messageID)
       authorID = message.authorID;
-      authorPlaceID = message.author.placeID;
+      authorPlaceID = message.author ? message.author.placeID : null;
 
-      if (!SnowlMessage.get(messageID)) {
+      if (!SnowlMessage.retrieve(messageID)) {
 //this._log.info("_deleteMessages: Delete messages NOTFOUND - "+messageID);
         continue;
       }
 
       SnowlDatastore.dbConnection.beginTransaction();
       try {
-        // Delete messages
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
-            "WHERE messageID = " + messageID);
-//this._log.info("_deleteMessages: Delete messages METADATA DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
             "WHERE docid IN " +
             "(SELECT id FROM parts WHERE messageID = " + messageID + ")");
@@ -626,13 +622,16 @@ this._log.info("_toggleRead: all? " + aAll);
 //this._log.info("_deleteMessages: Delete messages DONE");
         if (!SnowlService.hasAuthorMessage(authorID)) {
           // Delete people/identities; author's only message has been deleted.
+          // FIXME: make sure the person doesn't have any other identities
+          // before deleting them.
           SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
               "WHERE id IN " +
               "(SELECT personID FROM identities WHERE id = " + authorID + ")");
           SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
               "WHERE id = " + authorID);
           // Finally, clean up Places bookmark by author's placeID.
-        PlacesUtils.bookmarks.removeItem(authorPlaceID);
+          if (authorPlaceID)
+            PlacesUtils.bookmarks.removeItem(authorPlaceID);
 //this._log.info("_deleteMessages: Delete DONE authorID - "+authorID);
         }
 //        PlacesUtils.history.removePage(URI(this.MESSAGE_URI + messageID));

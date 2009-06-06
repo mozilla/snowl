@@ -122,15 +122,17 @@ var messageContent = {
                appendChild(document.createTextNode(message.subject));
       document.getElementById("subject").href = message.link;
       document.getElementById("subject").target = "messageBody";
-      document.getElementById("briefAuthor").
-               setAttribute("value", message.author.name);
+      if (message.author)
+        document.getElementById("briefAuthor").
+                 setAttribute("value", message.author.person.name);
 //               appendChild(document.createTextNode(message.authorName));
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       // Basic headers
-      document.getElementById("author").
-               appendChild(document.createTextNode(message.author.name));
+      if (message.author)
+        document.getElementById("author").
+                 appendChild(document.createTextNode(message.author.name));
       document.getElementById("timestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 

@@ -308,6 +308,17 @@ let SnowlService = {
   },
 
   /**
+   * Determine whether or not an author has at least one message in the database.
+   *
+   * @param aAuthorID {string}  the author ID of the message
+   *
+   * @returns {boolean} whether or not the author has a message
+   */
+  hasAuthorMessage: function(aAuthorID) {
+    return SnowlDatastore.selectHasAuthorMessage(aAuthorID);
+  },
+
+  /**
    * Determine whether or not the datastore contains a source with the given URI.
    *
    * @param aMachineURI {string}  the URI to check
