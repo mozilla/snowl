@@ -144,8 +144,15 @@ Collection2.prototype = {
       "messages.timestamp",
       "messages.read",
       "messages.received",
-      "authors.name AS authorName",
-      "authors.iconURL AS authorIcon",
+      "identities.id AS identities_id",
+      "identities.sourceID AS identities_sourceID",
+      "identities.externalID AS identities_externalID",
+      "identities.personID AS identities_personID",
+      "people.id AS people_id",
+      "people.name AS people_name",
+      "people.placeID AS people_placeID",
+      "people.homeURL AS people_homeURL",
+      "people.iconURL AS people_iconURL",
       "parts.id AS partID",
       "parts.content",
       "parts.mediaType",
@@ -154,9 +161,10 @@ Collection2.prototype = {
     ];
 
     let query = 
-      "SELECT " + columns.join(", ") + " " +
-      "FROM sources JOIN messages ON sources.id = messages.sourceID " +
-      "LEFT JOIN people AS authors ON messages.authorID = authors.id " +
+      "SELECT " + columns.join(", ") + " FROM sources " +
+      "JOIN messages ON sources.id = messages.sourceID " +
+      "LEFT JOIN identities ON messages.authorID = identities.id " +
+      "LEFT JOIN people ON identities.personID = people.id " +
       "LEFT JOIN parts AS parts ON messages.id = parts.messageID " +
 
       // This partType condition has to be in the constraint for the LEFT JOIN
@@ -211,18 +219,30 @@ Collection2.prototype = {
         content.lang = row.getResultByName("languageTag");
       }
 
+      let author;
+      if (row.authorID) {
+        let person = new SnowlPerson(row.people_id,
+                                     row.people_name,
+                                     row.people_placeID,
+                                     row.people_homeURL,
+                                     row.people_iconURL);
+        let identity = new SnowlIdentity(row.identities_id,
+                                         row.identities_sourceID,
+                                         row.identities_externalID,
+                                         person);
+        author = identity;
+      }
+
       let message = new SnowlMessage({
         id:         row.getResultByName("messageID"),
         sourceID:   row.getResultByName("sourceID"),
         source:     SnowlService.sourcesByID[row.getResultByName("sourceID")],
         subject:    row.getResultByName("subject"),
-        authorName: row.getResultByName("authorName"),
-        authorID:   row.getResultByName("authorID"),
         link:       row.getResultByName("link"),
         timestamp:  SnowlDateUtils.julianToJSDate(row.getResultByName("timestamp")),
         read:       row.getResultByName("read"),
-        authorIcon: row.getResultByName("authorIcon"),
         received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
+        author:     author,
         content:    content
       });
 
