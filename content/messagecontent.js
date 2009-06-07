@@ -326,12 +326,11 @@ var messageHeaderUtils = {
       messageContent.createFullHeader(headerDeck);
   },
 
-  onDeleteMessage: function() {
+  onDeleteMessageButton: function() {
 //window.SnowlUtils._log.info("onDeleteMessage: START");
     // Delete button.
     var messageContent = parent.wrappedJSObject.messageContent;
-    var messages = [messageContent.message];
-    gBrowserWindow.SnowlMessageView._deleteMessages(messages)
+    gBrowserWindow.SnowlMessageView.onDeleteMessage([messageContent.message])
   },
 
   tooltip: function(aEvent, aShow) {

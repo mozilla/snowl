@@ -247,6 +247,7 @@ let CollectionsView = {
       }
   },
 
+  noSelect: false,
   onSelect: function(aEvent) {
 //this._log.info("onSelect start: curIndex:gMouseEvent - "+
 //  this._tree.currentIndex+" : "+SnowlUtils.gMouseEvent);
@@ -255,6 +256,12 @@ let CollectionsView = {
     // not have info on whether mouse or key, we track it ourselves.
     if (this._tree.currentIndex == -1 || SnowlUtils.gMouseEvent)
       return;
+
+    // Don't run if suppressed.
+    if (this.noSelect) {
+      this.noSelect = false;
+      return;
+    }
 
     this.onClick(aEvent);
   },
@@ -357,7 +364,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
   onSearch: function(aValue) {
     this.Filters["searchterms"] = aValue ? aValue : null;
-    gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
+    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
     if (!aValue)
       this._tree.place = this._tree.place;
   },
@@ -368,7 +375,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     // class on read items and then using a CSS rule to hide them)?
     aEvent.target.checked = !aEvent.target.checked;
     this.Filters["unread"] = aEvent.target.checked ? true : false;
-    gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
+    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
   },
 
   _resetCollectionsView: true,
