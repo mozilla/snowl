@@ -262,22 +262,32 @@ this._log.info("got " + groups.length + " groups");
           content.lang = statement.row.languageTag;
         }
 
+        let author;
+        if (statement.row.authorID) {
+          let person = new SnowlPerson(statement.row.people_id,
+                                       statement.row.people_name,
+                                       statement.row.people_placeID,
+                                       statement.row.people_homeURL,
+                                       statement.row.people_iconURL);
+          let identity = new SnowlIdentity(statement.row.identities_id,
+                                           statement.row.identities_sourceID,
+                                           statement.row.identities_externalID,
+                                           person);
+          author = identity;
+        }
+
         message = new SnowlMessage({
           id:         statement.row.messageID,
           sourceID:   statement.row.sourceID,
           source:     SnowlService.sourcesByID[statement.row.sourceID],
           subject:    statement.row.subject,
-          authorName: statement.row.authorName,
-          authorID:   statement.row.authorID,
           link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
           read:       statement.row.read,
-          authorIcon: statement.row.authorIcon,
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
+          author:     author,
           content:    content
         });
-
-        message.author = SnowlIdentity.retrieve(message.authorID);
 
         this._messages.push(message);
         this._messageIndex[message.id] = message;
@@ -311,8 +321,15 @@ this._log.info("got " + groups.length + " groups");
       "messages.timestamp",
       "messages.read",
       "messages.received",
-      "authors.name AS authorName",
-      "authors.iconURL AS authorIcon",
+      "identities.id AS identities_id",
+      "identities.sourceID AS identities_sourceID",
+      "identities.externalID AS identities_externalID",
+      "identities.personID AS identities_personID",
+      "people.id AS people_id",
+      "people.name AS people_name",
+      "people.placeID AS people_placeID",
+      "people.homeURL AS people_homeURL",
+      "people.iconURL AS people_iconURL",
       "parts.id AS partID",
       "parts.content",
       "parts.mediaType",
@@ -326,9 +343,10 @@ this._log.info("got " + groups.length + " groups");
     }
 
     let query = 
-      "SELECT " + columns.join(", ") + " " +
-      "FROM sources JOIN messages ON sources.id = messages.sourceID " +
-      "LEFT JOIN people AS authors ON messages.authorID = authors.id " +
+      "SELECT " + columns.join(", ") + " FROM sources " +
+      "JOIN messages ON sources.id = messages.sourceID " +
+      "LEFT JOIN identities ON messages.authorID = identities.id " +
+      "LEFT JOIN people ON identities.personID = people.id " +
       "LEFT JOIN parts AS parts ON messages.id = parts.messageID " +
 
       // This partType condition has to be in the constraint for the LEFT JOIN

@@ -51,10 +51,11 @@ Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 
-function SnowlIdentity(id, sourceID, externalID) {
+function SnowlIdentity(id, sourceID, externalID, person) {
   this.id = id;
   this.sourceID = sourceID;
   this.externalID = externalID;
+  this.person = person;
 }
 
 SnowlIdentity.__defineGetter__("_log", function() {
