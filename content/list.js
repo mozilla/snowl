@@ -673,6 +673,7 @@ this._log.info("_toggleRead: all? " + aAll);
       if (!SnowlMessage.retrieve(messageID)) {
 //this._log.info("_deleteMessages: Delete messages NOTFOUND - "+messageID);
         continue;
+      }
 
       if (!refreshList && (this.Filters["deleted"] ||
           this.CollectionsView.isMessageForSelectedCollection(message)))
