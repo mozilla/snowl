@@ -60,14 +60,15 @@ const TABLE_TYPE_NORMAL = 0;
 const TABLE_TYPE_FULLTEXT = 1;
 
 let SnowlDatastore = {
-  // FIXME: use the memoization technique for properties that aren't defined
-  // in the prototype here instead of the technique for properties that are
-  // defined in the prototype.
   get _storage() {
-    var storage = Cc["@mozilla.org/storage/service;1"].
-                  getService(Ci.mozIStorageService);
-    this.__defineGetter__("_storage", function() { return storage });
-    return this._storage;
+    delete this._storage;
+    return this._storage = Cc["@mozilla.org/storage/service;1"].
+                           getService(Ci.mozIStorageService);
+  },
+
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.repository.getLogger("Snowl.Datastore");
   },
 
   //**************************************************************************//
@@ -298,7 +299,7 @@ let SnowlDatastore = {
       if (statement instanceof Ci.mozIStorageStatement)
         statement.finalize();
       else
-        this._log.warning("can't finalize " + statement + "\n");
+        this._log.warning("can't finalize " + statement);
     }
   },
 
@@ -446,9 +447,16 @@ let SnowlDatastore = {
     if (this["_dbMigrate" + aOldVersion + "To" + aNewVersion]) {
       aDBConnection.beginTransaction();
       try {
+        // We have to dump here because this runs before the service
+        // has initialized the logger.
+        // FIXME: initialize the logger first so we can use it here.
+        dump("migrating database from " + aOldVersion + " to " + aNewVersion + "\n");
+        let start = new Date();
         this["_dbMigrate" + aOldVersion + "To" + aNewVersion](aDBConnection);
         aDBConnection.schemaVersion = aNewVersion;
         aDBConnection.commitTransaction();
+        let end = new Date();
+        dump("database migration took " + (end - start) + "ms" + "\n");
       }
       catch(ex) {
         aDBConnection.rollbackTransaction();
