@@ -153,11 +153,16 @@ Collection2.prototype = {
       "people.placeID AS people_placeID",
       "people.homeURL AS people_homeURL",
       "people.iconURL AS people_iconURL",
-      "parts.id AS partID",
-      "parts.content",
-      "parts.mediaType",
-      "parts.baseURI",
-      "parts.languageTag"
+      "content.id AS content_id",
+      "content.content AS content_content",
+      "content.mediaType AS content_mediaType",
+      "content.baseURI AS content_baseURI",
+      "content.languageTag AS content_languageTag",
+      "summary.id AS summary_id",
+      "summary.content AS summary_content",
+      "summary.mediaType AS summary_mediaType",
+      "summary.baseURI AS summary_baseURI",
+      "summary.languageTag AS summary_languageTag"
     ];
 
     let query = 
@@ -165,13 +170,19 @@ Collection2.prototype = {
       "JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN identities ON messages.authorID = identities.id " +
       "LEFT JOIN people ON identities.personID = people.id " +
-      "LEFT JOIN parts AS parts ON messages.id = parts.messageID " +
 
-      // This partType condition has to be in the constraint for the LEFT JOIN
-      // to the parts table because if it was in the WHERE clause it would
-      // exclude messages without a content part, whereas we want to retrieve
-      // all messages whether or not they have a content part.
-      "AND parts.partType = " + PART_TYPE_CONTENT;
+      // The partType conditions for the next two LEFT JOINS have to be
+      // in the join constraints because if they were in the WHERE clause
+      // they would exclude messages without parts, whereas we want
+      // to retrieve messages whether or not they have these parts.
+
+      "LEFT JOIN parts AS content ON messages.id = content.messageID " +
+      "AND content.partType = " + PART_TYPE_CONTENT + " " +
+
+      "LEFT JOIN parts AS summary ON messages.id = summary.messageID " +
+      "AND summary.partType = " + PART_TYPE_SUMMARY + " " +
+
+      "";
 
     let conditions = [];
     for each (let constraint in this.constraints)
@@ -186,14 +197,17 @@ Collection2.prototype = {
     if (this.limit)
       query += " LIMIT " + this.limit;
 
+    this._log.info(query);
     let statement = SnowlDatastore.createStatement(query);
 
-    for each (let constraint in this.constraints)
-      if ("parameters" in constraint)
-        for (let [name, value] in Iterator(constraint.parameters))
+    for each (let constraint in this.constraints) {
+      if ("parameters" in constraint) {
+        for (let [name, value] in Iterator(constraint.parameters)) {
+          this._log.info("param " + name + " = " + value);
           statement.params[name] = value;
-
-    this._log.info(query);
+        }
+      }
+    }
 
     return statement;
   },
@@ -209,14 +223,24 @@ Collection2.prototype = {
   __iterator__: function(wantKeys) {
     let row;
     while ((row = this._resultSet.getNextRow())) {
-      let content = null;
-      if (row.getResultByName("partID")) {
+      let content;
+      if (row.getResultByName("content_id")) {
         content = Cc["@mozilla.org/feed-textconstruct;1"].
                   createInstance(Ci.nsIFeedTextConstruct);
-        content.text = row.getResultByName("content");
-        content.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("mediaType")];
-        content.base = URI.get(row.getResultByName("baseURI"));
-        content.lang = row.getResultByName("languageTag");
+        content.text = row.getResultByName("content_content");
+        content.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("content_mediaType")];
+        content.base = URI.get(row.getResultByName("content_baseURI"));
+        content.lang = row.getResultByName("content_languageTag");
+      }
+
+      let summary;
+      if (row.getResultByName("summary_id")) {
+        summary = Cc["@mozilla.org/feed-textconstruct;1"].
+                  createInstance(Ci.nsIFeedTextConstruct);
+        summary.text = row.getResultByName("summary_content");
+        summary.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("summary_mediaType")];
+        summary.base = URI.get(row.getResultByName("summary_baseURI"));
+        summary.lang = row.getResultByName("summary_languageTag");
       }
 
       let author;
@@ -243,7 +267,8 @@ Collection2.prototype = {
         read:       row.getResultByName("read"),
         received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
         author:     author,
-        content:    content
+        content:    content,
+        summary:    summary
       });
 
       yield message;

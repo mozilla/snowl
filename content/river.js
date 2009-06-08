@@ -662,36 +662,11 @@ this._log.info("onMessageAdded: REFRESH RIVER");
       this._contentBox.removeChild(this._contentBox.lastChild);
 
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
-    let groups = SnowlDateUtils.periods[period];
-
-    // Build the box for each group and add it to the view.
-    for each (let group in groups) {
-      let header = this._document.createElementNS(XUL_NS, "checkbox");
-      header.className = "twistbox";
-      header.setAttribute("label", group.name);
-      header.setAttribute("checked", "true");
-      let listener = function(event) {
-        // FIXME: set the |hidden| attribute rather than |style.display|.
-        event.target.nextSibling.style.display = event.target.checked ? "block" : "none";
-      };
-      header.addEventListener("command", listener, false);
-      this._contentBox.appendChild(header);
-
-      let container = this._document.createElementNS(HTML_NS, "div");
-      container.className = "groupBox";
-      this._contentBox.appendChild(container);
-    }
 
     // Build the box for each message and add it to the view.
-    let groupBoxes = this._contentBox.getElementsByClassName("groupBox");
-    let groupIndex = 0;
     for each (let message in this._collection) {
-      // Find the group to which the message belongs.
-      while (message.received < groups[groupIndex].epoch)
-        ++groupIndex;
-
       let messageBox = this._buildMessageBox(message);
-      groupBoxes[groupIndex].appendChild(messageBox);
+      this._contentBox.appendChild(messageBox);
       try {
         Sync.sleep(this._rebuildViewTimeout);
       }
@@ -798,7 +773,8 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     if (message.subject)
       messageBox.appendChild(title);
     messageBox.appendChild(excerpt);
-    messageBox.appendChild(body);
+    if (this.body)
+      messageBox.appendChild(body);
     messageBox.appendChild(bylineBox);
 
     return messageBox;
