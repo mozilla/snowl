@@ -644,12 +644,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     for each (let message in this._collection) {
       let messageBox = this._buildMessageBox(message);
       this._contentBox.appendChild(messageBox);
-      try {
-        Sync.sleep(this._rebuildViewTimeout);
-      }
-      catch(ex) {
-        alert(ex);
-      }
+      Sync.sleep(this._rebuildViewTimeout);
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
