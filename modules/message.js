@@ -62,18 +62,14 @@ function SnowlMessage(props) {
 }
 
 // FIXME: refactor this with the similar code in the SnowlCollection::messages getter.
-// FIXME: retrieve an author object instead of just specific properties of the author.
-// FIXME: retrieve all basic properties of the message in a single query.
 // FIXME: retrieve multiple messages in a single query.
 SnowlMessage.retrieve = function(id) {
   let message;
 
   // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
-    "SELECT sourceID, subject, authors.name AS authorName, link, timestamp, read, " +
-    "       authors.iconURL AS authorIcon, received, authorID " +
-    "FROM messages LEFT JOIN people AS authors ON messages.authorID = authors.id " +
-    "WHERE messages.id = :id"
+    "SELECT sourceID, subject, authorID, link, timestamp, read, received " +
+    "FROM messages WHERE messages.id = :id"
   );
 
   try {
@@ -83,16 +79,19 @@ SnowlMessage.retrieve = function(id) {
         id:         id,
         sourceID:   statement.row.sourceID,
         subject:    statement.row.subject,
-        authorName: statement.row.authorName,
-        authorID:   statement.row.authorID,
         link:       statement.row.link ? URI.get(statement.row.link) : null,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
         read:       statement.row.read,
-        authorIcon: statement.row.authorIcon,
         received:   SnowlDateUtils.julianToJSDate(statement.row.received)
       });
 
-      message.author = SnowlIdentity.retrieve(message.authorID);
+      if (statement.row.authorID) {
+        message.author = SnowlIdentity.retrieve(statement.row.authorID);
+        // Duplicate the author name in the authorName property so sorting
+        // by author in the list view works.
+        // FIXME: come up with a better fix for this hack.
+        message.authorName = message.author.person.name;
+      }
     }
   }
   finally {
@@ -109,8 +108,6 @@ SnowlMessage.prototype = {
   id: null,
   externalID: null,
   subject: null,
-  authorName: null,
-  authorID: null,
   author: null,
   link: null,
   timestamp: null,
