@@ -915,7 +915,9 @@ let Sources = {
       item.className = "header";
       this._list.appendChild(item);
 
-      for each (let otherTabFeed in otherTabFeeds) {
+      let sortFeedInfos = function(a, b) a.title.toLowerCase() < b.title.toLowerCase() ? -1 :
+                                         a.title.toLowerCase() > b.title.toLowerCase() ?  1 : 0;
+      for each (let otherTabFeed in otherTabFeeds.sort(sortFeedInfos)) {
         let feed = new SnowlFeed(null, otherTabFeed.title, new URI(otherTabFeed.href), undefined, null);
         let item = this._list.appendItem(otherTabFeed.title);
         item.source = feed;
@@ -929,7 +931,9 @@ let Sources = {
     item.className = "header";
     this._list.appendChild(item);
 
-    for each (let source in SnowlService.sources) {
+    let sortSources = function(a, b) a.name.toLowerCase() < b.name.toLowerCase() ? -1 :
+                                     a.name.toLowerCase() > b.name.toLowerCase() ?  1 : 0;
+    for each (let source in SnowlService.sources.sort(sortSources)) {
       //let item = document.createElement("richlistitem");
       let item = this._list.appendItem(source.name);
       item.source = source;
