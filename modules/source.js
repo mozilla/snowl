@@ -171,22 +171,6 @@ SnowlSource.retrieve = function(id) {
     statement.reset();
   }
 
-  // FIXME: memoize this.
-  let messagesStatement = SnowlDatastore.createStatement(
-    "SELECT id FROM messages WHERE sourceID = :id"
-  );
-
-  try {
-    messagesStatement.params.id = id;
-    this.messages = [];
-    // FIXME: retrieve all messages at once instead of one at a time.
-    while (messagesStatement.step())
-      source.messages.push(SnowlMessage.retrieve(messagesStatement.row.id));
-  }
-  finally {
-    messagesStatement.reset();
-  }
-
   return source;
 }
 
@@ -309,6 +293,24 @@ SnowlSource.prototype = {
    */
   refresh: function(refreshTime) {},
 
+  retrieveMessages: function() {
+    // FIXME: memoize this.
+    let messagesStatement = SnowlDatastore.createStatement(
+      "SELECT id FROM messages WHERE sourceID = :id"
+    );
+    
+    try {
+      messagesStatement.params.id = id;
+      this.messages = [];
+      // FIXME: retrieve all messages at once instead of one at a time.
+      while (messagesStatement.step())
+        this.messages.push(SnowlMessage.retrieve(messagesStatement.row.id));
+    }
+    finally {
+      messagesStatement.reset();
+    }
+  },
+
   /**
    * Insert a record for this source into the database, or update an existing
    * record; store placeID back into sources table.
@@ -342,7 +344,7 @@ SnowlSource.prototype = {
       statement.params.name = this.name;
       statement.params.type = this.constructor.name;
       statement.params.machineURI = this.machineURI.spec;
-      statement.params.humanURI = this.humanURI.spec;
+      statement.params.humanURI = this.humanURI ? this.humanURI.spec : null;
       statement.params.username = this.username;
       statement.params.lastRefreshed = this.lastRefreshed ? SnowlDateUtils.jsToJulianDate(this.lastRefreshed) : null;
       statement.params.importance = this.importance;
