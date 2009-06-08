@@ -56,6 +56,7 @@ Cu.import("resource://snowl/modules/collection2.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 const XML_NS = "http://www.w3.org/XML/1998/namespace";
@@ -468,52 +469,28 @@ let SnowlMessageView = {
   },
 
   _updateURI: function() {
-    let params = [];
+    let newParams = [];
 
     if (this._bodyButton.checked)
-      params.push("body");
+      newParams.push("body");
 
     if (this._columnsButton.checked)
-      params.push("columns");
+      newParams.push("columns");
 
     // FIXME: make this work with the new architecture.
     //if (CollectionsView.itemIds && CollectionsView.itemIds != -1)
-    //  params.push("collection=" + CollectionsView.itemIds)
+    //  newParams.push("collection=" + CollectionsView.itemIds)
 
     if (this._filter.value)
-      params.push("filter=" + encodeURIComponent(this._filter.value));
+      newParams.push("filter=" + encodeURIComponent(this._filter.value));
 
     let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
     if (selIndex != -1) {
       this._periodMenu.selectedIndex = selIndex;
-      params.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
+      newParams.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
     }
 
-    let browser = gBrowserWindow.gBrowser.getBrowserForDocument(document);
-
-    let currentURI = browser.docShell.currentURI.QueryInterface(Ci.nsIURL);
-
-    let query = params.length > 0 ? "?" + params.join("&") : "";
-    let spec = currentURI.prePath + currentURI.filePath + query;
-    let uri = Cc["@mozilla.org/network/io-service;1"].
-              getService(Ci.nsIIOService).
-              newURI(spec, null, null);
-
-    // Update the docshell with the new URI.  This updates the location bar
-    // and gets used by the bookmarks service when the user bookmarks the page.
-    browser.docShell.setCurrentURI(uri);
-
-    // Update the session history entry for the page with the new URI.
-    // This gets used when the user reloads the page or traverses history.
-    let history = browser.sessionHistory;
-    let historyEntry = history.getEntryAtIndex(history.index, false);
-    if (historyEntry instanceof Ci.nsISHEntry)
-      historyEntry.setURI(uri);
-    else
-      this._log.error("can't update session history URI for " +
-                      "'" + historyEntry.title + "' " +
-                      "<" + historyEntry.URI.spec + ">; " +
-                      "entry is not an instance of nsISHEntry");
+    updateURI();
   },
 
 
@@ -884,27 +861,50 @@ let Sources = {
   // View Construction
 
   _rebuild: function() {
-    if ("feedsToPreview" in params) {
-      let item = document.createElementNS(XUL_NS, "richlistitem");
-      // FIXME: make this localizable.
-      item.setAttribute("label", "Preview");
-      item.className = "header";
-      this._list.appendChild(item);
+    let subscribedFeeds = [];
+    let feedToSelect = null;
 
-      let feedsToPreview = JSON.parse(params.feedsToPreview);
-      for each (let feedToPreview in feedsToPreview) {
-        let feed = new SnowlFeed(null, null, new URI(feedToPreview.href), undefined, null);
-        // FIXME: automatically show the first feed rather than the one
-        // that gets loaded last.
-        feed.refresh(null, SnowlMessageView.onFeedRefresh, SnowlMessageView);
-        // ??? select all feeds at once once multi-select is working?
+    if ("feedsToSubscribe" in params) {
+      this._log.info("there are feeds to subscribe");
+      let feedsToSubscribe = JSON.parse(params.feedsToSubscribe);
+      let refreshTime = new Date();
+      for each (let feedInfo in feedsToSubscribe) {
+        this._log.info("feed to subscribe: " + feedInfo.title + ": " + feedInfo.href);
 
-        let item = this._list.appendItem(feedToPreview.title);
-        item.source = feed;
-        item.className = "source";
-        item.setAttribute("preview", "true");
-        this._list.selectItem(item);
+        let feed;
+
+        if (SnowlService.hasSource(feedInfo.href)) {
+          this._log.info("already subscribed; retrieving");
+          let statement = SnowlDatastore.createStatement(
+            "SELECT id FROM sources WHERE machineURI = :machineURI"
+          );
+          try {
+            statement.params.machineURI = feedInfo.href;
+            statement.step();
+            feed = SnowlFeed.retrieve(statement.row.id);
+          }
+          finally {
+            statement.reset();
+          }
+        }
+        else {
+          this._log.info("not yet subscribed; subscribing");
+          feed = new SnowlFeed(null, feedInfo.title, new URI(feedInfo.href), undefined, null);
+          feed.persist();
+          subscribedFeeds.push(feed);
+          feed.refresh(refreshTime);
+          // Persist again to save the messages this time.
+          feed.persist();
+        }
+
+        // FIXME: select all "feeds to subscribe" automatically instead of just
+        // the last one.
+        this._log.info("setting feed to select to " + feed.id + ":" + feed.name);
+        feedToSelect = feed;
       }
+
+      delete params.feedsToSubscribe;
+      updateURI();
     }
 
     let otherTabFeeds = this._getFeedsInOtherTabs();
@@ -935,6 +935,14 @@ let Sources = {
       item.source = source;
       item.setAttribute("subscription", "true");
       item.className = "source";
+      // FIXME: select all subscribed feeds automatically instead of just one.
+      if (feedToSelect && source.id) {
+        this._log.info("checking if feed to select " + feedToSelect.name +
+                       " (" + feedToSelect.id + ") is the same as source " +
+                       source.name + " (" + source.id + ")");
+        if (feedToSelect.id == source.id)
+          this._list.selectItem(item);
+      }
     }
   },
 
@@ -1029,5 +1037,35 @@ let params = {};
     // FIXME: make this support multiple same-named params
     // (put them into an array?).
     params[name] = value;
+  }
+}
+
+function updateURI() {
+  let browser = gBrowserWindow.gBrowser.getBrowserForDocument(document);
+
+  let currentURI = browser.docShell.currentURI.QueryInterface(Ci.nsIURL);
+
+  let query = params.length > 0 ? "?" + params.join("&") : "";
+  let spec = currentURI.prePath + currentURI.filePath + query;
+  let uri = Cc["@mozilla.org/network/io-service;1"].
+            getService(Ci.nsIIOService).
+            newURI(spec, null, null);
+
+  // Update the docshell with the new URI.  This updates the location bar
+  // and gets used by the bookmarks service when the user bookmarks the page.
+  browser.docShell.setCurrentURI(uri);
+
+  // Update the session history entry for the page with the new URI.
+  // This gets used when the user reloads the page or traverses history.
+  let history = browser.sessionHistory;
+  let historyEntry = history.getEntryAtIndex(history.index, false);
+  if (historyEntry instanceof Ci.nsISHEntry) {
+    historyEntry.setURI(uri);
+  }
+  else {
+    dump("can't update session history URI for " +
+         "'" + historyEntry.title + "' " +
+         "<" + historyEntry.URI.spec + ">; " +
+         "entry is not an instance of nsISHEntry\n");
   }
 }

@@ -358,7 +358,7 @@ let Snowl = {
                                              gBrowser.selectedBrowser.contentTitle);
 
     // Open the river view, passing it the feeds to preview.
-    let param = "feedsToPreview=" + encodeURIComponent(JSON.stringify(feeds));
+    let param = "feedsToSubscribe=" + encodeURIComponent(JSON.stringify(feeds));
     let href = "chrome://snowl/content/river.xul?" + param;
     openUILink(href, event, false, true, false, null);
   },
