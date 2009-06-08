@@ -312,33 +312,38 @@ SnowlMessagePart.prototype = {
   },
 
   persist: function(message) {
-    this._stmtInsertPart.params.messageID     = message.id;
-    this._stmtInsertPart.params.partType      = this.partType;
-    this._stmtInsertPart.params.content       = this.content;
-    this._stmtInsertPart.params.mediaType     = this.mediaType;
-    this._stmtInsertPart.params.baseURI       = (this.baseURI ? this.baseURI.spec : null);
-    this._stmtInsertPart.params.languageTag   = this.languageTag;
-    this._stmtInsertPart.execute();
-
-    this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-
-    // Insert a plaintext version of the content into the partsText fulltext
-    // table, converting it to plaintext first if necessary (and possible).
-    switch (this.mediaType) {
-      case "text/html":
-      case "application/xhtml+xml":
-      case "text/plain":
-        // Give the fulltext record the same doc ID as the row ID of the parts
-        // record so we can join them together to get the part (and thence the
-        // message) when doing a fulltext search.
-        this._stmtInsertPartText.params.docid = this.id;
-        this._stmtInsertPartText.params.content = this.plainText();
-        this._stmtInsertPartText.execute();
-        break;
-
-      default:
-        // It isn't a type we understand, so don't do anything with it.
-        // XXX If it's text/*, shouldn't we fulltext index it anyway?
+    if (message.id) {
+      // FIXME: update the existing record as appropriate.
+    }
+    else {
+      this._stmtInsertPart.params.messageID     = message.id;
+      this._stmtInsertPart.params.partType      = this.partType;
+      this._stmtInsertPart.params.content       = this.content;
+      this._stmtInsertPart.params.mediaType     = this.mediaType;
+      this._stmtInsertPart.params.baseURI       = (this.baseURI ? this.baseURI.spec : null);
+      this._stmtInsertPart.params.languageTag   = this.languageTag;
+      this._stmtInsertPart.execute();
+  
+      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+  
+      // Insert a plaintext version of the content into the partsText fulltext
+      // table, converting it to plaintext first if necessary (and possible).
+      switch (this.mediaType) {
+        case "text/html":
+        case "application/xhtml+xml":
+        case "text/plain":
+          // Give the fulltext record the same doc ID as the row ID of the parts
+          // record so we can join them together to get the part (and thence the
+          // message) when doing a fulltext search.
+          this._stmtInsertPartText.params.docid = this.id;
+          this._stmtInsertPartText.params.content = this.plainText();
+          this._stmtInsertPartText.execute();
+          break;
+  
+        default:
+          // It isn't a type we understand, so don't do anything with it.
+          // XXX If it's text/*, shouldn't we fulltext index it anyway?
+      }
     }
   }
 };
