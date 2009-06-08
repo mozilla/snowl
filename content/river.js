@@ -629,8 +629,15 @@ this._log.info("onMessageAdded: REFRESH RIVER");
   //**************************************************************************//
   // Content Generation
 
+  // The ID of the most recently started rebuild.  _rebuildView uses this
+  // to stop rebuilds when new ones start.
+  _rebuildID: null,
+
   _rebuildView: function() {
     let begin = new Date();
+    let rebuildID = this._rebuildID = Cc["@mozilla.org/uuid-generator;1"].
+                                      getService(Ci.nsIUUIDGenerator).
+                                      generateUUID().toString();
 
     // Reset the view by removing all its groups and messages.
     // XXX Since contentBox is an HTML div, could we do this more quickly
@@ -645,6 +652,12 @@ this._log.info("onMessageAdded: REFRESH RIVER");
       let messageBox = this._buildMessageBox(message);
       this._contentBox.appendChild(messageBox);
       Sync.sleep(this._rebuildViewTimeout);
+
+      // Stop rebuilding if another rebuild started while we were sleeping.
+      if (this._rebuildID != rebuildID) {
+        this._log.debug(this._rebuildID + " != " + rebuildID + "; stopping rebuild");
+        return;
+      }
     }
 
     this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
