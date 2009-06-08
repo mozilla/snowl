@@ -284,6 +284,7 @@ this._log.info("got " + groups.length + " groups");
           link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
           read:       statement.row.read,
+          current:    statement.row.current,
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           author:     author,
           content:    content
@@ -315,11 +316,13 @@ this._log.info("got " + groups.length + " groups");
     let columns = [
       "messages.id AS messageID",
       "messages.sourceID",
+      "messages.subject",
       "messages.authorID",
       "messages.subject",
       "messages.link",
       "messages.timestamp",
       "messages.read",
+      "messages.current",
       "messages.received",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",

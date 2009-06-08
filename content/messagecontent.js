@@ -137,6 +137,10 @@ var messageContent = {
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       headerDeck.removeAttribute("notfound");
+
+      if (message.current == MESSAGE_NON_CURRENT_DELETED ||
+          message.current == MESSAGE_CURRENT_DELETED)
+        headerDeck.setAttribute("deleted", true);
     }
     else {
       // Message no longer exists (removed source/author/message) but is in history.
@@ -328,12 +332,11 @@ var messageHeaderUtils = {
       messageContent.createFullHeader(headerDeck);
   },
 
-  onDeleteMessage: function() {
+  onDeleteMessageButton: function() {
 //window.SnowlUtils._log.info("onDeleteMessage: START");
     // Delete button.
     var messageContent = parent.wrappedJSObject.messageContent;
-    var messages = [messageContent.message];
-    gBrowserWindow.SnowlMessageView._deleteMessages(messages)
+    gBrowserWindow.SnowlMessageView.onDeleteMessage([messageContent.message])
   },
 
   tooltip: function(aEvent, aShow) {

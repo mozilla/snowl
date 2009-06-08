@@ -63,6 +63,11 @@
                 label="&openListMessage.label;"
                 accesskey="&openListMessage.accesskey;"
                 oncommand="SnowlMessageView._openListMessage(event)"/>
+      <menuseparator/>
+      <menuitem id="snowlDeleteMessagesMenuitem"
+                label="&deleteMessages.label;"
+                accesskey="&deleteMessages.accesskey;"
+                oncommand="SnowlMessageView.onDeleteMessages()"/>
     </popup>  
 
   </window>

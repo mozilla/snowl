@@ -120,6 +120,10 @@ td {
   padding-top: 6px;
 }
 
+#headerDeck[deleted] > #briefHeaderRow > .headerDataSubject > #subject{
+  text-decoration: line-through;
+}
+
 .fullHeaderRowSeparator {
   border-bottom: 1px solid threedshadow;
   margin: 0 10px;

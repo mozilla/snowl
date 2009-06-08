@@ -40,7 +40,12 @@ const EXPORTED_SYMBOLS = ["TEXT_CONSTRUCT_TYPES",
                           "PART_TYPE_SUMMARY",
                           "XML_NS",
                           "XUL_NS",
-                          "HTML_NS"];
+                          "HTML_NS",
+                          "MESSAGE_NON_CURRENT",
+                          "MESSAGE_CURRENT",
+                          "MESSAGE_NON_CURRENT_DELETED",
+                          "MESSAGE_CURRENT_DELETED",
+                          "MESSAGE_CURRENT_PENDING_PURGE"];
 
 // Internet media type to nsIFeedTextConstruct::type mappings.
 const TEXT_CONSTRUCT_TYPES = {
@@ -60,6 +65,13 @@ const INTERNET_MEDIA_TYPES = {
 const PART_TYPE_CONTENT = 1;
 const PART_TYPE_SUMMARY = 2;
 
-const XML_NS = "http://www.w3.org/XML/1998/namespace"
+const XML_NS = "http://www.w3.org/XML/1998/namespace";
 const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
+
+// Message statuses
+const MESSAGE_NON_CURRENT = 0;
+const MESSAGE_CURRENT = 1;
+const MESSAGE_NON_CURRENT_DELETED = 2;
+const MESSAGE_CURRENT_DELETED = 3;
+const MESSAGE_CURRENT_PENDING_PURGE = 4;

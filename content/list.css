@@ -34,8 +34,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-treechildren::-moz-tree-cell-text(unread) {
+#snowlView > treechildren::-moz-tree-cell-text(unread) {
   font-weight: bold !important
+}
+
+#snowlView > treechildren::-moz-tree-cell-text(deleted) {
+  text-decoration: line-through;
 }
 
 /* XXX: these 2 rules were used by only the unread button, are they needed still?

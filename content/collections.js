@@ -111,6 +111,7 @@ let CollectionsView = {
 
   Filters: {
     unread: false,
+    deleted: false,
     searchterms: null
   },
 
@@ -129,6 +130,12 @@ let CollectionsView = {
 
       this.Filters["unread"] = document.getElementById("snowlUnreadButton").
                                         checked ? true : false;
+      this.Filters["deleted"] = document.getElementById("snowlShowDeletedButton").
+                                        checked ? true : false;
+      if (this.Filters["deleted"])
+        document.getElementById("snowlPurgeDeletedButton").removeAttribute("disabled");
+      else
+        document.getElementById("snowlPurgeDeletedButton").setAttribute("disabled", true);
 
       // Restore persisted view selection (need to build the menulist) or init.
       let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
@@ -247,6 +254,7 @@ let CollectionsView = {
       }
   },
 
+  noSelect: false,
   onSelect: function(aEvent) {
 //this._log.info("onSelect start: curIndex:gMouseEvent - "+
 //  this._tree.currentIndex+" : "+SnowlUtils.gMouseEvent);
@@ -255,6 +263,12 @@ let CollectionsView = {
     // not have info on whether mouse or key, we track it ourselves.
     if (this._tree.currentIndex == -1 || SnowlUtils.gMouseEvent)
       return;
+
+    // Don't run if suppressed.
+    if (this.noSelect) {
+      this.noSelect = false;
+      return;
+    }
 
     this.onClick(aEvent);
   },
@@ -357,18 +371,33 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
   onSearch: function(aValue) {
     this.Filters["searchterms"] = aValue ? aValue : null;
-    gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
+    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
     if (!aValue)
       this._tree.place = this._tree.place;
   },
 
   onCommandUnreadButton: function(aEvent) {
-    // XXX Instead of rebuilding from scratch each time, when going from
-    // all to unread, simply hide the ones that are read (f.e. by setting a CSS
-    // class on read items and then using a CSS rule to hide them)?
+    // Unfortunately, css cannot be used to hide a treechildren row using
+    // properties and pseudo element selectors.
     aEvent.target.checked = !aEvent.target.checked;
     this.Filters["unread"] = aEvent.target.checked ? true : false;
-    gMessageViewWindow.SnowlMessageView._applyFilters(this.Filters);
+    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+  },
+
+  onCommandShowDeletedButton: function(aEvent) {
+    aEvent.target.checked = !aEvent.target.checked;
+    this.Filters["deleted"] = aEvent.target.checked ? true : false;
+
+    if (this.Filters["deleted"])
+      document.getElementById("snowlPurgeDeletedButton").removeAttribute("disabled");
+    else
+      document.getElementById("snowlPurgeDeletedButton").setAttribute("disabled", true);
+
+    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+  },
+
+  onCommandPurgeDeletedButton: function(aEvent) {
+    gMessageViewWindow.SnowlMessageView.onDeleteMessages();
   },
 
   _resetCollectionsView: true,
@@ -797,6 +826,10 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
     // XXX: see if there is a Places event/mechanism we can use instead?
     let query, uri, rangeFirst = { }, rangeLast = { }, refreshFlag = false;
     let numRanges = this._tree.view.selection.getRangeCount();
+
+    if (this.Filters["deleted"])
+      // Don't refresh if showing deleted for selected collection.
+      return refreshFlag;
 
     for (let i = 0; i < numRanges && !refreshFlag; i++) {
       this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
