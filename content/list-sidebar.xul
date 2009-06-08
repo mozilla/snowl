@@ -144,6 +144,17 @@
                    type="checkbox"
                    oncommand="ListSidebar.onToggleWrite(event)"
                    tooltiptext="&writeButton.tooltip;"/>
+    <toolbarbutton id="snowlShowDeletedButton"
+                   class="tabbable"
+                   type="checkbox"
+                   autoCheck="false"
+                   persist="checked"
+                   oncommand="CollectionsView.onCommandShowDeletedButton(event)"
+                   tooltiptext="&showDeletedButton.tooltip;"/>
+    <toolbarbutton id="snowlPurgeDeletedButton"
+                   class="tabbable"
+                   oncommand="CollectionsView.onCommandPurgeDeletedButton(event)"
+                   tooltiptext="&purgeDeletedButton.tooltip;"/>
   </toolbar>
 
 </page>

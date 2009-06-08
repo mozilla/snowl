@@ -42,13 +42,19 @@
 #snowlToolbar > toolbarbutton > .toolbarbutton-icon {
   -moz-margin-end: 0;
 }
+
 #snowlToolbar > toolbarbutton > .toolbarbutton-text {
   margin: 0;
+}
+
+#snowlToolbar > toolbarbutton[disabled] {
+  opacity: .4;
 }
 
 #snowlSubscribeButton {
   list-style-image: url("chrome://snowl/content/icons/add.png");
 }
+
 #snowlRefreshButton {
   list-style-image: url("chrome://snowl/content/icons/arrow_refresh_small.png");
 }
@@ -61,6 +67,15 @@
 #snowlUnreadButton {
   list-style-image: url("chrome://snowl/content/icons/new.png");
 }
+
 #writeButton {
   list-style-image: url("chrome://snowl/content/icons/email_add.png");
+}
+
+#snowlShowDeletedButton {
+  list-style-image: url("chrome://snowl/content/icons/bin_closed.png");
+}
+
+#snowlPurgeDeletedButton {
+  list-style-image: url("chrome://snowl/content/icons/bin_empty.png");
 }

@@ -48,6 +48,7 @@ Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/collection.js");
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
@@ -149,11 +150,15 @@ let SnowlMessageView = {
 
   getCellProperties: function (aRow, aColumn, aProperties) {
     // We have to set this on each cell rather than on the row as a whole
-    // because the styling we apply to unread messages (bold text) has to be
+    // because the text styling we apply to unread/deleted messages has to be
     // specified by the ::-moz-tree-cell-text pseudo-element, which inherits
     // only the cell's properties.
     if (!this._collection.messages[aRow].read)
       aProperties.AppendElement(this._atomSvc.getAtom("unread"));
+
+    if (this._collection.messages[aRow].current == MESSAGE_NON_CURRENT_DELETED ||
+        this._collection.messages[aRow].current == MESSAGE_CURRENT_DELETED)
+      aProperties.AppendElement(this._atomSvc.getAtom("deleted"));
   },
 
   getColumnProperties: function(aColumnID, aColumn, aProperties) {},
@@ -232,6 +237,15 @@ let SnowlMessageView = {
 
     if (this.Filters["unread"])
       filters.push({ expression: "read = 0", parameters: {} });
+
+    if (this.Filters["deleted"])
+      filters.push({ expression: "(current = " + MESSAGE_NON_CURRENT_DELETED + " OR" +
+                                 " current = " + MESSAGE_CURRENT_DELETED + ")",
+                     parameters: {} });
+    else
+      filters.push({ expression: "(current = " + MESSAGE_NON_CURRENT + " OR" +
+                                 " current = " + MESSAGE_CURRENT + ")",
+                     parameters: {} });
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
@@ -619,8 +633,12 @@ this._log.info("_toggleRead: all? " + aAll);
     // Create an array of messages and list rows to pass on.
     let messages = [], selectedRows = [];
     let rangeFirst = { }, rangeLast = { };
-    let numRanges = this._tree.view.selection.getRangeCount();
 
+    if (this.Filters["deleted"])
+      // Showing deleted messages, thus a purge is requested.  Select the whole list.
+      this._tree.view.selection.selectAll();
+
+    let numRanges = this._tree.view.selection.getRangeCount();
     for (let i = 0; i < numRanges; i++) {
       this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
       for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
@@ -639,7 +657,7 @@ this._log.info("_toggleRead: all? " + aAll);
   _deleteMessages: function(aMessages, aRows) {
 //this._log.info("_deleteMessages: START #ids - "+aMessages.length);
     // Delete messages.  Delete author if deleting author's only remaining message.
-    let message, messageID, authorID;
+    let message, messageID, current;
     let messageIDs = [];
     let refreshList = false, sessionHistoryEmpty = false;
 
@@ -647,59 +665,25 @@ this._log.info("_toggleRead: all? " + aAll);
     for (let i = 0; i < aMessages.length; ++i) {
       message = aMessages[i];
       messageID = message.id;
-      messageIDs.push(messageID)
-      authorID = message.authorID;
-      authorPlaceID = message.author.placeID;
+      messageIDs.push(messageID);
+      current = message.current;
 
       if (!SnowlMessage.get(messageID))
 //this._log.info("_deleteMessages: Delete messages NOTFOUND - "+messageID);
         continue;
 
-      if (!refreshList && this.CollectionsView.isMessageForSelectedCollection(message))
+      if (!refreshList && (this.Filters["deleted"] ||
+          this.CollectionsView.isMessageForSelectedCollection(message)))
         // Message being deleted in a selected collection?  Don't repeat call if
-        // at least one is true.
-        // XXX: is this call worth doing, based on likely deletion usage.
+        // at least one is true.  Also refresh if showing deleted list.
+        // XXX: is this call worth doing, based on likely deletion usage, or just
+        // always refresh..
         refreshList = true;
 
-      SnowlDatastore.dbConnection.beginTransaction();
-      try {
-        // Delete messages
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
-            "WHERE messageID = " + messageID);
-//this._log.info("_deleteMessages: Delete messages METADATA DONE");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
-            "WHERE docid IN " +
-            "(SELECT id FROM parts WHERE messageID = " + messageID + ")");
-//this._log.info("_deleteMessages: Delete messages PARTSTEXT DONE");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
-            "WHERE messageID  = " + messageID);
-//this._log.info("_deleteMessages: Delete messages PARTS DONE");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
-            "WHERE id = " + messageID);
-//this._log.info("_deleteMessages: Delete messages DONE");
-        if (!SnowlService.hasAuthorMessage(authorID)) {
-          // Delete people/identities; author's only message has been deleted.
-          SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
-              "WHERE id IN " +
-              "(SELECT personID FROM identities WHERE id = " + authorID + ")");
-          SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
-              "WHERE id = " + authorID);
-          // Finally, clean up Places bookmark by author's placeID.  A collections
-          // tree rebuild is triggered by Places on removeItem of a visible item,
-          // triggering a select event.  Need to bypass in onSelect.
-          this.CollectionsView.noSelect = true;
-          PlacesUtils.bookmarks.removeItem(authorPlaceID);
-//this._log.info("_deleteMessages: Delete DONE authorID - "+authorID);
-        }
-//        PlacesUtils.history.removePage(URI(this.MESSAGE_URI + messageID));
-//this._log.info("_deleteMessages: Delete DONE messageID - "+messageID);
-
-        SnowlDatastore.dbConnection.commitTransaction();
-      }
-      catch(ex) {
-        SnowlDatastore.dbConnection.rollbackTransaction();
-        throw ex;
-      }
+      if (current == MESSAGE_NON_CURRENT || current == MESSAGE_CURRENT)
+        SnowlMessage.markDeleted(message);
+      else
+        SnowlMessage.delete(message);
     }
 
     sessionHistoryEmpty = this._cleanSessionHistory(messageIDs);
@@ -713,7 +697,7 @@ this._log.info("_toggleRead: all? " + aAll);
       // Refresh list; if the currently deleted message is selected, then select
       // the next message (same row post refresh) or prior message (if deleted
       // message is last row).  In a multiselection, this means the row
-      // of the first message in the selection.
+      // of the first message in the selection.  Refresh deleted list if purged.
       let currRow, rowCount, selIndex;
 
       if (aRows) {
@@ -750,13 +734,14 @@ this._log.info("_toggleRead: all? " + aAll);
     // deletion.  Return true if last message in history is deleted, else false.
 
     // XXX: clean across all tabs' history, not just current tab?
-//this._log.info("_cleanSessionHistory: messageIDs - "+aMessageIDs);
     let shEntry, uri, msgUri, msgId;
-    let newCount = 0, restoreIndex = 0, historyChanged = false;
+    let newCount = 0, historyChanged = false;
     let newHistory = [];
 
     let sh = getBrowser().webNavigation.sessionHistory;
     let currIndex = sh.index;
+    let restoreIndex = currIndex;
+//this._log.info("_cleanSessionHistory: messageIDs:currIndex - "+aMessageIDs+" : "+currIndex);
 
     for (i = 0; i < sh.count; i++){
       shEntry = sh.getEntryAtIndex(i, false).QueryInterface(Ci.nsISHEntry);
@@ -768,8 +753,8 @@ this._log.info("_toggleRead: all? " + aAll);
       if (msgUri == this.MESSAGE_URI && aMessageIDs.indexOf(msgId) != -1) {
 //this._log.info("_cleanSessionHistory: Delete from HISTORY - "+uri);
         historyChanged = true;
-        if (currIndex == i)
-          restoreIndex = newCount > 0 ? --newCount : newCount;
+        if (i <= currIndex)
+          restoreIndex = restoreIndex <= 0 ? 0 : --restoreIndex;
         continue;
       }
 //this._log.info("_cleanSessionHistory: Add to HISTORY - "+uri);
@@ -794,8 +779,8 @@ this._log.info("_toggleRead: all? " + aAll);
       sh.addEntry(shEntry, true);
     })
 
-    sh.QueryInterface(Ci.nsIWebNavigation).gotoIndex(restoreIndex);
 //this._log.info("_cleanSessionHistory: restoreIndex - "+restoreIndex);
+    sh.QueryInterface(Ci.nsIWebNavigation).gotoIndex(restoreIndex);
     return false;
   },
 

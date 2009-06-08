@@ -772,7 +772,9 @@ let SnowlDatastore = {
 
   get _selectHasAuthorMessageStatement() {
     let statement = this.createStatement(
-      "SELECT 1 FROM messages WHERE authorID = :authorID"
+      "SELECT 1 FROM messages" +
+      " WHERE authorID = :authorID AND" +
+      "       current <> " + MESSAGE_CURRENT_PENDING_PURGE
     );
     this.__defineGetter__("_selectHasAuthorMessageStatement", function() { return statement });
     return this._selectHasAuthorMessageStatement;

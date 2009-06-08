@@ -41,6 +41,9 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that come with Firefox
+Cu.import("resource://gre/modules/utils.js"); // Places
+
 // modules that are generic
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -65,7 +68,7 @@ SnowlMessage.get = function(id) {
   let message;
 
   let statement = SnowlDatastore.createStatement(
-    "SELECT sourceID, subject, link, timestamp, read, received, authorID " +
+    "SELECT sourceID, subject, authorID, timestamp, received, link, current, read " +
     "FROM messages WHERE messages.id = :id"
   );
 
@@ -77,10 +80,11 @@ SnowlMessage.get = function(id) {
         sourceID:   statement.row.sourceID,
         subject:    statement.row.subject,
         authorID:   statement.row.authorID,
-        link:       statement.row.link,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-        _read:      (statement.row.read ? true : false),
-        received:   SnowlDateUtils.julianToJSDate(statement.row.received)
+        received:   SnowlDateUtils.julianToJSDate(statement.row.received),
+        link:       statement.row.link,
+        current:    statement.row.current,
+        _read:      (statement.row.read ? true : false)
       });
     }
   }
@@ -89,6 +93,87 @@ SnowlMessage.get = function(id) {
   }
 
   return message;
+};
+
+SnowlMessage.delete = function(aMessage) {
+  let message = aMessage;
+  let messageID = message.id;
+  let authorID = message.authorID;
+  let authorPlaceID = message.author.placeID;
+  let current = message.current;
+
+  SnowlDatastore.dbConnection.beginTransaction();
+  try {
+    // Delete messages
+    SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
+        "WHERE messageID = " + messageID);
+//this._log.info("_deleteMessages: Delete messages METADATA DONE");
+    SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
+        "WHERE docid IN " +
+        "(SELECT id FROM parts WHERE messageID = " + messageID + ")");
+//this._log.info("_deleteMessages: Delete messages PARTSTEXT DONE");
+    SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
+        "WHERE messageID  = " + messageID);
+//this._log.info("_deleteMessages: Delete messages PARTS DONE");
+    // If a message is current and marked deleted, need to keep the record so
+    // duplicates are not re added upon refresh.  So we move to a pending purge
+    // state and delete the rest of the message.
+    if (current == MESSAGE_CURRENT_DELETED)
+      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages " +
+          "SET current = " + MESSAGE_CURRENT_PENDING_PURGE +
+          " WHERE id = " + messageID);
+    else
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
+          "WHERE id = " + messageID);
+//this._log.info("_deleteMessages: Delete messages DONE");
+    if (!SnowlService.hasAuthorMessage(authorID)) {
+      // Delete people/identities; author's only message has been deleted.
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
+          "WHERE id IN " +
+          "(SELECT personID FROM identities WHERE id = " + authorID + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
+          "WHERE id = " + authorID);
+      // Finally, clean up Places bookmark by author's placeID.  A collections
+      // tree rebuild is triggered by Places on removeItem of a visible item,
+      // triggering a select event.  Need to bypass in onSelect.
+      SnowlMessage.prototype.CollectionsView.noSelect = true;
+      PlacesUtils.bookmarks.removeItem(authorPlaceID);
+//this._log.info("_deleteMessages: Delete DONE authorID - "+authorID);
+    }
+//        PlacesUtils.history.removePage(URI(this.MESSAGE_URI + messageID));
+//SnowlPlaces._log.info("_deleteMessages: Delete DONE messageID - "+messageID);
+
+    SnowlDatastore.dbConnection.commitTransaction();
+  }
+  catch(ex) {
+    SnowlDatastore.dbConnection.rollbackTransaction();
+    throw ex;
+  }
+};
+
+SnowlMessage.markDeleted = function(aMessage) {
+  let message = aMessage;
+  let messageID = message.id;
+
+  SnowlDatastore.dbConnection.beginTransaction();
+  try {
+    // Mark message deleted, make sure this caller checks for non delete status first.
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "UPDATE messages SET current =" +
+      " (CASE WHEN current = " + MESSAGE_NON_CURRENT +
+      "       THEN " + MESSAGE_NON_CURRENT_DELETED +
+      "       WHEN current = " + MESSAGE_CURRENT +
+      "       THEN " + MESSAGE_CURRENT_DELETED +
+      "  END)" +
+      " WHERE id = " + messageID
+    );
+
+    SnowlDatastore.dbConnection.commitTransaction();
+  }
+  catch(ex) {
+    SnowlDatastore.dbConnection.rollbackTransaction();
+    throw ex;
+  }
 };
 
 SnowlMessage.prototype = {
@@ -287,6 +372,13 @@ SnowlMessage.prototype = {
 
   get source() {
     return SnowlService.sourcesByID[this.sourceID];
+  },
+
+  get CollectionsView() {
+    delete this._CollectionsView;
+    return this._CollectionsView = SnowlService.gBrowserWindow.document.
+                                                getElementById("sidebar").
+                                                contentWindow.CollectionsView;
   }
 
 };

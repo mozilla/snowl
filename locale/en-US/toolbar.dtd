@@ -5,3 +5,5 @@
 <!ENTITY unreadButton.tooltip         "Only show unread messages.">
 <!ENTITY listToolbarButton.tooltip    "Toggle View toolbar.">
 <!ENTITY writeButton.tooltip          "Write a message.">
+<!ENTITY showDeletedButton.tooltip    "Show deleted messages for selected Collections.">
+<!ENTITY purgeDeletedButton.tooltip   "Purge all deleted messages from selected Collections.">

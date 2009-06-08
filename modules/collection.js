@@ -265,10 +265,11 @@ this._log.info("got " + groups.length + " groups");
           sourceID:   statement.row.sourceID,
           subject:    statement.row.subject,
           authorID:   statement.row.authorID,
-          link:       statement.row.link,
           timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-          _read:      (statement.row.read ? true : false),
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
+          link:       statement.row.link,
+          current:    statement.row.current,
+          _read:      (statement.row.read ? true : false),
           content:    content
         });
 
@@ -298,12 +299,13 @@ this._log.info("got " + groups.length + " groups");
     let columns = [
       "messages.id AS messageID",
       "messages.sourceID",
-      "messages.authorID",
       "messages.subject",
-      "messages.link",
+      "messages.authorID",
       "messages.timestamp",
-      "messages.read",
       "messages.received",
+      "messages.link",
+      "messages.current",
+      "messages.read",
       "parts.id AS partID",
       "parts.content",
       "parts.mediaType",

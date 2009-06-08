@@ -486,19 +486,26 @@ this._log.info("persist placeID:sources.id - " + placeID + " : " + this.id);
   /**
    * Update the current flag for messages in a source, after a refresh.
    * If message's current flag = 1 set to 0, then set current flag for messages
-   * in the current refresh list to 1.
+   * in the current refresh list to 1.  Purge current and marked deleted
+   * placeholder message records if no longer current.
    *
    * @param aCurrentMessageIDs  {array} messages table ids of the current list
    */
   updateCurrentMessages: function(aCurrentMessageIDs) {
     SnowlDatastore.dbConnection.executeSimpleSQL(
-      "UPDATE messages SET current =  0" +
-      " WHERE sourceID = " + this.id + " AND current = 1"
+      "UPDATE messages SET current = " + MESSAGE_NON_CURRENT +
+      " WHERE sourceID = " + this.id + " AND current = " + MESSAGE_CURRENT
     );
     SnowlDatastore.dbConnection.executeSimpleSQL(
-      "UPDATE messages SET current = 1" +
-      " WHERE sourceID = " + this.id + " AND id IN " +
-      "(" + aCurrentMessageIDs.join(", ") + ")"
+      "UPDATE messages SET current = " + MESSAGE_CURRENT +
+      " WHERE sourceID = " + this.id + " AND id IN" +
+      " (" + aCurrentMessageIDs.join(", ") + ") AND current = " + MESSAGE_NON_CURRENT
+    );
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "DELETE FROM messages" +
+      " WHERE sourceID = " + this.id + " AND" +
+      "       current = " + MESSAGE_CURRENT_PENDING_PURGE + " AND" +
+      "       id NOT IN (" + aCurrentMessageIDs.join(", ") + ")"
     );
   }
 

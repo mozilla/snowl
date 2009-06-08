@@ -135,6 +135,10 @@ var messageContent = {
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       headerDeck.removeAttribute("notfound");
+
+      if (message.current == MESSAGE_NON_CURRENT_DELETED ||
+          message.current == MESSAGE_CURRENT_DELETED)
+        headerDeck.setAttribute("deleted", true);
     }
     else {
       // Message no longer exists (removed source/author/message) but is in history.
