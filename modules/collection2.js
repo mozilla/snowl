@@ -110,6 +110,7 @@ Collection2.prototype = {
 
   execute: function(callback) {
     this._callback = callback;
+    this._rows = [];
     this._pendingStatement =
       this._statement._statement.statement.executeAsync(this);
     this._log.info("pending statement: " + this._pendingStatement);
@@ -121,7 +122,9 @@ Collection2.prototype = {
 
   handleResult: function(resultSet) {
     this._log.info("handleResult: " + resultSet);
-    this._resultSet = resultSet;
+    let row;
+    while ((row = resultSet.getNextRow()))
+      this._rows.push(row);
   },
   
   handleError: function(error) {
@@ -129,7 +132,7 @@ Collection2.prototype = {
   },
 
   handleCompletion: function(reason) {
-    this._log.info("handleCompletion: " + reason);
+    this._log.info("handleCompletion: " + reason + "; total rows: " + this._rows.length);
     (this._callback)();
   },
 
@@ -221,8 +224,7 @@ Collection2.prototype = {
    *   for each (let message in collection) ...
    */
   __iterator__: function(wantKeys) {
-    let row;
-    while ((row = this._resultSet.getNextRow())) {
+    for each (let row in this._rows) {
       let content;
       if (row.getResultByName("content_id")) {
         content = Cc["@mozilla.org/feed-textconstruct;1"].
