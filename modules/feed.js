@@ -49,7 +49,7 @@ Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
-Cu.import("resource://snowl/modules/Request.js");
+Cu.import("resource://snowl/modules/request.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
