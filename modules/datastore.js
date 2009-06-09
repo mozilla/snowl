@@ -884,7 +884,7 @@ function SnowlQuery(aUri) {
       this.queryID = this.queryUri.split(".id=")[1].split("&")[0];
       this.queryName = this.queryUri.split("name=")[1].split("&")[0];
       if (this.queryUri.indexOf("authors.id=") != -1) {
-        this.queryGroupIDColumn = "authors.id";
+        this.queryGroupIDColumn = "people.id";
         this.queryTypeAuthor = true;
       }
       else if (this.queryUri.indexOf("sources.id=") != -1) {
