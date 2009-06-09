@@ -6,6 +6,7 @@
 <!ENTITY pinButton.label              "Pin Header">
 <!ENTITY pinButton.tooltip            "Toggle pin to set and unset permanent header">
 <!ENTITY toggleHeader.label           "Toggle Header">
-<!ENTITY toggleHeader.tooltip         "Toggle message header to brief, basic, or full; in basic or full header, toggle to save height after adjustment">
+<!ENTITY toggleHeader.tooltip         "Toggle message header to brief or basic; in basic header, toggle to save height after adjustment">
+<!-- <!ENTITY toggleHeader.tooltip         "Toggle message header to brief, basic, or full; in basic or full header, toggle to save height after adjustment"> -->
 <!ENTITY deleteMessagesButton.label   "Delete Message">
 <!ENTITY deleteMessagesButton.tooltip "Delete this Message">
