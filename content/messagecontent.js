@@ -120,7 +120,7 @@ var messageContent = {
       // Brief headers
       document.getElementById("subject").
                appendChild(document.createTextNode(message.subject));
-      document.getElementById("subject").href = message.link;
+      document.getElementById("subject").href = message.link.spec;
       document.getElementById("subject").target = "messageBody";
       if (message.author)
         document.getElementById("briefAuthor").
