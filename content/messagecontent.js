@@ -125,14 +125,13 @@ var messageContent = {
       if (message.author)
         document.getElementById("briefAuthor").
                  setAttribute("value", message.author.person.name);
-//               appendChild(document.createTextNode(message.authorName));
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       // Basic headers
       if (message.author)
         document.getElementById("author").
-                 appendChild(document.createTextNode(message.author.name));
+                 appendChild(document.createTextNode(message.author.person.name));
       document.getElementById("timestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
@@ -315,8 +314,10 @@ var messageHeaderUtils = {
 
     if (aType == "toggle") {
       // Toggled to next in 3 way
+      // XXX: set index to 1, as full header removed for now (createFullHeader
+      // will not run, nor will button toggle to full).
       headerDeck = document.getElementById("headerDeck");
-      headerIndex = ++headerIndex > 2 ? 0 : headerIndex++;
+      headerIndex = ++headerIndex > 1 ? 0 : headerIndex++;
       headerBcaster.setAttribute("headerIndex", headerIndex);
     }
 
