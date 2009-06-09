@@ -143,10 +143,10 @@ let SnowlMessageView = {
     // Set messages to null, to trigger collection build (unlike List view).
     this._collection.invalidate();
 
-    this._rebuildView();
-
     this._initWriteForm();
     this._updateWriteButton();
+
+    this._rebuildView();
   },
 
   onunLoad: function() {
