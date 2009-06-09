@@ -543,6 +543,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   removeSource: function() {
 //this._log.info("removeSource: START curIndex:curSelectedIndex = "+
 //  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
+    let sourceNode, sourceID;
     let selectedSourceNodeID = [];
     let selectedSourceNodesIDs = [];
 
@@ -609,8 +610,11 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
   },
 
   removeAuthor: function() {
+    // Removing an author permanently purges all of the author's messages (they
+    // do not go into a deleted status).
 //this._log.info("removeAuthor: START curIndex:curSelectedIndex = "+
 //  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
+    let sourceNode, authorID;
     let selectedSourceNodeID = [];
     let selectedSourceNodesIDs = [];
 
@@ -621,7 +625,7 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
     // Create places query object from tree item uri
     let query = new SnowlQuery(selectedSource.uri);
 
-    if (query.queryGroupIDColumn != "authors.id")
+    if (query.queryGroupIDColumn != "people.id")
       return;
 this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + selectedSource.itemId);
 
@@ -635,10 +639,6 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
       SnowlDatastore.dbConnection.beginTransaction();
       try {
         // Delete messages
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM metadata " +
-            "WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE authorID = " + authorID + ")");
-//this._log.info("removeAuthor: Delete messages METADATA DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
             "WHERE docid IN " +
             "(SELECT id FROM parts WHERE messageID IN " +

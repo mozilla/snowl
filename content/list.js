@@ -619,7 +619,7 @@ this._log.info("_toggleRead: all? " + aAll);
     // selection to the next message post delete.  If the message is not in the
     // list but merely in session history, the list doesn't change.  Session
     // history is cleaned to reflect the message's deletion.
-    selectedRows = [];
+    let selectedRows = [];
     if (this._tree.currentIndex != -1 &&
         this._collection.messages[this._tree.currentIndex].id == aMessage[0].id)
       selectedRows.push(this._tree.currentIndex);

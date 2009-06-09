@@ -102,8 +102,10 @@ SnowlMessage.retrieve = function(id) {
     statement.reset();
   }
 
-  message.summary = message._getPart(PART_TYPE_SUMMARY);
-  message.content = message._getPart(PART_TYPE_CONTENT);
+  if (message) {
+    message.summary = message._getPart(PART_TYPE_SUMMARY);
+    message.content = message._getPart(PART_TYPE_CONTENT);
+  }
 
   return message;
 };
@@ -192,6 +194,7 @@ SnowlMessage.prototype = {
   timestamp: null,
   received: null,
   read: false,
+  current: null,
   // FIXME: we don't need to set sourceID if we always set source,
   // so figure out if that's the case and update this code accordingly.
   sourceID: null,
