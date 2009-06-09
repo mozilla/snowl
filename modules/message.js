@@ -216,7 +216,7 @@ SnowlMessage.prototype = {
 
   get _getPartStatement() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT content, mediaType, baseURI, languageTag FROM parts " +
+      "SELECT id, content, mediaType, baseURI, languageTag FROM parts " +
       "WHERE messageID = :messageID AND partType = :partType"
     );
     this.__defineGetter__("_getPartStatement", function() { return statement });
@@ -230,7 +230,8 @@ SnowlMessage.prototype = {
       this._getPartStatement.params.messageID = this.id;
       this._getPartStatement.params.partType = aPartType;
       if (this._getPartStatement.step()) {
-        part = new SnowlMessagePart({ partType:    aPartType,
+        part = new SnowlMessagePart({ id:          this._getPartStatement.row.id,
+                                      partType:    aPartType,
                                       content:     this._getPartStatement.row.content,
                                       mediaType:   this._getPartStatement.row.mediaType,
                                       baseURI:     URI.get(this._getPartStatement.row.baseURI),
@@ -267,9 +268,6 @@ SnowlMessage.prototype = {
 
     let added = false;
 
-    if (this.author)
-      this.author.persist();
-
     if (!this.id)
       this.id = this._getInternalID();
 
@@ -278,6 +276,9 @@ SnowlMessage.prototype = {
     }
     else {
       added = true;
+
+      if (this.author)
+        this.author.persist();
 
       this._stmtInsertMessage.params.sourceID   = this.sourceID;
       this._stmtInsertMessage.params.externalID = this.externalID;
@@ -290,12 +291,12 @@ SnowlMessage.prototype = {
       this._stmtInsertMessage.execute();
   
       this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-    }
 
-    if (this.content)
-      this.content.persist(this);
-    if (this.summary)
-      this.summary.persist(this);
+      if (this.content)
+        this.content.persist(this);
+      if (this.summary)
+        this.summary.persist(this);
+    }
 
     if (added)
       Observers.notify("snowl:message:added", this);
@@ -395,7 +396,7 @@ SnowlMessagePart.prototype = {
   },
 
   persist: function(message) {
-    if (message.id) {
+    if (this.id) {
       // FIXME: update the existing record as appropriate.
     }
     else {

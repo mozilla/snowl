@@ -324,7 +324,9 @@ let SnowlMessageView = {
       a.appendChild(this._document.createTextNode(content));
       div.appendChild(a);
     }
-    else {
+    else if (content) {
+dump("foo\nfoo\nfoo\n");
+dump("content = " + content + "\n");
       SnowlUtils.linkifyText(content, div, message.source.principal);
     }
 
