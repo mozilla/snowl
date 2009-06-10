@@ -397,7 +397,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   onCommandPurgeDeletedButton: function(aEvent) {
-    gMessageViewWindow.SnowlMessageView.onDeleteMessages();
+    let deleteAllShowing = true;
+    gMessageViewWindow.SnowlMessageView.onDeleteMessages(deleteAllShowing);
   },
 
   _resetCollectionsView: true,
@@ -820,7 +821,7 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
     }
   },
 
-  isMessageForSelectedCollection: function(aMessageObj) {
+  isMessageForSelectedCollection: function(aMessage) {
     // Determine if source or author of new message is currently selected in the
     // collections list.
     // XXX: see if there is a Places event/mechanism we can use instead?
@@ -837,9 +838,9 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
         uri = this._tree.view.nodeForTreeIndex(index).uri;
         query = new SnowlQuery(uri);
         if ((query.queryGroupIDColumn == "sources.id" &&
-             query.queryID == aMessageObj.sourceID) ||
-            (query.queryGroupIDColumn == "authors.id" &&
-             query.queryID == aMessageObj.authorID) ||
+             query.queryID == aMessage.source.id) ||
+            (query.queryGroupIDColumn == "people.id" &&
+             query.queryID == aMessage.author.id) ||
             // Collection folders that return all records
             query.queryFolder == SnowlPlaces.collectionsSystemID)
           refreshFlag = true;

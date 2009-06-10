@@ -629,15 +629,16 @@ this._log.info("_toggleRead: all? " + aAll);
     this._deleteMessages(aMessage, selectedRows);
   },
 
-  onDeleteMessages: function() {
+  onDeleteMessages: function(aDeleteAllShowing) {
 //this._log.info("onDeleteMessages: START");
     // List context menu single/multiselection deletion of selected messages.
     // Create an array of messages and list rows to pass on.
     let messages = [], selectedRows = [];
     let rangeFirst = { }, rangeLast = { };
 
-    if (this.Filters["deleted"])
-      // Showing deleted messages, thus a purge is requested.  Select the whole list.
+    if (aDeleteAllShowing)
+      // Purge is requested via button.  Select the whole list.  Otherwise just
+      // the selected items in the 'show deleted' list via context menu delete.
       this._tree.view.selection.selectAll();
 
     let numRanges = this._tree.view.selection.getRangeCount();
