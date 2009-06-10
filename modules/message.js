@@ -57,9 +57,6 @@ Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 function SnowlMessage(props) {
-  // The way this currently works requires instantiators to pass the value
-  // of the read property via its private name _read, which seems wrong.
-  // FIXME: make it so callers can pass read via its public name.
   for (let name in props)
     this[name] = props[name];
 }
@@ -71,7 +68,7 @@ SnowlMessage.retrieve = function(id) {
 
   // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
-    "SELECT sourceID, subject, authorID, timestamp, received, link, current, read " +
+    "SELECT sourceID, externalID, subject, authorID, timestamp, received, link, current, read " +
     "FROM messages WHERE messages.id = :id"
   );
 
@@ -80,13 +77,14 @@ SnowlMessage.retrieve = function(id) {
     if (statement.step()) {
       message = new SnowlMessage({
         id:         id,
-        sourceID:   statement.row.sourceID,
+        source:     SnowlService.sourcesByID[statement.row.sourceID],
+        externalID: statement.row.externalID,
         subject:    statement.row.subject,
         timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
         received:   SnowlDateUtils.julianToJSDate(statement.row.received),
         link:       statement.row.link ? URI.get(statement.row.link) : null,
-        read:       (statement.row.read ? true : false),
         current:    statement.row.current,
+        read:       statement.row.read ? true : false
       });
 
       if (statement.row.authorID) {
@@ -187,6 +185,7 @@ SnowlMessage.markDeleted = function(aMessage) {
 
 SnowlMessage.prototype = {
   id: null,
+  source: null,
   externalID: null,
   subject: null,
   author: null,
@@ -195,12 +194,6 @@ SnowlMessage.prototype = {
   received: null,
   read: false,
   current: null,
-  // FIXME: we don't need to set sourceID if we always set source,
-  // so figure out if that's the case and update this code accordingly.
-  sourceID: null,
-  // FIXME: make sure there aren't any consumers that expect us to provide this
-  // automatically from the persistent datastore, which we used to do.
-  source: null,
   summary: null,
   content: null,
 
@@ -248,51 +241,86 @@ SnowlMessage.prototype = {
     return part;
   },
 
-  get _stmtInsertMessage() {
+  get _insertMessageStmt() {
+    // FIXME: persist message.current.
     let statement = SnowlDatastore.createStatement(
-      "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link, read) \
-       VALUES (:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, :read)"
+      "INSERT INTO messages " +
+      "( sourceID,  externalID,  subject,  authorID,  timestamp,  received,  link,  " + /*current,  */ " read) " +
+      "VALUES " +
+      "(:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, " + /*:current,  */ ":read)"
     );
-    this.__defineGetter__("_stmtInsertMessage", function() { return statement });
-    return this._stmtInsertMessage;
+    this.__defineGetter__("_insertMessageStmt", function() statement);
+    return this._insertMessageStmt;
+  },
+
+  get _updateMessageStmt() {
+    let statement = SnowlDatastore.createStatement(
+      "UPDATE messages SET " +
+      "sourceID = :sourceID, " +
+      "externalID = :externalID, " +
+      "subject = :subject, " +
+      "authorID = :authorID, " +
+      "timestamp = :timestamp, " +
+      "received = :received, " +
+      "link = :link, " +
+      // FIXME: persist message.current.
+      //"current = :current, " +
+      "read = :read " +
+      "WHERE id = :id"
+    );
+    this.__defineGetter__("_updateMessageStmt", function() statement);
+    return this._updateMessageStmt;
   },
 
   /**
    * Persist the message to the messages table.
    *
-   * FIXME: make this update an existing record.
-   * 
    * @returns {integer} the ID of the newly-created record
    */
   persist: function() {
-    // We can't begin a transaction here because the database engine does not
-    // support nested transactions, and we get called from the message source's
-    // persist method, which calls us from within a transaction.
-
     let added = false;
 
+    // The message might already be stored, even if we don't have an ID for it
+    // (we might have retrieved it from its source), so try to get its ID
+    // from the datastore before storing it, so we know whether to create a new
+    // record for it or update an existing one.
     if (!this.id)
       this.id = this._getInternalID();
 
+    if (this.author)
+      this.author.persist();
+
+    // Determine whether to update an existing record or create a new one,
+    // and set any params that are specific to the type of query we execute.
+    let statement;
     if (this.id) {
-      // FIXME: update the existing record as appropriate.
+      statement = this._updateMessageStmt;
+      statement.params.id = this.id;
+    }
+    else {
+      statement = this._insertMessageStmt;
+    }
+
+    // Set params that are common to both types of queries.
+    statement.params.sourceID   = this.source.id;
+    statement.params.externalID = this.externalID;
+    statement.params.subject    = this.subject;
+    statement.params.authorID   = this.author ? this.author.id : null;
+    statement.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+    statement.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
+    statement.params.link       = this.link ? this.link.spec : null;
+    // FIXME: persist message.current.
+    //statement.params.current    = this.current;
+    statement.params.read       = this.read;
+
+    statement.execute();
+
+    if (this.id) {
+      // FIXME: update the message parts (content, summary).
     }
     else {
       added = true;
 
-      if (this.author)
-        this.author.persist();
-
-      this._stmtInsertMessage.params.sourceID   = this.sourceID;
-      this._stmtInsertMessage.params.externalID = this.externalID;
-      this._stmtInsertMessage.params.subject    = this.subject;
-      this._stmtInsertMessage.params.authorID   = this.author ? this.author.id : null;
-      this._stmtInsertMessage.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
-      this._stmtInsertMessage.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
-      this._stmtInsertMessage.params.link       = this.link ? this.link.spec : null;
-      this._stmtInsertMessage.params.read       = this.read;
-      this._stmtInsertMessage.execute();
-  
       this.id = SnowlDatastore.dbConnection.lastInsertRowID;
 
       if (this.content)

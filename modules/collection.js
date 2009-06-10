@@ -42,8 +42,8 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
-Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
@@ -278,15 +278,15 @@ this._log.info("got " + groups.length + " groups");
 
         message = new SnowlMessage({
           id:         statement.row.messageID,
-          sourceID:   statement.row.sourceID,
           source:     SnowlService.sourcesByID[statement.row.sourceID],
+          externalID: statement.row.externalID,
           subject:    statement.row.subject,
-          link:       statement.row.link,
-          timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
-          read:       statement.row.read,
-          current:    statement.row.current,
-          received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           author:     author,
+          timestamp:  SnowlDateUtils.julianToJSDate(statement.row.timestamp),
+          received:   SnowlDateUtils.julianToJSDate(statement.row.received),
+          link:       statement.row.link ? URI.get(statement.row.link) : null,
+          current:    statement.row.current,
+          read:       statement.row.read ? true : false,
           content:    content
         });
 
@@ -316,14 +316,15 @@ this._log.info("got " + groups.length + " groups");
     let columns = [
       "messages.id AS messageID",
       "messages.sourceID",
+      "messages.externalID",
       "messages.subject",
       "messages.authorID",
       "messages.subject",
-      "messages.link",
       "messages.timestamp",
-      "messages.read",
-      "messages.current",
       "messages.received",
+      "messages.link",
+      "messages.current",
+      "messages.read",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",
       "identities.externalID AS identities_externalID",

@@ -317,10 +317,7 @@ SnowlFeed.prototype = {
   _processEntry: function(aFeed, aEntry, aExternalID, aReceived) {
     let message = new SnowlMessage();
 
-    // FIXME: we don't need to set sourceID if we always set source,
-    // so figure out if that's the case and update this code accordingly.
     message.source = this;
-    message.sourceID = this.id;
     message.externalID = aExternalID;
     message.subject = aEntry.title.text;
     message.timestamp = aEntry.updated               ? new Date(aEntry.updated)

@@ -42,9 +42,9 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
-Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Sync.js");
+Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
@@ -141,12 +141,15 @@ Collection2.prototype = {
     let columns = [
       "messages.id AS messageID",
       "messages.sourceID",
+      "messages.externalID",
+      "messages.subject",
       "messages.authorID",
       "messages.subject",
-      "messages.link",
       "messages.timestamp",
-      "messages.read",
       "messages.received",
+      "messages.link",
+      "messages.current",
+      "messages.read",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",
       "identities.externalID AS identities_externalID",
@@ -261,14 +264,15 @@ Collection2.prototype = {
 
       let message = new SnowlMessage({
         id:         row.getResultByName("messageID"),
-        sourceID:   row.getResultByName("sourceID"),
         source:     SnowlService.sourcesByID[row.getResultByName("sourceID")],
+        externalID: row.getResultByName("externalID"),
         subject:    row.getResultByName("subject"),
-        link:       row.getResultByName("link"),
-        timestamp:  SnowlDateUtils.julianToJSDate(row.getResultByName("timestamp")),
-        read:       row.getResultByName("read"),
-        received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
         author:     author,
+        timestamp:  SnowlDateUtils.julianToJSDate(row.getResultByName("timestamp")),
+        link:       row.getResultByName("link") ? URI.get(row.getResultByName("link")) : null,
+        received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
+        read:       row.getResultByName("read") ? true : false,
+        current:    row.getResultByName("current"),
         content:    content,
         summary:    summary
       });

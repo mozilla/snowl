@@ -355,14 +355,14 @@ SnowlSource.prototype = {
         // Extract the ID of the source from the newly-created database record.
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
 
-        // Update messages and their authors to include the source ID.
-        if (this.messages) {
-          for each (let message in this.messages) {
-            message.sourceID = this.id;
+        // Update message authors to include the source ID.
+        // FIXME: make SnowlIdentity records have a source property
+        // referencing a source object rather than a sourceID property
+        // referencing a source object's ID.
+        if (this.messages)
+          for each (let message in this.messages)
             if (message.author)
               message.author.sourceID = this.id;
-          }
-        }
 
         // Create places record
         this.placeID = SnowlPlaces.persistPlace("sources",

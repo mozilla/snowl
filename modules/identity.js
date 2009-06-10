@@ -50,6 +50,9 @@ Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/URI.js");
 
+// FIXME: make SnowlIdentity records have a source property
+// referencing a source object rather than a sourceID property
+// referencing a source object's ID.
 
 function SnowlIdentity(id, sourceID, externalID, person) {
   this.id = id;

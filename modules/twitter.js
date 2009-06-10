@@ -399,7 +399,6 @@ SnowlTwitter.prototype = {
     let message = new SnowlMessage();
 
     message.source = this;
-    message.sourceID = this.id;
     message.externalID = item.id;
     message.timestamp = new Date(item.created_at);
     message.received = received || new Date();
