@@ -746,7 +746,7 @@ this._log.info("_toggleRead: all? " + aAll);
     let restoreIndex = currIndex;
 //this._log.info("_cleanSessionHistory: messageIDs:currIndex - "+aMessageIDs+" : "+currIndex);
 
-    for (i = 0; i < sh.count; i++){
+    for (let i = 0; i < sh.count; i++) {
       shEntry = sh.getEntryAtIndex(i, false).QueryInterface(Ci.nsISHEntry);
       uri = shEntry.URI.spec;
       msgUri = uri.split("=")[0] + "=";
