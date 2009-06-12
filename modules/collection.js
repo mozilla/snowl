@@ -308,6 +308,7 @@ this._log.info("got " + groups.length + " groups");
   },
 
   clear: function() {
+    this.constraints = [];
     this._messages = [];
     this._messageIndex = {};
   },
