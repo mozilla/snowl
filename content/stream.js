@@ -319,7 +319,10 @@ let SnowlMessageView = {
 
     if (message.link) {
       let a = this._document.createElementNS(HTML_NS, "a");
-      SnowlUtils.safelySetURIAttribute(a, "href", message.link, message.source.principal);
+      SnowlUtils.safelySetURIAttribute(a,
+                                       "href",
+                                       message.link.spec,
+                                       message.source.principal);
       body.className += " text-link";
       a.appendChild(this._document.createTextNode(content));
       div.appendChild(a);

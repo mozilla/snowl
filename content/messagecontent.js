@@ -118,10 +118,16 @@ var messageContent = {
 
     if (message) {
       // Brief headers
-      document.getElementById("subject").
-               appendChild(document.createTextNode(message.subject));
-      document.getElementById("subject").href = message.link.spec;
-      document.getElementById("subject").target = "messageBody";
+      var subjectLink = document.getElementById("subject");
+      subjectLink.appendChild(document.createTextNode(message.subject));
+      if (message.link) {
+        SnowlUtils.safelySetURIAttribute(subjectLink,
+                                         "href",
+                                         message.link.spec,
+                                         message.source.principal);
+        subjectLink.target = "messageBody";
+      }
+
       if (message.author)
         document.getElementById("briefAuthor").
                  setAttribute("value", message.author.person.name);

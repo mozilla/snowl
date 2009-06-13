@@ -607,7 +607,7 @@ this._log.info("_toggleRead: all? " + aAll);
         SnowlUtils.gMessagePosition.pageIndex =
             (++gBrowser.sessionHistory.index == gBrowser.sessionHistory.maxLength) ?
             --gBrowser.sessionHistory.index : gBrowser.sessionHistory.index;
-        window.loadURI(message.link, null, null, false);
+        window.loadURI(message.link.spec, null, null, false);
       }
   },
 

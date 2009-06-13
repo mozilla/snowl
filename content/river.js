@@ -717,7 +717,10 @@ this._log.info("onMessageAdded: REFRESH RIVER");
       let titleLink = this._document.createElementNS(HTML_NS, "a");
       titleLink.appendChild(this._document.createTextNode(message.subject));
       if (message.link)
-        SnowlUtils.safelySetURIAttribute(titleLink, "href", message.link, message.source.principal);
+        SnowlUtils.safelySetURIAttribute(titleLink,
+                                         "href",
+                                         message.link.spec,
+                                         message.source.principal);
       title.appendChild(titleLink);
     }
 
