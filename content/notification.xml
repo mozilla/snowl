@@ -77,7 +77,7 @@
             alwaysUse:                  document.getAnonymousElementByAttribute(this, "anonid", "alwaysUse"),
             subscribeButton:            document.getAnonymousElementByAttribute(this, "anonid", "subscribeButton"),
           };
-          this._feedWriter.init(window, feedWindow, elements, feed);
+          this._feedWriter.init(window, feedWindow, this, elements, feed);
         ]]></body>
       </method>
 

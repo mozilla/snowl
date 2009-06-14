@@ -1169,12 +1169,13 @@ if (fp.file.leafName != leafName) {
   _feedPrincipal: null,
 
   // nsIFeedWriter
-  init: function FW_init(aWindow, aFeedWindow, aElements, aFeed) {
+  init: function FW_init(aWindow, aFeedWindow, aNotification, aElements, aFeed) {
     // Explicitly wrap |window| in an XPCNativeWrapper to make sure
     // it's a real native object! This will throw an exception if we
     // get a non-native object.
     this._window = new XPCNativeWrapper(aWindow);
     this._feedWindow = aFeedWindow;
+    this._notification = aNotification;
     this._document = this._window.document;
     this._elements = aElements;
     this._feed = aFeed;
@@ -1349,6 +1350,8 @@ if (fp.file.leafName != leafName) {
       prefs.setCharPref(getPrefActionForType(feedType), defaultHandler);
     else
       prefs.setCharPref(getPrefActionForType(feedType), "ask");
+
+    this._notification.close();
   },
 
   // nsIObserver
