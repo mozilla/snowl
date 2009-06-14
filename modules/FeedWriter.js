@@ -1291,6 +1291,9 @@ if (fp.file.leafName != leafName) {
       selectedItem = this._getSelectedItemFromMenulist(handlersMenuList);
     }
 
+    // Unsubscribe from the feed in Snowl.
+    this._feed.unstore();
+
     if (selectedItem.hasAttribute("webhandlerurl")) {
       var webURI = selectedItem.getAttribute("webhandlerurl");
       prefs.setCharPref(getPrefReaderForType(feedType), "web");
