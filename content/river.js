@@ -48,6 +48,7 @@ const Cu = Components.utils;
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Preferences.js");
 Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -64,6 +65,53 @@ const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 let gBrowserWindow = SnowlService.gBrowserWindow;
+
+const PREF_SELECTED_APP = "browser.feeds.handlers.application";
+const PREF_SELECTED_WEB = "browser.feeds.handlers.webservice";
+const PREF_SELECTED_ACTION = "browser.feeds.handler";
+const PREF_SELECTED_READER = "browser.feeds.handler.default";
+
+const PREF_VIDEO_SELECTED_APP = "browser.videoFeeds.handlers.application";
+const PREF_VIDEO_SELECTED_WEB = "browser.videoFeeds.handlers.webservice";
+const PREF_VIDEO_SELECTED_ACTION = "browser.videoFeeds.handler";
+const PREF_VIDEO_SELECTED_READER = "browser.videoFeeds.handler.default";
+
+const PREF_AUDIO_SELECTED_APP = "browser.audioFeeds.handlers.application";
+const PREF_AUDIO_SELECTED_WEB = "browser.audioFeeds.handlers.webservice";
+const PREF_AUDIO_SELECTED_ACTION = "browser.audioFeeds.handler";
+const PREF_AUDIO_SELECTED_READER = "browser.audioFeeds.handler.default";
+
+const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
+const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
+const TYPE_MAYBE_AUDIO_FEED = "application/vnd.mozilla.maybe.audio.feed";
+const TYPE_ANY = "*/*";
+
+function getPrefActionForType(t) {
+  switch (t) {
+    case Ci.nsIFeed.TYPE_VIDEO:
+      return PREF_VIDEO_SELECTED_ACTION;
+
+    case Ci.nsIFeed.TYPE_AUDIO:
+      return PREF_AUDIO_SELECTED_ACTION;
+
+    default:
+      return PREF_SELECTED_ACTION;
+  }
+}
+
+function getPrefReaderForType(t) {
+  switch (t) {
+    case Ci.nsIFeed.TYPE_VIDEO:
+      return PREF_VIDEO_SELECTED_READER;
+
+    case Ci.nsIFeed.TYPE_AUDIO:
+      return PREF_AUDIO_SELECTED_READER;
+
+    default:
+      return PREF_SELECTED_READER;
+  }
+}
+
 
 let SnowlMessageView = {
 
@@ -919,18 +967,19 @@ let Sources = {
           }
         }
         else {
-          this._log.info("not yet subscribed; subscribing");
+          this._log.info("not yet subscribed; handling");
           feed = new SnowlFeed(null, feedInfo.title, new URI(feedInfo.href), undefined, null);
-          feed.persist();
-          subscribedFeeds.push(feed);
           feed.refresh(refreshTime);
-          // Persist again to save the messages this time.
-          feed.persist();
-          // Display the notification after a timeout so it doesn't immediately
-          // disappear again (not sure why this is happening).
-          // FIXME: investigate and find the right solution or file a bug on it.
-          let t = this;
-          window.setTimeout(function() t._notifySubscribe(feed), 0);
+          if (!this._handleFeed(feed)) {
+            this._log.info("not handled by other reader; subscribing");
+            feed.persist();
+            subscribedFeeds.push(feed);
+            // Display the notification after a timeout so it doesn't immediately
+            // disappear again (not sure why this is happening).
+            // FIXME: investigate and find the right solution or file a bug on it.
+            let t = this;
+            window.setTimeout(function() t._notifySubscribe(feed), 0);
+          }
         }
 
         // FIXME: select all "feeds to subscribe" automatically instead of just
@@ -984,6 +1033,72 @@ let Sources = {
           this._list.selectItem(item);
       }
     }
+  },
+
+  /**
+   * Handle the feed according to the user's preferences.  This returns
+   * a boolean indicating whether or not the feed was handled by a different
+   * reader.  If so, Snowl doesn't do anything; otherwise, it subscribes
+   * the feed itself and displays it to the user along with a notification
+   * that lets the user choose a different feed reader.
+   *
+   * @see FeedConverter::handleResult, on which this is based.
+   *
+   * @params  feed {SnowlFeed} the feed
+   * @returns {Boolean} whether or not the feed was handled by another reader
+   */
+  _handleFeed: function(feed) {
+    var feedService = 
+        Cc["@mozilla.org/browser/feeds/result-service;1"].
+        getService(Ci.nsIFeedResultService);
+
+    if (feedService.forcePreviewPage)
+      return false;
+
+    // FIXME: handle the case where there is no result.doc.
+
+    var nsIFeed = feed.lastResult.doc.QueryInterface(Ci.nsIFeed);
+    var handler = Preferences.get(getPrefActionForType(nsIFeed.type), "ask");
+
+    if (handler == "ask")
+      return false;
+
+    if (handler == "reader")
+      handler = Preferences.get(getPrefReaderForType(nsIFeed.type), "bookmarks");
+
+    switch (handler) {
+      case "web": {
+        var wccr = 
+            Cc["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"].
+            getService(Ci.nsIWebContentConverterService);
+        let handler = nsIFeed.type == Ci.nsIFeed.TYPE_FEED  ? wccr.getAutoHandler(TYPE_MAYBE_FEED)       :
+                      nsIFeed.type == Ci.nsIFeed.TYPE_VIDEO ? wccr.getAutoHandler(TYPE_MAYBE_VIDEO_FEED) :
+                      nsIFeed.type == Ci.nsIFeed.TYPE_AUDIO ? wccr.getAutoHandler(TYPE_MAYBE_AUDIO_FEED) :
+                                                              null;
+        // FIXME: handle the case where there are multiple feeds, perhaps by
+        // opening them in tabs?  Or maybe there's a way to pass multiple feeds
+        // to feed readers in a single request?
+        if (handler)
+          window.location.href = handler.getHandlerURI(feed.machineURI.spec);
+        break;
+      }
+
+      default:
+        this._log.info("unexpected handler: " + handler);
+        // fall through -- let feed service handle error
+
+      case "bookmarks":
+      case "client":
+        try {
+          feedService.addToClientReader(feed.machineURI.spec, feed.name, feed.subtitle, nsIFeed.type);
+        }
+        catch(ex) {
+          this._log.error("feedService.addToClientReader failed: " + ex);
+          return false;
+        }
+    }
+
+    return true;
   },
 
   _getFeedsInOtherTabs: function() {
