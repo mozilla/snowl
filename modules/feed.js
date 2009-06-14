@@ -100,6 +100,11 @@ SnowlFeed.prototype = {
   // the request succeeds, at which point we store it with the login manager.
   _authInfo: null,
 
+  // The nsIFeedResult object generated in the last refresh.
+  // This can be used to get interesting info about the feed, like its type:
+  //   this.lastResult.doc.QueryInterface(Ci.nsIFeed).type
+  lastResult: null,
+
 
   //**************************************************************************//
   // Abstract Class Composition Declarations
@@ -247,9 +252,18 @@ SnowlFeed.prototype = {
 
   },
 
+  /**
+   * Handle the result of the feed processor parsing the feed.
+   *
+   * @param result  {nsIFeedResult} the result
+   * @param time    {Date}          the refresh timestamp
+   */
   onRefreshResult: function(result, time) {
-    // FIXME: figure out why result.doc is sometimes null (perhaps its content
-    // isn't a valid feed?) and report a more descriptive error message.
+    this.lastResult = result;
+
+    // result.doc is null when the processor failed to parse the feed.
+    // FIXME: report a more descriptive error message and figure out a better
+    // way to handle this condition.
     if (result.doc == null) {
       // XXX Should we throw instead?
       this._log.error("onRefreshResult: result.doc is null");
@@ -263,6 +277,12 @@ SnowlFeed.prototype = {
     // ??? Should we update these if they've changed?
     if (!this.name)
       this.name = feed.title.plainText();
+    // We don't use, persist, or restore subtitle, but FeedWriter uses it
+    // when subscribing to a feed in a local application, so we set it here
+    // so it's available for that purpose.
+    // ??? Should we also persist and restore it?
+    if (feed.subtitle)
+      this.subtitle = feed.subtitle.plainText();
     if (!this.humanURI)
       this.humanURI = feed.link;
 
