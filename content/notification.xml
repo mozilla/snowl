@@ -29,6 +29,8 @@
                   oncommand="this.parentNode.parentNode._doButtonCommand(event);">
           <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
           <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+          <!-- FIXME: localize it. -->
+          <xul:button label="Undo" anonid="undoButton" oncommand="document.getBindingParent(this).undo()"/>
           <xul:description anonid="subscribeUsingDescription"/>
           <xul:menulist anonid="handlersMenuList" aria-labelledby="subscribeUsingDescription">
             <xul:menupopup menugenerated="true" anonid="handlersMenuPopup">
@@ -50,6 +52,11 @@
     </content>
 
     <implementation>
+      <constructor>
+        Cu.import("resource://snowl/modules/FeedWriter.js");
+        this._feedWriter = new FeedWriter();
+      </constructor>
+
       <method name="init">
         <parameter name="feed"/>
         <!-- The window into which the Snowl river view has been loaded,
@@ -74,10 +81,12 @@
         ]]></body>
       </method>
 
-      <constructor>
-        Cu.import("resource://snowl/modules/FeedWriter.js");
-        this._feedWriter = new FeedWriter();
-      </constructor>
+      <method name="undo">
+        <body><![CDATA[
+          this._feed.unstore();
+          this.close();
+        ]]></body>
+      </method>
 
     </implementation>
   </binding>

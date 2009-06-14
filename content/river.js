@@ -828,6 +828,7 @@ let Sources = {
 
   onLoad: function() {
     this._rebuild();
+    Observers.add("snowl:source:unstored", this.onSourceUnstored, this);
   },
 
   onSelect: function(event) {
@@ -865,6 +866,25 @@ let Sources = {
 
     SnowlMessageView._collection = source.messages;
     SnowlMessageView._rebuildView();
+  },
+
+  onSourceUnstored: function(sourceID) {
+    this._log.info("onSourceUnstored: " + sourceID);
+
+    for (let i = 0; i < this._list.itemCount; i++) {
+      let item = this._list.getItemAtIndex(i);
+      if (item.source && item.source.id == sourceID) {
+        let selected = item.selected;
+        this._list.removeItemAt(i);
+        if (selected) {
+          // FIXME: rebuild the collection based on other selected sources
+          // once multiple selection is enabled.
+          SnowlMessageView._collection = [];
+          SnowlMessageView._rebuildView();
+        }
+        break;
+      }
+    }
   },
 
 

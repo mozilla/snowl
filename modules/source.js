@@ -444,6 +444,45 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
       Observers.notify("snowl:messages:changed", this.id);
   }),
 
+  unstore: function() {
+    SnowlDatastore.dbConnection.beginTransaction();
+    try {
+      // FIXME: delegate unstorage of messages and people to their respective
+      // JavaScript representations.
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
+          "WHERE docid IN " +
+          "(SELECT id FROM parts WHERE messageID IN " +
+          "(SELECT id FROM messages WHERE sourceID = " + this.id + "))");
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
+          "WHERE messageID IN " +
+          "(SELECT id FROM messages WHERE sourceID = " + this.id + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
+          "WHERE sourceID = " + this.id);
+      // FIXME: don't delete people unless the only identities with which
+      // they are associated are identities associated with this source.
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
+          "WHERE id IN " +
+          "(SELECT personID FROM identities WHERE sourceID = " + this.id + ")");
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
+          "WHERE sourceID = " + this.id);
+      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources " +
+          "WHERE id = " + this.id);
+
+      // Finally, clean up Places bookmarks with sourceID in its prefixed uri.
+      SnowlPlaces.removePlacesItemsByURI("snowl:sourceId=" + this.id, true);
+
+      SnowlDatastore.dbConnection.commitTransaction();
+    }
+    catch(ex) {
+      SnowlDatastore.dbConnection.rollbackTransaction();
+      throw ex;
+    }
+
+    Observers.notify("snowl:source:unstored", this.id);
+    this.id = null;
+    Observers.notify("snowl:source:removed");
+  },
+
   /**
    * Update the current flag for messages in a source, after a refresh.
    * If message's current flag = 1 set to 0, then set current flag for messages

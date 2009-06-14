@@ -585,6 +585,7 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
       sourceID = selectedSourceNodesIDs[i][1];
       SnowlDatastore.dbConnection.beginTransaction();
       try {
+        // FIXME: refactor this with SnowlSource::unstore.
         // Delete messages
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
             "WHERE docid IN " +
@@ -615,6 +616,7 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
 //this._log.info("removeSource: Delete Places DONE");
 
         SnowlDatastore.dbConnection.commitTransaction();
+        Observers.notify("snowl:source:unstored", sourceID);
       }
       catch(ex) {
         SnowlDatastore.dbConnection.rollbackTransaction();
