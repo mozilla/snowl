@@ -8,3 +8,4 @@
 ^test/harness/app/update.test$
 ^test/profile$
 ^test/unit/test_.*\.log$
+.kpf$
