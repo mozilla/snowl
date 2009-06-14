@@ -1,0 +1,433 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE bindings [
+  <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
+  %globalDTD;
+  <!ENTITY % notificationDTD      SYSTEM "chrome://global/locale/notification.dtd">
+  %notificationDTD;
+  <!--<!ENTITY % snowlNotificationDTD SYSTEM "chrome://snowl/locale/notification.dtd">-->
+  <!--%snowlNotificationDTD;-->
+  <!ENTITY % feedDTD SYSTEM "chrome://browser/locale/feeds/subscribe.dtd">
+  %feedDTD;
+]>
+
+<bindings id="notificationBindings"
+          xmlns="http://www.mozilla.org/xbl"
+          xmlns:xbl="http://www.mozilla.org/xbl"
+          xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <binding id="feedSubscribeNotification"
+           extends="chrome://global/content/bindings/notification.xml#notification">
+    <resources>
+      <stylesheet src="chrome://global/skin/notification.css"/>
+      <stylesheet src="chrome://browser/skin/feeds/subscribe.css"/>
+    </resources>
+
+    <content>
+      <xul:hbox class="notification-inner outset" flex="1" xbl:inherits="type">
+        <xul:hbox anonid="details" align="center" flex="1"
+                  oncommand="this.parentNode.parentNode._doButtonCommand(event);">
+          <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
+          <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+          <xul:description anonid="subscribeUsingDescription"/>
+          <xul:menulist anonid="handlersMenuList" aria-labelledby="subscribeUsingDescription">
+            <xul:menupopup menugenerated="true" anonid="handlersMenuPopup">
+              <xul:menuitem anonid="liveBookmarksMenuItem" label="&feedLiveBookmarks;" class="menuitem-iconic" image="chrome://browser/skin/page-livemarks.png" selected="true" />
+              <xul:menuseparator />
+            </xul:menupopup>
+          </xul:menulist>
+          <xul:checkbox anonid="alwaysUse" checked="false"/>
+          <xul:button label="&feedSubscribeNow;" anonid="subscribeButton"/>
+          <xul:spacer flex="1"/>
+          <children/>
+        </xul:hbox>
+        <xul:toolbarbutton ondblclick="event.stopPropagation();"
+                           class="messageCloseButton tabbable"
+                           xbl:inherits="hidden=hideclose"
+                           tooltiptext="&closeNotification.tooltip;"
+                           oncommand="document.getBindingParent(this).close();"/>
+      </xul:hbox>
+    </content>
+
+    <implementation>
+
+      <field name="TYPE_MAYBE_FEED">"application/vnd.mozilla.maybe.feed"</field>
+      <field name="TYPE_MAYBE_AUDIO_FEED">"application/vnd.mozilla.maybe.audio.feed"</field>
+      <field name="TYPE_MAYBE_VIDEO_FEED">"application/vnd.mozilla.maybe.video.feed"</field>
+      <field name="URI_BUNDLE">"chrome://browser/locale/feeds/subscribe.properties"</field>
+
+      <!-- FIXME: remove use of this._contentSandbox, as it is no longer needed. -->
+      <field name="__contentSandbox">null</field>
+      <property name="_contentSandbox" onget="return this.__contentSandbox ? this.__contentSandbox : this.__contentSandbox = new Cu.Sandbox(window)"/>
+
+      <field name="__strings">null</field>
+      <property name="_strings" onget="return this.__strings ? this.__strings  : this.__strings = new StringBundle(this.URI_BUNDLE)"/>
+
+      <field name="__faviconService">null</field>
+      <property name="_faviconService"
+                onget="return this.__faviconService ?
+                              this.__faviconService :
+                              this.__faviconService = Cc['@mozilla.org/browser/favicon-service;1'].
+                                                      getService(Ci.nsIFaviconService)"/>
+
+      <method name="init">
+        <parameter name="feed"/>
+        <!-- The window into which the Snowl river view has been loaded,
+           - as distinct from |window|, which is the XUL browser window
+           - in the context of this notification. -->
+        <parameter name="feedWindow"/>
+        <body><![CDATA[
+          this._feed = feed;
+          let elements = {
+            feedHeader:                 this,
+            details:                    document.getAnonymousElementByAttribute(this, "anonid", "details"),
+            messageImage:               document.getAnonymousElementByAttribute(this, "anonid", "messageImage"),
+            messageText:                document.getAnonymousElementByAttribute(this, "anonid", "messageText"),
+            subscribeUsingDescription:  document.getAnonymousElementByAttribute(this, "anonid", "subscribeUsingDescription"),
+            handlersMenuList:           document.getAnonymousElementByAttribute(this, "anonid", "handlersMenuList"),
+            handlersMenuPopup:          document.getAnonymousElementByAttribute(this, "anonid", "handlersMenuPopup"),
+            liveBookmarksMenuItem:      document.getAnonymousElementByAttribute(this, "anonid", "liveBookmarksMenuItem"),
+            alwaysUse:                  document.getAnonymousElementByAttribute(this, "anonid", "alwaysUse"),
+            subscribeButton:            document.getAnonymousElementByAttribute(this, "anonid", "subscribeButton"),
+          };
+          this._feedWriter.init(window, feedWindow, elements, feed);
+        ]]></body>
+      </method>
+
+      <constructor>
+        Cu.import("resource://snowl/modules/FeedWriter.js");
+        this._feedWriter = new FeedWriter();
+
+        //Cu.import("resource://snowl/modules/StringBundle.js");
+        //Cu.import("resource://snowl/modules/URI.js");
+        //
+        //const PREF_SELECTED_APP = "browser.feeds.handlers.application";
+        //const PREF_SELECTED_WEB = "browser.feeds.handlers.webservice";
+        //const PREF_SELECTED_ACTION = "browser.feeds.handler";
+        //const PREF_SELECTED_READER = "browser.feeds.handler.default";
+        //
+        //const PREF_VIDEO_SELECTED_APP = "browser.videoFeeds.handlers.application";
+        //const PREF_VIDEO_SELECTED_WEB = "browser.videoFeeds.handlers.webservice";
+        //const PREF_VIDEO_SELECTED_ACTION = "browser.videoFeeds.handler";
+        //const PREF_VIDEO_SELECTED_READER = "browser.videoFeeds.handler.default";
+        //
+        //const PREF_AUDIO_SELECTED_APP = "browser.audioFeeds.handlers.application";
+        //const PREF_AUDIO_SELECTED_WEB = "browser.audioFeeds.handlers.webservice";
+        //const PREF_AUDIO_SELECTED_ACTION = "browser.audioFeeds.handler";
+        //const PREF_AUDIO_SELECTED_READER = "browser.audioFeeds.handler.default";
+        //
+        //function getPrefAppForType(t) {
+        //  switch (t) {
+        //    case Ci.nsIFeed.TYPE_VIDEO:
+        //      return PREF_VIDEO_SELECTED_APP;
+        //
+        //    case Ci.nsIFeed.TYPE_AUDIO:
+        //      return PREF_AUDIO_SELECTED_APP;
+        //
+        //    default:
+        //      return PREF_SELECTED_APP;
+        //  }
+        //}
+        //
+        //function getPrefWebForType(t) {
+        //  switch (t) {
+        //    case Ci.nsIFeed.TYPE_VIDEO:
+        //      return PREF_VIDEO_SELECTED_WEB;
+        //
+        //    case Ci.nsIFeed.TYPE_AUDIO:
+        //      return PREF_AUDIO_SELECTED_WEB;
+        //
+        //    default:
+        //      return PREF_SELECTED_WEB;
+        //  }
+        //}
+        //
+        //function getPrefActionForType(t) {
+        //  switch (t) {
+        //    case Ci.nsIFeed.TYPE_VIDEO:
+        //      return PREF_VIDEO_SELECTED_ACTION;
+        //
+        //    case Ci.nsIFeed.TYPE_AUDIO:
+        //      return PREF_AUDIO_SELECTED_ACTION;
+        //
+        //    default:
+        //      return PREF_SELECTED_ACTION;
+        //  }
+        //}
+        //
+        //function getPrefReaderForType(t) {
+        //  switch (t) {
+        //    case Ci.nsIFeed.TYPE_VIDEO:
+        //      return PREF_VIDEO_SELECTED_READER;
+        //
+        //    case Ci.nsIFeed.TYPE_AUDIO:
+        //      return PREF_AUDIO_SELECTED_READER;
+        //
+        //    default:
+        //      return PREF_SELECTED_READER;
+        //  }
+        //}
+        //
+        //this._initSubscriptionUI();
+      </constructor>
+
+      <method name="_getFeedType">
+        <body><![CDATA[
+          if (this.__feedType != null)
+            return this.__feedType;
+
+          try {
+            // grab the feed because it's got the feed.type in it.
+            var container = this._getContainer();
+            var feed = container.QueryInterface(Ci.nsIFeed);
+            this.__feedType = feed.type;
+            return feed.type;
+          } catch (ex) { }
+      
+          return Ci.nsIFeed.TYPE_FEED;
+        ]]></body>
+      </method>
+
+      <!-- Maps a feed type to a maybe-feed mimetype. -->
+      <method name="_getMimeTypeForFeedType">
+        <body><![CDATA[
+          switch (this._getFeedType()) {
+            case Ci.nsIFeed.TYPE_VIDEO:
+              return this.TYPE_MAYBE_VIDEO_FEED;
+      
+            case Ci.nsIFeed.TYPE_AUDIO:
+              return this.TYPE_MAYBE_AUDIO_FEED;
+      
+            default:
+              return this.TYPE_MAYBE_FEED;
+          }
+        ]]></body>
+      </method>
+
+      <!-- Maps a feed type to a maybe-feed mimetype. -->
+      <method name="_setFaviconForWebReader">
+        <parameter name="aURI"/>
+        <parameter name="aMenuItem"/>
+        <body><![CDATA[
+          var faviconsSvc = this._faviconService;
+          var faviconURI = null;
+          try {
+            faviconURI = faviconsSvc.getFaviconForPage(aURI);
+          }
+          catch(ex) { }
+        
+          if (faviconURI) {
+            var dataURL = faviconsSvc.getFaviconDataAsDataURL(faviconURI);
+            if (dataURL) {
+              aMenuItem.setAttribute('image', dataURL);
+              return true;
+            }
+          }
+        
+          return false;
+        ]]></body>
+      </method>
+
+      <method name="_setSelectedHandler">
+        <parameter name="feedType"/>
+        <body><![CDATA[
+          var prefs =   
+              Cc["@mozilla.org/preferences-service;1"].
+              getService(Ci.nsIPrefBranch);
+      
+          var handler = "bookmarks";
+          try {
+            handler = prefs.getCharPref(getPrefReaderForType(feedType));
+          }
+          catch (ex) { }
+      
+          switch (handler) {
+            case "web": {
+              var handlersMenuList = this._document.getElementById("handlersMenuList");
+              if (handlersMenuList) {
+                var url = prefs.getComplexValue(getPrefWebForType(feedType), Ci.nsISupportsString).data;
+                var handlers =
+                  handlersMenuList.getElementsByAttribute("webhandlerurl", url);
+                if (handlers.length == 0) {
+                  LOG("FeedWriter._setSelectedHandler: selected web handler isn't in the menulist")
+                  return;
+                }
+      
+                this._safeDoCommand(handlers[0]);
+              }
+              break;
+            }
+            case "client": {
+              try {
+                this._selectedApp =
+                  prefs.getComplexValue(getPrefAppForType(feedType), Ci.nsILocalFile);
+              }
+              catch(ex) {
+                this._selectedApp = null;
+              }
+      
+              if (this._selectedApp) {
+                this._initMenuItemWithFile(this._contentSandbox.selectedAppMenuItem,
+                                           this._selectedApp);
+                var codeStr = "selectedAppMenuItem.hidden = false; " +
+                              "selectedAppMenuItem.doCommand(); ";
+      
+                // Only show the default reader menuitem if the default reader
+                // isn't the selected application
+                if (this._defaultSystemReader) {
+                  var shouldHide =
+                    this._defaultSystemReader.path == this._selectedApp.path;
+                  codeStr += "defaultHandlerMenuItem.hidden = " + shouldHide + ";"
+                }
+                Cu.evalInSandbox(codeStr, this._contentSandbox);
+                break;
+              }
+            }
+            case "bookmarks":
+            default: {
+              var liveBookmarksMenuItem = this._document.getElementById("liveBookmarksMenuItem");
+              if (liveBookmarksMenuItem)
+                this._safeDoCommand(liveBookmarksMenuItem);
+            } 
+          }
+        ]]></body>
+      </method>
+
+      <method name="_initSubscriptionUI">
+        <body><![CDATA[
+          var handlersMenuPopup = document.getAnonymousElementByAttribute(this, "anonid", "handlersMenuPopup");
+          if (!handlersMenuPopup)
+            return;
+        
+          var feedType = this._getFeedType();
+        
+          // change the background
+          switch (feedType) {
+            case Ci.nsIFeed.TYPE_VIDEO:
+              this.className = 'videoPodcastBackground';
+              break;
+        
+            case Ci.nsIFeed.TYPE_AUDIO:
+              this.className = 'audioPodcastBackground';
+              break;
+        
+            default:
+              this.className = 'feedBackground';
+          }
+        
+        
+          // Last-selected application
+          var menuItem = document.createElementNS(XUL_NS, "menuitem");
+          menuItem.id = "selectedAppMenuItem";
+          menuItem.className = "menuitem-iconic";
+          menuItem.setAttribute("handlerType", "client");
+          try {
+            var prefs = Cc["@mozilla.org/preferences-service;1"].
+                        getService(Ci.nsIPrefBranch);
+            this._selectedApp = prefs.getComplexValue(getPrefAppForType(feedType),
+                                                      Ci.nsILocalFile);
+        
+            if (this._selectedApp.exists())
+              this._initMenuItemWithFile(menuItem, this._selectedApp);
+            else {
+              // Hide the menuitem if the last selected application doesn't exist
+              menuItem.setAttribute("hidden", true);
+            }
+          }
+          catch(ex) {
+            // Hide the menuitem until an application is selected
+            menuItem.setAttribute("hidden", true);
+          }
+          let selectedAppMenuItem = menuItem;
+          
+          handlersMenuPopup.appendChild(selectedAppMenuItem);
+        
+          // List the default feed reader
+          try {
+            this._defaultSystemReader = Cc["@mozilla.org/browser/shell-service;1"].
+                                        getService(Ci.nsIShellService).
+                                        defaultFeedReader;
+            menuItem = document.createElementNS(XUL_NS, "menuitem");
+            menuItem.id = "defaultHandlerMenuItem";
+            menuItem.className = "menuitem-iconic";
+            menuItem.setAttribute("handlerType", "client");
+        
+            this._initMenuItemWithFile(menuItem, this._defaultSystemReader);
+        
+            // Hide the default reader item if it points to the same application
+            // as the last-selected application
+            if (this._selectedApp &&
+                this._selectedApp.path == this._defaultSystemReader.path)
+              menuItem.hidden = true;
+          }
+          catch(ex) { menuItem = null; /* no default reader */ }
+        
+          if (menuItem)
+            handlersMenuPopup.appendChild(menuItem);
+
+          // "Choose Application..." menuitem
+          menuItem = document.createElementNS(XUL_NS, "menuitem");
+          menuItem.id = "chooseApplicationMenuItem";
+          menuItem.className = "menuitem-iconic";
+          menuItem.setAttribute("label", this._strings.get("chooseApplicationMenuItem"));
+        
+          handlersMenuPopup.appendChild(menuItem);
+        
+          // separator
+          let chooseAppSep = document.createElementNS(XUL_NS, "menuseparator");
+          handlersMenuPopup.appendChild(chooseAppSep);
+        
+          // FIXME: implement FeedWriter::onPageChanged.
+          //var historySvc = Cc["@mozilla.org/browser/nav-history-service;1"].
+          //                 getService(Ci.nsINavHistoryService);
+          //historySvc.addObserver(this, false);
+        
+          // List of web handlers
+          var wccr = Cc["@mozilla.org/embeddor.implemented/web-content-handler-registrar;1"].
+                     getService(Ci.nsIWebContentConverterService);
+          var handlers = wccr.getContentHandlers(this._getMimeTypeForFeedType(feedType), {});
+          if (handlers.length != 0) {
+            for (var i = 0; i < handlers.length; ++i) {
+              menuItem = document.createElementNS(XUL_NS, "menuitem");
+              menuItem.className = "menuitem-iconic";
+              menuItem.setAttribute("label", handlers[i].name);
+              menuItem.setAttribute("handlerType", "web");
+              menuItem.setAttribute("webhandlerurl", handlers[i].uri);
+              handlersMenuPopup.appendChild(menuItem);
+        
+              // For privacy reasons we cannot set the image attribute directly
+              // to the icon url, see Bug 358878
+              var uri = URI.get(handlers[i].uri);
+              if (!this._setFaviconForWebReader(uri, menuItem)) {
+                if (uri && /^https?/.test(uri.scheme)) {
+                  var iconURL = URI.get(uri.prePath + "/favicon.ico");
+                  this._faviconService.setAndLoadFaviconForPage(uri, iconURL, true);
+                }
+              }
+            }
+          }
+        
+          this._setSelectedHandler(feedType);
+        
+          // "Subscribe using..."
+          this._setSubscribeUsingLabel();
+        
+          // "Always use..." checkbox initial state
+          this._setAlwaysUseCheckedState(feedType);
+          this._setAlwaysUseLabel();
+        
+          // We update the "Always use.." checkbox label whenever the selected item
+          // in the list is changed
+          handlersMenuPopup.addEventListener("command", this, false);
+        
+          // Set up the "Subscribe Now" button
+          this._document
+              .getElementById("subscribeButton")
+              .addEventListener("command", this, false);
+        ]]></body>
+      </method>
+
+    </implementation>
+  </binding>
+
+</bindings>

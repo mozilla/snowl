@@ -79,3 +79,10 @@ tab[snowl] > image {
 #searchbar {
   -moz-binding: url("chrome://snowl/content/snowlSearch.xml#search");
 }*/
+
+/******************************************************************************/
+/* Custom Subscribe to Feed Notification */
+
+notification[value="snowlSubscribeFeed"] {
+  -moz-binding: url("chrome://snowl/content/notification.xml#feedSubscribeNotification");
+}

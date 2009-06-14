@@ -906,6 +906,11 @@ let Sources = {
           feed.refresh(refreshTime);
           // Persist again to save the messages this time.
           feed.persist();
+          // Display the notification after a timeout so it doesn't immediately
+          // disappear again (not sure why this is happening).
+          // FIXME: investigate and find the right solution or file a bug on it.
+          let t = this;
+          window.setTimeout(function() t._notifySubscribe(feed), 0);
         }
 
         // FIXME: select all "feeds to subscribe" automatically instead of just
@@ -975,7 +980,21 @@ let Sources = {
     }
 
     return SnowlUtils.canonicalizeFeedsFromMultiplePages(pages);
+  },
+
+  _notifySubscribe: function(feed) {
+    let notificationBox = gBrowserWindow.getNotificationBox(window);
+    let notification = notificationBox.appendNotification(
+      // FIXME: localize it.
+      "You've subscribed to " + feed.name + " in Snowl!",
+      "snowlSubscribeFeed",
+      "chrome://snowl/content/icons/snowl-16.png",
+      notificationBox.PRIORITY_INFO_MEDIUM,
+      null
+    );
+    notification.init(feed, window);
   }
+
 };
 
 window.addEventListener("load", function() Sources.onLoad(), false);
