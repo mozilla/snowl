@@ -85,7 +85,7 @@ const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
 const TYPE_MAYBE_AUDIO_FEED = "application/vnd.mozilla.maybe.audio.feed";
 const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
-const URI_BUNDLE = "chrome://browser/locale/feeds/subscribe.properties";
+const URI_BUNDLE = "chrome://snowl/locale/subscribe.properties";
 const SUBSCRIBE_PAGE_URI = "chrome://browser/content/feeds/subscribe.xhtml";
 
 const PREF_SELECTED_APP = "browser.feeds.handlers.application";

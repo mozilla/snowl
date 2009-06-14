@@ -28,9 +28,10 @@
         <xul:hbox anonid="details" align="center" flex="1"
                   oncommand="this.parentNode.parentNode._doButtonCommand(event);">
           <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
-          <xul:description anonid="messageText" class="messageText" flex="1" xbl:inherits="xbl:text=label"/>
+          <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label"/>
           <!-- FIXME: localize it. -->
           <xul:button label="Undo" anonid="undoButton" oncommand="document.getBindingParent(this).undo()"/>
+          <xul:spacer flex="1"/>
           <xul:description anonid="subscribeUsingDescription"/>
           <xul:menulist anonid="handlersMenuList" aria-labelledby="subscribeUsingDescription">
             <xul:menupopup menugenerated="true" anonid="handlersMenuPopup">
@@ -40,7 +41,6 @@
           </xul:menulist>
           <xul:checkbox anonid="alwaysUse" checked="false"/>
           <xul:button label="&feedSubscribeNow;" anonid="subscribeButton"/>
-          <xul:spacer flex="1"/>
           <children/>
         </xul:hbox>
         <xul:toolbarbutton ondblclick="event.stopPropagation();"
