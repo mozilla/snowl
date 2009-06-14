@@ -84,7 +84,6 @@ const PREF_AUDIO_SELECTED_READER = "browser.audioFeeds.handler.default";
 const TYPE_MAYBE_FEED = "application/vnd.mozilla.maybe.feed";
 const TYPE_MAYBE_VIDEO_FEED = "application/vnd.mozilla.maybe.video.feed";
 const TYPE_MAYBE_AUDIO_FEED = "application/vnd.mozilla.maybe.audio.feed";
-const TYPE_ANY = "*/*";
 
 function getPrefActionForType(t) {
   switch (t) {
