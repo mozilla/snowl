@@ -215,11 +215,12 @@ SnowlFeed.prototype = {
       notificationCallbacks:  this
     });
 
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
+
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
       // XXX Perhaps we should set this._lastStatus = request.status so we don't
       // need to pass it in this notification and it's available at any time.
-      // FIXME: remove subscribe from this notification's name.
-      Observers.notify("snowl:subscribe:connect:end", this, request.status);
       // XXX Should we throw instead?
       this._log.error("refresh error: " + request.status + " (" + request.statusText + ")");
       return;
@@ -244,9 +245,6 @@ SnowlFeed.prototype = {
       }
     };
     parser.parseFromString(request.responseText, request.channel.URI);
-
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     this.lastRefreshed = time;
 

@@ -248,7 +248,7 @@ let Subscriber = {
   //**************************************************************************//
   // Subscribe
 
-  subscribeTwitter: strand(function(name, credentials, callback) {
+  subscribeTwitter: function(name, credentials, callback) {
     this._log.info("subscribing to Twitter account " + name + " with username " + credentials.username);
 
     // FIXME: pass name and credentials to the SnowlTwitter constructor
@@ -280,18 +280,15 @@ let Subscriber = {
       return;
     }
 
-    let future = new Future();
-    this.account.refresh(null, future.fulfill);
-    yield future.result();
+    this.account.refresh(null);
     this.account.persist();
-
     this.account = null;
 
     if (callback)
       callback();
-  }),
+  },
 
-  subscribeFeed: strand(function(name, machineURI, callback) {
+  subscribeFeed: function(name, machineURI, callback) {
     this._log.info("subscribing to feed " + name +
                    " <" + (machineURI ? machineURI.spec : "") + ">");
 
@@ -319,15 +316,12 @@ let Subscriber = {
       return;
     }
 
-    let future = new Future();
-    this.account.refresh(null, future.fulfill);
-    yield future.result();
+    this.account.refresh(null);
     this.account.persist();
-
     this.account = null;
 
     if (callback)
       callback();
-  })
+  }
 
 };
