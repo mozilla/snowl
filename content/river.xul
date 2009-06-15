@@ -102,10 +102,12 @@
                        class="tabbable"
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
+
         <menulist id="periodMenu"
                   selectedindex=""
                   persist="selectedindex"
-                  oncommand="SnowlMessageView.onCommandPeriodMenu(event)">
+                  oncommand="SnowlMessageView.onCommandPeriodMenu(event)"
+                  hidden="true">
           <menupopup id="periodMenuPopup">
             <menuitem label="&periodAnytime.label;"
                       value="all"
@@ -136,7 +138,8 @@
            - support Firefox 3.0. -->
         <textbox id="filterTextbox" type="timed" timeout="200"
                  emptytext="&filterTextbox.emptytext;"
-                 oncommand="SnowlMessageView.onFilter()"/>
+                 oncommand="SnowlMessageView.onFilter()"
+                 hidden="true"/>
       </toolbar>
 
       <stack id="contentStack" flex="1">

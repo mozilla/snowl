@@ -881,6 +881,7 @@ let Sources = {
   onLoad: function() {
     this._rebuild();
     Observers.add("snowl:source:unstored", this.onSourceUnstored, this);
+    Observers.add("snowl:message:added", this.onMessageAdded, this);
   },
 
   onSelect: function(event) {
@@ -994,6 +995,22 @@ let Sources = {
     }
   },
 
+  onMessageAdded: function(message) {
+return;
+dump("onMessageAdded: " + message + "\n");
+    // Find the subscription for the message.
+    let startIndex = this._list.getIndexOfItem(this._subscriptionsHeader) + 1;
+    for (let i = startIndex; i < this._list.itemCount; i++) {
+      let item = this._list.getItemAtIndex(i);
+      if (item.source && item.source.id == message.source.id) {
+        item.source.messages.unshift(message);
+        if (item.selected)
+          SnowlMessageView._rebuildView();
+        break;
+      }
+    }
+  },
+
 
   //**************************************************************************//
   // View Construction
@@ -1091,8 +1108,14 @@ let Sources = {
         this._log.info("checking if feed to select " + feedToSelect.name +
                        " (" + feedToSelect.id + ") is the same as source " +
                        source.name + " (" + source.id + ")");
-        if (feedToSelect.id == source.id)
+        if (feedToSelect.id == source.id) {
+          this._log.info("selecting feed " + feedToSelect + " with " + feedToSelect.messages.length + " messages");
+          // Gross hack: make sure the newly-subscribed feed has messages.
+          // FIXME: figure out why it doesn't have messages after we first
+          // subscribe to it.
+          item.source = feedToSelect;
           this._list.selectItem(item);
+        }
       }
     }
   },
