@@ -284,8 +284,28 @@ SnowlMessage.prototype = {
     // (we might have retrieved it from its source), so try to get its ID
     // from the datastore before storing it, so we know whether to create a new
     // record for it or update an existing one.
-    if (!this.id)
+    if (!this.id) {
       this.id = this._getInternalID();
+
+      // If this SnowlMessage instance doesn't have an ID (i.e. we've just
+      // retrieved it from its source), but the message does exist in the
+      // datastore, then override the default value of the read property
+      // with its value in the datastore, so messages that have been marked
+      // read don't get unmarked the next time we retrieve them.
+      //
+      // This is something of a hack; right now |read| is the only property
+      // that we persist and restore that can change for an existing message,
+      // and we have to override the default value with the persisted value
+      // when persisting a message that we've just retrieved from its source.
+      //
+      // Perhaps we should distinguish between initial persistence of a new
+      // message and updating of an existing message so we can apply different
+      // rules in those two situations, although there's still the difficult
+      // question of what those rules are.
+      //
+      if (this.id)
+        this.read = this._getRead();
+    }
 
     if (this.author)
       this.author.persist();
@@ -364,6 +384,35 @@ SnowlMessage.prototype = {
     }
 
     return internalID;
+  },
+
+  get _getReadStmt() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT read FROM messages WHERE id = :id"
+    );
+    this.__defineGetter__("_getReadStmt", function() statement);
+    return this._getReadStmt;
+  },
+
+  /**
+   * Get the read status of the message.
+   *
+   * @returns  {Boolean}
+   *           the read status of the message
+   */
+  _getRead: function() {
+    let read;
+
+    try {
+      this._getReadStmt.params.id = this.id;
+      if (this._getReadStmt.step())
+        read = this._getReadStmt.row.read;
+    }
+    finally {
+      this._getReadStmt.reset();
+    }
+
+    return read;
   },
 
   get CollectionsView() {
