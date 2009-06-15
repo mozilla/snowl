@@ -79,9 +79,19 @@
         <xul:image src="moz-icon://goat?size=16"
                    xbl:inherits="src=icon" height="16" width="16"/>
         <children/>
-        <xul:image class="star-button" xbl:inherits="starred=subscription"/>
+        <xul:image class="star-button" xbl:inherits="starred=subscription"
+                   onclick="Sources.onClickStarButton(event)"/>
       </xul:hbox>
     </content>
+    <implementation>
+      <constructor>
+        // The richlistmenu suppresses click events when it handles mousedown,
+        // but we want the star to handle click events, so we stop propagation
+        // of mousedown events on the star.
+        document.getAnonymousElementByAttribute(this, "class", "star-button").
+                 addEventListener("mousedown", function(event) event.stopPropagation(), true);
+      </constructor>
+    </implementation>
   </binding>
 
   <binding id="source-selected" extends="chrome://snowl/content/sources.xml#source-base">
@@ -93,13 +103,13 @@
         <xul:image src="moz-icon://goat?size=16"
                    xbl:inherits="src=icon" height="16" width="16"/>
         <children/>
-        <xul:image class="star-button" xbl:inherits="starred=subscription"/>
+        <xul:image class="star-button" xbl:inherits="starred=subscription"
+                   onclick="Sources.onClickStarButton(event)"/>
       </xul:hbox>
     </content>
 
     <implementation>
       <constructor>
-        //gApplicationsPane.rebuildActionsMenu();
       </constructor>
     </implementation>
 

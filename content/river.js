@@ -864,6 +864,11 @@ let Sources = {
     return this._list = document.getElementById("sourcesList");
   },
 
+  get _panel() {
+    delete this._panel;
+    return this._panel = document.getElementById("sourcePanel");
+  },
+
   get _log() {
     delete this._log;
     return this._log = Log4Moz.repository.getLogger("Snowl.Sources");
@@ -915,12 +920,67 @@ let Sources = {
     SnowlMessageView._rebuildView();
   },
 
-  onSourceUnstored: function(sourceID) {
-    this._log.info("onSourceUnstored: " + sourceID);
+  onClickStarButton: function(event) {
+    //alert("onClickStarButton: " + document.getBindingParent(event.originalTarget));
+    let item = document.getBindingParent(event.originalTarget);
+    if (!item || !item.source)
+      return;
 
-    for (let i = 0; i < this._list.itemCount; i++) {
+    if (item.source.id) {
+      this._panelItem = item;
+      this._panel.openPopup(item, "after_end");
+    }
+    else {
+      item.source.persist();
+      // Insert the item into the list of subscriptions, assuming there is
+      // nothing underneath the list of subscriptions.
+      // FIXME: make this more robust and less brittle against changes
+      // to the collections view.
+      let newItem = item.cloneNode(true);
+      newItem.setAttribute("subscription", "true");
+      newItem.source = item.source;
+      let startIndex = this._list.getIndexOfItem(this._subscriptionsHeader) + 1;
+      let itemInserted = false;
+      for (let i = startIndex; i < this._list.itemCount; i++) {
+        let item = this._list.getItemAtIndex(i);
+        if (newItem.searchLabel.toLowerCase() < item.searchLabel.toLowerCase()) {
+          this._list.insertBefore(newItem, item);
+          itemInserted = true;
+          break;
+        }
+      }
+      if (!itemInserted)
+        this._list.appendChild(newItem);
+      this._list.selectItem(newItem);
+    }
+  },
+
+  onPopupShowing: function(event) {
+    //alert("onPopupShowing: " + document.getBindingParent(event.originalTarget));
+  },
+
+  onCommandUnstoreButton: function(event) {
+    //alert("onCommandUnstoreButton: " + document.getBindingParent(event.target));
+    //if (this._list.selectedItem && this._list.selectedItem.source)
+    //  this._list.selectedItem.source.unstore();
+    //this._panel.hidePopup();
+    if (this._panelItem && this._panelItem.source && this._panelItem.source.id) {
+      this._panelItem.source.unstore();
+      this._panel.hidePopup();
+    }
+  },
+
+  onSourceUnstored: function(sourceID) {
+    //this._log.info("onSourceUnstored: " + sourceID);
+
+    let startIndex = this._list.getIndexOfItem(this._subscriptionsHeader) + 1;
+    for (let i = startIndex; i < this._list.itemCount; i++) {
       let item = this._list.getItemAtIndex(i);
       if (item.source && item.source.id == sourceID) {
+        // Instead of removing the source from the list, merely mark it
+        // as unsubscribed so the user can undo the unsubscription by clicking
+        // the star button again.
+        //item.setAttribute("subscription", false);
         let selected = item.selected;
         this._list.removeItemAt(i);
         if (selected) {
@@ -1004,6 +1064,7 @@ let Sources = {
       for each (let otherTabFeed in otherTabFeeds.sort(sortFeedInfos)) {
         let feed = new SnowlFeed(null, otherTabFeed.title, new URI(otherTabFeed.href), undefined, null);
         let item = this._list.appendItem(otherTabFeed.title);
+        item.searchLabel = otherTabFeed.title;
         item.source = feed;
         item.className = "source";
       }
@@ -1014,12 +1075,14 @@ let Sources = {
     item.setAttribute("label", "Subscriptions");
     item.className = "header";
     this._list.appendChild(item);
+    this._subscriptionsHeader = item;
 
     let sortSources = function(a, b) a.name.toLowerCase() < b.name.toLowerCase() ? -1 :
                                      a.name.toLowerCase() > b.name.toLowerCase() ?  1 : 0;
     for each (let source in SnowlService.sources.sort(sortSources)) {
       //let item = document.createElement("richlistitem");
       let item = this._list.appendItem(source.name);
+      item.searchLabel = source.name;
       item.source = source;
       item.setAttribute("subscription", "true");
       item.className = "source";
