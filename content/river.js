@@ -695,10 +695,17 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
 
     // Build the box for each message and add it to the view.
+    let first = new Date();
     for each (let message in this._collection) {
+      let before = new Date();
       let messageBox = this._buildMessageBox(message);
       this._contentBox.appendChild(messageBox);
-      Sync.sleep(this._rebuildViewTimeout);
+      let after = new Date();
+      let timeout = this._rebuildViewTimeout;
+      this._log.trace("last: " + (after - before) + "ms; " +
+                      "total: " + (after - first) + "ms; " +
+                      "timeout: " + timeout + "ms");
+      Sync.sleep(timeout);
 
       // Stop rebuilding if another rebuild started while we were sleeping.
       if (this._rebuildID != rebuildID) {
