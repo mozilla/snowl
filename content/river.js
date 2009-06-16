@@ -808,7 +808,7 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     if (message.subject)
       messageBox.appendChild(title);
     messageBox.appendChild(excerpt);
-    if (this.body)
+    if (body)
       messageBox.appendChild(body);
     messageBox.appendChild(bylineBox);
 
