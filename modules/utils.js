@@ -617,12 +617,16 @@ let SnowlUtils = {
     let canonicalFeeds = feeds.concat();
 
     if (canonicalFeeds.length == 1) {
+      this._log.trace("canonicalizeFeeds: one feed");
+
       // If the page title is available, name the feed after the page,
       // as the page's title is likely to be better than the feed title.
       if (pageTitle)
         canonicalFeeds[0].title = pageTitle;
     }
     else if (canonicalFeeds.length == 2) {
+      this._log.trace("canonicalizeFeeds: two feeds");
+
       // If the two feeds appear to be duplicates (i.e. one RSS, the other
       // Atom), then remove one.  We remove the RSS feed by default, assuming
       // that the Atom feed is better because Atom is better specified, but we
@@ -631,6 +635,8 @@ let SnowlUtils = {
       let areDupes = function(a, b) (/atom/i.test(a) && /rss/i.test(b)) ||
                                     (/atom/i.test(b) && /rss/i.test(a));
       if (areDupes(canonicalFeeds[0].title, canonicalFeeds[1].title)) {
+        this._log.trace("canonicalizeFeeds: the two feeds are dupes");
+
         // This code is overly complicated (filtering to an array, extracting
         // its first element, and then putting that into another array)
         // to ensure we always reduce the array to a single element even if
@@ -646,9 +652,12 @@ let SnowlUtils = {
       if (pageTitle)
         canonicalFeeds[0].title = pageTitle;
     }
+    else {
+      this._log.trace("canonicalizeFeeds: more than two feeds");
 
-    // If there are more than two feeds, we don't currently do anything.
-    // Perhaps there are things we could do?  Use cases would be handy.
+      // If there are more than two feeds, we don't currently do anything.
+      // Perhaps there are things we could do?  Use cases would be handy.
+    }
 
     return canonicalFeeds;
   },
