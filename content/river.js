@@ -1116,7 +1116,7 @@ dump("onMessageAdded: " + message + "\n");
                        " (" + feedToSelect.id + ") is the same as source " +
                        source.name + " (" + source.id + ")");
         if (feedToSelect.id == source.id) {
-          this._log.info("selecting feed " + feedToSelect + " with " + feedToSelect.messages.length + " messages");
+          this._log.info("selecting feed " + feedToSelect);
           // Gross hack: make sure the newly-subscribed feed has messages.
           // FIXME: figure out why it doesn't have messages after we first
           // subscribe to it.
