@@ -895,7 +895,8 @@ let Sources = {
     let source = this._list.selectedItem.source;
     this._log.info("selected " + source.name + " with ID " + source.id);
 
-    if (!source.messages) {
+    let messages = source.messages;
+    if (!messages) {
       if (source.id) {
         let constraints = [];
   
@@ -920,15 +921,18 @@ let Sources = {
   
         // XXX replace this with a SnowlSource::retrieve method that handles
         // constraints (and ultimately multiple source IDs)?
-        source.messages = new Collection2({ constraints: constraints,
-                                                  order: "messages.id DESC" });
+        messages = new Collection2({ constraints: constraints,
+                                     order: "messages.id DESC" });
       }
       else {
+        // This source is not stored, but we haven't retrieved its messages yet,
+        // so retrieve them now.
         source.refresh();
+        messages = source.messages;
       }
     }
 
-    SnowlMessageView._collection = source.messages;
+    SnowlMessageView._collection = messages;
     SnowlMessageView._rebuildView();
   },
 
