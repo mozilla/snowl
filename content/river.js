@@ -921,8 +921,8 @@ let Sources = {
   
         // XXX replace this with a SnowlSource::retrieve method that handles
         // constraints (and ultimately multiple source IDs)?
-        messages = new Collection2({ constraints: constraints,
-                                     order: "messages.id DESC" });
+        messages = new StorageCollection({ constraints: constraints,
+                                           order: "messages.id DESC" });
       }
       else {
         // This source is not stored, but we haven't retrieved its messages yet,

@@ -27,7 +27,7 @@ function run_test() {
 
 function continue_test() {
   feed.persist();
-  let collection = new Collection2();
+  let collection = new StorageCollection();
 
   for each (let message in collection) {
     do_check_eq(message.id.constructor.name, "Number");

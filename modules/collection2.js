@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["Collection2"];
+let EXPORTED_SYMBOLS = ["StorageCollection"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -66,11 +66,11 @@ Cu.import("resource://snowl/modules/utils.js");
  * will retrieve messages without blocking execution of events on the same
  * thread, although the call will appear synchronous to the caller.
  *
- *   let collection = new Collection2();
+ *   let collection = new StorageCollection();
  *   for each (let message in collection)
  *     dump("retrieved message " + message.id + "\n");
  */
-function Collection2(args) {
+function StorageCollection(args) {
   // Extract values from arguments and assign them to member properties.
   this.constraints = "constraints" in args ? args.constraints : [];
   if ("order" in args) this.order = args.order;
@@ -80,7 +80,7 @@ function Collection2(args) {
   Sync(this.execute, this)();
 }
 
-Collection2.prototype = {
+StorageCollection.prototype = {
   //**************************************************************************//
   // Properties
 
@@ -110,7 +110,7 @@ Collection2.prototype = {
   // Shortcuts
 
   get _log() {
-    let log = Log4Moz.repository.getLogger("Snowl.Collection2");
+    let log = Log4Moz.repository.getLogger("Snowl.StorageCollection");
     this.__defineGetter__("_log", function() log);
     return this._log;
   },
@@ -230,7 +230,7 @@ Collection2.prototype = {
    * An iterator across the messages in the collection.  Allows callers
    * to iterate messages via |for each... in|, i.e.:
    *
-   *   let collection = new Collection2();
+   *   let collection = new StorageCollection();
    *   for each (let message in collection) ...
    */
   __iterator__: function(wantKeys) {
