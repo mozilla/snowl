@@ -86,12 +86,19 @@ Collection2.prototype = {
 
   /**
    * An array of Constraint objects with expression and parameters properties
-   * that let you constrain the messages returned by the datastore, f.e.:
+   * that let you constrain the messages returned by the datastore.  Constraint
+   * objects have name, operator, value, and [optional] parameter properties.
+   * Here's an example Constraint object:
    *
-   *   [ { expression: "messages.timestamp > :timestamp",
-   *       parameters: { name: "timestamp", value: 2454985 } } ]
-   *
-   * Constraint.parameters is optional.
+   *   {
+   *     name: "received",
+   *     operator: ">",
+   *     value: :timestamp,
+   *     parameters: {
+   *       name: timestamp,
+   *       value: 2454985
+   *     }
+   *   }
    */
   constraints: null,
 
@@ -192,7 +199,7 @@ Collection2.prototype = {
 
     let conditions = [];
     for each (let constraint in this.constraints)
-      conditions.push(constraint.expression);
+      conditions.push(constraint.name + " " + constraint.operator + " " + constraint.value);
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");

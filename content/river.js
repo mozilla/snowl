@@ -899,20 +899,24 @@ let Sources = {
       if (source.id) {
         let constraints = [];
   
-        constraints.push({ expression: "sources.id = " + source.id });
+        constraints.push({ name: "sources.id",
+                           operator: "=",
+                           value: source.id });
   
         // FIXME: use a left join here once the SQLite bug breaking left joins to
         // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-        if (SnowlMessageView._filter.value) {
-          constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-                             parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
-        }
+        // FIXME: reimplement this using the new non-storage-specific collections model.
+        //if (SnowlMessageView._filter.value) {
+        //  constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
+        //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
+        //}
   
-        if (SnowlMessageView._periodMenu.selectedItem) {
-          constraints.push({ expression: "received >= :startTime AND received < :endTime",
-                             parameters: { startTime: SnowlMessageView._periodStartTime,
-                                             endTime: SnowlMessageView._periodEndTime } });
-        }
+        // FIXME: reimplement this using the new non-storage-specific collections model.
+        //if (SnowlMessageView._periodMenu.selectedItem) {
+        //  constraints.push({ expression: "received >= :startTime AND received < :endTime",
+        //                     parameters: { startTime: SnowlMessageView._periodStartTime,
+        //                                     endTime: SnowlMessageView._periodEndTime } });
+        //}
   
         // XXX replace this with a SnowlSource::retrieve method that handles
         // constraints (and ultimately multiple source IDs)?
