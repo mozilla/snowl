@@ -144,6 +144,19 @@ StorageCollection.prototype = {
   },
 
 
+  //**************************************************************************//
+  // Statement Generation
+
+  // JS to SQL property name lookup table
+  _properties: {
+    "source.id" : "sources.id"
+  },
+
+  // JS to SQL operator lookup table
+  _operators: {
+    "==" : "="
+  },
+
   get _statement() {
     let columns = [
       "messages.id AS messageID",
@@ -198,8 +211,13 @@ StorageCollection.prototype = {
       "";
 
     let conditions = [];
-    for each (let constraint in this.constraints)
-      conditions.push(constraint.name + " " + constraint.operator + " " + constraint.value);
+    for each (let { name: name, operator: operator, value: value } in this.constraints) {
+      conditions.push(
+        (name in this._properties ? this._properties[name] : name) +
+        (operator in this._operators ? this._operators[operator] : operator) +
+        value
+      );
+    }
 
     if (conditions.length > 0)
       query += " WHERE " + conditions.join(" AND ");

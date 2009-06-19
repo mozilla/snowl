@@ -900,10 +900,10 @@ let Sources = {
       if (source.id) {
         let constraints = [];
   
-        constraints.push({ name: "sources.id",
-                           operator: "=",
+        constraints.push({ name: "source.id",
+                           operator: "==",
                            value: source.id });
-  
+
         // FIXME: use a left join here once the SQLite bug breaking left joins to
         // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
         // FIXME: reimplement this using the new non-storage-specific collections model.
