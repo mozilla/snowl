@@ -34,7 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-let EXPORTED_SYMBOLS = ["StorageCollection"];
+let EXPORTED_SYMBOLS = ["StorageCollection", "MessageCollection"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -302,6 +302,43 @@ StorageCollection.prototype = {
         summary:    summary
       });
 
+      yield message;
+    }
+  }
+
+};
+
+
+
+function MessageCollection(args) {
+  // Extract values from arguments and assign them to member properties.
+  this.constraints = "constraints" in args ? args.constraints : [];
+  this._messages = "messages" in args ? args.messages : [];
+}
+
+MessageCollection.prototype = {
+  constraints: null,
+
+  get _log() {
+    let log = Log4Moz.repository.getLogger("Snowl.MessageCollection");
+    this.__defineGetter__("_log", function() log);
+    return this._log;
+  },
+
+  /**
+   * An iterator across the messages in the collection.  Allows callers
+   * to iterate messages via |for each... in|, i.e.:
+   *
+   *   let collection = new MessageCollection();
+   *   for each (let message in collection) ...
+   */
+  __iterator__: function(wantKeys) {
+    MESSAGES: for each (let message in this._messages) {
+      for each (let { name: name, operator: operator, value: value } in this.constraints) {
+        with (message)
+          if (!eval(name + operator + value))
+            continue MESSAGES;
+      }
       yield message;
     }
   }

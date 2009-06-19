@@ -895,44 +895,38 @@ let Sources = {
     let source = this._list.selectedItem.source;
     this._log.info("selected " + source.name + " with ID " + source.id);
 
-    let messages = source.messages;
-    if (!messages) {
-      if (source.id) {
-        let constraints = [];
-  
-        constraints.push({ name: "source.id",
-                           operator: "==",
-                           value: source.id });
+    let constraints = [];
 
-        // FIXME: use a left join here once the SQLite bug breaking left joins to
-        // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-        // FIXME: reimplement this using the new non-storage-specific collections model.
-        //if (SnowlMessageView._filter.value) {
-        //  constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-        //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
-        //}
-  
-        // FIXME: reimplement this using the new non-storage-specific collections model.
-        //if (SnowlMessageView._periodMenu.selectedItem) {
-        //  constraints.push({ expression: "received >= :startTime AND received < :endTime",
-        //                     parameters: { startTime: SnowlMessageView._periodStartTime,
-        //                                     endTime: SnowlMessageView._periodEndTime } });
-        //}
-  
-        // XXX replace this with a SnowlSource::retrieve method that handles
-        // constraints (and ultimately multiple source IDs)?
-        messages = new StorageCollection({ constraints: constraints,
+    constraints.push({ name: "source.id", operator: "==", value: source.id });
+
+    // FIXME: use a left join here once the SQLite bug breaking left joins to
+    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+    // FIXME: reimplement this using the new non-storage-specific collections model.
+    //if (SnowlMessageView._filter.value) {
+    //  constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
+    //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
+    //}
+
+    // FIXME: reimplement this using the new non-storage-specific collections model.
+    //if (SnowlMessageView._periodMenu.selectedItem) {
+    //  constraints.push({ expression: "received >= :startTime AND received < :endTime",
+    //                     parameters: { startTime: SnowlMessageView._periodStartTime,
+    //                                     endTime: SnowlMessageView._periodEndTime } });
+    //}
+
+    let collection;
+    if (source.id) {
+      collection = new StorageCollection({ constraints: constraints,
                                            order: "messages.id DESC" });
-      }
-      else {
-        // This source is not stored, but we haven't retrieved its messages yet,
-        // so retrieve them now.
+    }
+    else {
+      if (!source.messages)
         source.refresh();
-        messages = source.messages;
-      }
+      collection = new MessageCollection({ constraints: constraints,
+                                           messages: source.messages });
     }
 
-    SnowlMessageView._collection = messages;
+    SnowlMessageView._collection = collection;
     SnowlMessageView._rebuildView();
   },
 
