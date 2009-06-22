@@ -1,4 +1,4 @@
-<!-- Search button options items -->
+<!-- Search button options items
 <!ENTITY searchButtonTooltip.label          "Select a Snowl view and message search categories to activate.">
 <!ENTITY searchClearButtonTooltip.label     "Clear">
 <!ENTITY searchListTooltip.label            "Search List messages by selected categories.  Collections or River will be deselected.">
@@ -15,3 +15,9 @@
 <!ENTITY searchCollections.label            "Collections">
 <!ENTITY searchMessageRiver.label           "Message River">
 <!ENTITY searchMessageStream.label          "Message Stream">
+ -->
+
+<!ENTITY searchMessages.label               "Messages">
+<!ENTITY searchCollections.label            "Collections">
+
+<!ENTITY listSearch.emptytext               "Messages or Collections">

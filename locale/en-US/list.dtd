@@ -9,5 +9,3 @@
 <!ENTITY openListMessage.accesskey    "O">
 <!ENTITY deleteMessages.label         "Delete Selected Messages">
 <!ENTITY deleteMessages.accesskey     "D">
-
-<!ENTITY listSearch.emptytext         "Search Messages">

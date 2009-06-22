@@ -44,15 +44,16 @@
 <?xul-overlay    href="chrome://global/content/editMenuOverlay.xul"?>
 <?xul-overlay    href="chrome://browser/content/places/placesOverlay.xul"?>
 
+<?xml-stylesheet href="chrome://snowl/content/toolbarbutton.css" type="text/css"?>
 <?xul-overlay    href="chrome://snowl/content/write.xul"?>
 
 <!-- toolbar.dtd gives us writeButton.tooltip. -->
 <!DOCTYPE page [
-  <!ENTITY % listDTD SYSTEM "chrome://snowl/locale/list.dtd">
+  <!ENTITY % listDTD        SYSTEM "chrome://snowl/locale/list.dtd">
   %listDTD;
   <!ENTITY % collectionsDTD SYSTEM "chrome://snowl/locale/collections.dtd">
   %collectionsDTD;
-  <!ENTITY % toolbarDTD SYSTEM "chrome://snowl/locale/toolbar.dtd">
+  <!ENTITY % toolbarDTD     SYSTEM "chrome://snowl/locale/toolbar.dtd">
   %toolbarDTD;
 ]>
 
@@ -82,7 +83,10 @@
       <textbox id="snowlFilter"
                flex="1"
                type="search"
-               emptytext="&listSearch.emptytext;"
+               emptytext=""
+               messages="true"
+               collections=""
+               persist="messages collections"
                oncommand="CollectionsView.onSearch(this.value)"/>
     </toolbaritem>
     <toolbarspring/>

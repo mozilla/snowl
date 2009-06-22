@@ -23,3 +23,5 @@
 <!ENTITY viewAuthors.label            "Authors">
 <!ENTITY search.label                 "Search:">
 <!ENTITY search.accesskey             "S">
+<!ENTITY searchMessages.label         "Messages">
+<!ENTITY searchCollections.label      "Collections">

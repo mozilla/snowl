@@ -34,6 +34,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#snowlListToolbar {
+  border: 0px;
+}
+
 #sourcesView {
   -moz-binding: url(chrome://snowl/content/snowlTree.xml#tree);
 }

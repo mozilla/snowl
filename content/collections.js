@@ -72,6 +72,11 @@ let CollectionsView = {
     return this._children = document.getElementById("sourcesViewTreeChildren");
   },
 
+  get _searchFilter() {
+    delete this._searchFilter;
+    return this._searchFilter = document.getElementById("snowlFilter");
+  },
+
   get _collectionsViewMenu() {
     delete this._collectionsViewMenu;
     return this._collectionsViewMenu = document.getElementById("collectionsViewMenu");
@@ -370,16 +375,34 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   onSearch: function(aValue) {
+    let searchMsgs = this._searchFilter.getAttribute("messages") == "true";
+    let searchCols = this._searchFilter.getAttribute("collections") == "true";
     this.Filters["searchterms"] = aValue ? aValue : null;
 
-    if (this.itemIds == -1 && !aValue)
-      // If no selection and clearing searchbox, clear list (don't select 'All').
-      gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
-    else
-      // Search selected or 'All Messages' if no explicit selection.
-      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
-//    if (!aValue)
-//      this._tree.place = this._tree.place;
+    if (aValue) {
+      if (searchCols)
+        // Search collections.
+        this.searchCollections(aValue);
+      if (searchMsgs)
+        // Search selected or 'All Messages' if no explicit selection.
+        gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+    }
+    else {
+      if (searchMsgs) {
+        if (this.itemIds == -1)
+          // If no selection and clearing searchbox, clear list (don't select 'All').
+          gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+        else
+          // Re-select the selected collections.
+          gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+      }
+      if (searchCols){
+        // Reset the collections tree.
+        this._tree.place = this._tree.place;
+        this.noSelect = true;
+        this._tree.restoreSelection();
+      }
+    }
   },
 
   onCommandUnreadButton: function(aEvent) {

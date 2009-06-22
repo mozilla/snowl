@@ -51,6 +51,18 @@
   opacity: .4;
 }
 
+/* Messages and collections searchbar button */
+#snowlFilter .textbox-search-icons {
+  -moz-binding: url(chrome://snowl/content/snowlSearch.xml#searchBarButtons);
+}
+
+#snowlListViewSearchButton {
+  margin: 0px;
+  border: 0px;
+  padding: 0px;
+  cursor: default;
+}
+
 #snowlSubscribeButton {
   list-style-image: url("chrome://snowl/content/icons/add.png");
 }

@@ -1,2 +1,8 @@
 /* Toolbar buttons on Windows and Linux use -moz-appearance: toolbarbutton,
  * which styles them just fine, so they don't need anything special here. */
+
+/* Messages and collections searchbar button dropmarker */
+#snowlListViewSearchButton .searchbar-dropmarker-image {
+  -moz-margin-start: 13px;
+  list-style-image: url("chrome://messenger/skin/icons/search-arrow.png");
+}

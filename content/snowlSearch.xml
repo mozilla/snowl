@@ -1,5 +1,48 @@
 <?xml version="1.0"?>
 
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is the Mozilla browser.
+   -
+   - The Initial Developer of the Original Code is Mozilla.
+   - Portions created by the Initial Developer are Copyright (C) 2007
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   alta88 <alta88@gmail.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the LGPL or the GPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE bindings [
+  <!ENTITY % globalDTD  SYSTEM "chrome://global/locale/global.dtd">
+   %globalDTD;
+   <!ENTITY % searchDTD SYSTEM "chrome://snowl/locale/collections.dtd">
+   %searchDTD;
+]>
+
 <bindings id="snowlSearchBindings"
           xmlns="http://www.mozilla.org/xbl"
           xmlns:xbl="http://www.mozilla.org/xbl"
@@ -92,6 +135,133 @@
         ]]></body>
       </method>
 
+    </implementation>
+  </binding>
+
+  <!-- Binding attached to #snowlFilter buttons <deck> -->
+  <binding id="searchBarButtons"
+           extends="chrome://global/content/bindings/general.xml#deck">
+    <content>
+      <xul:toolbarbutton id="snowlListViewSearchButton"
+                         class="tabbable"
+                         chromedir="&locale.dir;"
+                         context=""
+                         xbl:inherits="disabled"
+                         oncommand="document.getBindingParent(this).openSearchPopup(event);">
+        <xul:menupopup id="message-search-popup">
+          <xul:menuitem id="searchMessagesMenuitem"
+                        label="&searchMessages.label;"
+                        type="checkbox"
+                        value="messages"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuitem id="searchCollectionsMenuitem"
+                        label="&searchCollections.label;"
+                        type="checkbox"
+                        value="collections"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+        </xul:menupopup>
+        <xul:stack flex="1">
+          <xul:hbox align="center">
+            <xul:image class="textbox-search-icon" xbl:inherits="src"/>
+          </xul:hbox>
+          <xul:hbox align="center">
+            <xul:image class="searchbar-dropmarker-image"/>
+          </xul:hbox>
+        </xul:stack>
+      </xul:toolbarbutton>
+
+      <xul:image class="textbox-search-clear"
+                 onclick="searchFilter._clearSearch();"
+                 xbl:inherits="disabled"
+                 chromedir="&locale.dir;"/>
+      <!-- Can't exclude/override nodes via xbl, so leave these beyond the deck's index -->
+      <children/>
+    </content>
+
+    <implementation>
+      <constructor><![CDATA[
+        // Set checkstate of menupopup items.
+        if (this.searchMessages)
+          document.getElementById("searchMessagesMenuitem").
+                   setAttribute('checked', true);
+        if (this.searchCollections)
+          document.getElementById("searchCollectionsMenuitem").
+                   setAttribute('checked', true);
+
+        // Need to create string bundle manually instead of using <xul:stringbundle/>
+        // see bug 63370 for details (per other workarounds).
+        var bundleURL = "chrome://snowl/locale/search.properties";
+        var appLocale = Cc["@mozilla.org/intl/nslocaleservice;1"].
+                        getService(Ci.nsILocaleService).
+                        getApplicationLocale();
+        this._strings = Cc["@mozilla.org/intl/stringbundle;1"].
+                        getService(Ci.nsIStringBundleService).
+                        createBundle(bundleURL, appLocale);
+
+        this.setEmptyText();
+      ]]></constructor>
+
+      <field name="searchFilter">document.getElementById("snowlFilter");</field>
+
+      <field name="_strings">null</field>
+
+      <field name="_searchFilterEmptytext" readonly="true"><![CDATA[({
+        0: this._strings.GetStringFromName("searchNoneEmptyText"),
+        1: this._strings.GetStringFromName("searchMessagesEmptyText"),
+        2: this._strings.GetStringFromName("searchCollectionsEmptyText"),
+        3: this._strings.GetStringFromName("searchAllEmptyText")
+      })]]></field>
+
+      <property name="searchMessages"
+                onget="let sm = this.searchFilter.getAttribute('messages');
+                       return sm == 'true' ? true : false;"
+                onset="this.searchFilter.setAttribute('messages', val);
+                       document.persist('searchFilter', 'messages');
+                       return val;">
+      </property>
+
+      <property name="searchCollections"
+                onget="let sc = this.searchFilter.getAttribute('collections');
+                       return sc == 'true' ? true : false;"
+                onset="this.searchFilter.setAttribute('collections', val);
+                       document.persist('searchFilter', 'collections');
+                       return val;">
+      </property>
+
+      <method name="itemChecked">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          if (aEvent.target.value == "messages")
+            this.searchMessages = aEvent.target.hasAttribute("checked");
+          if (aEvent.target.value == "collections")
+            this.searchCollections = aEvent.target.hasAttribute("checked");
+          this.setEmptyText();
+        ]]></body>
+      </method>
+
+      <method name="openSearchPopup">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          aEvent.stopPropagation();
+          let mpopup = document.getElementById("message-search-popup");
+          mpopup.openPopup(aEvent.target, "after_start");
+        ]]></body>
+      </method>
+
+      <method name="setEmptyText">
+        <body><![CDATA[
+          let index = 0;
+          index = this.searchMessages ? index + 1 : index;
+          index = this.searchCollections ? index + 2 : index;
+          this.searchFilter.setAttribute("emptytext",
+                                         this._searchFilterEmptytext[index]);
+          let input = document.getAnonymousElementByAttribute(this.searchFilter,
+                                                              "anonid",
+                                                              "input");
+          input.focus();
+          input.blur();
+        ]]></body>
+      </method>
     </implementation>
   </binding>
 
