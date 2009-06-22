@@ -223,8 +223,14 @@ let SnowlMessageView = {
   onMessageAdded: function(message) {
     // Refresh list view on each new message, if collection selected.
 //this._log.info("onMessageAdded: REFRESH LIST");
-    this._collection.messages.push(message);
-    this._rebuildView();
+    if (this.Filters["searchterms"] &&
+        this.CollectionsView._searchFilter.getAttribute("messages") == "true")
+      // If in message search, redo the search in case a new message matches.
+      this._applyFilters();
+    else {
+      this._collection.messages.push(message);
+      this._rebuildView();
+    }
   },
 
   onFilter: function(aFilters) {
