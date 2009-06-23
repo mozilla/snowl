@@ -247,6 +247,35 @@ let SnowlDateUtils = {
   },
 
   /**
+   * Format a date for display as a day (Today, Yesterday, 2009/06/13, etc.).
+   * @param date {Date} the date to format
+   * @returns a human-readable string representing the date
+   */
+  formatDay: function(date) {
+    if (!date)
+      return strings.get("unknownDate");
+
+    let day = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    let now = new Date();
+    let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    let yesterday = this.yesterday;
+
+    if (day.getTime() == today.getTime())
+      // FIXME: localize it.
+      return strings.get("today");
+
+    if (day.getTime() == yesterday.getTime())
+      return strings.get("yesterday");
+
+    // FIXME: pass in the locale.
+    return this._dfSvc.FormatDate("",
+                                  Ci.nsIScriptableDateFormat.dateFormatShort,
+                                  day.getFullYear(),
+                                  day.getMonth() + 1,
+                                  day.getDate());
+  },
+
+  /**
    * Formats a date for human consumption using the date formatting service
    * for locale-specific formatting along with some additional smarts for more
    * human-readable representations of recent dates.

@@ -103,6 +103,12 @@
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
 
+        <button id="decrementPeriodButton" label="&lt;"
+                oncommand="SnowlMessageView.onDecrementPeriod()"/>
+        <label id="periodLabel"/>
+        <button id="incrementPeriodButton" label="&gt;"
+                oncommand="SnowlMessageView.onIncrementPeriod()"/>
+
         <menulist id="periodMenu"
                   selectedindex=""
                   persist="selectedindex"

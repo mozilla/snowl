@@ -162,6 +162,11 @@ let SnowlMessageView = {
     return this._periodMenuPopup = document.getElementById("periodMenuPopup");
   },
 
+  get _periodLabel() {
+    delete this._periodLabel;
+    return this._periodLabel = document.getElementById("periodLabel");
+  },
+
   get _periodStartTime() {
     if (!this._periodMenu.selectedItem)
       return 0;
@@ -300,6 +305,10 @@ let SnowlMessageView = {
 
     // Init list with empty collection.
     //this._collection = new SnowlCollection();
+
+    // Set the period to today.
+    // FIXME: move this into _updateToolbar.
+    this._updatePeriod(new Date());
 
     // _updateToolbar selects a collection, which triggers a view rebuild,
     // so we don't have to call rebuildView here.  This is pretty convoluted,
@@ -540,6 +549,21 @@ let SnowlMessageView = {
     updateURI();
   },
 
+  onDecrementPeriod: function(event) {
+    this._updatePeriod(new Date(this._periodLabel.startTime - 1));
+  },
+
+  onIncrementPeriod: function(event) {
+    this._updatePeriod(new Date(this._periodLabel.endTime + 1));
+  },
+
+  _updatePeriod: function(date) {
+    [this._periodLabel.startTime, this._periodLabel.endTime] =
+      SnowlDateUtils.getDayBounds(date);
+    this._periodLabel.setAttribute("value", SnowlDateUtils.formatDay(date));
+    this.rebuild();
+  },
+
 
   //**************************************************************************//
   // Event & Notification Handlers
@@ -680,6 +704,8 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // Get the selected collection.
     let constraints = [];
     this._collection = Sources.getCollection(constraints);
+    if (!this._collection)
+      throw "can't rebuild view; no collection";
 
     // Apply constraints to the messages in the selection.
 
@@ -691,11 +717,8 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
     //}
 
-    // Limit results to today.
-    // FIXME: let the user pick which day to limit results to.
-    let [startTime, endTime] = SnowlDateUtils.getDayBounds(new Date());
-    constraints.push({ name: "received", operator: ">=", value: startTime });
-    constraints.push({ name: "received", operator: "<=", value: endTime });
+    constraints.push({ name: "received", operator: ">=", value: this._periodLabel.startTime });
+    constraints.push({ name: "received", operator: "<=", value: this._periodLabel.endTime });
 
     // Rebuild the view based on the constrained collection.
     this._rebuildView();
@@ -937,7 +960,10 @@ let Sources = {
 
     let item = this._list.selectedItem;
 
-    if (item.collection) {
+    if (!item) {
+      this._log.info("can't get collection; no item selected");
+    }
+    else if (item.collection) {
       collection = item.collection;
       collection.constraints = constraints;
     }
@@ -953,8 +979,9 @@ let Sources = {
                                              messages: source.messages });
       }
     }
-    else
-      throw "don't know how to get collection for item";
+    else {
+      this._log.error("can't get collection; don't know how for selected item");
+    }
 
     return collection;
   },
