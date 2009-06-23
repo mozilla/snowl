@@ -892,12 +892,14 @@ let Sources = {
   },
 
   onSelect: function(event) {
-    let source = this._list.selectedItem.source;
-    this._log.info("selected " + source.name + " with ID " + source.id);
+    let item = this._list.selectedItem;
+
+    this._log.info("selected item " + item.label +
+                   (item.source ? " with source " +
+                                  (item.source.id ? item.source.id : "")
+                                : ""));
 
     let constraints = [];
-
-    constraints.push({ name: "source.id", operator: "==", value: source.id });
 
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
@@ -915,16 +917,25 @@ let Sources = {
     //}
 
     let collection;
-    if (source.id) {
-      collection = new StorageCollection({ constraints: constraints,
-                                           order: "messages.id DESC" });
+
+    if (item.collection) {
+      collection = item.collection;
+      collection.constraints = constraints;
     }
-    else {
-      if (!source.messages)
-        source.refresh();
-      collection = new MessageCollection({ constraints: constraints,
-                                           messages: source.messages });
+    else if (item.source) {
+      if (item.source.id) {
+        constraints.push({ name: "source.id", operator: "==", value: item.source.id });
+        collection = new StorageCollection({ constraints: constraints });
+      }
+      else {
+        if (!source.messages)
+          source.refresh();
+        collection = new MessageCollection({ constraints: constraints,
+                                             messages: source.messages });
+      }
     }
+    else
+      throw "don't know how to get collection for item";
 
     SnowlMessageView._collection = collection;
     SnowlMessageView._rebuildView();
@@ -1101,7 +1112,10 @@ dump("onMessageAdded: " + message + "\n");
     let item = document.createElementNS(XUL_NS, "richlistitem");
     // FIXME: make this localizable.
     item.setAttribute("label", "Subscriptions");
+    // FIXME: make this localizable.
+    item.searchLabel = "Subscriptions";
     item.className = "header";
+    item.collection = new StorageCollection();
     this._list.appendChild(item);
     this._subscriptionsHeader = item;
 
