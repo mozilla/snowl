@@ -676,6 +676,31 @@ this._log.info("onMessageAdded: REFRESH RIVER");
   //**************************************************************************//
   // Content Generation
 
+  rebuild: function() {
+    // Get the selected collection.
+    let constraints = [];
+    this._collection = Sources.getCollection(constraints);
+
+    // Apply constraints to the messages in the selection.
+
+    // FIXME: use a left join here once the SQLite bug breaking left joins to
+    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+    // FIXME: reimplement this using the new non-storage-specific collections model.
+    //if (SnowlMessageView._filter.value) {
+    //  constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
+    //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
+    //}
+
+    // Limit results to today.
+    // FIXME: let the user pick which day to limit results to.
+    let [startTime, endTime] = SnowlDateUtils.getDayBounds(new Date());
+    constraints.push({ name: "received", operator: ">=", value: startTime });
+    constraints.push({ name: "received", operator: "<=", value: endTime });
+
+    // Rebuild the view based on the constrained collection.
+    this._rebuildView();
+  },
+
   // The ID of the most recently started rebuild.  _rebuildView uses this
   // to stop rebuilds when new ones start.
   _rebuildID: null,
@@ -899,23 +924,18 @@ let Sources = {
                                   (item.source.id ? item.source.id : "")
                                 : ""));
 
-    let constraints = [];
+    SnowlMessageView.rebuild();
+  },
 
-    // FIXME: use a left join here once the SQLite bug breaking left joins to
-    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
-    // FIXME: reimplement this using the new non-storage-specific collections model.
-    //if (SnowlMessageView._filter.value) {
-    //  constraints.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
-    //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
-    //}
-
-    // Limit results to today.
-    // FIXME: let the user pick which day to limit results to.
-    let [startTime, endTime] = SnowlDateUtils.getDayBounds(new Date());
-    constraints.push({ name: "received", operator: ">=", value: startTime });
-    constraints.push({ name: "received", operator: "<=", value: endTime });
-
+  /**
+   * Get the collection of messages for the currently selected source.
+   *
+   * FIXME: figure out how to disentangle constraints from the collection.
+   */
+  getCollection: function(constraints) {
     let collection;
+
+    let item = this._list.selectedItem;
 
     if (item.collection) {
       collection = item.collection;
@@ -936,8 +956,7 @@ let Sources = {
     else
       throw "don't know how to get collection for item";
 
-    SnowlMessageView._collection = collection;
-    SnowlMessageView._rebuildView();
+    return collection;
   },
 
   onClickStarButton: function(event) {
