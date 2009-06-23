@@ -261,7 +261,6 @@ SnowlMessage.prototype = {
       "subject = :subject, " +
       "authorID = :authorID, " +
       "timestamp = :timestamp, " +
-      "received = :received, " +
       "link = :link, " +
       // FIXME: persist message.current.
       //"current = :current, " +
@@ -319,6 +318,7 @@ SnowlMessage.prototype = {
     }
     else {
       statement = this._insertMessageStmt;
+      statement.params.received = SnowlDateUtils.jsToJulianDate(this.received);
     }
 
     // Set params that are common to both types of queries.
@@ -327,7 +327,6 @@ SnowlMessage.prototype = {
     statement.params.subject    = this.subject;
     statement.params.authorID   = this.author ? this.author.id : null;
     statement.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
-    statement.params.received   = SnowlDateUtils.jsToJulianDate(this.received);
     statement.params.link       = this.link ? this.link.spec : null;
     // FIXME: persist message.current.
     //statement.params.current    = this.current;
