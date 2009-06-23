@@ -87,7 +87,7 @@
   <stack flex="1" align="start" pack="end" >
   <hbox flex="1">
     <vbox flex="1">
-      <toolbar id="toolbar">
+      <toolbar id="toolbar" align="center">
         <!-- <toolbarbutton oncommand="dump(new XMLSerializer().serializeToString(document))"/> -->
 
         <toolbarbutton id="bodyButton"
@@ -103,11 +103,15 @@
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
 
-        <button id="decrementPeriodButton" label="&lt;"
-                oncommand="SnowlMessageView.onDecrementPeriod()"/>
+        <toolbarbutton id="decrementPeriodButton" label="&lt;"
+                       class="tabbable"
+                       oncommand="SnowlMessageView.onDecrementPeriod()"
+                       tooltiptext="&decrementPeriodButton.tooltip;"/>
         <label id="periodLabel"/>
-        <button id="incrementPeriodButton" label="&gt;"
-                oncommand="SnowlMessageView.onIncrementPeriod()"/>
+        <toolbarbutton id="incrementPeriodButton" label="&gt;"
+                       class="tabbable"
+                       oncommand="SnowlMessageView.onIncrementPeriod()"
+                       tooltiptext="&incrementPeriodButton.tooltip;"/>
 
         <menulist id="periodMenu"
                   selectedindex=""

@@ -260,12 +260,14 @@ let SnowlDateUtils = {
     let today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     let yesterday = this.yesterday;
 
-    if (day.getTime() == today.getTime())
-      // FIXME: localize it.
-      return strings.get("today");
-
-    if (day.getTime() == yesterday.getTime())
-      return strings.get("yesterday");
+    // Comment these out so we always return numbers, which results in
+    // a consistent width for the label that displays this in the river view.
+    // FIXME: come up with a better fix for that problem.
+    //if (day.getTime() == today.getTime())
+    //  return strings.get("today");
+    //
+    //if (day.getTime() == yesterday.getTime())
+    //  return strings.get("yesterday");
 
     // FIXME: pass in the locale.
     return this._dfSvc.FormatDate("",
