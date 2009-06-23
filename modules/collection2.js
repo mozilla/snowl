@@ -148,12 +148,18 @@ StorageCollection.prototype = {
 
   // JS to SQL property name lookup table
   _properties: {
-    "source.id" : "sources.id"
+    "source.id": "sources.id"
   },
 
   // JS to SQL operator lookup table
   _operators: {
-    "==" : "="
+    "==": "="
+  },
+
+  // JS to SQL value converters
+  _valueConverters: {
+    "timestamp": function(v) SnowlDateUtils.jsToJulianDate(v),
+    "received": function(v) SnowlDateUtils.jsToJulianDate(v)
   },
 
   get _statement() {
@@ -214,7 +220,7 @@ StorageCollection.prototype = {
       conditions.push(
         (name in this._properties ? this._properties[name] : name) +
         (operator in this._operators ? this._operators[operator] : operator) +
-        value
+        (name in this._valueConverters ? this._valueConverters[name](value) : value)
       );
     }
 

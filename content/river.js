@@ -909,12 +909,11 @@ let Sources = {
     //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
     //}
 
-    // FIXME: reimplement this using the new non-storage-specific collections model.
-    //if (SnowlMessageView._periodMenu.selectedItem) {
-    //  constraints.push({ expression: "received >= :startTime AND received < :endTime",
-    //                     parameters: { startTime: SnowlMessageView._periodStartTime,
-    //                                     endTime: SnowlMessageView._periodEndTime } });
-    //}
+    // Limit results to today.
+    // FIXME: let the user pick which day to limit results to.
+    let [startTime, endTime] = SnowlDateUtils.getDayBounds(new Date());
+    constraints.push({ name: "received", operator: ">=", value: startTime });
+    constraints.push({ name: "received", operator: "<=", value: endTime });
 
     let collection;
 
