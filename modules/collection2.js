@@ -72,12 +72,11 @@ Cu.import("resource://snowl/modules/utils.js");
  */
 function StorageCollection(args) {
   // Extract values from arguments and assign them to member properties.
-  this.constraints = "constraints" in args ? args.constraints : [];
-  if ("order" in args) this.order = args.order;
-  if ("limit" in args) this.limit = args.limit;
-
-  // Execute the query so its results are available once the constructor returns.
-  Sync(this.execute, this)();
+  if (args) {
+    this.constraints = "constraints" in args ? args.constraints : [];
+    if ("order" in args) this.order = args.order;
+    if ("limit" in args) this.limit = args.limit;
+  }
 }
 
 StorageCollection.prototype = {
@@ -102,7 +101,7 @@ StorageCollection.prototype = {
    */
   constraints: null,
 
-  order: null,
+  order: "messages.id DESC",
   limit: null,
 
 
@@ -243,6 +242,74 @@ StorageCollection.prototype = {
     return statement;
   },
 
+  _getMessage: function(row) {
+    let content;
+    if (row.getResultByName("content_id")) {
+      content = Cc["@mozilla.org/feed-textconstruct;1"].
+                createInstance(Ci.nsIFeedTextConstruct);
+      content.text = row.getResultByName("content_content");
+      content.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("content_mediaType")];
+      content.base = URI.get(row.getResultByName("content_baseURI"));
+      content.lang = row.getResultByName("content_languageTag");
+    }
+
+    let summary;
+    if (row.getResultByName("summary_id")) {
+      summary = Cc["@mozilla.org/feed-textconstruct;1"].
+                createInstance(Ci.nsIFeedTextConstruct);
+      summary.text = row.getResultByName("summary_content");
+      summary.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("summary_mediaType")];
+      summary.base = URI.get(row.getResultByName("summary_baseURI"));
+      summary.lang = row.getResultByName("summary_languageTag");
+    }
+
+    let author;
+    if (row.authorID) {
+      let person = new SnowlPerson(row.people_id,
+                                   row.people_name,
+                                   row.people_placeID,
+                                   row.people_homeURL,
+                                   row.people_iconURL);
+      let identity = new SnowlIdentity(row.identities_id,
+                                       row.identities_sourceID,
+                                       row.identities_externalID,
+                                       person);
+      author = identity;
+    }
+
+    let message = new SnowlMessage({
+      id:         row.getResultByName("messageID"),
+      source:     SnowlService.sourcesByID[row.getResultByName("sourceID")],
+      externalID: row.getResultByName("externalID"),
+      subject:    row.getResultByName("subject"),
+      author:     author,
+      timestamp:  SnowlDateUtils.julianToJSDate(row.getResultByName("timestamp")),
+      link:       row.getResultByName("link") ? URI.get(row.getResultByName("link")) : null,
+      received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
+      read:       row.getResultByName("read") ? true : false,
+      current:    row.getResultByName("current"),
+      content:    content,
+      summary:    summary
+    });
+
+    return message;
+  },
+
+  /**
+   * The messages in the collection.  Use this when you need an array
+   * of messages (f.e. for concatenating with another array).  If you just need
+   * to iterate messages, then just iterate across the collection object itself,
+   * which uses the custom iterator method below.
+   */
+  get messages() {
+    let messages = [];
+
+    Sync(this.execute, this)();
+    for each (let row in this._rows)
+      messages.push(this._getMessage(row));
+
+    return messages;
+  },
 
   /**
    * An iterator across the messages in the collection.  Allows callers
@@ -252,58 +319,9 @@ StorageCollection.prototype = {
    *   for each (let message in collection) ...
    */
   __iterator__: function(wantKeys) {
-    for each (let row in this._rows) {
-      let content;
-      if (row.getResultByName("content_id")) {
-        content = Cc["@mozilla.org/feed-textconstruct;1"].
-                  createInstance(Ci.nsIFeedTextConstruct);
-        content.text = row.getResultByName("content_content");
-        content.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("content_mediaType")];
-        content.base = URI.get(row.getResultByName("content_baseURI"));
-        content.lang = row.getResultByName("content_languageTag");
-      }
-
-      let summary;
-      if (row.getResultByName("summary_id")) {
-        summary = Cc["@mozilla.org/feed-textconstruct;1"].
-                  createInstance(Ci.nsIFeedTextConstruct);
-        summary.text = row.getResultByName("summary_content");
-        summary.type = TEXT_CONSTRUCT_TYPES[row.getResultByName("summary_mediaType")];
-        summary.base = URI.get(row.getResultByName("summary_baseURI"));
-        summary.lang = row.getResultByName("summary_languageTag");
-      }
-
-      let author;
-      if (row.authorID) {
-        let person = new SnowlPerson(row.people_id,
-                                     row.people_name,
-                                     row.people_placeID,
-                                     row.people_homeURL,
-                                     row.people_iconURL);
-        let identity = new SnowlIdentity(row.identities_id,
-                                         row.identities_sourceID,
-                                         row.identities_externalID,
-                                         person);
-        author = identity;
-      }
-
-      let message = new SnowlMessage({
-        id:         row.getResultByName("messageID"),
-        source:     SnowlService.sourcesByID[row.getResultByName("sourceID")],
-        externalID: row.getResultByName("externalID"),
-        subject:    row.getResultByName("subject"),
-        author:     author,
-        timestamp:  SnowlDateUtils.julianToJSDate(row.getResultByName("timestamp")),
-        link:       row.getResultByName("link") ? URI.get(row.getResultByName("link")) : null,
-        received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
-        read:       row.getResultByName("read") ? true : false,
-        current:    row.getResultByName("current"),
-        content:    content,
-        summary:    summary
-      });
-
-      yield message;
-    }
+    Sync(this.execute, this)();
+    for each (let row in this._rows)
+      yield this._getMessage(row);
   }
 
 };
@@ -313,7 +331,7 @@ StorageCollection.prototype = {
 function MessageCollection(args) {
   // Extract values from arguments and assign them to member properties.
   this.constraints = "constraints" in args ? args.constraints : [];
-  this._messages = "messages" in args ? args.messages : [];
+  this.messages = "messages" in args ? args.messages : [];
 }
 
 MessageCollection.prototype = {
@@ -325,19 +343,15 @@ MessageCollection.prototype = {
     return this._log;
   },
 
-  /**
-   * An iterator across the messages in the collection.  Allows callers
-   * to iterate messages via |for each... in|, i.e.:
-   *
-   *   let collection = new MessageCollection();
-   *   for each (let message in collection) ...
-   */
+  messages: null,
+
   __iterator__: function(wantKeys) {
-    MESSAGES: for each (let message in this._messages) {
+    MESSAGES: for each (let message in this.messages) {
       for each (let { name: name, operator: operator, value: value } in this.constraints) {
-        with (message)
+        with (message) {
           if (!eval(name + operator + value))
             continue MESSAGES;
+        }
       }
       yield message;
     }
