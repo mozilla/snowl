@@ -217,17 +217,22 @@ let Subscriber = {
   _importOutline: strand(function(outline) {
     let name = outline.getAttribute("title") || outline.getAttribute("text");
 
-    if (outline.getAttribute("type") == "twitter") {
-      let credentials = { username: outline.getAttribute("username") };
-      this.subscribeTwitter(name, credentials);
-      yield sleep(100);
+    // Catch exceptions while subscribing to sources so they don't prevent us
+    // from importing the rest of the sources in the outline.
+    try {
+      if (outline.getAttribute("type") == "twitter") {
+        let credentials = { username: outline.getAttribute("username") };
+        this.subscribeTwitter(name, credentials);
+        yield sleep(100);
+      }
+      // If it has an xmlUrl attribute, assume it's a feed.
+      else if (outline.hasAttribute("xmlUrl")) {
+        let machineURI = URI.get(outline.getAttribute("xmlUrl"));
+        this.subscribeFeed(name, machineURI);
+        yield sleep(100);
+      }
     }
-    // If it has an xmlUrl attribute, assume it's a feed.
-    else if (outline.hasAttribute("xmlUrl")) {
-      let machineURI = URI.get(outline.getAttribute("xmlUrl"));
-      this.subscribeFeed(name, machineURI);
-      yield sleep(100);
-    }
+    catch(ex) {}
 
     // Import the outline's children.
     if (outline.hasChildNodes()) {
@@ -316,7 +321,14 @@ let Subscriber = {
       return;
     }
 
-    this.account.refresh(null);
+    // Catch exceptions while refreshing the source.  Even if it failed,
+    // we still want to subscribe to the source, since it might be a temporary
+    // failure.
+    // FIXME: provide an informative message to the user about the problem.
+    try {
+      this.account.refresh(null);
+    }
+    catch(ex) {}
     this.account.persist();
     this.account = null;
 
