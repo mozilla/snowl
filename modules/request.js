@@ -41,6 +41,11 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+// modules that are generic
+// FIXME: avoid dependency on host extension.
+Cu.import("resource://snowl/modules/log4moz.js");
+
+// modules that are built into Firefox
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function Request(args) {
@@ -52,29 +57,44 @@ function Request(args) {
 
   this._request.QueryInterface(Ci.nsIDOMEventTarget);
 
-  if (this.loadCallback)
+  if (this.loadCallback) {
+    this._log.trace("setting load callback: " + this.loadCallback);
     this._request.addEventListener("load", this.loadCallback, false);
+  }
 
-  if (this.errorCallback)
+  if (this.errorCallback) {
+    this._log.trace("setting error callback: " + this.errorCallback);
     this._request.addEventListener("error", this.errorCallback, false);
+  }
 
   this._request.QueryInterface(Ci.nsIXMLHttpRequest);
 
-  if (this.overrideMimeType)
+  // FIXME: override the MIME type to a type the consumer specifies.
+  if (this.overrideMimeType) {
+    this._log.trace("overriding mime type\n");
     this._request.overrideMimeType("text/plain");
+  }
 
+  let url = this.url instanceof Ci.nsIURI ? this.url.spec : this.url;
+  this._log.trace("opening request with method: " + this.method + "; url: " + url + "; async: " + this.async);
   this._request.open(this.method,
-                     this.url instanceof Ci.nsIURI ? this.url.spec : this.url,
+                     url,
                      this.async);
 
-  if (this.requestHeaders)
-    for (let [name, value] in Iterator(this.requestHeaders))
+  if (this.requestHeaders) {
+    for (let [name, value] in Iterator(this.requestHeaders)) {
+      this._log.trace("setting request header: " + name + " = " + value);
       this._request.setRequestHeader(name, value);
+    }
+  }
 
   // Register a listener for notification callbacks so we handle authentication.
-  if (this.notificationCallbacks)
+  if (this.notificationCallbacks) {
+    this._log.trace("setting notification callbacks: " + this.notificationCallbacks);
     this._request.channel.notificationCallbacks = this.notificationCallbacks;
+  }
 
+  this._log.trace("sending request with body: " + this.body);
   return this._request.send(this.body);
 }
 
@@ -83,6 +103,12 @@ Request.prototype = {
   async: false,
   body: null,
   requestHeaders: null,
+
+  get _log() {
+    let log = Log4Moz.repository.getLogger("Request");
+    this.__defineGetter__("_log", function() log);
+    return this._log;
+  },
 
   get status() this._request.status,
 
