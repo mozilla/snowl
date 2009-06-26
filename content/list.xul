@@ -64,10 +64,19 @@
                 accesskey="&openListMessage.accesskey;"
                 oncommand="SnowlMessageView._openListMessage(event)"/>
       <menuseparator/>
+      <menuitem id="snowlSelectAllMenuitem"
+                label="&selectAll.label;"
+                accesskey="&selectAll.accesskey;"
+                oncommand="SnowlMessageView.onSelectAll(event)"/>
+      <menuseparator/>
       <menuitem id="snowlDeleteMessagesMenuitem"
                 label="&deleteMessages.label;"
                 accesskey="&deleteMessages.accesskey;"
                 oncommand="SnowlMessageView.onDeleteMessages()"/>
+      <menuitem id="snowlUnDeleteMessagesMenuitem"
+                label="&undeleteMessages.label;"
+                accesskey="&undeleteMessages.accesskey;"
+                oncommand="SnowlMessageView.onUnDeleteMessages()"/>
     </popup>  
 
   </window>
@@ -94,9 +103,14 @@
           persist="height width"
           hidden="true">
 
-      <tree id="snowlView" flex="1" persist="sortResource sortDirection"
-            sortResource="snowlTimestampCol" sortDirection="ascending"
-            enableColumnDrag="true" disableKeyNavigation="true"
+      <tree id="snowlView"
+            flex="1"
+            persist="sortResource sortDirection"
+            sortResource="snowlTimestampCol"
+            sortDirection="ascending"
+            enableColumnDrag="true"
+            disableKeyNavigation="true"
+            context="snowlListContext"
             onselect="SnowlMessageView.onSelect(event)"
             onblur="SnowlUtils.gMessagePosition.pageIndex=null"
             onkeypress="SnowlMessageView.onKeyPress(event)">
@@ -122,7 +136,7 @@
                    onclick="SnowlMessageView.onClickColumnHeader(event)"/>
         </treecols>
 
-        <treechildren flex="1" context="snowlListContext"
+        <treechildren flex="1"
                       onclick="SnowlMessageView.onClick(event)"
                       onmousedown="SnowlMessageView.onListTreeMouseDown(event)"/>
       </tree>

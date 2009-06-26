@@ -158,21 +158,21 @@ SnowlMessage.delete = function(aMessage) {
   }
 };
 
-SnowlMessage.markDeleted = function(aMessage) {
-  let message = aMessage;
-  let messageID = message.id;
+SnowlMessage.markDeletedState = function(aMessageIDs, aState) {
+  // If aState is true, mark deleted; if false, mark undeleted.
+//SnowlPlaces._log.info("markDeletedState: aMessageIDs - "+aMessageIDs);
 
   SnowlDatastore.dbConnection.beginTransaction();
   try {
-    // Mark message deleted, make sure this caller checks for non delete status first.
+    // Mark message delete state, make sure this caller checks for delete status first.
     SnowlDatastore.dbConnection.executeSimpleSQL(
       "UPDATE messages SET current =" +
-      " (CASE WHEN current = " + MESSAGE_NON_CURRENT +
-      "       THEN " + MESSAGE_NON_CURRENT_DELETED +
-      "       WHEN current = " + MESSAGE_CURRENT +
-      "       THEN " + MESSAGE_CURRENT_DELETED +
+      " (CASE WHEN current = " + (aState ? MESSAGE_NON_CURRENT : MESSAGE_NON_CURRENT_DELETED) +
+      "       THEN " + (aState ? MESSAGE_NON_CURRENT_DELETED : MESSAGE_NON_CURRENT) +
+      "       WHEN current = " + (aState ? MESSAGE_CURRENT : MESSAGE_CURRENT_DELETED) +
+      "       THEN " + (aState ? MESSAGE_CURRENT_DELETED : MESSAGE_CURRENT) +
       "  END)" +
-      " WHERE id = " + messageID
+      " WHERE id IN ( " + aMessageIDs + " )"
     );
 
     SnowlDatastore.dbConnection.commitTransaction();

@@ -617,6 +617,11 @@ this._log.info("_toggleRead: all? " + aAll);
       }
   },
 
+  // Select all.
+  onSelectAll: function(event) {
+    this._tree.view.selection.selectAll();
+  },
+
   onDeleteMessage: function(aMessage) {
 //this._log.info("onDeleteMessage: SINGLE START");
     // Single message delete from header button.  If the message is in the list
@@ -627,10 +632,9 @@ this._log.info("_toggleRead: all? " + aAll);
     // history is cleaned to reflect the message's deletion.
     let selectedRows = [];
     if (this._tree.currentIndex != -1 &&
+        this._tree.view.selection.count != 0 &&
         this._collection.messages[this._tree.currentIndex].id == aMessage[0].id)
       selectedRows.push(this._tree.currentIndex);
-    else
-      selectedRows = null;
 
     this._deleteMessages(aMessage, selectedRows);
   },
@@ -652,13 +656,10 @@ this._log.info("_toggleRead: all? " + aAll);
       this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
       for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
         selectedRows.push(index);
+        messages.push(SnowlMessageView._collection.messages[index]);
       }
     }
 //this._log.info("onDeleteMessages: selectedRows - "+selectedRows);
-
-    selectedRows.forEach(function(row) {
-      messages.push(SnowlMessageView._collection.messages[row]);
-    })
 
     this._deleteMessages(messages, selectedRows);
   },
@@ -667,7 +668,7 @@ this._log.info("_toggleRead: all? " + aAll);
 //this._log.info("_deleteMessages: START #ids - "+aMessages.length);
     // Delete messages.  Delete author if deleting author's only remaining message.
     let message, messageID, current;
-    let messageIDs = [];
+    let messageIDs = [], markDeletedMessageIDs = [];
     let refreshList = false, sessionHistoryEmpty = false;
 
     // Delete loop here, if multiple selections..
@@ -691,16 +692,16 @@ this._log.info("_toggleRead: all? " + aAll);
         refreshList = true;
 
       if (current == MESSAGE_NON_CURRENT || current == MESSAGE_CURRENT)
-        SnowlMessage.markDeleted(message);
+        markDeletedMessageIDs.push(messageID);
       else
         SnowlMessage.delete(message);
     }
 
     sessionHistoryEmpty = this._cleanSessionHistory(messageIDs);
 
-    if (sessionHistoryEmpty && !aRows)
-      // Deleted last message in a tab; if it was non selected, close the tab.
-      // However, if it was selected, then we need to continue..
+    if (sessionHistoryEmpty && (!aRows || aRows.length == this._tree.view.rowCount))
+      // Deleted last message in a tab; if it was non selected or all rows were
+      // selected, close the tab.  However, if it was selected, then continue..
       getBrowser().removeTab(getBrowser().selectedTab);
 
     if (refreshList) {
@@ -710,14 +711,20 @@ this._log.info("_toggleRead: all? " + aAll);
       // of the first message in the selection.  Refresh deleted list if purged.
       let currRow, rowCount, selIndex;
 
-      if (aRows) {
+      if (aRows.length > 0) {
         currRow = aRows[0];
-        // Need to splice from bottom of messages array to top.
-        aRows.reverse();
-        aRows.forEach(function(row) {
+
+        if (aRows.length == this._tree.view.rowCount)
+          // All selected, clear list fast.
+          this._collection.messages.splice(0, aRows.length);
+        else {
+          // Need to splice from bottom of messages array to top.
+          aRows.reverse();
+          aRows.forEach(function(row) {
 //SnowlMessageView._log.info("_deleteMessages: splice row - "+row);
-          SnowlMessageView._collection.messages.splice(row, 1);
-        })
+            SnowlMessageView._collection.messages.splice(row, 1);
+          })
+        }
 
         this._rebuildView();
 
@@ -733,6 +740,10 @@ this._log.info("_toggleRead: all? " + aAll);
         // since the row is unknown.  No selection assumed in list.
         this._applyFilters();
     }
+
+    if (markDeletedMessageIDs.length > 0)
+      SnowlMessage.markDeletedState(markDeletedMessageIDs, true);
+
 //this._log.info("_deleteMessages: END");
 //this._log.info(" ");
   },
@@ -792,6 +803,50 @@ this._log.info("_toggleRead: all? " + aAll);
 //this._log.info("_cleanSessionHistory: restoreIndex - "+restoreIndex);
     sh.QueryInterface(Ci.nsIWebNavigation).gotoIndex(restoreIndex);
     return false;
+  },
+
+  onUnDeleteMessages: function() {
+//this._log.info("onDeleteMessages: START");
+    // List context menu single/multiselection undeletion of selected messages.
+    let message, messageIDs = [];
+    let selectedRows = [], currRow, selIndex, rowCount;
+    let rangeFirst = { }, rangeLast = { };
+
+    let numRanges = this._tree.view.selection.getRangeCount();
+    for (let i = 0; i < numRanges; i++) {
+      this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
+      for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
+        message = this._collection.messages[index];
+        if (message.current == MESSAGE_NON_CURRENT_DELETED ||
+            message.current == MESSAGE_CURRENT_DELETED) {
+          messageIDs.push(message.id);
+//this._log.info("onUnDeleteMessages: set undeleted - "+message.subject);
+          selectedRows.push(index);
+        }
+      }
+    }
+
+    if (selectedRows.length > 0) {
+      currRow = selectedRows[0];
+//this._log.info("onUnDeleteMessages: messageIDs - "+messageIDs);
+      // Need to splice from bottom of messages array to top.
+      selectedRows.reverse();
+      selectedRows.forEach(function(row) {
+//SnowlMessageView._log.info("onUnDeleteMessages: splice row - "+row);
+        SnowlMessageView._collection.messages.splice(row, 1);
+      })
+
+      this._rebuildView();
+
+      // Select the proper row.
+      rowCount = this._tree.view.rowCount;
+      selIndex = rowCount <= currRow ? --currRow : currRow;
+//this._log.info("_deleteMessages: select row - "+selIndex);
+      this._tree.view.selection.select(selIndex);
+      this._tree.treeBoxObject.ensureRowIsVisible(selIndex);
+    }
+
+    SnowlMessage.markDeletedState(messageIDs, false);
   },
 
   onListTreeMouseDown: function(aEvent) {
