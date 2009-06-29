@@ -53,12 +53,17 @@
 }
 
 /* A different icon than folders */
-#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowlCollectionsSources),
-#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowlCollectionsAuthors) {
+#sourcesViewTreeChildren::-moz-tree-image(container, title-All\ Sources),
+#sourcesViewTreeChildren::-moz-tree-image(container, title-All\ Authors) {
   list-style-image: url("chrome://browser/skin/places/query.png");
 }
+
 /* User defined view folders can have a custom icon */
-#sourcesViewTreeChildren::-moz-tree-image(container, OrganizerQuery_snowl-Custom) {
+#sourcesViewTreeChildren::-moz-tree-image(container, title-Custom) {
   list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
 }
 
+/* Unread collection indicator */
+#sourcesViewTreeChildren::-moz-tree-cell-text(hasUnread) {
+  font-weight: bold;
+}

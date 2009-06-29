@@ -469,7 +469,7 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
           "WHERE id = " + this.id);
 
       // Finally, clean up Places bookmarks with sourceID in its prefixed uri.
-      SnowlPlaces.removePlacesItemsByURI("snowl:sourceId=" + this.id, true);
+      SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + this.id, true);
 
       SnowlDatastore.dbConnection.commitTransaction();
     }

@@ -882,12 +882,11 @@ function SnowlQuery(aUri) {
     else if (this.queryUri.indexOf("snowl:") != -1) {
       this.queryProtocol = "snowl:";
       this.queryID = this.queryUri.split(".id=")[1].split("&")[0];
-      this.queryName = this.queryUri.split("name=")[1].split("&")[0];
-      if (this.queryUri.indexOf("authors.id=") != -1) {
+      if (this.queryUri.indexOf("&a.id=") != -1) {
         this.queryGroupIDColumn = "people.id";
         this.queryTypeAuthor = true;
       }
-      else if (this.queryUri.indexOf("sources.id=") != -1) {
+      else if (this.queryUri.indexOf("&s.id=") != -1) {
         this.queryGroupIDColumn = "sources.id";
         this.queryTypeSource = true;
       }
@@ -900,7 +899,6 @@ SnowlQuery.prototype = {
   queryProtocol: null,
   queryID: null,
   queryFolder: null,
-  queryName: null,
   queryTypeSource: false,
   queryTypeAuthor: false,
   queryGroupIDColumn: null,
@@ -916,7 +914,7 @@ let SnowlPlaces = {
     return this._log;
   },
 
-  _placesVersion: 2,
+  _placesVersion: 3,
   _placesConverted: false,
   _placesInitialized: false,
 
@@ -953,8 +951,8 @@ this._log.info("setPlacesVersion: " + verInfo);
   SNOWL_USER_ANNO: "Snowl/User",
   SNOWL_USER_VIEW_ANNO: "Snowl/User/View",
   SNOWL_USER_VIEWLIST_ANNO: "Snowl/User/ViewList",
+  SNOWL_PROPERTIES_ANNO: "Snowl/Properties",
 
-  ORGANIZER_QUERY_ANNO: "PlacesOrganizer/OrganizerQuery",
   EXCLUDE_FROM_BACKUP_ANNO: "places/excludeFromBackup",
   EXPIRE_NEVER: PlacesUtils.annotations.EXPIRE_NEVER,
   DEFAULT_INDEX: PlacesUtils.bookmarks.DEFAULT_INDEX,
@@ -1020,24 +1018,24 @@ this._log.info("setPlacesVersion: " + verInfo);
  * @aSourceId   - sourceId of source or author record
  */
   persistPlace: function(aTable, aId, aName, aMachineURI, aUsername, aIconURI, aSourceId) {
-    let parent, uri, iconUri, placeID, anno;
+    let uri, parent, anno, properties, placeID;
     if (aTable == "sources") {
-      uri = URI("snowl:sourceId=" + aSourceId +
-                "&sources.id=" + aId +
-                "&name=" + aName +
-                "&machineURI=" + aMachineURI.spec +
+      uri = URI("snowl:sId=" + aSourceId +
+                "&s.id=" + aId +
+                "&u=" + aMachineURI.spec +
                 "&");
       parent = SnowlPlaces.collectionsSourcesID;
       anno = this.SNOWL_COLLECTIONS_SOURCE_ANNO;
+      properties = "source";
     }
     else if (aTable == "people") {
-      uri = URI("snowl:sourceId=" + aSourceId +
-                "&authors.id=" + aId +
-                "&name=" + aName +
-                "&externalID=" + aUsername +
+      uri = URI("snowl:sId=" + aSourceId +
+                "&a.id=" + aId +
+                "&e=" + aUsername +
                 "&");
       parent = SnowlPlaces.collectionsAuthorsID;
       anno = this.SNOWL_COLLECTIONS_AUTHOR_ANNO;
+      properties = "author";
     }
     else
       return null;
@@ -1051,7 +1049,7 @@ this._log.info("setPlacesVersion: " + verInfo);
       PlacesUtils.annotations.
                   setPageAnnotation(uri,
                                     anno,
-                                    "snowl:sourceID=" + aSourceId,
+                                    properties,
                                     0,
                                     this.EXPIRE_NEVER);
 
@@ -1320,8 +1318,8 @@ this._log.info("init: Rebuilding Snowl Places...");
                                       this.EXPIRE_NEVER);
         PlacesUtils.annotations.
                     setItemAnnotation(itemID,
-                                      this.ORGANIZER_QUERY_ANNO,
-                                      "snowlCollectionsSources",
+                                      this.SNOWL_PROPERTIES_ANNO,
+                                      "sysCollection",
                                       0,
                                       this.EXPIRE_NEVER);
         // Ensure immediate children can't be removed.
@@ -1340,8 +1338,8 @@ this._log.info("init: Rebuilding Snowl Places...");
                                       this.EXPIRE_NEVER);
         PlacesUtils.annotations.
                     setItemAnnotation(itemID,
-                                      this.ORGANIZER_QUERY_ANNO,
-                                      "snowlCollectionsAuthors",
+                                      this.SNOWL_PROPERTIES_ANNO,
+                                      "sysCollection",
                                       0,
                                       this.EXPIRE_NEVER);
         // Ensure immediate children can't be removed.
@@ -1350,7 +1348,7 @@ this._log.info("init: Rebuilding Snowl Places...");
         // Default collections.  These are folder shortcuts.
         let collections = [], viewItems, name;
         // All Messages.
-        coll = {queryId:  "snowl-AllMessages",
+        coll = {property: "sysCollection",
                 itemId:   null,
                 value:    "snowlCollectionsAll",
                 title:    strings.get("allCollectionName"),
@@ -1370,7 +1368,7 @@ this._log.info("init: Rebuilding Snowl Places...");
         for (var i=0; i < viewItems.length; i++) {
           name = PlacesUtils.bookmarks.getItemTitle(viewItems[i]).split(":")[1];
 this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
-          coll = {queryId:  "snowl-" + name,
+          coll = {property: "view",
                   itemId:   null,
                   value:    viewItems[i],
                   title:    name,
@@ -1388,8 +1386,8 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
                                                              coll.title);
           PlacesUtils.annotations.
                       setItemAnnotation(coll.itemId,
-                                        this.ORGANIZER_QUERY_ANNO,
-                                        coll.queryId,
+                                        this.SNOWL_PROPERTIES_ANNO,
+                                        coll.property,
                                         0,
                                         this.EXPIRE_NEVER);
           // This  anno value must contain the itemId of the base folder if a

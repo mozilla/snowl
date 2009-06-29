@@ -154,10 +154,10 @@ BookmarkPropertiesPanel._getCreateNewViewFolderTransaction =
  */
 BookmarkPropertiesPanel._getCreateNewViewShortcutTransaction =
   function BPP___getCreateNewViewShortcutTransaction(aContainer, aIndex) {
-    let annotations = [{ name: SnowlPlaces.ORGANIZER_QUERY_ANNO,
+    let annotations = [{ name: SnowlPlaces.SNOWL_PROPERTIES_ANNO,
                          type: Ci.nsIAnnotationService.TYPE_STRING,
                          flags: 0,
-                         value: "snowl-" + this._title,
+                         value: "view",
                          expires: Ci.nsIAnnotationService.EXPIRE_NEVER },
                        { name: SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO,
                          type: Ci.nsIAnnotationService.TYPE_STRING,

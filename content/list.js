@@ -169,6 +169,8 @@ let SnowlMessageView = {
   // then marking only the tags column as editable.
   isEditable: function() { return false },
 
+  canDrop: function(aRow, aOrientation) { return false },
+
 
   //**************************************************************************//
   // Initialization and Destruction

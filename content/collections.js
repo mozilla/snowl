@@ -597,7 +597,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
     if (query.queryGroupIDColumn != "sources.id")
       return;
-this._log.info("removeSource: Removing source - " + query.queryName + " : " + selectedSource.itemId);
+this._log.info("removeSource: Removing source - " + selectedSource.title + " : " + selectedSource.itemId);
 
     selectedSourceNodeID = [selectedSource, query.queryID];
     selectedSourceNodesIDs.push(selectedSourceNodeID);
@@ -635,7 +635,7 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
 //this._log.info("removeSource: Delete source DONE");
 
         // Finally, clean up Places bookmarks with sourceID in its prefixed uri.
-        SnowlPlaces.removePlacesItemsByURI("snowl:sourceId=" + sourceID, true);
+        SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + sourceID, true);
 //this._log.info("removeSource: Delete Places DONE");
 
         SnowlDatastore.dbConnection.commitTransaction();
@@ -668,7 +668,7 @@ this._log.info("removeSource: Removing source - " + query.queryName + " : " + se
 
     if (query.queryGroupIDColumn != "people.id")
       return;
-this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + selectedSource.itemId);
+this._log.info("removeAuthor: Removing author - " + selectedSource.title + " : " + selectedSource.itemId);
 
     selectedSourceNodeID = [selectedSource, query.queryID];
     selectedSourceNodesIDs.push(selectedSourceNodeID);
@@ -793,16 +793,6 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
                                               "snowlUserView:" + newTitle);
     PlacesUIUtils.ptm.doTransaction(txn);
 
-    // Update string in our css anno.
-    let annotation = { name: SnowlPlaces.ORGANIZER_QUERY_ANNO,
-                       type: Ci.nsIAnnotationService.TYPE_STRING,
-                       flags: 0,
-                       value: "snowl-" + newTitle,
-                       expires: Ci.nsIAnnotationService.EXPIRE_NEVER };
-    var txn = PlacesUIUtils.ptm.setItemAnnotation(aRenameObj.itemId,
-                                                  annotation);
-    PlacesUIUtils.ptm.doTransaction(txn);
-
     // Force rebuild of View menulist for the new name.
     this._resetCollectionsView = true;
   },
@@ -824,16 +814,12 @@ this._log.info("removeAuthor: Removing author - " + query.queryName + " : " + se
         " SET    name = '" + newTitle +
         "' WHERE   id = " + query.queryID);
 
-      let oldNameStr = "name=" + uri.split("name=")[1].split("&")[0];
-      let newNameStr = "name=" + newTitle;
-      let newUri = uri.replace(oldNameStr, newNameStr);
-      PlacesUtils.bookmarks.
-                  changeBookmarkURI(aRenameObj.itemId,
-                                    URI(newUri));
-
       if (query.queryTypeSource)
-        // Invalidate sources cache so new name is reflected.
+        // Invalidate sources cache.
         SnowlService.onSourcesChanged();
+
+      // Redo list so new name is reflected.
+      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
 //this._log.info("updateCollectionNames: newUri - "+newUri);
     }
   },
@@ -994,7 +980,7 @@ this._log.info("_getCollections: Convert to Places: START");
 this._log.info("_buildCollectionTree: Convert to Places: START");
     for each (let collection in this._collections) {
       if (collection.grouped) {
-        let table, value, sourceID, personID, externalID, machineURI;
+        let table, value, sourceID, personID, externalID, machineURI, placeID;
         switch (collection.groupIDColumn) {
           case "sources.id":
             table = "sources";
@@ -1091,6 +1077,53 @@ function SnowlTreeViewCanDrop(aRow, aOrientation) {
   return ip && PlacesControllerDragHelper.canDrop(ip);
 };
 
+/* Set custom properties */
+PlacesTreeView.prototype._getCellProperties = PlacesTreeView.prototype.getCellProperties;
+PlacesTreeView.prototype.getCellProperties = SnowlTreeViewGetCellProperties;
+function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
+  this._getCellProperties(aRow, aColumn, aProperties);
+
+  let query, anno, propStr, propArr, prop;
+  let node = this._visibleElements[aRow].node;
+
+  // Set title property.
+  aProperties.AppendElement(this._getAtomFor("title-" + node.title));
+
+  // Determine if anno where we get the properties string is properties anno
+  // (for sys collections and views) or source/author anno.
+  query = new SnowlQuery(node.uri);
+  anno = query.queryTypeSource ? SnowlPlaces.SNOWL_COLLECTIONS_SOURCE_ANNO :
+          query.queryTypeAuthor ? SnowlPlaces.SNOWL_COLLECTIONS_AUTHOR_ANNO :
+          query.queryProtocol == "place:" ? SnowlPlaces.SNOWL_PROPERTIES_ANNO :
+          null;
+//SnowlPlaces._log.info("getCellProperties: itemId:anno - "+node.itemId+" : "+anno+" : "+node.title);
+
+  if (!anno)
+    return;
+
+  // Get the right anno.
+  // XXX: use the node's propertyBag as cache here?
+  try {
+    if (anno == SnowlPlaces.SNOWL_PROPERTIES_ANNO)
+      propStr = PlacesUtils.annotations.getItemAnnotation(node.itemId, anno);
+    else
+      propStr = PlacesUtils.annotations.getPageAnnotation(URI(node.uri), anno);
+  }
+  catch(ex) {
+    // No properties anno for this node's itemId/uri.
+  };
+
+  if (!propStr)
+    return;
+
+//SnowlPlaces._log.info("getCellProperties: propStr - "+propStr);
+  // Set the properties atoms.
+  propArr = propStr.split(",");
+  if (propArr.length > 0)
+    for each (prop in propArr)
+      aProperties.AppendElement(this._getAtomFor(prop));
+};
+
 /* Allow inline renaming and handle folder shortcut items */
 PlacesTreeView.prototype._setCellText = PlacesTreeView.prototype.setCellText;
 PlacesTreeView.prototype.setCellText = SnowlTreeViewSetCellText;
@@ -1154,16 +1187,19 @@ gMessageViewWindow.XULBrowserWindow.setOverLink =
     statusbartext = link.replace(/[\u200e\u200f\u202a\u202b\u202c\u202d\u202e]/g,
                                  encodeURIComponent);
 
-    // Source
-    if (statusbartext.indexOf("machineURI=") != -1) {
-      statusbartext = decodeURI(statusbartext);
-      statusbartext = statusbartext.split("machineURI=")[1].split("&")[0];
-    }
-    // Author
-    else if (statusbartext.indexOf("externalID=") != -1) {
+    // Snowl
+    if (statusbartext.indexOf("snowl:") == 0) {
+      // Source
+      if (statusbartext.indexOf("&u=") != -1) {
         statusbartext = decodeURI(statusbartext);
-        statusbartext = statusbartext.split("externalID=")[1].split("&")[0];
-        statusbartext = statusbartext == "" ? " " : statusbartext;
+        statusbartext = statusbartext.split("&u=")[1].split("&")[0];
+      }
+      // Author
+      else if (statusbartext.indexOf("&e=") != -1) {
+          statusbartext = decodeURI(statusbartext);
+          statusbartext = statusbartext.split("&e=")[1].split("&")[0];
+          statusbartext = statusbartext == "" ? " " : statusbartext;
+      }
     }
 
     this.overLink = statusbartext;
