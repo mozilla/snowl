@@ -342,6 +342,20 @@ let SnowlService = {
    */
   hasSourceUsername: function(aMachineURI, aUsername) {
     return SnowlDatastore.selectHasSourceUsername(aMachineURI, aUsername);
+  },
+
+  /**
+   * Return read, unread, new stats on author, source collections.
+   *   *
+   * @returns {object} the t (total), u (unread), n (new) numbers for each
+   *                   source and author collection.
+   */
+  _collectionStatsByCollectionID: null,
+  getCollectionStatsByCollectionID: function() {
+    if (!this._collectionStatsByCollectionID)
+      this._collectionStatsByCollectionID = SnowlDatastore.collectionStatsByCollectionID();
+
+    return this._collectionStatsByCollectionID;
   }
 
 };

@@ -535,12 +535,20 @@ this._log.info("_toggleRead: all? " + aAll);
     message.read = aRead;
     message.persist();
     this._tree.boxObject.invalidateRow(row);
+
+    // XXX: it would be nicer to update just the source/author stats object for
+    // this message rather than rebuild the cache from db.
+    SnowlService._collectionStatsByCollectionID = null;
+    this.CollectionsView._tree.treeBoxObject.invalidate();
   },
 
   _setAllRead: function(aRead) {
     let ids = this._collection.messages.map(function(v) { return v.id });
     this._collection.messages.forEach(function(v) { v.read = aRead; v.persist(); });
     this._tree.boxObject.invalidate();
+
+    SnowlService._collectionStatsByCollectionID = null;
+    this.CollectionsView._tree.treeBoxObject.invalidate();
   },
 
   onClickColumnHeader: function(aEvent) {

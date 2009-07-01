@@ -63,7 +63,12 @@
   list-style-image: url("chrome://snowl/content/icons/snowl-16.png");
 }
 
-/* Unread collection indicator */
+/* Unread messages in collection indicator */
 #sourcesViewTreeChildren::-moz-tree-cell-text(hasUnread) {
   font-weight: bold;
+}
+
+/* New messages in collection indicator */
+#sourcesViewTreeChildren::-moz-tree-image(hasNew) {
+  list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
 }

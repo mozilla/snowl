@@ -43,13 +43,14 @@ Cu.import("resource://snowl/modules/StringBundle.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
-Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/constants.js");
+Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/identity.js");
-Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/opml.js");
+Cu.import("resource://snowl/modules/service.js");
+Cu.import("resource://snowl/modules/source.js");
 
 let strings = new StringBundle("chrome://snowl/locale/datastore.properties");
 
@@ -246,6 +247,10 @@ let CollectionsView = {
   onMessagesComplete: function(aSourceId) {
     // Finished downloading all messages.  Scroll the collection tree intelligently.
 //    SnowlUtils.scrollPlacement(this._tree, this._tree.currentIndex);
+
+    // Clear the collections stats cache and invalidate tree to rebuild.
+    SnowlService._collectionStatsByCollectionID = null;
+    this._tree.treeBoxObject.invalidate();
   },
 
   onSourceRemoved: function() {
@@ -558,7 +563,6 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         authors.push(query.queryID);
     }
 
-    //XXX: need to implement collection level flag - hasUnread.
     query = "";
     if (!all) {
       if (sources.length > 0)
@@ -569,13 +573,19 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         query += "authorID = " + authors.join(" OR authorID = ");
       }
 
-      query = query ? "WHERE ( " + query + " AND read = 0 )" : null;
+      query = query ? " WHERE ( " + query + " AND" +
+                      " (read = " + MESSAGE_UNREAD + " OR" +
+                      "  read = " + MESSAGE_NEW + ") )" : null;
     }
 
     if (query != null) {
       SnowlDatastore.dbConnection.executeSimpleSQL(
-          "UPDATE messages SET read = 1 " + query);
+          "UPDATE messages SET read = " + MESSAGE_READ + query);
+
       gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+      // Clear the collections stats cache and invalidate tree to rebuild.
+      SnowlService._collectionStatsByCollectionID = null;
+      this._tree.treeBoxObject.invalidate();
     }
   },
 
@@ -1042,10 +1052,11 @@ this._log.info("_buildCollectionTree: Convert to Places: END");
  * PlacesTreeView overrides here.
  */
 
-/* Do not drop a View shortcut into another View; it doesn't make sense and
- * very bad things happen to the tree.
+/**
+ * Override canDrop, do not drop a View shortcut into another View; it doesn't
+ * make sense and very bad things happen to the tree.
  */
-PlacesTreeView.prototype._canDrop = PlacesTreeView.prototype.canDrop;
+//PlacesTreeView.prototype._canDrop = PlacesTreeView.prototype.canDrop;
 PlacesTreeView.prototype.canDrop = SnowlTreeViewCanDrop;
 function SnowlTreeViewCanDrop(aRow, aOrientation) {
   if (!this._result)
@@ -1077,21 +1088,40 @@ function SnowlTreeViewCanDrop(aRow, aOrientation) {
   return ip && PlacesControllerDragHelper.canDrop(ip);
 };
 
-/* Set custom properties */
+/**
+ * Overload getCellProperties, set custom properties.
+ */
 PlacesTreeView.prototype._getCellProperties = PlacesTreeView.prototype.getCellProperties;
 PlacesTreeView.prototype.getCellProperties = SnowlTreeViewGetCellProperties;
 function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
   this._getCellProperties(aRow, aColumn, aProperties);
 
-  let query, anno, propStr, propArr, prop;
+  let query, anno, propStr, propArr, prop, collID;
   let node = this._visibleElements[aRow].node;
+  query = new SnowlQuery(node.uri);
 
   // Set title property.
   aProperties.AppendElement(this._getAtomFor("title-" + node.title));
 
+  // Set new and unread propeties.
+  collID = query.queryTypeSource ? "s" + query.queryID :
+           query.queryTypeAuthor ? "a" + query.queryID :
+          (query.queryFolder == SnowlPlaces.collectionsSystemID ||
+           query.queryFolder == SnowlPlaces.collectionsSourcesID ||
+           query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
+
+  var nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+  if (nodeStats && nodeStats.u && !node.containerOpen)
+    aProperties.AppendElement(this._getAtomFor("hasUnread"));
+  if (nodeStats && nodeStats.n && !node.containerOpen)
+    aProperties.AppendElement(this._getAtomFor("hasNew"));
+
+//if (nodeStats)
+//SnowlPlaces._log.info("getCellProperties: itemId:title:stats - "+
+//  query.queryID+" : "+node.title+" : "+nodeStats.toSource());
+
   // Determine if anno where we get the properties string is properties anno
   // (for sys collections and views) or source/author anno.
-  query = new SnowlQuery(node.uri);
   anno = query.queryTypeSource ? SnowlPlaces.SNOWL_COLLECTIONS_SOURCE_ANNO :
           query.queryTypeAuthor ? SnowlPlaces.SNOWL_COLLECTIONS_AUTHOR_ANNO :
           query.queryProtocol == "place:" ? SnowlPlaces.SNOWL_PROPERTIES_ANNO :
@@ -1124,7 +1154,39 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
       aProperties.AppendElement(this._getAtomFor(prop));
 };
 
-/* Allow inline renaming and handle folder shortcut items */
+/**
+ * Override getImageSrc for 'new' icon on collections, bookmarks with icons do
+ * not seem to respect css overrides.
+ */
+//PlacesTreeView.prototype._getImageSrc = PlacesTreeView.prototype.getImageSrc;
+PlacesTreeView.prototype.getImageSrc = SnowlTreeViewGetImageSrc;
+function SnowlTreeViewGetImageSrc(aRow, aColumn) {
+  this._ensureValidRow(aRow);
+
+  // only the title column has an image
+  if (this._getColumnType(aColumn) != this.COLUMN_TYPE_TITLE)
+    return "";
+
+  var node = this._visibleElements[aRow].node;
+
+  // Custom handling for 'new' in collections.
+  let query = new SnowlQuery(node.uri);
+  let collID = query.queryTypeSource ? "s" + query.queryID :
+               query.queryTypeAuthor ? "a" + query.queryID : null;
+  let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+  if (nodeStats && nodeStats.n)
+    // Don't set icon, let css handle it for 'new'.
+    return "";
+
+  var icon = node.icon;
+  if (icon)
+    return icon.spec;
+  return "";
+};
+
+/**
+ * Overload setCellText, allow inline renaming and handle folder shortcut items.
+ */
 PlacesTreeView.prototype._setCellText = PlacesTreeView.prototype.setCellText;
 PlacesTreeView.prototype.setCellText = SnowlTreeViewSetCellText;
 function SnowlTreeViewSetCellText(aRow, aColumn, aText) {
@@ -1145,8 +1207,10 @@ function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
   CollectionsView._tree.restoreSelection();
 };
 
-/* XXX: Bug 477806 - closing container with selected child selects the container,
- * does not remember selected child on open. */
+/**
+ * Overload toggleOpenState to address Bug 477806: closing container with
+ * selected child selects the container, does not remember selected child on open.
+ */
 PlacesTreeView.prototype._toggleOpenState = PlacesTreeView.prototype.toggleOpenState;
 PlacesTreeView.prototype.toggleOpenState = SnowlTreeViewToggleOpenState;
 function SnowlTreeViewToggleOpenState(aRow) {

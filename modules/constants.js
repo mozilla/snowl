@@ -45,7 +45,10 @@ const EXPORTED_SYMBOLS = ["TEXT_CONSTRUCT_TYPES",
                           "MESSAGE_CURRENT",
                           "MESSAGE_NON_CURRENT_DELETED",
                           "MESSAGE_CURRENT_DELETED",
-                          "MESSAGE_CURRENT_PENDING_PURGE"];
+                          "MESSAGE_CURRENT_PENDING_PURGE",
+                          "MESSAGE_UNREAD",
+                          "MESSAGE_READ",
+                          "MESSAGE_NEW"];
 
 // Internet media type to nsIFeedTextConstruct::type mappings.
 const TEXT_CONSTRUCT_TYPES = {
@@ -70,8 +73,13 @@ const XUL_NS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 // Message statuses
+// In messages.current field
 const MESSAGE_NON_CURRENT = 0;
 const MESSAGE_CURRENT = 1;
 const MESSAGE_NON_CURRENT_DELETED = 2;
 const MESSAGE_CURRENT_DELETED = 3;
 const MESSAGE_CURRENT_PENDING_PURGE = 4;
+// In messages.read field
+const MESSAGE_UNREAD = 0;
+const MESSAGE_READ = 1;
+const MESSAGE_NEW = 2;

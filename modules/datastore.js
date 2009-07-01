@@ -862,6 +862,62 @@ let SnowlDatastore = {
     }
 
     return [sourceID, externalID];
+  },
+
+  _collectionStatsStatement: function(aType) {
+    // XXX: store MESSAGE_NEW on new msg instead of MESSAGE_UNREAD.
+    let typeID = aType == "*" ? "id" :
+                 aType == "source" ? "sourceID" :
+                 aType == "author" ? "authorID" : null;
+    let groupBy = aType == "*" ? "" :
+                  aType == "source" ? "GROUP BY collectionID" :
+                  aType == "author" ? "GROUP BY collectionID" : null;
+    let statement = this.createStatement(
+      "SELECT " + typeID + " AS collectionID, " +
+      "  COUNT(messages.id)   AS total, " +
+      "  SUM(read)            AS read, " +
+      "  SUM(ROUND(read/2,0)) AS new " +
+      "FROM messages " +
+      "WHERE (current = " + MESSAGE_NON_CURRENT + " OR " +
+      "       current = " + MESSAGE_CURRENT + ") " + groupBy);
+
+    return statement;
+  },
+
+  collectionStatsByCollectionID: function(aType) {
+    // Stats object for collections tree properties.
+    let statement, type, types = ["*", "source", "author"];
+    let collectionID, Total, Read, New, collectionStats = {};
+
+    try {
+      for each (type in types) {
+        statement = this._collectionStatsStatement(type);
+        while (statement.step()) {
+          if (statement.row["collectionID"] == null)
+            continue;
+
+          collectionID = type[0] == "*" ?
+              "all" : type[0] + statement.row["collectionID"];
+
+          Total =  statement.row["total"];
+          Read = statement.row["read"];
+          New = statement.row["new"];
+          collectionStats[collectionID] = {
+            t: Total,
+            u: Total - Read + MESSAGE_NEW * New,
+            n: New
+          }
+        }
+      }
+    }
+    catch(ex) {
+      this._log.error(ex);
+    }
+    finally {
+      statement.reset();
+    }
+
+    return collectionStats;
   }
 
 };
