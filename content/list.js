@@ -493,7 +493,7 @@ let SnowlMessageView = {
         continue;
       }
 
-      if (!this._collection.messages[i].read) {
+      if (this._collection.messages[i].read != MESSAGE_READ) {
         this.selection.select(i);
         this._tree.treeBoxObject.ensureRowIsVisible(i);
         break;
@@ -513,7 +513,7 @@ let SnowlMessageView = {
         continue;
       }
 this._log.info(i);
-      if (!this._collection.messages[i].read) {
+      if (this._collection.messages[i].read != MESSAGE_READ) {
         this.selection.select(i);
         this._tree.treeBoxObject.ensureRowIsVisible(i);
         break;
