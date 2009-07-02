@@ -154,8 +154,13 @@ let SnowlMessageView = {
     // because the text styling we apply to unread/deleted messages has to be
     // specified by the ::-moz-tree-cell-text pseudo-element, which inherits
     // only the cell's properties.
-    if (!this._collection.messages[aRow].read)
+    if (this._collection.messages[aRow].read == MESSAGE_UNREAD ||
+        this._collection.messages[aRow].read == MESSAGE_NEW)
       aProperties.AppendElement(this._atomSvc.getAtom("unread"));
+
+    if (aColumn.id == "snowlSubjectCol" &&
+        this._collection.messages[aRow].read == MESSAGE_NEW)
+      aProperties.AppendElement(this._atomSvc.getAtom("new"));
 
     if (this._collection.messages[aRow].current == MESSAGE_NON_CURRENT_DELETED ||
         this._collection.messages[aRow].current == MESSAGE_CURRENT_DELETED)
@@ -245,7 +250,9 @@ let SnowlMessageView = {
 //this._log.info("_applyFilters: Filters - "+this.Filters.toSource());
 
     if (this.Filters["unread"])
-      filters.push({ expression: "read = 0", parameters: {} });
+      filters.push({ expression: "(read = " + MESSAGE_UNREAD + " OR" +
+                                 " read = " + MESSAGE_NEW + ")",
+                     parameters: {} });
 
     if (this.Filters["deleted"])
       filters.push({ expression: "(current = " + MESSAGE_NON_CURRENT_DELETED + " OR" +

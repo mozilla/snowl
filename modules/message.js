@@ -84,7 +84,7 @@ SnowlMessage.retrieve = function(id) {
         received:   SnowlDateUtils.julianToJSDate(statement.row.received),
         link:       statement.row.link ? URI.get(statement.row.link) : null,
         current:    statement.row.current,
-        read:       statement.row.read ? true : false
+        read:       statement.row.read // ? true : false
       });
 
       if (statement.row.authorID) {
@@ -192,7 +192,7 @@ SnowlMessage.prototype = {
   link: null,
   timestamp: null,
   received: null,
-  read: false,
+  read: MESSAGE_NEW,
   current: null,
   summary: null,
   content: null,

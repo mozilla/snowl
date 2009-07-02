@@ -340,6 +340,10 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       }
     }
 
+    if (!modKey && this.itemIds != -1)
+      // Unset new status for (about to be) formerly selected collection(s).
+      this.markCollectionNewState();
+
     // Get constraints based on selected rows
     let constraints = this.getSelectionConstraints();
 
@@ -416,11 +420,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     aEvent.target.checked = !aEvent.target.checked;
     this.Filters["unread"] = aEvent.target.checked ? true : false;
 
-    if (this.itemIds == -1)
-      // If no selection.
-      return;
-
-    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+    if (this.itemIds == -1 && !this.Filters["unread"] && !this.Filters["deleted"])
+      // If no selection and unchecking, clear list (don't select 'All').
+      gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+    else
+      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
   },
 
   onCommandShowDeletedButton: function(aEvent) {
@@ -432,11 +436,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     else
       document.getElementById("snowlPurgeDeletedButton").setAttribute("disabled", true);
 
-    if (this.itemIds == -1)
-      // If no selection.
-      return;
-
-    gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+    if (this.itemIds == -1 && !this.Filters["deleted"] && !this.Filters["unread"])
+      // If no selection and unchecking, clear list (don't select 'All').
+      gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+    else
+      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
   },
 
   onCommandPurgeDeletedButton: function(aEvent) {
@@ -588,6 +592,60 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       this._tree.treeBoxObject.invalidate();
     }
   },
+
+  markCollectionNewState: function() {
+    // Mark all selected source/author collection messages as not new (unread)
+    // upon the collection being no longer selected.  Note: shift-click on a
+    // collection will leave new state when unselected.
+    let itemId, uri, sources = [], authors = [], query, all = false;
+    let itemIds = this.itemIds;
+    let currentIndexItemId =
+        this._tree.view.nodeForTreeIndex(this._tree.currentIndex).itemId
+
+    for each (itemId in itemIds) {
+      // If selecting item currently in selection, leave as new.
+      if (itemId == currentIndexItemId)
+        continue;
+
+      // Create places query object from places item uri.
+      uri = PlacesUtils.bookmarks.getBookmarkURI(itemId).spec;
+      query = new SnowlQuery(uri);
+      if (query.queryFolder == SnowlPlaces.collectionsSystemID ||
+          query.queryFolder == SnowlPlaces.collectionsSourcesID ||
+          query.queryFolder == SnowlPlaces.collectionsAuthorsID) {
+        all = true;
+        break;
+      }
+      if (query.queryTypeSource && sources.indexOf(query.queryID, 0) < 0)
+        sources.push(query.queryID);
+      if (query.queryTypeAuthor && authors.indexOf(query.queryID, 0) < 0)
+        authors.push(query.queryID);
+    }
+
+    query = "";
+    if (!all) {
+      if (sources.length > 0)
+        query += "sourceID = " + sources.join(" OR sourceID = ");
+      if (authors.length > 0) {
+        if (sources.length > 0)
+          query += " OR ";
+        query += "authorID = " + authors.join(" OR authorID = ");
+      }
+
+      query = query ? "( " + query + " ) AND " : null;
+    }
+
+    if (query != null) {
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+          "UPDATE messages SET read = " + MESSAGE_UNREAD +
+          " WHERE " + query + "read = " + MESSAGE_NEW);
+
+      // Clear the collections stats cache and invalidate tree to rebuild.
+      SnowlService._collectionStatsByCollectionID = null;
+      this._tree.treeBoxObject.invalidate();
+    }
+  },
+
 
   removeSource: function() {
 //this._log.info("removeSource: START curIndex:curSelectedIndex = "+

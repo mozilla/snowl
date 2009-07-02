@@ -38,6 +38,10 @@
   font-weight: bold !important
 }
 
+#snowlView > treechildren::-moz-tree-image(new) {
+  list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
+}
+
 #snowlView > treechildren::-moz-tree-cell-text(deleted) {
   text-decoration: line-through;
 }

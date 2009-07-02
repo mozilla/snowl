@@ -286,7 +286,7 @@ this._log.info("got " + groups.length + " groups");
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           link:       statement.row.link ? URI.get(statement.row.link) : null,
           current:    statement.row.current,
-          read:       statement.row.read ? true : false,
+          read:       statement.row.read, // ? true : false,
           content:    content
         });
 
