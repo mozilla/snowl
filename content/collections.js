@@ -608,7 +608,9 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         continue;
 
       // Create places query object from places item uri.
-      uri = PlacesUtils.bookmarks.getBookmarkURI(itemId).spec;
+      try {
+        uri = PlacesUtils.bookmarks.getBookmarkURI(itemId).spec;
+      } catch (ex) { continue;} // Not a query item.
       query = new SnowlQuery(uri);
       if (query.queryFolder == SnowlPlaces.collectionsSystemID ||
           query.queryFolder == SnowlPlaces.collectionsSourcesID ||
@@ -1255,7 +1257,9 @@ function SnowlTreeViewSetCellText(aRow, aColumn, aText) {
   SnowlPlaces.renamePlace(node.itemId, node.uri, aText);
 };
 
-/* Restore selection when any row is removed */
+/**
+ * Overload itemRemoved, restore selection when any row is removed
+ */
 PlacesTreeView.prototype._itemRemoved = PlacesTreeView.prototype.itemRemoved;
 PlacesTreeView.prototype.itemRemoved = SnowlTreeViewItemRemoved;
 function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
@@ -1296,6 +1300,52 @@ function SnowlTreeViewToggleOpenState(aRow) {
   // longer valid in onClick, plus it's annoying.  Usually restoreSelection()
   // needs to make a selected row visible..
   CollectionsView._tree.treeBoxObject.scrollToRow(firstvisrow);
+};
+
+/**
+ * Override getBestTitle and add collection stats info.
+ */
+PlacesUIUtils.getBestTitle =
+  function (aNode) {
+//SnowlPlaces._log.info("getBestTitle: title - "+aNode.title);
+    var title;
+    if (!aNode.title && PlacesUtils.uriTypes.indexOf(aNode.type) != -1) {
+      // if node title is empty, try to set the label using host and filename
+      // PlacesUtils._uri() will throw if aNode.uri is not a valid URI
+      try {
+        var uri = PlacesUtils._uri(aNode.uri);
+        var host = uri.host;
+        var fileName = uri.QueryInterface(Ci.nsIURL).fileName;
+        // if fileName is empty, use path to distinguish labels
+        title = host + (fileName ?
+                        (host ? "/" + this.ellipsis + "/" : "") + fileName :
+                        uri.path);
+      }
+      catch (e) {
+       // Use (no title) for non-standard URIs (data:, javascript:, ...)
+       title = "";
+      }
+    }
+    else {
+      title = aNode.title;
+
+      // Custom title with stats.
+      let query, collID, nodeStats, titleStats = "";
+      query = new SnowlQuery(aNode.uri);
+      collID = query.queryTypeSource ? "s" + query.queryID :
+               query.queryTypeAuthor ? "a" + query.queryID :
+               query.queryFolder == SnowlPlaces.collectionsSystemID ? "all" : null;
+    
+      nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+      if (nodeStats && collID == "all")
+        titleStats = " (New:" + nodeStats.n + "/Unread:" + nodeStats.u + "/Total:" + nodeStats.t + ")";
+      else if (nodeStats)
+        titleStats = " (" + nodeStats.n + "/" + nodeStats.u + "/" + nodeStats.t + ")";
+
+      title = title + titleStats;
+     }
+
+     return title || this.getString("noTitle");
 };
 
 /**
