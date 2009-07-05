@@ -195,7 +195,7 @@ let CollectionsView = {
     Observers.add("snowl:source:added", this.onSourceAdded, this);
     Observers.add("snowl:message:added", this.onMessageAdded, this);
     Observers.add("snowl:source:removed", this.onSourceRemoved, this);
-    Observers.add("snowl:messages:changed", this.onMessagesComplete, this);
+    Observers.add("snowl:messages:completed", this.onMessagesCompleted, this);
     Observers.add("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
       Observers.add("snowl:author:removed", this.onSourceRemoved, this);
@@ -206,7 +206,7 @@ let CollectionsView = {
     Observers.remove("snowl:source:added", this.onSourceAdded, this);
     Observers.remove("snowl:message:added", this.onMessageAdded, this);
     Observers.remove("snowl:source:removed", this.onSourceRemoved, this);
-    Observers.remove("snowl:messages:changed", this.onMessagesComplete, this);
+    Observers.remove("snowl:messages:completed", this.onMessagesCompleted, this);
     Observers.remove("itemchanged", this.onItemChanged, this);
     if (this.gListOrRiver == "list")
       Observers.remove("snowl:author:removed", this.onSourceRemoved, this);
@@ -220,7 +220,7 @@ let CollectionsView = {
   onSourceAdded: function(aPlaceID) {
 //this._log.info("onSourceAdded: curIndex:curSelectedIndex = "+
 //  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
-    // Newly subscribed source has been added to places, elect the inserted row.
+    // Newly subscribed source has been added to places, select the inserted row.
     // The effect of selecting here is that onMessageAdded will trigger a view
     // refresh for each message, so messages pop into the view as added.
     this._tree.currentSelectedIndex = -1;
@@ -244,12 +244,11 @@ let CollectionsView = {
     }
   },
 
-  onMessagesComplete: function(aSourceId) {
-    // Finished downloading all messages.  Scroll the collection tree intelligently.
-//    SnowlUtils.scrollPlacement(this._tree, this._tree.currentIndex);
-
-    // Clear the collections stats cache and invalidate tree to rebuild.
-    SnowlService._collectionStatsByCollectionID = null;
+  onMessagesCompleted: function(aSourceId) {
+    // Source refresh completed, reset busy property.
+    if (SnowlService._sourcesByID[aSourceId])
+      SnowlService._sourcesByID[aSourceId].busy = false;
+      
     this._tree.treeBoxObject.invalidate();
   },
 
@@ -538,7 +537,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
     // Create places query object from tree item uri
     let query = new SnowlQuery(selectedSource.uri);
-    if (query.queryGroupIDColumn != "sources.id")
+    if (!query.queryTypeSource)
       return;
 
     selectedSources.push(SnowlService.sourcesByID[query.queryID]);
@@ -577,14 +576,14 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         query += "authorID = " + authors.join(" OR authorID = ");
       }
 
-      query = query ? " WHERE ( " + query + " AND" +
-                      " (read = " + MESSAGE_UNREAD + " OR" +
-                      "  read = " + MESSAGE_NEW + ") )" : null;
+      query = query ? "( " + query + " ) AND " : null;
     }
 
     if (query != null) {
       SnowlDatastore.dbConnection.executeSimpleSQL(
-          "UPDATE messages SET read = " + MESSAGE_READ + query);
+          "UPDATE messages SET read = " + MESSAGE_READ +
+          " WHERE " + query +
+          " (read = " + MESSAGE_UNREAD + " OR read = " + MESSAGE_NEW + ")");
 
       gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
       // Clear the collections stats cache and invalidate tree to rebuild.
@@ -594,6 +593,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   markCollectionNewState: function() {
+//this._log.info("markCollectionNewState: START ");
     // Mark all selected source/author collection messages as not new (unread)
     // upon the collection being no longer selected.  Note: shift-click on a
     // collection will leave new state when unselected.
@@ -1156,7 +1156,7 @@ PlacesTreeView.prototype.getCellProperties = SnowlTreeViewGetCellProperties;
 function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
   this._getCellProperties(aRow, aColumn, aProperties);
 
-  let query, anno, propStr, propArr, prop, collID;
+  let query, anno, propStr, propArr, prop, collID, source;
   let node = this._visibleElements[aRow].node;
   query = new SnowlQuery(node.uri);
 
@@ -1169,12 +1169,15 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
           (query.queryFolder == SnowlPlaces.collectionsSystemID ||
            query.queryFolder == SnowlPlaces.collectionsSourcesID ||
            query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
+  source = SnowlService._sourcesByID[query.queryID];
 
   var nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   if (nodeStats && nodeStats.u && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasUnread"));
   if (nodeStats && nodeStats.n && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasNew"));
+  if (((source && source.busy) || (nodeStats && nodeStats.busy)) && !node.containerOpen)
+    aProperties.AppendElement(this._getAtomFor("isBusy"));
 
 //if (nodeStats)
 //SnowlPlaces._log.info("getCellProperties: itemId:title:stats - "+
@@ -1232,10 +1235,16 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
   // Custom handling for 'new' in collections.
   let query = new SnowlQuery(node.uri);
   let collID = query.queryTypeSource ? "s" + query.queryID :
-               query.queryTypeAuthor ? "a" + query.queryID : null;
+               query.queryTypeAuthor ? "a" + query.queryID :
+              (query.queryFolder == SnowlPlaces.collectionsSystemID ||
+               query.queryFolder == SnowlPlaces.collectionsSourcesID ||
+               query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
   let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
-  if (nodeStats && nodeStats.n)
-    // Don't set icon, let css handle it for 'new'.
+  let source = SnowlService._sourcesByID[query.queryID];
+
+  if ((nodeStats && (nodeStats.n || nodeStats.busy)) || (source && source.busy))
+    // Don't set icon, let css handle it for 'new' or 'busy'.  "all" collection
+    // (only) has a busy property so we can set an indicator on a closed container.
     return "";
 
   var icon = node.icon;
@@ -1338,9 +1347,9 @@ PlacesUIUtils.getBestTitle =
     
       nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
       if (nodeStats && collID == "all")
-        titleStats = " (New:" + nodeStats.n + "/Unread:" + nodeStats.u + "/Total:" + nodeStats.t + ")";
+        titleStats = " (New:" + nodeStats.n + " Unread:" + nodeStats.u + " Total:" + nodeStats.t + ")";
       else if (nodeStats)
-        titleStats = " (" + nodeStats.n + "/" + nodeStats.u + "/" + nodeStats.t + ")";
+        titleStats = " (" + nodeStats.n + " " + nodeStats.u + " " + nodeStats.t + ")";
 
       title = title + titleStats;
      }

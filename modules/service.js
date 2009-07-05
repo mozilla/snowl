@@ -275,6 +275,18 @@ let SnowlService = {
 
   refreshAllSources: function(sources) {
     let allSources = sources ? sources : this.sources;
+
+    // Set busy property, notify observer to invalidate tree.
+    for each (let source in allSources)
+      this._sourcesByID[source.id].busy = true;
+
+    if (allSources.length > 0) {
+      // Don't set busy on 'all' until we know when the last one is done so it
+      // can be unset.
+//      this._collectionStatsByCollectionID["all"].busy = true;
+      Observers.notify("snowl:messages:completed", "refresh");
+    }
+
     // We specify the same refresh time when refreshing sources so that all
     // new messages have the same received time, which makes messages sorted by
     // received, then published times look better (more mixed together by
@@ -346,7 +358,7 @@ let SnowlService = {
 
   /**
    * Return read, unread, new stats on author, source collections.
-   *   *
+   *
    * @returns {object} the t (total), u (unread), n (new) numbers for each
    *                   source and author collection.
    */

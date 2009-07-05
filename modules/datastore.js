@@ -865,7 +865,6 @@ let SnowlDatastore = {
   },
 
   _collectionStatsStatement: function(aType) {
-    // XXX: store MESSAGE_NEW on new msg instead of MESSAGE_UNREAD.
     let typeID = aType == "*" ? "id" :
                  aType == "source" ? "sourceID" :
                  aType == "author" ? "authorID" : null;
@@ -884,7 +883,7 @@ let SnowlDatastore = {
     return statement;
   },
 
-  collectionStatsByCollectionID: function(aType) {
+  collectionStatsByCollectionID: function() {
     // Stats object for collections tree properties.
     let statement, type, types = ["*", "source", "author"];
     let collectionID, Total, Read, New, collectionStats = {};

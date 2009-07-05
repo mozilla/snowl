@@ -49,6 +49,7 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
 Cu.import("resource://snowl/modules/message.js");
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
 // FIXME: make strands.js into a module.
@@ -190,6 +191,9 @@ SnowlSource.prototype = {
 
   // How often to refresh sources, in milliseconds.
   refreshInterval: 1000 * 60 * 30, // 30 minutes
+
+  // For adding isBusy property to collections tree.
+  busy: false,
 
   id: null,
 
@@ -438,10 +442,12 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     // Update the current flag.
     this.updateCurrentMessages(currentMessageIDs);
 
-    // Notify list and collections views on completion of messages download, list
-    // also notified of each message addition.
     if (messagesChanged)
-      Observers.notify("snowl:messages:changed", this.id);
+      // Invalidate stats cache on completion of refresh with new messages.
+      SnowlService._collectionStatsByCollectionID = null;
+
+    // Notify collections view on completion of refresh.
+    Observers.notify("snowl:messages:completed", this.id);
   }),
 
   unstore: function() {
