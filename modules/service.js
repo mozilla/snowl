@@ -295,17 +295,24 @@ let SnowlService = {
     // browser in the morning after leaving it off overnight).
     let refreshTime = new Date();
     for each (let source in allSources) {
-      this._log.info("refreshing source " + source.name);
-      // FIXME: initiate more than one of these at the same time instead of
-      // waiting for each one to complete before doing the next one.
+      this.refreshSourceTimer(source, refreshTime);
+    }
+  },
+
+  refreshSourceTimer: function(aSource, aRefreshTime) {
+    let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let callback = { notify: function(aTimer) {
+      SnowlService._log.info("refreshing source " + aSource.name);
       try {
-        source.refresh(refreshTime);
-        source.persist();
+        aSource.refresh(aRefreshTime);
+        aSource.persist();
       }
       catch(ex) {
-        this._log.error("error refreshing source " + source.name + ": " + ex);
+        this._log.error("error refreshing source " + aSource.name + ": " + ex);
       }
-    }
+    } };
+
+    timer.initWithCallback(callback, 10, Ci.nsITimer.TYPE_ONE_SHOT);
   },
 
   /**
