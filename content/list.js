@@ -468,14 +468,14 @@ let SnowlMessageView = {
   // Based on SpaceHit in mailWindowOverlay.js
   _onSpacePress: function(aEvent) {
     if (aEvent.shiftKey) {
-      // if at the start of the message, go to the previous one
+      // If at the start of the message, go to the previous one.
       if (gBrowser.contentWindow.scrollY > 0)
         gBrowser.contentWindow.scrollByPages(-1);
       else
         this._goToPreviousUnreadMessage();
     }
     else {
-      // if at the end of the message, go to the next one
+      // If at the end of the message, go to the next one.
       if (gBrowser.contentWindow.scrollY < gBrowser.contentWindow.scrollMaxY)
         gBrowser.contentWindow.scrollByPages(1);
       else
@@ -512,7 +512,7 @@ let SnowlMessageView = {
         i = 0;
         continue;
       }
-this._log.info(i);
+
       if (this._collection.messages[i].read != MESSAGE_READ) {
         this.selection.select(i);
         this._tree.treeBoxObject.ensureRowIsVisible(i);
@@ -524,16 +524,17 @@ this._log.info(i);
   },
 
   _toggleRead: function(aAll) {
-this._log.info("_toggleRead: all? " + aAll);
     if (this._tree.currentIndex == -1)
       return;
 
     let row = this._tree.currentIndex;
     let message = this._collection.messages[row];
+    let readState = message.read == MESSAGE_UNREAD ? MESSAGE_READ : MESSAGE_UNREAD;
+
     if (aAll)
-      this._setAllRead(!message.read);
+      this._setAllRead(readState);
     else
-      this._setRead(!message.read);
+      this._setRead(readState);
   },
 
   _setRead: function(aRead) {
@@ -543,16 +544,26 @@ this._log.info("_toggleRead: all? " + aAll);
     message.persist();
     this._tree.boxObject.invalidateRow(row);
 
-    // XXX: it would be nicer to update just the source/author stats object for
-    // this message rather than rebuild the cache from db.
+    // It would be nicer to update just the source/author stats object for
+    // this message rather than rebuild the cache from db, but would be only a
+    // small saving.
     SnowlService._collectionStatsByCollectionID = null;
     this.CollectionsView._tree.treeBoxObject.invalidate();
   },
 
   _setAllRead: function(aRead) {
+    let readState = aRead == MESSAGE_UNREAD ? MESSAGE_UNREAD : MESSAGE_READ;
+    let readStateCurrent = aRead == MESSAGE_UNREAD ? MESSAGE_READ : MESSAGE_UNREAD;
+
     let ids = this._collection.messages.map(function(v) { return v.id });
-    this._collection.messages.forEach(function(v) { v.read = aRead; v.persist(); });
+    this._collection.messages.forEach(function(v) { v.read = readState });
     this._tree.boxObject.invalidate();
+
+    // Use more efficient sql rather than persisting each message.
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+        "UPDATE messages SET read = " + readState +
+        " WHERE messages.id IN ( " + ids + " ) AND" +
+        " (read = " + readStateCurrent + " OR read = " + MESSAGE_NEW + ")");
 
     SnowlService._collectionStatsByCollectionID = null;
     this.CollectionsView._tree.treeBoxObject.invalidate();
