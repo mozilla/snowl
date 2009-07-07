@@ -102,9 +102,9 @@ let SnowlMessageView = {
   // Initialization & Destruction
 
   onLoad: function() {
-    Observers.add("snowl:message:added",    this.onMessageAdded,    this);
-    Observers.add("snowl:source:added",  this.onSourcesChanged,  this);
-    Observers.add("snowl:source:removed",   this.onSourceRemoved,   this);
+    Observers.add("snowl:message:added",   this.onMessageAdded,   this);
+    Observers.add("snowl:source:added",    this.onSourcesChanged, this);
+    Observers.add("snowl:source:unstored", this.onSourceRemoved,  this);
 
     this.onResize();
 
@@ -150,9 +150,9 @@ let SnowlMessageView = {
   },
 
   onunLoad: function() {
-    Observers.remove("snowl:message:added",   this.onMessageAdded,    this);
-    Observers.remove("snowl:source:added", this.onSourcesChanged,  this);
-    Observers.remove("snowl:source:removed",  this.onSourceRemoved,   this);
+    Observers.remove("snowl:message:added",   this.onMessageAdded,   this);
+    Observers.remove("snowl:source:added",    this.onSourcesChanged, this);
+    Observers.remove("snowl:source:unstored", this.onSourceRemoved,  this);
   },
 
   _initWriteForm: function() {

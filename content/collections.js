@@ -192,22 +192,22 @@ let CollectionsView = {
   },
 
   loadObservers: function() {
-    Observers.add("snowl:source:added", this.onSourceAdded, this);
-    Observers.add("snowl:message:added", this.onMessageAdded, this);
-    Observers.add("snowl:source:removed", this.onSourceRemoved, this);
+    Observers.add("snowl:source:added",       this.onSourceAdded,       this);
+    Observers.add("snowl:message:added",      this.onMessageAdded,      this);
+    Observers.add("snowl:source:unstored",    this.onSourceRemoved,     this);
     Observers.add("snowl:messages:completed", this.onMessagesCompleted, this);
-    Observers.add("itemchanged", this.onItemChanged, this);
+    Observers.add("itemchanged",              this.onItemChanged,       this);
     if (this.gListOrRiver == "list")
       Observers.add("snowl:author:removed", this.onSourceRemoved, this);
 //this._log.info("loadObservers");
   },
 
   unloadObservers: function() {
-    Observers.remove("snowl:source:added", this.onSourceAdded, this);
-    Observers.remove("snowl:message:added", this.onMessageAdded, this);
-    Observers.remove("snowl:source:removed", this.onSourceRemoved, this);
+    Observers.remove("snowl:source:added",       this.onSourceAdded,       this);
+    Observers.remove("snowl:message:added",      this.onMessageAdded,      this);
+    Observers.remove("snowl:source:unstored",    this.onSourceRemoved,     this);
     Observers.remove("snowl:messages:completed", this.onMessagesCompleted, this);
-    Observers.remove("itemchanged", this.onItemChanged, this);
+    Observers.remove("itemchanged",              this.onItemChanged,       this);
     if (this.gListOrRiver == "list")
       Observers.remove("snowl:author:removed", this.onSourceRemoved, this);
 //this._log.info("unloadObservers");
@@ -650,74 +650,24 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
 
   removeSource: function() {
-//this._log.info("removeSource: START curIndex:curSelectedIndex = "+
-//  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
-    let sourceNode, sourceID;
-    let selectedSourceNodeID = [];
-    let selectedSourceNodesIDs = [];
-
-    // XXX: Multiselection? since only a source type may be removed and the tree
-    // contains mixed types of items, this needs some thought. Single selection
-    // only for now.
-
-    let selectedSource =
-        this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
-    // Create places query object from tree item uri
+    // Single selection removal of source for now; all messages, authors, and the
+    // subscription are permanently removed.
+    let source,  sourceID, selectedSourceIDs = [];
+    let selectedSource = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
     let query = new SnowlQuery(selectedSource.uri);
 
-    if (query.queryGroupIDColumn != "sources.id")
+    if (!query.queryTypeSource)
       return;
-this._log.info("removeSource: Removing source - " + selectedSource.title + " : " + selectedSource.itemId);
 
-    selectedSourceNodeID = [selectedSource, query.queryID];
-    selectedSourceNodesIDs.push(selectedSourceNodeID);
+    selectedSourceIDs.push(query.queryID);
 
     // Delete loop here, if multiple selections..
-    for (let i = 0; i < selectedSourceNodesIDs.length; ++i) {
-      sourceNode = selectedSourceNodesIDs[i][0];
-      sourceID = selectedSourceNodesIDs[i][1];
-      SnowlDatastore.dbConnection.beginTransaction();
-      try {
-        // FIXME: refactor this with SnowlSource::unstore.
-        // Delete messages
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
-            "WHERE docid IN " +
-            "(SELECT id FROM parts WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE sourceID = " + sourceID + "))");
-//this._log.info("removeSource: Delete messages PARTSTEXT DONE");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
-            "WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE sourceID = " + sourceID + ")");
-//this._log.info("removeSource: Delete messages PARTS DONE");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
-            "WHERE sourceID = " + sourceID);
-//this._log.info("removeSource: Delete messages DONE");
-        // Delete people/identities
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
-            "WHERE id IN " +
-            "(SELECT personID FROM identities WHERE sourceID = " + sourceID + ")");
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
-            "WHERE sourceID = " + sourceID);
-//this._log.info("removeSource: Delete people/identities DONE");
-        // Delete the source
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM sources " +
-            "WHERE id = " + sourceID);
-//this._log.info("removeSource: Delete source DONE");
-
-        // Finally, clean up Places bookmarks with sourceID in its prefixed uri.
-        SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + sourceID, true);
-//this._log.info("removeSource: Delete Places DONE");
-
-        SnowlDatastore.dbConnection.commitTransaction();
-        Observers.notify("snowl:source:unstored", sourceID);
-      }
-      catch(ex) {
-        SnowlDatastore.dbConnection.rollbackTransaction();
-        throw ex;
-      }
+    for (let i = 0; i < selectedSourceIDs.length; ++i) {
+      sourceID = selectedSourceIDs[i];
+      source = SnowlService.sourcesByID[sourceID];
+this._log.info("removeSource: Removing source - " + source.id + " : " + source.name);
+      source.unstore();
     }
-
-    Observers.notify("snowl:source:removed");
   },
 
   removeAuthor: function() {

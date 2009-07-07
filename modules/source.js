@@ -502,7 +502,6 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
 
     Observers.notify("snowl:source:unstored", this.id);
     this.id = null;
-    Observers.notify("snowl:source:removed");
   },
 
   /**

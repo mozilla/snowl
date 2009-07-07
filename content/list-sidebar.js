@@ -67,15 +67,15 @@ let ListSidebar = {
   onLoad: function() {
     gBrowserWindow.SnowlMessageView.show();
     this._updateWriteButton();
-    Observers.add("snowl:source:added", this.onSourcesChanged, this);
-    Observers.add("snowl:source:removed", this.onSourcesChanged, this);
+    Observers.add("snowl:source:added",    this.onSourcesChanged, this);
+    Observers.add("snowl:source:unstored", this.onSourcesChanged, this);
   },
 
   onUnload: function() {
     gBrowserWindow.SnowlMessageView.hide();
     CollectionsView.unloadObservers();
-    Observers.remove("snowl:source:added", this.onSourcesChanged, this);
-    Observers.remove("snowl:source:removed", this.onSourcesChanged, this);
+    Observers.remove("snowl:source:added",    this.onSourcesChanged, this);
+    Observers.remove("snowl:source:unstored", this.onSourcesChanged, this);
   },
 
   onToggleWrite: function(event) {

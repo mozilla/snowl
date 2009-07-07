@@ -44,7 +44,7 @@ let authInfo = window.arguments[1].QueryInterface(Ci.nsIAuthInformation);
 let result = window.arguments[2].wrappedJSObject;
 
 function doOnLoad() {
-  stringBundle = document.getElementById("snowlStringBundle");
+  let stringBundle = document.getElementById("snowlStringBundle");
 
   let prompt;
   let sourceURL = (source.humanURI || source.machineURI).spec;

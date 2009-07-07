@@ -117,8 +117,8 @@ let SnowlService = {
     this._registerFeedHandler();
     this._initTimer();
 
-    Observers.add("snowl:source:added", this.onSourcesChanged, this);
-    Observers.add("snowl:source:removed", this.onSourcesChanged, this);
+    Observers.add("snowl:source:added",    this.onSourcesChanged, this);
+    Observers.add("snowl:source:unstored", this.onSourcesChanged, this);
 
     // FIXME: refresh stale sources on startup in a way that doesn't hang
     // the UI thread.
