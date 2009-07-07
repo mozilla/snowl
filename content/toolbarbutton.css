@@ -77,7 +77,7 @@
 }
 
 #snowlUnreadButton {
-  list-style-image: url("chrome://snowl/content/icons/new.png");
+  list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
 }
 
 #writeButton {
