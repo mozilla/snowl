@@ -302,7 +302,7 @@ SnowlTwitter.prototype = {
   refresh: function(time) {
     if (typeof time == "undefined" || time == null)
       time = new Date();
-    this._log.info("start refresh " + this.username + " at " + time);
+//    this._log.info("start refresh " + this.username + " at " + time);
 
     Observers.notify("snowl:subscribe:get:start", this);
 
@@ -339,13 +339,12 @@ SnowlTwitter.prototype = {
       requestHeaders: requestHeaders
     });
 
+    // FIXME: remove subscribe from this notification's name.
+    Observers.notify("snowl:subscribe:connect:end", this, request.status);
+
+    this.lastStatus = request.status + " (" + request.statusText + ")";
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
-      // XXX Perhaps we should set this._lastStatus = request.status so we don't
-      // need to pass it in this notification and it's available at any time.
-      // FIXME: remove subscribe from this notification's name.
-      Observers.notify("snowl:subscribe:connect:end", this, request.status);
-      // XXX Should we throw instead?
-      this._log.error("refresh error: " + request.status + " (" + request.statusText + ")");
+      this.onRefreshError();
       return;
     }
 

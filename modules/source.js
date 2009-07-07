@@ -195,6 +195,10 @@ SnowlSource.prototype = {
   // For adding isBusy property to collections tree.
   busy: false,
 
+  // For adding hasError property to collections tree, status message.
+  error: false,
+  lastStatus: null,
+
   id: null,
 
   name: null,
@@ -296,6 +300,13 @@ SnowlSource.prototype = {
    *          received in the same refresh cycle.
    */
   refresh: function(refreshTime) {},
+
+  onRefreshError: function() {
+    this.error = true;
+    SnowlService.sourcesByID[this.id].error = true;
+    Observers.notify("snowl:messages:completed", this.id);
+    this._log.error("Refresh error: " + this.lastStatus);
+  },
 
   retrieveMessages: function() {
     // FIXME: memoize this.

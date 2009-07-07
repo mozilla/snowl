@@ -1178,6 +1178,8 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
     aProperties.AppendElement(this._getAtomFor("hasNew"));
   if (((source && source.busy) || (nodeStats && nodeStats.busy)) && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isBusy"));
+  if (source && source.error && !node.containerOpen)
+    aProperties.AppendElement(this._getAtomFor("hasError"));
 
 //if (nodeStats)
 //SnowlPlaces._log.info("getCellProperties: itemId:title:stats - "+
@@ -1242,9 +1244,11 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
   let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   let source = SnowlService.sourcesByID[query.queryID];
 
-  if ((nodeStats && (nodeStats.n || nodeStats.busy)) || (source && source.busy))
-    // Don't set icon, let css handle it for 'new' or 'busy'.  "all" collection
-    // (only) has a busy property so we can set an indicator on a closed container.
+  if ((nodeStats && (nodeStats.n || nodeStats.busy)) ||
+      (source && (source.busy || source.error)))
+    // Don't set icon, let css handle it for 'new' or 'busy' or 'error'.
+    // "all" collection (only) has a busy property so we can set an indicator on
+    // a closed container.
     return "";
 
   var icon = node.icon;

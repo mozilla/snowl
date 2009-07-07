@@ -83,3 +83,8 @@
 */
   list-style-image: url("chrome://snowl/content/icons/arrow_refresh_small.png");
 }
+
+/* Error on collection indicator */
+#sourcesViewTreeChildren::-moz-tree-image(hasError) {
+  list-style-image: url("chrome://snowl/content/icons/exclamation.png");
+}

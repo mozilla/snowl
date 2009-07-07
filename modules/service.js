@@ -277,8 +277,10 @@ let SnowlService = {
     let allSources = sources ? sources : this.sources;
 
     // Set busy property, notify observer to invalidate tree.
-    for each (let source in allSources)
+    for each (let source in allSources) {
       this.sourcesByID[source.id].busy = true;
+      this.sourcesByID[source.id].error = false;
+    }
 
     if (allSources.length > 0) {
       // Don't set busy on 'all' until we know when the last one is done so it
@@ -302,13 +304,15 @@ let SnowlService = {
   refreshSourceTimer: function(aSource, aRefreshTime) {
     let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     let callback = { notify: function(aTimer) {
-      SnowlService._log.info("refreshing source " + aSource.name);
+      SnowlService._log.info("Refreshing source: " +
+          aSource.name + " - " + aSource.machineURI.spec);
       try {
         aSource.refresh(aRefreshTime);
         aSource.persist();
       }
       catch(ex) {
-        this._log.error("error refreshing source " + aSource.name + ": " + ex);
+        aSource.lastStatus = ex;
+        aSource.onRefreshError();
       }
     } };
 
