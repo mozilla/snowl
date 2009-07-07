@@ -278,7 +278,7 @@ let SnowlService = {
 
     // Set busy property, notify observer to invalidate tree.
     for each (let source in allSources)
-      this._sourcesByID[source.id].busy = true;
+      this.sourcesByID[source.id].busy = true;
 
     if (allSources.length > 0) {
       // Don't set busy on 'all' until we know when the last one is done so it

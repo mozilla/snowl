@@ -415,16 +415,21 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     let messagesChanged = false;
 
     for each (let message in this.messages) {
-      this._log.info("persisting message " + message.externalID);
-
       let added = false;
-      try {
-        added = message.persist();
+      message.id = message._getInternalID();
+      if (!message.id) {
+        // Persist only new messages, ie without an id.
+        this._log.info("persisting new message " + message.externalID);
+  
+        try {
+          added = message.persist();
+        }
+        catch(ex) {
+          this._log.error("couldn't persist " + message.externalID + ": " + ex);
+          continue;
+        }
       }
-      catch(ex) {
-        this._log.error("couldn't persist " + message.externalID + ": " + ex);
-        continue;
-      }
+
       if (messagesChanged == false && added)
         messagesChanged = true;
       currentMessageIDs.push(message.id);
@@ -498,6 +503,7 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
    * @param aCurrentMessageIDs  {array} messages table ids of the current list
    */
   updateCurrentMessages: function(aCurrentMessageIDs) {
+//this._log.info("updateCurrentMessages:  aCurrentMessageIDs - " + aCurrentMessageIDs);
     SnowlDatastore.dbConnection.executeSimpleSQL(
       "UPDATE messages SET current = " + MESSAGE_NON_CURRENT +
       " WHERE sourceID = " + this.id + " AND current = " + MESSAGE_CURRENT

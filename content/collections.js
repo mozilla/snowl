@@ -246,8 +246,8 @@ let CollectionsView = {
 
   onMessagesCompleted: function(aSourceId) {
     // Source refresh completed, reset busy property.
-    if (SnowlService._sourcesByID[aSourceId])
-      SnowlService._sourcesByID[aSourceId].busy = false;
+    if (SnowlService.sourcesByID[aSourceId])
+      SnowlService.sourcesByID[aSourceId].busy = false;
       
     this._tree.treeBoxObject.invalidate();
   },
@@ -1169,7 +1169,7 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
           (query.queryFolder == SnowlPlaces.collectionsSystemID ||
            query.queryFolder == SnowlPlaces.collectionsSourcesID ||
            query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
-  source = SnowlService._sourcesByID[query.queryID];
+  source = SnowlService.sourcesByID[query.queryID];
 
   var nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   if (nodeStats && nodeStats.u && !node.containerOpen)
@@ -1240,7 +1240,7 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
                query.queryFolder == SnowlPlaces.collectionsSourcesID ||
                query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
   let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
-  let source = SnowlService._sourcesByID[query.queryID];
+  let source = SnowlService.sourcesByID[query.queryID];
 
   if ((nodeStats && (nodeStats.n || nodeStats.busy)) || (source && source.busy))
     // Don't set icon, let css handle it for 'new' or 'busy'.  "all" collection
