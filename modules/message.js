@@ -84,16 +84,11 @@ SnowlMessage.retrieve = function(id) {
         received:   SnowlDateUtils.julianToJSDate(statement.row.received),
         link:       statement.row.link ? URI.get(statement.row.link) : null,
         current:    statement.row.current,
-        read:       statement.row.read // ? true : false
+        read:       statement.row.read
       });
 
-      if (statement.row.authorID) {
+      if (statement.row.authorID)
         message.author = SnowlIdentity.retrieve(statement.row.authorID);
-        // Duplicate the author name in the authorName property so sorting
-        // by author in the list view works.
-        // FIXME: come up with a better fix for this hack.
-        message.authorName = message.author.person.name;
-      }
     }
   }
   finally {

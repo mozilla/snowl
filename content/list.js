@@ -94,10 +94,10 @@ let SnowlMessageView = {
                                             contentWindow.CollectionsView;
   },
 
-  // Maps XUL tree column IDs to collection properties.
+  // Maps XUL tree column IDs to collection message object properties for sorting.
   _columnProperties: {
-    "snowlSourceCol": "source",
-    "snowlAuthorCol": "authorName",
+    "snowlSourceCol": "source.name",
+    "snowlAuthorCol": "author.person.name",
     "snowlSubjectCol": "subject",
     "snowlTimestampCol": "timestamp"
   },

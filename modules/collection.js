@@ -286,7 +286,7 @@ this._log.info("got " + groups.length + " groups");
           received:   SnowlDateUtils.julianToJSDate(statement.row.received),
           link:       statement.row.link ? URI.get(statement.row.link) : null,
           current:    statement.row.current,
-          read:       statement.row.read, // ? true : false,
+          read:       statement.row.read,
           content:    content
         });
 
@@ -412,18 +412,32 @@ this._log.info("got " + groups.length + " groups");
     let properties = this.sortProperties;
     let order = this.sortOrder;
 
-    // Fall back on subject.
-    // XXX Should we let callers make this decision?
-    if (properties[properties.length - 1] != "subject")
-      properties.push("subject");
+    // Secondary sort on AZ date.
+    // XXX Implement multicolumn sort.
+    if (properties[properties.length - 1] != "timestamp")
+      properties.push("timestamp");
 
     let compare = function(a, b) {
       for each (let property in properties) {
-        if (prepareObjectForComparison(a[property]) >
-            prepareObjectForComparison(b[property]))
+        let x, y;
+        let props = property.split(".");
+
+        for (let i = 0; i < props.length; i++) {
+          if (i == 0) {
+            x = a[props[i]]
+            y = b[props[i]];
+          }
+          else if (x && y) {
+            x = x[props[i]];
+            y = y[props[i]];
+          }
+        }
+
+        if (prepareObjectForComparison(x) >
+            prepareObjectForComparison(y))
           return 1 * order;
-        if (prepareObjectForComparison(a[property]) <
-            prepareObjectForComparison(b[property]))
+        if (prepareObjectForComparison(x) <
+            prepareObjectForComparison(y))
           return -1 * order;
       }
 
