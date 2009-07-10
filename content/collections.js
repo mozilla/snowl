@@ -675,7 +675,7 @@ this._log.info("removeSource: Removing source - " + source.id + " : " + source.n
     // do not go into a deleted status).
 //this._log.info("removeAuthor: START curIndex:curSelectedIndex = "+
 //  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
-    let sourceNode, authorID;
+    let sourceNode, personID;
     let selectedSourceNodeID = [];
     let selectedSourceNodesIDs = [];
 
@@ -696,28 +696,30 @@ this._log.info("removeAuthor: Removing author - " + selectedSource.title + " : "
     // Delete loop here, if multiple selections..
     for (let i = 0; i < selectedSourceNodesIDs.length; ++i) {
       sourceNode = selectedSourceNodesIDs[i][0];
-      authorID = selectedSourceNodesIDs[i][1];
+      personID = selectedSourceNodesIDs[i][1];
       SnowlDatastore.dbConnection.beginTransaction();
       try {
         // Delete messages
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
             "WHERE docid IN " +
             "(SELECT id FROM parts WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE authorID = " + authorID + "))");
+            "(SELECT id FROM messages WHERE authorID IN " +
+            "(SELECT id FROM identities WHERE personID = " + personID + ")))");
 //this._log.info("removeAuthor: Delete messages PARTSTEXT DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
             "WHERE messageID IN " +
-            "(SELECT id FROM messages WHERE authorID = " + authorID + ")");
+            "(SELECT id FROM messages WHERE authorID IN " +
+            "(SELECT id FROM identities WHERE personID = " + personID + "))");
 //this._log.info("removeAuthor: Delete messages PARTS DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
-            "WHERE authorID = " + authorID);
+            "WHERE authorID IN " +
+            "(SELECT id FROM identities WHERE personID = " + personID + ")");
 //this._log.info("removeAuthor: Delete messages DONE");
         // Delete people/identities
-        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
-            "WHERE id IN " +
-            "(SELECT personID FROM identities WHERE id = " + authorID + ")");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
-            "WHERE id = " + authorID);
+            "WHERE personID = " + personID);
+        SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
+            "WHERE id = " + personID);
 //this._log.info("removeAuthor: Delete people/identities DONE");
 
         // Finally, clean up Places bookmark by author's place itemId.
