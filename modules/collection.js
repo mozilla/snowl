@@ -253,14 +253,6 @@ this._log.info("got " + groups.length + " groups");
     try {
       while (statement.step()) {
         content = null;
-        if (statement.row.partID) {
-          content = Cc["@mozilla.org/feed-textconstruct;1"].
-                    createInstance(Ci.nsIFeedTextConstruct);
-          content.text = statement.row.content;
-          content.type = TEXT_CONSTRUCT_TYPES[statement.row.mediaType];
-          content.base = URI.get(statement.row.baseURI);
-          content.lang = statement.row.languageTag;
-        }
 
         let author;
         if (statement.row.authorID) {
@@ -334,12 +326,7 @@ this._log.info("got " + groups.length + " groups");
       "people.name AS people_name",
       "people.placeID AS people_placeID",
       "people.homeURL AS people_homeURL",
-      "people.iconURL AS people_iconURL",
-      "parts.id AS partID",
-      "parts.content",
-      "parts.mediaType",
-      "parts.baseURI",
-      "parts.languageTag"
+      "people.iconURL AS people_iconURL"
     ];
 
     if (this.groupIDColumn) {
@@ -351,14 +338,7 @@ this._log.info("got " + groups.length + " groups");
       "SELECT " + columns.join(", ") + " FROM sources " +
       "JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN identities ON messages.authorID = identities.id " +
-      "LEFT JOIN people ON identities.personID = people.id " +
-      "LEFT JOIN parts AS parts ON messages.id = parts.messageID " +
-
-      // This partType condition has to be in the constraint for the LEFT JOIN
-      // to the parts table because if it was in the WHERE clause it would
-      // exclude messages without a content part, whereas we want to retrieve
-      // all messages whether or not they have a content part.
-      "AND parts.partType = " + PART_TYPE_CONTENT;
+      "LEFT JOIN people ON identities.personID = people.id ";
 
     let conditions = [], operator;
 
