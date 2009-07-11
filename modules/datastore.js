@@ -770,28 +770,51 @@ let SnowlDatastore = {
     return [name, username];
   },
 
-  get _selectHasAuthorMessageStatement() {
+  get _selectHasIdentityMessageStatement() {
     let statement = this.createStatement(
-      "SELECT 1 FROM messages" +
-      " WHERE authorID = :authorID AND" +
-      "       current <> " + MESSAGE_CURRENT_PENDING_PURGE
+      "SELECT 1 FROM messages " +
+      "WHERE authorID = :authorID AND " +
+      "      current <> " + MESSAGE_CURRENT_PENDING_PURGE
     );
-    this.__defineGetter__("_selectHasAuthorMessageStatement", function() { return statement });
-    return this._selectHasAuthorMessageStatement;
+    this.__defineGetter__("_selectHasIdentityMessageStatement", function() { return statement });
+    return this._selectHasIdentityMessageStatement;
   },
 
-  selectHasAuthorMessage: function(aAuthorID) {
+  selectHasIdentityMessage: function(aAuthorID) {
     let hasMessage = false;
     try {
-      this._selectHasAuthorMessageStatement.params.authorID = aAuthorID;
-      if (this._selectHasAuthorMessageStatement.step())
+      this._selectHasIdentityMessageStatement.params.authorID = aAuthorID;
+      if (this._selectHasIdentityMessageStatement.step())
         hasMessage = true;
     }
     finally {
-      this._selectHasAuthorMessageStatement.reset();
+      this._selectHasIdentityMessageStatement.reset();
     }
 
     return hasMessage;
+  },
+
+  get _selectHasAuthorIdentityStatement() {
+    let statement = this.createStatement(
+      "SELECT 1 FROM identities " +
+      "WHERE personID = :authorID"
+    );
+    this.__defineGetter__("_selectHasAuthorIdentityStatement", function() { return statement });
+    return this._selectHasAuthorIdentityStatement;
+  },
+
+  selectHasAuthorIdentity: function(aAuthorID) {
+    let hasIdentity = false;
+    try {
+      this._selectHasAuthorIdentityStatement.params.authorID = aAuthorID;
+      if (this._selectHasAuthorIdentityStatement.step())
+        hasIdentity = true;
+    }
+    finally {
+      this._selectHasAuthorIdentityStatement.reset();
+    }
+
+    return hasIdentity;
   },
 
   get _insertMessageStatement() {
@@ -865,27 +888,44 @@ let SnowlDatastore = {
   },
 
   _collectionStatsStatement: function(aType) {
-    let typeID = aType == "*" ? "id" :
-                 aType == "source" ? "sourceID" :
-                 aType == "author" ? "authorID" : null;
-    let groupBy = aType == "*" ? "" :
-                  aType == "source" ? "GROUP BY collectionID" :
-                  aType == "author" ? "GROUP BY collectionID" : null;
-    let statement = this.createStatement(
-      "SELECT " + typeID + " AS collectionID, " +
-      "  COUNT(messages.id)   AS total, " +
-      "  SUM(read)            AS read, " +
-      "  SUM(ROUND(read/2,0)) AS new " +
-      "FROM messages " +
-      "WHERE (current = " + MESSAGE_NON_CURRENT + " OR " +
-      "       current = " + MESSAGE_CURRENT + ") " + groupBy);
+    let query;
+    switch (aType) {
+      case "all":
+        query = "SELECT id AS collectionID, " +
+                "  COUNT(messages.id)   AS total, " +
+                "  SUM(read)            AS read, " +
+                "  SUM(ROUND(read/2,0)) AS new " +
+                "FROM messages " +
+                "WHERE (current = " + MESSAGE_NON_CURRENT + " OR " +
+                "       current = " + MESSAGE_CURRENT + ") ";
+        break;
+      case "source":
+        query = "SELECT sourceID AS collectionID, " +
+                "  COUNT(messages.id)   AS total, " +
+                "  SUM(read)            AS read, " +
+                "  SUM(ROUND(read/2,0)) AS new " +
+                "FROM messages " +
+                "WHERE (current = " + MESSAGE_NON_CURRENT + " OR " +
+                "       current = " + MESSAGE_CURRENT + ") GROUP BY collectionID";
+        break;
+      case "author":
+        query = "SELECT authorID, identities.id, identities.personID AS collectionID, " +
+                "  COUNT(messages.id)   AS total, " +
+                "  SUM(read)            AS read, " +
+                "  SUM(ROUND(read/2,0)) AS new " +
+                "FROM messages " +
+                "LEFT JOIN identities ON messages.authorID = identities.id " +
+                "WHERE (current = " + MESSAGE_NON_CURRENT + " OR " +
+                "       current = " + MESSAGE_CURRENT + ") GROUP BY collectionID";
+        break;
+    }
 
-    return statement;
+    return this.createStatement(query);
   },
 
   collectionStatsByCollectionID: function() {
     // Stats object for collections tree properties.
-    let statement, type, types = ["*", "source", "author"];
+    let statement, type, types = ["all", "source", "author"];
     let collectionID, Total, Read, New, collectionStats = {};
 
     try {
@@ -895,7 +935,7 @@ let SnowlDatastore = {
           if (statement.row["collectionID"] == null)
             continue;
 
-          collectionID = type[0] == "*" ?
+          collectionID = type == "all" ?
               "all" : type[0] + statement.row["collectionID"];
 
           Total =  statement.row["total"];

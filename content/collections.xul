@@ -156,6 +156,7 @@
           itemids="-1"
           hidecolumnpicker="true"
           context="placesContext"
+          _selectDelay="500"
           onkeypress="SidebarUtils.handleTreeKeyPress(event);"
           onmousemove="SidebarUtils.handleTreeMouseMove(event);"
           onmouseout="SidebarUtils.clearURLFromStatusBar();"

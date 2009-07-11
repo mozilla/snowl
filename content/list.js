@@ -416,7 +416,9 @@ let SnowlMessageView = {
     // On conversion of list tree to places, this will be stored in
     // currentSelectedIndex as for collections tree..
 //    SnowlUtils.gListViewListIndex = row;
-    this._setRead(true);
+
+    if (message.read == MESSAGE_UNREAD)
+      this._setRead(true);
     // If new message selected, reset for toggle
     SnowlUtils.gMessagePosition.pageIndex = null;
   },
@@ -772,6 +774,9 @@ let SnowlMessageView = {
     if (markDeletedMessageIDs.length > 0)
       SnowlMessage.markDeletedState(markDeletedMessageIDs, true);
 
+    // Reset stats.
+    SnowlService._collectionStatsByCollectionID = null;
+    this.CollectionsView._tree.treeBoxObject.invalidate();
 //this._log.info("_deleteMessages: END");
 //this._log.info(" ");
   },
@@ -875,6 +880,10 @@ let SnowlMessageView = {
     }
 
     SnowlMessage.markDeletedState(messageIDs, false);
+
+    // Reset stats.
+    SnowlService._collectionStatsByCollectionID = null;
+    this.CollectionsView._tree.treeBoxObject.invalidate();
   },
 
   onListTreeMouseDown: function(aEvent) {

@@ -573,7 +573,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       if (authors.length > 0) {
         if (sources.length > 0)
           query += " OR ";
-        query += "authorID = " + authors.join(" OR authorID = ");
+        query += "authorID IN (SELECT id FROM identities " +
+                 "             WHERE personID IN ( " + authors + " ))";
       }
 
       query = query ? "( " + query + " ) AND " : null;
@@ -593,7 +594,6 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   markCollectionNewState: function() {
-//this._log.info("markCollectionNewState: START ");
     // Mark all selected source/author collection messages as not new (unread)
     // upon the collection being no longer selected.  Note: shift-click on a
     // collection will leave new state when unselected.
@@ -631,7 +631,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       if (authors.length > 0) {
         if (sources.length > 0)
           query += " OR ";
-        query += "authorID = " + authors.join(" OR authorID = ");
+        query += "authorID IN (SELECT id FROM identities " +
+                 "             WHERE personID IN ( " + authors + " ))";
       }
 
       query = query ? "( " + query + " ) AND " : null;
@@ -665,7 +666,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     for (let i = 0; i < selectedSourceIDs.length; ++i) {
       sourceID = selectedSourceIDs[i];
       source = SnowlService.sourcesByID[sourceID];
-this._log.info("removeSource: Removing source - " + source.id + " : " + source.name);
+      this._log.info("removeSource: Removing source - " +
+                     source.id + " : " + source.name);
       source.unstore();
     }
   },
@@ -686,10 +688,11 @@ this._log.info("removeSource: Removing source - " + source.id + " : " + source.n
     // Create places query object from tree item uri
     let query = new SnowlQuery(selectedSource.uri);
 
-    if (query.queryGroupIDColumn != "people.id")
+    if (!query.queryTypeAuthor)
       return;
-this._log.info("removeAuthor: Removing author - " + selectedSource.title + " : " + selectedSource.itemId);
 
+    this._log.info("removeAuthor: Removing author - " +
+                   selectedSource.title + " : " + selectedSource.itemId);
     selectedSourceNodeID = [selectedSource, query.queryID];
     selectedSourceNodesIDs.push(selectedSourceNodeID);
 
@@ -885,10 +888,10 @@ this._log.info("removeAuthor: Removing author - " + selectedSource.title + " : "
       for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
         uri = this._tree.view.nodeForTreeIndex(index).uri;
         query = new SnowlQuery(uri);
-        if ((query.queryGroupIDColumn == "sources.id" &&
-             query.queryID == aMessage.source.id) ||
-            (query.queryGroupIDColumn == "people.id" &&
-             query.queryID == aMessage.author.id) ||
+        if ((query.queryTypeSource && query.queryID == aMessage.source.id) ||
+            (query.queryTypeAuthor && query.queryID == (aMessage.author ?
+                                                        aMessage.author.person.id :
+                                                        null)) ||
             // Collection folders that return all records
             query.queryFolder == SnowlPlaces.collectionsSystemID)
           refreshFlag = true;

@@ -68,8 +68,10 @@ SnowlMessage.retrieve = function(id) {
 
   // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
-    "SELECT sourceID, externalID, subject, authorID, timestamp, received, link, current, read " +
-    "FROM messages WHERE messages.id = :id"
+    "SELECT sourceID, externalID, subject, authorID, " +
+    "       timestamp, received, link, current, read " +
+    "FROM messages " +
+    "WHERE messages.id = :id"
   );
 
   try {
@@ -110,40 +112,47 @@ SnowlMessage.delete = function(aMessage) {
 
   SnowlDatastore.dbConnection.beginTransaction();
   try {
-    // Delete messages
-    SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM partsText " +
-        "WHERE docid IN " +
-        "(SELECT id FROM parts WHERE messageID = " + messageID + ")");
-//this._log.info("_deleteMessages: Delete messages PARTSTEXT DONE");
-    SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
-        "WHERE messageID  = " + messageID);
-//this._log.info("_deleteMessages: Delete messages PARTS DONE");
-    // If a message is current and marked deleted, need to keep the record so
-    // duplicates are not re added upon refresh.  So we move to a pending purge
-    // state and delete the rest of the message.
+    // Delete a message and its parts.
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "DELETE FROM partsText " +
+      "WHERE docid IN " +
+      "(SELECT id FROM parts WHERE messageID = " + messageID + ")");
+    SnowlDatastore.dbConnection.executeSimpleSQL(
+      "DELETE FROM parts " +
+      "WHERE messageID = " + messageID);
+
     if (current == MESSAGE_CURRENT_DELETED)
-      SnowlDatastore.dbConnection.executeSimpleSQL("UPDATE messages " +
-          "SET current = " + MESSAGE_CURRENT_PENDING_PURGE +
-          " WHERE id = " + messageID);
+      // If a message is current and marked deleted, need to keep the record so
+      // duplicates are not re added upon refresh.  So we move to a pending purge
+      // state and delete the rest of the message.
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "UPDATE messages " +
+        "SET current = " + MESSAGE_CURRENT_PENDING_PURGE +
+        " WHERE id = " + messageID);
     else
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
-          "WHERE id = " + messageID);
-//this._log.info("_deleteMessages: Delete messages DONE");
-    if (message.author && !SnowlService.hasAuthorMessage(message.author.person.id)) {
-      // Delete people/identities; author's only message has been deleted.
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
-          "WHERE id = " + message.author.person.id);
-      SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
-          "WHERE id = " + message.author.id);
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "DELETE FROM messages " +
+        "WHERE id = " + messageID);
+
+    // Check if author/identity needs to be deleted.
+    if (message.author && !SnowlService.hasIdentityMessage(message.author.id)) {
+      // Delete identity if its only message has been deleted.
+      SnowlDatastore.dbConnection.executeSimpleSQL(
+        "DELETE FROM identities " +
+        "WHERE id = " + message.author.id);
+
+      if (message.author && !SnowlService.hasAuthorIdentity(message.author.person.id))
+          // Delete author if author's only identity has been deleted.
+          SnowlDatastore.dbConnection.executeSimpleSQL(
+            "DELETE FROM people " +
+            "WHERE id = " + message.author.person.id);
+
       // Finally, clean up Places bookmark by author's placeID.  A collections
       // tree rebuild is triggered by Places on removeItem of a visible item,
       // triggering a select event.  Need to bypass in onSelect.
       SnowlMessage.prototype.CollectionsView.noSelect = true;
       PlacesUtils.bookmarks.removeItem(message.author.person.placeID);
-//this._log.info("_deleteMessages: Delete DONE authorID - "+authorID);
     }
-//        PlacesUtils.history.removePage(URI(this.MESSAGE_URI + messageID));
-//SnowlPlaces._log.info("_deleteMessages: Delete DONE messageID - "+messageID);
 
     SnowlDatastore.dbConnection.commitTransaction();
   }
@@ -154,20 +163,18 @@ SnowlMessage.delete = function(aMessage) {
 };
 
 SnowlMessage.markDeletedState = function(aMessageIDs, aState) {
-  // If aState is true, mark deleted; if false, mark undeleted.
-//SnowlPlaces._log.info("markDeletedState: aMessageIDs - "+aMessageIDs);
-
+  // If aState is true, mark deleted; if false, mark undeleted.  Make sure caller
+  // checks for delete status first.
   SnowlDatastore.dbConnection.beginTransaction();
   try {
-    // Mark message delete state, make sure this caller checks for delete status first.
     SnowlDatastore.dbConnection.executeSimpleSQL(
-      "UPDATE messages SET current =" +
+      "UPDATE messages SET current = " +
       " (CASE WHEN current = " + (aState ? MESSAGE_NON_CURRENT : MESSAGE_NON_CURRENT_DELETED) +
       "       THEN " + (aState ? MESSAGE_NON_CURRENT_DELETED : MESSAGE_NON_CURRENT) +
       "       WHEN current = " + (aState ? MESSAGE_CURRENT : MESSAGE_CURRENT_DELETED) +
       "       THEN " + (aState ? MESSAGE_CURRENT_DELETED : MESSAGE_CURRENT) +
-      "  END)" +
-      " WHERE id IN ( " + aMessageIDs + " )"
+      "  END) " +
+      "WHERE id IN ( " + aMessageIDs + " )"
     );
 
     SnowlDatastore.dbConnection.commitTransaction();

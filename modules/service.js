@@ -337,8 +337,19 @@ let SnowlService = {
    *
    * @returns {boolean} whether or not the author has a message
    */
-  hasAuthorMessage: function(aAuthorID) {
-    return SnowlDatastore.selectHasAuthorMessage(aAuthorID);
+  hasIdentityMessage: function(aAuthorID) {
+    return SnowlDatastore.selectHasIdentityMessage(aAuthorID);
+  },
+
+  /**
+   * Determine whether or not an author has at least one identity in the database.
+   *
+   * @param aAuthorID {string}  the identity ID of the message
+   *
+   * @returns {boolean} whether or not the author has an identity
+   */
+  hasAuthorIdentity: function(aAuthorID) {
+    return SnowlDatastore.selectHasAuthorIdentity(aAuthorID);
   },
 
   /**
