@@ -143,6 +143,16 @@ let Snowl = {
     let layoutmenuitems = document.getElementsByAttribute("name", "snowlLayoutMenuitemGroup");
     let layout = this._mainWindow.getAttribute("snowllayout");
     let layoutIndex = this.layoutName.indexOf(layout);
+    let sidebartoolbarmenuitem = document.getElementById("snowlToolbarMenuitem");
+    let doc = document.getElementById("sidebar").contentDocument;
+    let toolbar = doc.getElementById("snowlToolbar");
+
+    // Sidebar toolbar, stream and list.
+    if (toolbar) {
+      sidebartoolbarmenuitem.setAttribute("checked", !toolbar.hidden);
+      sidebartoolbarmenuitem.setAttribute("disabled",
+        (!lchecked && !schecked) ? true : false);
+    }
 
     if (layoutmenuitems) {
       for (var i = 0; i < layoutmenuitems.length; i++) {
@@ -151,12 +161,6 @@ let Snowl = {
           layoutmenuitems[i].setAttribute("checked", true);
       }
     }
-
-    // Toolbars
-    document.getElementById("snowlToolbarMenuitem").setAttribute("disabled",
-        (!lchecked && !schecked) ? true : false);
-    document.getElementById("snowlViewToolbarMenuitem").setAttribute("disabled",
-        (!lchecked) ? true : false)
   },
 
 
@@ -296,39 +300,12 @@ let Snowl = {
     }
   },
 
-  // Need to init onLoad due to xul structure, toolbar exists in list and stream
-  _initSnowlToolbar: function() {
-    let menuitem = document.getElementById("snowlToolbarMenuitem");
+  _toggleToolbar: function(event) {
     let doc = document.getElementById("sidebar").contentDocument;
     let toolbar = doc.getElementById("snowlToolbar");
 
-    if (toolbar) {
-      menuitem.setAttribute("checked", !toolbar.hidden);
-    }
-  },
-
-  _toggleToolbar: function(event) {
-    let name = event.target.getAttribute("name");
-    let menuitem = document.getElementById(name+"Menuitem");
-    let doc, toolbar, rtoolbar = null;
-
-    if (name == "snowlToolbar") {
-      doc = document.getElementById("sidebar").contentDocument;
-      let rivertab = this._snowlRiverTab();
-      if (rivertab)
-        rtoolbar = gBrowser.getBrowserAtIndex(rivertab._tPos).
-                   contentDocument.getElementById(name);
-    }
-    else 
-      doc = document;
-
-    toolbar = doc.getElementById(name);
-    if (toolbar) {
+    if (toolbar)
       toolbar.hidden = !toolbar.hidden;
-      menuitem.setAttribute("checked", !toolbar.hidden);
-    }
-    if (rtoolbar)
-      rtoolbar.hidden = !rtoolbar.hidden;
   },
 
   // See if River tab exists

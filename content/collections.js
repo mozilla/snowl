@@ -54,23 +54,18 @@ Cu.import("resource://snowl/modules/source.js");
 
 let strings = new StringBundle("chrome://snowl/locale/datastore.properties");
 
-let gMessageViewWindow = null;
-if (document.getElementById("snowlSidebar"))
-  gMessageViewWindow = SnowlService.gBrowserWindow;
-else if (document.getElementById("snowlRiver"))
-  gMessageViewWindow = window;
+let gMessageViewWindow = SnowlService.gBrowserWindow;
 
 let CollectionsView = {
-  _log: null,
+  // Logger
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
+  },
 
   get _tree() {
     delete this._tree;
     return this._tree = document.getElementById("sourcesView");
-  },
-
-  get _children() {
-    delete this._children;
-    return this._children = document.getElementById("sourcesViewTreeChildren");
   },
 
   get _searchFilter() {
@@ -113,8 +108,6 @@ let CollectionsView = {
     return this._itemIds = ids;
   },
 
-  gListOrRiver: null,
-
   Filters: {
     unread: false,
     deleted: false,
@@ -126,44 +119,33 @@ let CollectionsView = {
   // Initialization & Destruction
 
   init: function() {
-    if (document.getElementById("snowlSidebar")) {
-      // Only for sidebar collections tree in list view.
-      this._log = Log4Moz.repository.getLogger("Snowl.Sidebar");
-      this.gListOrRiver = "list";
+    // Only for sidebar collections tree in list view.
+    if (!this._listToolbar.hasAttribute("hidden"))
+      this._toggleListToolbarButton.setAttribute("checked", true);
 
-      if (!this._listToolbar.hasAttribute("hidden"))
-        this._toggleListToolbarButton.setAttribute("checked", true);
+    this.Filters["unread"] = document.getElementById("snowlUnreadButton").
+                                      checked ? true : false;
+    this.Filters["deleted"] = document.getElementById("snowlShowDeletedButton").
+                                      checked ? true : false;
+    if (this.Filters["deleted"])
+      document.getElementById("snowlPurgeDeletedButton").removeAttribute("disabled");
+    else
+      document.getElementById("snowlPurgeDeletedButton").setAttribute("disabled", true);
 
-      this.Filters["unread"] = document.getElementById("snowlUnreadButton").
-                                        checked ? true : false;
-      this.Filters["deleted"] = document.getElementById("snowlShowDeletedButton").
-                                        checked ? true : false;
-      if (this.Filters["deleted"])
-        document.getElementById("snowlPurgeDeletedButton").removeAttribute("disabled");
-      else
-        document.getElementById("snowlPurgeDeletedButton").setAttribute("disabled", true);
-
-      // Restore persisted view selection (need to build the menulist) or init.
-      let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
-      if (selIndex >= 0) {
-        this.onPopupshowingCollectionsView();
-        this._collectionsViewMenu.selectedIndex = selIndex;
-      }
-      else {
-        this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
-        this._collectionsViewMenu.selectedIndex = 0;
-      }
-
-      // Set the view, which sets the Places query on the collections tree and
-      // restores the selection.
-      this.onCommandCollectionsView(this._collectionsViewMenu.value);
+    // Restore persisted view selection (need to build the menulist) or init.
+    let selIndex = parseInt(this._collectionsViewMenu.getAttribute("selectedindex"));
+    if (selIndex >= 0) {
+      this.onPopupshowingCollectionsView();
+      this._collectionsViewMenu.selectedIndex = selIndex;
     }
-    else if (document.getElementById("snowlRiver")) {
-      // Only for collections tree in river view.
-      this._log = Log4Moz.repository.getLogger("Snowl.River");
-      this.gListOrRiver = "river";
-      this._tree.place = SnowlPlaces.querySources;
+    else {
+      this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
+      this._collectionsViewMenu.selectedIndex = 0;
     }
+
+    // Set the view, which sets the Places query on the collections tree and
+    // restores the selection.
+    this.onCommandCollectionsView(this._collectionsViewMenu.value);
 
     this.loadObservers();
 
@@ -189,8 +171,7 @@ let CollectionsView = {
     Observers.add("snowl:source:unstored",    this.onSourceRemoved,     this);
     Observers.add("snowl:messages:completed", this.onMessagesCompleted, this);
     Observers.add("itemchanged",              this.onItemChanged,       this);
-    if (this.gListOrRiver == "list")
-      Observers.add("snowl:author:removed", this.onSourceRemoved, this);
+    Observers.add("snowl:author:removed",     this.onSourceRemoved,     this);
 //this._log.info("loadObservers");
   },
 
@@ -200,8 +181,7 @@ let CollectionsView = {
     Observers.remove("snowl:source:unstored",    this.onSourceRemoved,     this);
     Observers.remove("snowl:messages:completed", this.onMessagesCompleted, this);
     Observers.remove("itemchanged",              this.onItemChanged,       this);
-    if (this.gListOrRiver == "list")
-      Observers.remove("snowl:author:removed", this.onSourceRemoved, this);
+    Observers.remove("snowl:author:removed",     this.onSourceRemoved,     this);
 //this._log.info("unloadObservers");
   },
 

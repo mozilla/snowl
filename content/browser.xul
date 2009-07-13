@@ -162,14 +162,6 @@
                       accesskey="&toolbar.accesskey;"
                       name="snowlToolbar"
                       oncommand="Snowl._toggleToolbar(event)"/>
-            <menuitem id="snowlViewToolbarMenuitem"
-                      label="&viewtoolbar.label;"
-                      type="checkbox"
-                      checked="true"
-                      persist="checked"
-                      accesskey="&viewtoolbar.accesskey;"
-                      name="snowlViewToolbar"
-                      oncommand="Snowl._toggleToolbar(event)"/>
           </menupopup>
   
         </menu>

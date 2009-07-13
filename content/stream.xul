@@ -59,7 +59,7 @@
 
   <script type="application/javascript" src="chrome://snowl/content/stream.js"/>
 
-  <toolbar id="snowlToolbar">
+  <toolbar id="snowlToolbar" persist="hidden">
     <toolbarbutton id="snowlRefreshButton"
                    class="tabbable"
                    oncommand="SnowlMessageView.onRefresh()"

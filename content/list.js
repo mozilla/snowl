@@ -211,8 +211,6 @@ let SnowlMessageView = {
   show: function() {
     this._snowlViewContainer.hidden = false;
     this._snowlViewSplitter.hidden = false;
-
-    Snowl._initSnowlToolbar();
   },
 
   hide: function() {
