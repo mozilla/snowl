@@ -26,6 +26,8 @@
 <!ENTITY exportOPML.accesskey                 "x">
 <!ENTITY options.label                        "Options">
 <!ENTITY options.accesskey                    "O">
+<!ENTITY rebuildDB.label                      "Rebuild Places Database">
+<!ENTITY rebuildDB.accesskey                  "D">
 
 
 <!-- These labels and access keys are for items in the View > Sidebar menu,

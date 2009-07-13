@@ -263,7 +263,10 @@ let SnowlService = {
   },
 
   refreshStaleSources: function() {
-    this._log.info("refreshing stale sources");
+    if (!SnowlPlaces._placesConverted)
+      return;
+
+    this._log.info("Refreshing stale sources");
 
     let now = new Date();
     let staleSources = [];

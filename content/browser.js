@@ -35,6 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+// modules that are generic
+Cu.import("resource://snowl/modules/StringBundle.js");
+
 // We have to import these here, even though we don't use them in this overlay,
 // so that they get parsed and register themselves with the service.
 Cu.import("resource://snowl/modules/feed.js");
@@ -242,6 +245,25 @@ let Snowl = {
 
   onSessionRestored: function(aEvent) {
     Snowl._initSnowlRiverTab(aEvent.originalTarget);
+  },
+
+  onRebuildPlacesDatabase: function() {
+    let strings = new StringBundle("chrome://snowl/locale/datastore.properties");
+    let titleMsg = strings.get("rebuildPlacesTitleMsg");
+    let dialogMsg = strings.get("rebuildPlacesDialogMsg");
+    let CollectionsView = SnowlService.gBrowserWindow.document.
+                                       getElementById("sidebar").
+                                       contentWindow.CollectionsView;
+    // Need to be in list view, and confirm.
+    if (!CollectionsView ||
+        !SnowlService._promptSvc.confirm(window, titleMsg, dialogMsg))
+      return;
+
+    window.XULBrowserWindow.setOverLink(strings.get("rebuildPlacesStarted"));
+
+    setTimeout(function() {
+      CollectionsView.rebuildPlacesDatabase();
+    }, 0);
   },
 
   _initTabListeners: function() {

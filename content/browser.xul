@@ -180,6 +180,12 @@
                   oncommand="Snowl.onImportOPML()"/>
         <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
                   oncommand="Snowl.onExportOPML()"/>
+        <menuseparator/>
+        <menuitem id="snowlRebuildDBMenuitem"
+                  disabled="true"
+                  label="&rebuildDB.label;"
+                  accesskey="&rebuildDB.accesskey;"
+                  oncommand="Snowl.onRebuildPlacesDatabase();"/>
         <!-- Commented out because we don't currently have any preferences
            - (except the Subscribe pane, but users access that via another
            - menu item). -->

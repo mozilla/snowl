@@ -60,6 +60,12 @@ let ListSidebar = {
     return this._writeForm = document.getElementById("writeForm");
   },
 
+  get _rebuildDBMenuitem() {
+    delete this._rebuildDBMenuitem;
+    return this._rebuildDBMenuitem =
+        gBrowserWindow.document.getElementById("snowlRebuildDBMenuitem");
+  },
+
 
   //**************************************************************************//
   // Event & Notification Handlers
@@ -67,12 +73,14 @@ let ListSidebar = {
   onLoad: function() {
     gBrowserWindow.SnowlMessageView.show();
     this._updateWriteButton();
+    this._rebuildDBMenuitem.removeAttribute("disabled");
     Observers.add("snowl:source:added",    this.onSourcesChanged, this);
     Observers.add("snowl:source:unstored", this.onSourcesChanged, this);
   },
 
   onUnload: function() {
     gBrowserWindow.SnowlMessageView.hide();
+    this._rebuildDBMenuitem.setAttribute("disabled", true);
     CollectionsView.unloadObservers();
     Observers.remove("snowl:source:added",    this.onSourcesChanged, this);
     Observers.remove("snowl:source:unstored", this.onSourcesChanged, this);

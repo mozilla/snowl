@@ -1009,7 +1009,7 @@ let SnowlPlaces = {
     return this._log;
   },
 
-  _placesVersion: 3,
+  _placesVersion: 2,
   _placesConverted: false,
   _placesInitialized: false,
 
@@ -1052,53 +1052,54 @@ this._log.info("setPlacesVersion: " + verInfo);
   EXPIRE_NEVER: PlacesUtils.annotations.EXPIRE_NEVER,
   DEFAULT_INDEX: PlacesUtils.bookmarks.DEFAULT_INDEX,
 
+  queryDefault: "place:queryType=1&expandQueries=0&excludeReadOnlyFolders=0&folder=",
+  querySources: "place:queryType=1&expandQueries=0&sort=1&folder=",
+  queryAuthors: "place:queryType=1&expandQueries=0&sort=1&folder=",
+  queryCustom:  "place:queryType=1&expandQueries=0&folder=",
+
   get collectionsSystemID() {
     delete this.collectionsSystemID;
     return this.collectionsSystemID = this.snowlPlacesQueries["snowlCollectionsSystem"];
+  },
+  set collectionsSystemID(val) {
+    delete this.collectionsSystemID;
+    return this.collectionsSystemID = val;
   },
 
   get collectionsSourcesID() {
     delete this.collectionsSourcesID;
     return this.collectionsSourcesID = this.snowlPlacesQueries["snowlCollectionsSources"];
   },
+  set collectionsSourcesID(val) {
+    delete this.collectionsSourcesID;
+    return this.collectionsSourcesID = val;
+  },
 
   get collectionsAuthorsID() {
     delete this.collectionsAuthorsID;
     return this.collectionsAuthorsID = this.snowlPlacesQueries["snowlCollectionsAuthors"];
+  },
+  set collectionsAuthorsID(val) {
+    delete this.collectionsAuthorsID;
+    return this.collectionsAuthorsID = val;
   },
 
   get collectionsAllID() {
     delete this.collectionsAllID;
     return this.collectionsAllID = this.snowlPlacesQueries["snowlCollectionsAll"];
   },
+  set collectionsAllID(val) {
+    delete this.collectionsAllID;
+    return this.collectionsAllID = val;
+  },
 
   get userRootID() {
     delete this.userRootID;
     return this.userRootID = this.snowlPlacesQueries["snowlUserRoot"];
   },
-
-  get queryDefault() {
-    delete this._queryDefault;
-    return this._queryDefault = "place:queryType=1&expandQueries=0" +
-        "&excludeReadOnlyFolders=0" +
-        "&folder=" + this.collectionsSystemID;
-  },
-
-  get querySources() {
-    delete this._querySources;
-    return this._querySources = "place:queryType=1&expandQueries=0&sort=1" +
-        "&folder=" + this.collectionsSourcesID;
-  },
-
-  get queryAuthors() {
-    delete this._queryAuthors;
-    return this._queryAuthors = "place:queryType=1&expandQueries=0&sort=1" +
-        "&folder=" + this.collectionsAuthorsID;
-  },
-
-  get queryCustom() {
-    delete this._queryCustom;
-    return this._queryCustom = "place:queryType=1&expandQueries=0&folder=";
+  set userRootID(val) {
+    delete this.userRootID;
+    return this.userRootID = val;
   },
 
 /**
@@ -1119,7 +1120,7 @@ this._log.info("setPlacesVersion: " + verInfo);
                 "&s.id=" + aId +
                 "&u=" + aMachineURI.spec +
                 "&");
-      parent = SnowlPlaces.collectionsSourcesID;
+      parent = this.collectionsSourcesID;
       anno = this.SNOWL_COLLECTIONS_SOURCE_ANNO;
       properties = "source";
     }
@@ -1128,7 +1129,7 @@ this._log.info("setPlacesVersion: " + verInfo);
                 "&a.id=" + aId +
                 "&e=" + aUsername +
                 "&");
-      parent = SnowlPlaces.collectionsAuthorsID;
+      parent = this.collectionsAuthorsID;
       anno = this.SNOWL_COLLECTIONS_AUTHOR_ANNO;
       properties = "author";
     }
@@ -1156,7 +1157,7 @@ this._log.info("setPlacesVersion: " + verInfo);
     }
     catch(ex) {
       this._log.error("persistPlace: parentId:aName:uri - " +
-                      parent + " : " + aName + " : " + uri );
+                      parent + " : " + aName + " : " + uri.spec );
       this._log.error(ex);
     }
 
@@ -1258,6 +1259,14 @@ this._log.info("buildNameItemMap: " + queryName + " - " + items[i]);
     return map;
   },
 
+  resetNameItemMap: function() {
+    this.collectionsSystemID  = this.snowlPlacesQueries["snowlCollectionsSystem"];
+    this.collectionsSourcesID = this.snowlPlacesQueries["snowlCollectionsSources"];
+    this.collectionsAuthorsID = this.snowlPlacesQueries["snowlCollectionsAuthors"];
+    this.collectionsAllID     = this.snowlPlacesQueries["snowlCollectionsAll"];
+    this.userRootID           = this.snowlPlacesQueries["snowlUserRoot"];
+  },
+
   // Init snowl Places structure, delay to allow logger to set up.
   init: function() {
     // Only do once for session.
@@ -1346,6 +1355,7 @@ this._log.info("init: Initializing Snowl Places User Root...");
 
       this._placesInitialized = true;
 
+      // Set the root itemId.
       delete this.snowlPlacesFolderId;
       return this.snowlPlacesFolderId = snowlPlacesRoot;
     }
@@ -1441,7 +1451,7 @@ this._log.info("init: Rebuilding Snowl Places...");
         PlacesUtils.bookmarks.setFolderReadonly(itemID, true);
 
         // Default collections.  These are folder shortcuts.
-        let collections = [], viewItems, name;
+        let coll, collections = [], viewItems, name;
         // All Messages.
         coll = {property: "sysCollection",
                 itemId:   null,
@@ -1508,6 +1518,7 @@ this._log.info("init: Restoring User View - " + name + " - " + viewItems[i]);
     this.setPlacesVersion(snowlPlacesRoot);
     this._placesInitialized = true;
 
+    // Set the system root itemId.
     delete this.snowlPlacesFolderId;
     return this.snowlPlacesFolderId = snowlPlacesRoot;
   }

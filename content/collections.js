@@ -172,22 +172,14 @@ let CollectionsView = {
     if (!SnowlPlaces._placesConverted &&
         SnowlPlaces._placesInitialized &&
         SnowlPlaces._placesConverted != null) {
-      // Use null as a lock in case another CollectionsView instantiated.  If
-      // collections tree is unloaded before a complete conversion, a restart
-      // will attempt the conversion again.
-      SnowlPlaces._placesConverted = null;
 
+      gMessageViewWindow.XULBrowserWindow.
+                         setOverLink(strings.get("rebuildPlacesStarted"));
       let titleMsg = strings.get("rebuildPlacesTitleMsg");
       let dialogMsg = strings.get("rebuildPlacesDialogMsg");
       SnowlService._promptSvc.alert(window, titleMsg, dialogMsg);
 
-      this.itemIds = -1;
-      if (this.gListOrRiver == "list") {
-        this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
-        this._collectionsViewMenu.selectedIndex = 0;
-      }
-      this._getCollections();
-      this._buildCollectionTree();
+      this.buildPlacesDatabase();
     }
   },
 
@@ -495,13 +487,13 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
                                            this._collectionsViewMenu.selectedIndex);
     switch (value) {
       case "default":
-        this._tree.place = SnowlPlaces.queryDefault;
+        this._tree.place = SnowlPlaces.queryDefault + SnowlPlaces.collectionsSystemID;
         break;
       case "sources":
-        this._tree.place = SnowlPlaces.querySources;
+        this._tree.place = SnowlPlaces.querySources + SnowlPlaces.collectionsSourcesID;
         break;
       case "authors":
-        this._tree.place = SnowlPlaces.queryAuthors;
+        this._tree.place = SnowlPlaces.queryAuthors + SnowlPlaces.collectionsAuthorsID;
         break;
       default:
         // Menu must built with correct itemId values.
@@ -963,100 +955,106 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
 
   //**************************************************************************//
-  // Places conversion
+  // Rebuild the Places database
 
-  // Create the source/authors collection from the db to convert to places.
-  _collections: null,
-  _getCollections: function() {
-    this._collections = [];
-this._log.info("_getCollections: Convert to Places: START");
+  // Initialize the system structure.
+  rebuildPlacesDatabase: strand(function() {
+    if (SnowlPlaces._placesConverted == null)
+      return;
 
-    let statement = SnowlDatastore.createStatement(
-      "SELECT id, name, iconURL, grouped, groupIDColumn, groupNameColumn, " +
-        "groupHomeURLColumn, groupIconURLColumn " +
-      "FROM collections ORDER BY orderKey"
-    );
+    this._log.info("rebuildPlacesDatabase: Rebuild Places Database requested.");
 
-    statement.QueryInterface(Ci.mozIStorageStatementWrapper);
+    // Use null as a lock.  If the collections tree is unloaded before a complete
+    // conversion, on restart the rebuild will begin again.
+    SnowlPlaces._placesConverted = null;
 
-    try {
-      while (statement.step()) {
-        this._collections.push(new SnowlCollection(statement.row.id,
-                                                   statement.row.name,
-                                                   URI.get(statement.row.iconURL),
-                                                   null,
-                                                   null,
-                                                   statement.row.grouped ? true : false,
-                                                   statement.row.groupIDColumn,
-                                                   statement.row.groupNameColumn,
-                                                   statement.row.groupHomeURLColumn,
-                                                   statement.row.groupIconURLColumn));
+    this._tree.currentIndex = -1;
+    this.itemIds = -1;
+    this._collectionsViewMenu.setAttribute("selectedindex", 0); // "default"
+    this._collectionsViewMenu.selectedIndex = 0;
+
+    // Remove the root folder (and all its children) to trigger the rebuild.
+    PlacesUtils.bookmarks.removeFolder(SnowlPlaces.snowlPlacesFolderId);
+
+    SnowlPlaces._placesInitialized = false;
+    SnowlPlaces.delayedInit();
+    SnowlPlaces.resetNameItemMap();
+
+    // Reset the tree.
+    this.onCommandCollectionsView(this._collectionsViewMenu.value);
+
+    this.buildPlacesDatabase();
+  }),
+
+  // Build the collections from the messages database.
+  buildPlacesDatabase: strand(function() {
+    let table, tables = ["sources", "people"], collection, collections, count;
+    let Sources, Authors;
+
+    this._log.info("buildPlacesDatabase: Rebuilding Snowl Places Collections...");
+
+    SnowlService._sourcesByID = null;
+    Sources = SnowlService.sourcesByID;
+    Authors = SnowlPerson.getAll();
+
+    for each (table in tables) {
+      collections = table == "sources" ? Sources :
+                    table == "people" ? Authors : null;
+      count = table == "sources" ? [name for (name in Sources)
+                                    if (Sources.hasOwnProperty(name))].length :
+              table == "people" ? Authors.length : 0;
+
+      this._log.info("buildPlacesDatabase: Found " + count + " records in table - " + table);
+
+      for each (collection in collections) {
+        let id, title, machineURI, externalID, iconURI, sourceID, placeID;
+        if (table == "sources") {
+          machineURI = collection.machineURI;
+          iconURI = collection.faviconURI;
+          sourceID = collection.id;
+        }
+        else if (table == "people") {
+          // XXX: lookup favicon in collections table rather than hardcoding.
+          iconURI = collection.iconURL ? URI.get(collection.iconURL) :
+                    collection.homeURL ? SnowlSource.faviconSvc.
+                                                     getFaviconForPage(collection.homeURL) :
+                    URI.get("chrome://snowl/skin/person-16.png");
+
+          // Get the sourceID and externalID of the author.
+          // XXX: NOTE - currently there is a 1 to 1 relationship between an
+          // identity and an author; if this changes sourceID and externalID
+          // will no longer be valid as multiple identities could belong to an
+          // author.
+          [sourceID, externalID] = SnowlDatastore.selectIdentitiesSourceID(collection.id);
+        }
+
+        placeID = SnowlPlaces.persistPlace(table,
+                                           collection.id,
+                                           collection.name,
+                                           machineURI,
+                                           externalID,
+                                           iconURI,
+                                           sourceID);
+        // Store placeID back into messages for db integrity
+        SnowlDatastore.dbConnection.executeSimpleSQL(
+          "UPDATE " + table +
+          " SET    placeID = " + placeID +
+          " WHERE       id = " + collection.id);
+
+        gMessageViewWindow.XULBrowserWindow.
+                           setOverLink(strings.get("rebuildPlacesConverted") + " " +
+                                       table + " - " + collection.name);
+//this._log.info("buildPlacesDatabase: Converted to places - " +
+//  table + " - " + collection.name);
+
+        yield sleep(10);
       }
     }
-    finally {
-      statement.reset();
-    }
-  },
 
-  // Convert the list of rows in the tree to places.
-  _buildCollectionTree: strand(function() {
     gMessageViewWindow.XULBrowserWindow.
-                       setOverLink("Conversion to Places started");
-this._log.info("_buildCollectionTree: Convert to Places: START");
-    for each (let collection in this._collections) {
-      if (collection.grouped) {
-        let table, value, sourceID, personID, externalID, machineURI, placeID;
-        switch (collection.groupIDColumn) {
-          case "sources.id":
-            table = "sources";
-            break;
-          case "authors.id":
-            table = "people";
-            break;
-          default:
-            table = null;
-            break;
-        }
-        for each (let group in collection.groups) {
-//this._log.info(table+" group.name:group.groupID - " + 
-//  group.name + " : " + group.groupID);
-          if (table == "sources") {
-            value = group.groupID;
-            machineURI = SnowlService.sourcesByID[group.groupID].machineURI;
-          }
-          else if (table == "people") {
-            if (!group.groupID)
-              // Skip null authors
-              continue;
-            // Get the sourceID that the author belongs to
-            [value, externalID] = SnowlDatastore.selectIdentitiesSourceID(group.groupID);
-          }
-          placeID = SnowlPlaces.persistPlace(table,
-                                             group.groupID,
-                                             group.name,
-                                             machineURI,
-                                             externalID,
-                                             group.iconURL,
-                                             value); // aSourceID
-          // Store placeID back into messages for db integrity
-          SnowlDatastore.dbConnection.executeSimpleSQL(
-            "UPDATE " + table +
-            " SET    placeID = " + placeID +
-            " WHERE       id = " + group.groupID);
+                       setOverLink(strings.get("rebuildPlacesCompleted"));
+    this._log.info("buildPlacesDatabase: Rebuild Places Database completed");
 
-          gMessageViewWindow.XULBrowserWindow.
-                             setOverLink("Converted to Places: " +
-                                         table + " - " + group.name);
-//this._log.info("Converted to places - " +
-//  group.name + " : " + group.groupID + " : " + placeID);
-
-          yield sleep(10);
-        }
-      }
-    }
-    gMessageViewWindow.XULBrowserWindow.
-                       setOverLink("Conversion to Places completed");
-this._log.info("_buildCollectionTree: Convert to Places: END");
     SnowlPlaces._placesConverted = true;
     SnowlPlaces.setPlacesVersion(SnowlPlaces.snowlPlacesFolderId);
   })

@@ -404,7 +404,7 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
 SnowlPerson.__defineGetter__("_getAllStatement",
   function() {
     let statement = SnowlDatastore.createStatement(
-      "SELECT id, name, placeID FROM people ORDER BY name"
+      "SELECT id, name, placeID FROM people ORDER BY name COLLATE NOCASE"
     );
     this.__defineGetter__("_getAllStatement", function() { return statement });
     return this._getAllStatement;
