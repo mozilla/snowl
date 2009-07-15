@@ -293,22 +293,25 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     else
       this._tree.currentSelectedIndex = this._tree.currentIndex;
 
-    // Mod key click will deselect a row; for a 0 count notify view to clear.
+    // Mod key click will deselect a row; for a 0 count notify view to clear if
+    // not in a search.
     if (this._tree.view.selection.count == 0) {
       this._tree.currentSelectedIndex = -1;
       this.itemIds = -1;
-      if (!isBookmark)
+      let searchMsgs = this._searchFilter.getAttribute("messages") == "true";
+      let searchEmpty = this._searchFilter.getAttribute("empty") == "true";
+      if (!isBookmark && (!searchMsgs || searchEmpty)) {
         gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
-      return;
+        return;
+      }
     }
 
     // See if it can be opened like a bookmark.
     if (isBookmark) {
       this.itemIds = -1;
-      if (aEvent.keyCode == KeyEvent.DOM_VK_RETURN || aEvent.button == 0) {
+      if (!modKey && (aEvent.keyCode == KeyEvent.DOM_VK_RETURN || aEvent.button == 0))
         goDoCommand('placesCmd_open');
-        return;
-      }
+      return;
     }
 
     if (!modKey && this.itemIds != -1)
@@ -317,10 +320,6 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
     // Get constraints based on selected rows
     let constraints = this.getSelectionConstraints();
-
-    // No itemIds stored, nothing selected, so return
-    if (this.itemIds == -1)
-      return;
 
     let collection = new SnowlCollection(null,
                                          name,
@@ -391,7 +390,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     aEvent.target.checked = !aEvent.target.checked;
     this.Filters["unread"] = aEvent.target.checked ? true : false;
 
-    if (this.itemIds == -1 && !this.Filters["unread"] && !this.Filters["deleted"])
+    if (this.itemIds == -1 && !this.Filters["unread"] &&
+        !this.Filters["deleted"] && !this.Filters["searchterms"])
       // If no selection and unchecking, clear list (don't select 'All').
       gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
     else
@@ -407,7 +407,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     else
       document.getElementById("snowlPurgeDeletedButton").setAttribute("disabled", true);
 
-    if (this.itemIds == -1 && !this.Filters["deleted"] && !this.Filters["unread"])
+    if (this.itemIds == -1 && !this.Filters["deleted"] &&
+        !this.Filters["unread"] && !this.Filters["searchterms"])
       // If no selection and unchecking, clear list (don't select 'All').
       gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
     else
