@@ -933,6 +933,50 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     // extra contextmenu customization here
   },
 
+  _collectionChildStats: {},
+  getCollectionChildStats: function(aNode) {
+    // Rollup stats for custom views and any user created folder.
+    let query, collID, stat;
+    let count = {t:0, u:0, n:0};
+
+    function calculateChildStats(aNode) {
+      query = new SnowlQuery(aNode.uri);
+      collID = query.queryTypeSource ? "s" + query.queryID :
+               query.queryTypeAuthor ? "a" + query.queryID : null;
+      stat = SnowlService.getCollectionStatsByCollectionID()[collID];
+
+      if (!stat)
+        stat = {t:0, u:0, n:0};
+
+      count.t += stat.t;
+      count.u += stat.u;
+      count.n += stat.n;
+
+      if (!PlacesUtils.nodeIsContainer(aNode))
+        return count;
+
+      asContainer(aNode);
+      aNode.containerOpen = true;
+
+      for (let child = 0; child < aNode.childCount; child++) {
+        let childNode = aNode.getChild(child);
+        count = calculateChildStats(childNode);
+      }
+
+      aNode.containerOpen = false;
+      return count;
+    }
+
+    // Null the viewer while looking for nodes
+    let result = CollectionsView._tree.getResult();
+    let oldViewer = result.viewer;
+    result.viewer = null;
+    calculateChildStats(aNode);
+    result.viewer = oldViewer;
+
+    return this._collectionChildStats[aNode.itemId] = count;
+  },
+
 
   //**************************************************************************//
   // Rebuild the Places database
@@ -1089,7 +1133,7 @@ PlacesTreeView.prototype.getCellProperties = SnowlTreeViewGetCellProperties;
 function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
   this._getCellProperties(aRow, aColumn, aProperties);
 
-  let query, anno, propStr, propArr, prop, collID, source;
+  let query, anno, propStr, propArr, prop, collID, source, nodeStats, childStats;
   let node = this._visibleElements[aRow].node;
   query = new SnowlQuery(node.uri);
 
@@ -1104,7 +1148,7 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
            query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
   source = SnowlService.sourcesByID[query.queryID];
 
-  var nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+  nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   if (nodeStats && nodeStats.u && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasUnread"));
   if (nodeStats && nodeStats.n && !node.containerOpen)
@@ -1113,6 +1157,17 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
     aProperties.AppendElement(this._getAtomFor("isBusy"));
   if (source && source.error && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasError"));
+
+  if ((query.queryFolder != SnowlPlaces.collectionsSourcesID &&
+       query.queryFolder != SnowlPlaces.collectionsAuthorsID) &&
+      PlacesUtils.nodeIsContainer(node) && node.hasChildren && !node.containerOpen) {
+    // For custom view shortcuts and any user created folders.
+    childStats = CollectionsView.getCollectionChildStats(node);
+    if (childStats && childStats.u)
+      aProperties.AppendElement(this._getAtomFor("hasUnreadChildren"));
+    if (childStats && childStats.n)
+      aProperties.AppendElement(this._getAtomFor("hasNewChildren"));
+  }
 
 //if (nodeStats)
 //SnowlPlaces._log.info("getCellProperties: itemId:title:stats - "+
@@ -1153,8 +1208,8 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
 };
 
 /**
- * Override getImageSrc for 'new' icon on collections, bookmarks with icons do
- * not seem to respect css overrides.
+ * Override getImageSrc icon on collections, bookmarks with icons donot seem 
+ * to respect css overrides.
  */
 //PlacesTreeView.prototype._getImageSrc = PlacesTreeView.prototype.getImageSrc;
 PlacesTreeView.prototype.getImageSrc = SnowlTreeViewGetImageSrc;
@@ -1167,7 +1222,7 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
 
   var node = this._visibleElements[aRow].node;
 
-  // Custom handling for 'new' in collections.
+  // Custom handling for collections.
   let query = new SnowlQuery(node.uri);
   let collID = query.queryTypeSource ? "s" + query.queryID :
                query.queryTypeAuthor ? "a" + query.queryID :
@@ -1276,17 +1331,24 @@ PlacesUIUtils.getBestTitle =
       title = aNode.title;
 
       // Custom title with stats.
-      let query, collID, nodeStats, titleStats = "";
+      let query, collID, nodeStats, childStats, titleStats = "";
       query = new SnowlQuery(aNode.uri);
       collID = query.queryTypeSource ? "s" + query.queryID :
                query.queryTypeAuthor ? "a" + query.queryID :
                query.queryFolder == SnowlPlaces.collectionsSystemID ? "all" : null;
-    
+
       nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
-      if (nodeStats && collID == "all")
-        titleStats = " (New:" + nodeStats.n + " Unread:" + nodeStats.u + " Total:" + nodeStats.t + ")";
-      else if (nodeStats)
-        titleStats = " (" + nodeStats.n + " " + nodeStats.u + " " + nodeStats.t + ")";
+      if (nodeStats) {
+        if (collID == "all")
+          titleStats = " (New:" + nodeStats.n + " Unread:" + nodeStats.u + " Total:" + nodeStats.t + ")";
+        else
+          titleStats = " (" + nodeStats.n + " " + nodeStats.u + " " + nodeStats.t + ")";
+      }
+      else {
+        childStats = CollectionsView._collectionChildStats[aNode.itemId];
+        if (childStats && !aNode.containerOpen)
+          titleStats = " (" + childStats.n + " " + childStats.u + " " + childStats.t + ")";
+      }
 
       title = title + titleStats;
      }

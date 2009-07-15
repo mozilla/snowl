@@ -64,12 +64,14 @@
 }
 
 /* Unread messages in collection indicator */
-#sourcesViewTreeChildren::-moz-tree-cell-text(hasUnread) {
+#sourcesViewTreeChildren::-moz-tree-cell-text(hasUnread),
+#sourcesViewTreeChildren::-moz-tree-cell-text(hasUnreadChildren) {
   font-weight: bold;
 }
 
 /* New messages in collection indicator */
-#sourcesViewTreeChildren::-moz-tree-image(hasNew) {
+#sourcesViewTreeChildren::-moz-tree-image(hasNew),
+#sourcesViewTreeChildren::-moz-tree-image(hasNewChildren) {
   list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
 }
 
