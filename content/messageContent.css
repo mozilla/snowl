@@ -129,6 +129,38 @@ td {
   margin: 0 10px;
 }
 
+/* The search highlight generator will create as many unique classnames as there
+ * are search terms, in the form .hl#, and 7 styles are defined here, the rest
+ * default. Theme here is 'Blue Variations' but any customization is possible. */
+.hldefault, .hl0 {
+  background: #0000CD;
+  color: white;
+}
+.hl1 {
+  background: #4682B4;
+  color: white;
+}
+.hl2 {
+  background: #4169E1;
+  color: white;
+}
+.hl3 {
+  background: #6495ED;
+  color: white;
+}
+.hl4 {
+  background: #1E90FF;
+  color: white;
+}
+.hl5 {
+  background: #87CEFA;
+  color: white;
+}
+.hl6 {
+  background: #00BFFF;
+  color: white;
+}
+
 /* Icon courtesy of http://sozai.7gates.net/en/docs/pushpin_icon01/ */
 #pinButton {
   list-style-image: url("chrome://snowl/content/icons/pushpin.gif");

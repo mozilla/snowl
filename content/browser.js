@@ -69,11 +69,6 @@ let Snowl = {
     return this._mainWindow = document.getElementById("main-window");
   },
 
-  get _searchbar() {
-    delete this._searchbar;
-    return this._searchbar = document.getElementById("searchbar");
-  },
-
   get _riverBroadcaster() {
     delete this._riverBroadcaster;
     return this._riverBroadcaster = document.getElementById("viewSnowlRiver");

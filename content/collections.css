@@ -38,6 +38,11 @@
   border: 0px;
 }
 
+#snowlFilter[invalid] {
+  -moz-appearance: none;
+  background-color: pink;
+}
+
 #sourcesView {
   -moz-binding: url(chrome://snowl/content/snowlTree.xml#tree);
 }

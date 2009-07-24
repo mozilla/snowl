@@ -354,8 +354,72 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   onSearch: function(aValue) {
+    let term, terms = [];
     let searchMsgs = this._searchFilter.getAttribute("messages") == "true";
     let searchCols = this._searchFilter.getAttribute("collections") == "true";
+    let quotes = aValue.match("\"", "g");
+    let quotesClosed = (!quotes || quotes.length%2 == 0) ? true : false;
+    let oneNegation = false;
+    // XXX: It would be nice to do unicode properly, \p{L} - Bug 258974.
+    let invalidInitial = new RegExp("[^\"\\w\\u0080-\\uFFFF]");
+    let invalidNegation = new RegExp("\-.*[^\\w\\u0080-\\uFFFF]");
+    let invalidUnquoted = new RegExp("^[^\-|\\w\\u0080-\\uFFFF]{1}?|.(?=[^\\w\\u0080-\\uFFFF])");
+    let invalidQuoted = new RegExp("\"(?=[^\'\\w\\u0080-\\uFFFF])");
+
+    if ((aValue.charAt(0).match(invalidInitial) && aValue != "") ||
+        (!quotesClosed && aValue.substr(aValue.lastIndexOf("\""), aValue.length).
+                                 search(invalidQuoted) != -1)) {
+      this._searchFilter.setAttribute("invalid", true);
+      return;
+    }
+
+    if (aValue)
+      // Format | char spacing.
+      aValue = aValue.replace(/\s*\|+\s*/g, " | ");
+
+    terms = aValue.match("[^\\s\"']+|\"[^\"]*\"*|'[^']*'*", "g");
+
+    while (terms && (term = terms.shift())) {
+      if (term.match(/\"/g)) {
+        // Quoted term: invalid if already have negation term; cannot be empty or
+        // end in space(s); cannot start with space(s) or invalid chars.
+        if (oneNegation || term.match(/[\s\"](?=")/g) || term.match(invalidQuoted)) {
+          this._searchFilter.setAttribute("invalid", true);
+          return;
+        }
+      }
+      else {
+        // Unquoted term: invalid if already have negation term; must start with
+        // valid chars, and cannot contain invalid chars.
+        if (oneNegation || term.match(invalidUnquoted)) {
+          this._searchFilter.setAttribute("invalid", true);
+          return;
+        }
+
+        // Negation: can only have one negation term and it must be the last
+        // term (error on rest of search string ending in space indicates this),
+        // and cannot contain invalid chars.
+        if (term[0] == "-") {
+          oneNegation = true;
+          if (aValue.substr(aValue.lastIndexOf("\-"), aValue.length).
+                                   search(invalidNegation) > -1) {
+            this._searchFilter.setAttribute("invalid", true);
+            return;
+          }
+        }
+      }
+    }
+
+    this._searchFilter.removeAttribute("invalid");
+
+    if (aValue.charAt(aValue.length - 1).match(/\s|\|/) ||
+        (aValue.charAt(aValue.length - 1).match(/-/) &&
+         aValue.charAt(aValue.length - 2).match(/\s/)) ||
+        !quotesClosed)
+      // Don't run search on a space, or OR |, or negation -, or unclosed quote ".
+      return;
+
+    // Save string.
     this.Filters["searchterms"] = aValue ? aValue : null;
 
     if (aValue) {
@@ -368,6 +432,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     }
     else {
       if (searchMsgs) {
+        // XXX: Reloads current page from cache to clear highlights.  But maybe
+        // nicer to unhighlight and avoid reload stutter..
+        // TODO: Clear cache for all snowl xhtml pages in history, above not an issue.
+        gMessageViewWindow.BrowserReload();
+
         if (this.itemIds == -1)
           // If no selection and clearing searchbox, clear list (don't select 'All').
           gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();

@@ -74,7 +74,6 @@ var messageContent = {
     // the messageHeader.xhtml and messageBody.xhtml frames run independently,
     // and before its own onload handler.  So we must have init() as inline script
     // to run first and set up the message.
-//window.SnowlUtils._log.info("messageContent.init: START");
     this.getMessageId();
     this.message = SnowlMessage.retrieve(this.id);
     this.createTitle();
@@ -110,11 +109,9 @@ var messageContent = {
     var message = messageContent.message;
     var headerDeck = document.getElementById("headerDeck");
 
-//window.SnowlUtils._log.info("createHeader: START - onInit: id - "+id);
     if (!id)
       // Not in a message.
       return;
-//window.SnowlUtils._log.info("createHeader: CONTINUE");
 
     if (message) {
       // Brief headers
@@ -128,14 +125,14 @@ var messageContent = {
         subjectLink.target = "messageBody";
       }
 
-      if (message.author)
+      if (message.author.person)
         document.getElementById("briefAuthor").
                  setAttribute("value", message.author.person.name);
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       // Basic headers
-      if (message.author)
+      if (message.author.person)
         document.getElementById("author").
                  appendChild(document.createTextNode(message.author.person.name));
       document.getElementById("timestamp").
@@ -199,6 +196,9 @@ var messageContent = {
 
     if (content) {
       var contentBody = document.getElementById("contentBody");
+
+      // Highlight search text, if any.
+      content.text = messageHeaderUtils.highlight(content.text);
 
       if (!contentBody)
         // If no contentBody element, we are going back in history to a new message
@@ -272,7 +272,6 @@ var messageHeaderUtils = {
   onMouseOut: function(aEvent) {
     window.clearTimeout(this.headertimer);
     delete this.headertimer;
-//window.SnowlUtils._log.info("onMouseOut: START");
     var node = aEvent.target;
     var messageHeader = document.getElementById("messageHeader");
     var pin = messageHeader.contentDocument.getElementById("pinButton");
@@ -340,7 +339,6 @@ var messageHeaderUtils = {
   },
 
   onDeleteMessageButton: function() {
-//window.SnowlUtils._log.info("onDeleteMessage: START");
     // Delete button.
     var messageContent = parent.wrappedJSObject.messageContent;
     gBrowserWindow.SnowlMessageView.onDeleteMessage([messageContent.message])
@@ -364,6 +362,43 @@ var messageHeaderUtils = {
       // Remove focus (for header button, arrow key binding issue).
       aEvent.target.blur();
     }
+  },
+
+  // Highlight given phrase, skipping html tags & entities.
+  highlight: function(aContent) {
+    var termsArray = [], hlindex = 0;
+    var sidebarWin = gBrowserWindow.document.
+                                    getElementById("sidebar").contentWindow;
+    var collectionsView = sidebarWin.CollectionsView;
+
+    if (!collectionsView)
+      return aContent;
+
+    var searchMsgs = collectionsView._searchFilter.getAttribute("messages") == "true";
+    var searchTerms = collectionsView.Filters["searchterms"];
+
+    if (!searchTerms || !searchMsgs)
+      return aContent;
+
+    // Remove negations (quoted strings and words), OR |, wildcard *.
+    searchTerms = searchTerms.replace(/-[^".]*\s|-"[^".]*"|[\|\*]/g, "");
+    // Make lower case for highlight array.
+    // XXX: unicode? Bug 394604.  Result is that while sqlite may match the
+    // record, unless the user input is exactly what is on the page, it won't show.
+    searchTerms = searchTerms.toLowerCase();
+    // Create | delimited string of strings and words sans quotes for highligher.
+    searchTerms = searchTerms.match("[^\\s\"']+|\"[^\"]*\"|'[^']*'", "g").
+                              join("|").
+                              replace(/"/g, '');
+    // Array to match term for hilight classname index.
+    termsArray = searchTerms.split("|");
+
+    var regexp = new RegExp("(<[\\s\\S]*?>|&.*?;)|(" + searchTerms + ")", "gi");
+    return aContent.replace(regexp, function($0, $1, $2) {
+      if ($2)
+        hlindex = termsArray.indexOf($2.toLowerCase());
+      return $1 || '<span class="hldefault hl' + hlindex +'">' + $2 + "</span>";
+    });
   }
 
 };

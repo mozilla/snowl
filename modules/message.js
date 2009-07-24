@@ -451,11 +451,15 @@ SnowlMessagePart.prototype = {
   // Implement nsIFeedTextConstruct properties for backwards-compatibility
   // until we update all callers to use the new API for this object.
   get text() this.textConstruct.text,
+  set text(val) this.textConstruct.text = val,
   get type() this.textConstruct.type,
   get base() this.textConstruct.base,
   get lang() this.textConstruct.lang,
 
   plainText: function() this.textConstruct.plainText(),
+  // XXX: parseFragment for feeds does not maintain tag attributes, which
+  // it should; fortunately it doesn't remove the 'class' attribute we use
+  // in <span> to indicate highlighting.
   createDocumentFragment: function(element) this.textConstruct.createDocumentFragment(element),
 
   get _stmtInsertPart() {
