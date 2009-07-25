@@ -354,7 +354,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   onSearch: function(aValue) {
-    let term, terms = [];
+    let term, terms = [], filterTerms = [];
     let searchMsgs = this._searchFilter.getAttribute("messages") == "true";
     let searchCols = this._searchFilter.getAttribute("collections") == "true";
     let quotes = aValue.match("\"", "g");
@@ -373,10 +373,6 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       return;
     }
 
-    if (aValue)
-      // Format | char spacing.
-      aValue = aValue.replace(/\s*\|+\s*/g, " | ");
-
     terms = aValue.match("[^\\s\"']+|\"[^\"]*\"*|'[^']*'*", "g");
 
     while (terms && (term = terms.shift())) {
@@ -389,15 +385,16 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         }
       }
       else {
-        // Unquoted term: invalid if already have negation term; must start with
-        // valid chars, and cannot contain invalid chars.
-        if (oneNegation || term.match(invalidUnquoted)) {
+        // Unquoted term: invalid if already have negation term; | term cannot
+        // lead a term and must be standalone; must start with valid chars and
+        // cannot contain invalid chars.
+        if (oneNegation || term.match(/\|(?=\S)/)|| term.match(invalidUnquoted)) {
           this._searchFilter.setAttribute("invalid", true);
           return;
         }
 
         // Negation: can only have one negation term and it must be the last
-        // term (error on rest of search string ending in space indicates this),
+        // term (error on rest of search string ending in space indicates this)
         // and cannot contain invalid chars.
         if (term[0] == "-") {
           oneNegation = true;
@@ -407,7 +404,17 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
             return;
           }
         }
+
+        if (term == "|")
+          // Unquoted | means OR.  We do not use OR because it is 1)twice the
+          // typing, 2)english-centric.
+          term = "OR"
+        else
+          // Add asterisk to non quoted term for sqlite fts non-exact match.
+          term = SnowlUtils.appendAsterisks(term);
       }
+
+      filterTerms.push(term);
     }
 
     this._searchFilter.removeAttribute("invalid");
@@ -420,7 +427,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       return;
 
     // Save string.
-    this.Filters["searchterms"] = aValue ? aValue : null;
+    this.Filters["searchterms"] = aValue ? filterTerms.join(" ") : null;
 
     if (aValue) {
       if (searchCols)

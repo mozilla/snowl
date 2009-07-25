@@ -125,14 +125,14 @@ var messageContent = {
         subjectLink.target = "messageBody";
       }
 
-      if (message.author.person)
+      if (message.author && message.author.person)
         document.getElementById("briefAuthor").
                  setAttribute("value", message.author.person.name);
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
       // Basic headers
-      if (message.author.person)
+      if (message.author && message.author.person)
         document.getElementById("author").
                  appendChild(document.createTextNode(message.author.person.name));
       document.getElementById("timestamp").
@@ -366,7 +366,7 @@ var messageHeaderUtils = {
 
   // Highlight given phrase, skipping html tags & entities.
   highlight: function(aContent) {
-    var termsArray = [], hlindex = 0;
+    var term, terms = [], highlightTerms = [], hlindex = 0;
     var sidebarWin = gBrowserWindow.document.
                                     getElementById("sidebar").contentWindow;
     var collectionsView = sidebarWin.CollectionsView;
@@ -380,23 +380,35 @@ var messageHeaderUtils = {
     if (!searchTerms || !searchMsgs)
       return aContent;
 
-    // Remove negations (quoted strings and words), OR |, wildcard *.
-    searchTerms = searchTerms.replace(/-[^".]*\s|-"[^".]*"|[\|\*]/g, "");
-    // Make lower case for highlight array.
-    // XXX: unicode? Bug 394604.  Result is that while sqlite may match the
-    // record, unless the user input is exactly what is on the page, it won't show.
-    searchTerms = searchTerms.toLowerCase();
-    // Create | delimited string of strings and words sans quotes for highligher.
-    searchTerms = searchTerms.match("[^\\s\"']+|\"[^\"]*\"|'[^']*'", "g").
-                              join("|").
-                              replace(/"/g, '');
-    // Array to match term for hilight classname index.
-    termsArray = searchTerms.split("|");
+    terms = searchTerms.match("[^\\s\"']+|\"[^\"]*\"|'[^']*'", "g");
+    while (terms && (term = terms.shift())) {
+      // Remove negation term, OR term, quotes ", last wildcard *.
+      term = term.replace(/^-.*|^OR|\"|\*\"$|\*$/g, "");
+      // Replace all non word symbols with . since sqlite does not match symbols
+      // exactly, ie for term of "one-off", "one---off", "one++off" sqlite returns
+      // a match for "one off"; for "one off" sqlite returns "one-off" etc. etc.
+      // and we need to highlight these.
+      term = term.replace(/[^\w\u0080-\uFFFFF]+/g, ".");
+      // Make lower case for highlight array.
+      // XXX: unicode? Bug 394604.  Result is that while sqlite may match the
+      // record, unless the user input is exactly what is on the page, it won't show.
+      term = term.toLowerCase();
+
+      if (term)
+        // Add term to array, term's index creates hilight classname.
+        highlightTerms.push(term);
+    }
+    
+    // Create | delimited string of strings and words for highligher.
+    searchTerms = highlightTerms.join("|");
 
     var regexp = new RegExp("(<[\\s\\S]*?>|&.*?;)|(" + searchTerms + ")", "gi");
     return aContent.replace(regexp, function($0, $1, $2) {
-      if ($2)
-        hlindex = termsArray.indexOf($2.toLowerCase());
+      if ($2) {
+        var hlterm = $2;
+        hlindex = highlightTerms.indexOf(hlterm.replace(/[^\w\u0080-\uFFFFF]+/g, ".").
+                                                toLowerCase());
+      }
       return $1 || '<span class="hldefault hl' + hlindex +'">' + $2 + "</span>";
     });
   }

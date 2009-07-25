@@ -264,15 +264,11 @@ let SnowlMessageView = {
     // FIXME: use a left join here once the SQLite bug breaking left joins to
     // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (this.Filters["searchterms"]) {
-      // Add asterisk to non quoted terms for sqlite fts non-exact match.
-      let searchStr = SnowlUtils.appendAsterisks(this.Filters["searchterms"]);
-      // Replace | with OR for sqlite (but not in quoted string).
-      searchStr = searchStr.replace(/\|\*/g, "OR");
       filters.push({ expression: "messages.id IN " +
                                  "(SELECT messageID FROM parts" +
                                  " JOIN partsText ON parts.id = partsText.docid" +
                                  " WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: searchStr } });
+                     parameters: { filter: this.Filters["searchterms"] } });
     }
 
     this._collection.filters = filters;
