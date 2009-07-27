@@ -24,4 +24,8 @@
 <!ENTITY search.label                 "Search:">
 <!ENTITY search.accesskey             "S">
 <!ENTITY searchMessages.label         "Messages">
+<!ENTITY searchMessages.accesskey     "M">
 <!ENTITY searchCollections.label      "Collections">
+<!ENTITY searchCollections.accesskey  "C">
+<!ENTITY searchHelp.label             "Help">
+<!ENTITY searchHelp.accesskey         "H">

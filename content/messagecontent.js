@@ -374,7 +374,8 @@ var messageHeaderUtils = {
     if (!collectionsView)
       return aContent;
 
-    var searchMsgs = collectionsView._searchFilter.getAttribute("messages") == "true";
+    var searchMsgs = collectionsView._searchFilter.
+                                     getAttribute("searchtype") == "messages";
     var searchTerms = collectionsView.Filters["searchterms"];
 
     if (!searchTerms || !searchMsgs)
@@ -388,6 +389,8 @@ var messageHeaderUtils = {
       // exactly, ie for term of "one-off", "one---off", "one++off" sqlite returns
       // a match for "one off"; for "one off" sqlite returns "one-off" etc. etc.
       // and we need to highlight these.
+      // XXX: term that sqlite does not match (exact quoted term) will be hightlighted
+      // if it's nevertheless in a valid result page.
       term = term.replace(/[^\w\u0080-\uFFFFF]+/g, ".");
       // Make lower case for highlight array.
       // XXX: unicode? Bug 394604.  Result is that while sqlite may match the

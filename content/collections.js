@@ -298,7 +298,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     if (this._tree.view.selection.count == 0) {
       this._tree.currentSelectedIndex = -1;
       this.itemIds = -1;
-      let searchMsgs = this._searchFilter.getAttribute("messages") == "true";
+      let searchMsgs = this._searchFilter.getAttribute("searchtype") == "messages";
       let searchEmpty = this._searchFilter.getAttribute("empty") == "true";
       if (!isBookmark && (!searchMsgs || searchEmpty)) {
         gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
@@ -355,18 +355,18 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
   onSearch: function(aValue) {
     let term, terms = [], filterTerms = [];
-    let searchMsgs = this._searchFilter.getAttribute("messages") == "true";
-    let searchCols = this._searchFilter.getAttribute("collections") == "true";
+    let searchMsgs = this._searchFilter.getAttribute("searchtype") == "messages";
+    let searchCols = this._searchFilter.getAttribute("searchtype") == "collections";
     let quotes = aValue.match("\"", "g");
     let quotesClosed = (!quotes || quotes.length%2 == 0) ? true : false;
     let oneNegation = false;
     // XXX: It would be nice to do unicode properly, \p{L} - Bug 258974.
-    let invalidInitial = new RegExp("[^\"\\w\\u0080-\\uFFFF]");
+    let invalidInitial = new RegExp("^[^\"\\w\\u0080-\\uFFFF]|\\\|(?=\\s*\\\|)+");
     let invalidNegation = new RegExp("\-.*[^\\w\\u0080-\\uFFFF]");
     let invalidUnquoted = new RegExp("^[^\-|\\w\\u0080-\\uFFFF]{1}?|.(?=[^\\w\\u0080-\\uFFFF])");
     let invalidQuoted = new RegExp("\"(?=[^\'\\w\\u0080-\\uFFFF])");
 
-    if ((aValue.charAt(0).match(invalidInitial) && aValue != "") ||
+    if ((aValue != "" && aValue.match(invalidInitial)) ||
         (!quotesClosed && aValue.substr(aValue.lastIndexOf("\""), aValue.length).
                                  search(invalidQuoted) != -1)) {
       this._searchFilter.setAttribute("invalid", true);
@@ -458,6 +458,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         this._tree.restoreSelection();
       }
     }
+  },
+
+  onSearchHelp: function() {
+    openDialog("chrome://snowl/content/searchHelp.xul",
+               "title",
+               "chrome,dialog,resizable=yes");
   },
 
   onCommandUnreadButton: function(aEvent) {

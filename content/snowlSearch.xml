@@ -151,14 +151,24 @@
         <xul:menupopup id="message-search-popup">
           <xul:menuitem id="searchMessagesMenuitem"
                         label="&searchMessages.label;"
-                        type="checkbox"
+                        accesskey="&searchMessages.accesskey;"
+                        type="radio"
+                        name="searchPopup"
                         value="messages"
                         oncommand="document.getBindingParent(this).itemChecked(event);"/>
           <xul:menuitem id="searchCollectionsMenuitem"
                         label="&searchCollections.label;"
-                        type="checkbox"
+                        accesskey="&searchCollections.accesskey;"
+                        type="radio"
+                        name="searchPopup"
                         value="collections"
                         oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuseparator id="searchHelpSep"/>
+          <xul:menuitem id="searchHelpMenuitem"
+                        label="&searchHelp.label;"
+                        accesskey="&searchHelp.accesskey;"
+                        disabled="true"
+                        oncommand="CollectionsView.onSearchHelp();"/>
         </xul:menupopup>
         <xul:stack flex="1">
           <xul:hbox align="center">
@@ -181,10 +191,10 @@
     <implementation>
       <constructor><![CDATA[
         // Set checkstate of menupopup items.
-        if (this.searchMessages)
+        if (this.searchType == "messages")
           document.getElementById("searchMessagesMenuitem").
                    setAttribute('checked', true);
-        if (this.searchCollections)
+        else
           document.getElementById("searchCollectionsMenuitem").
                    setAttribute('checked', true);
 
@@ -206,35 +216,22 @@
       <field name="_strings">null</field>
 
       <field name="_searchFilterEmptytext" readonly="true"><![CDATA[({
-        0: this._strings.GetStringFromName("searchNoneEmptyText"),
-        1: this._strings.GetStringFromName("searchMessagesEmptyText"),
-        2: this._strings.GetStringFromName("searchCollectionsEmptyText"),
-        3: this._strings.GetStringFromName("searchAllEmptyText")
+        0: this._strings.GetStringFromName("searchMessagesEmptyText"),
+        1: this._strings.GetStringFromName("searchCollectionsEmptyText")
       })]]></field>
 
-      <property name="searchMessages"
-                onget="let sm = this.searchFilter.getAttribute('messages');
-                       return sm == 'true' ? true : false;"
-                onset="this.searchFilter.setAttribute('messages', val);
-                       document.persist('searchFilter', 'messages');
-                       return val;">
-      </property>
-
-      <property name="searchCollections"
-                onget="let sc = this.searchFilter.getAttribute('collections');
-                       return sc == 'true' ? true : false;"
-                onset="this.searchFilter.setAttribute('collections', val);
-                       document.persist('searchFilter', 'collections');
+      <property name="searchType"
+                onget="let st = this.searchFilter.getAttribute('searchtype');
+                       return st;"
+                onset="this.searchFilter.setAttribute('searchtype', val);
+                       document.persist('searchFilter', 'searchtype');
                        return val;">
       </property>
 
       <method name="itemChecked">
         <parameter name="aEvent"/>
         <body><![CDATA[
-          if (aEvent.target.value == "messages")
-            this.searchMessages = aEvent.target.hasAttribute("checked");
-          if (aEvent.target.value == "collections")
-            this.searchCollections = aEvent.target.hasAttribute("checked");
+          this.searchType = aEvent.target.value;
           this.setEmptyText();
         ]]></body>
       </method>
@@ -250,9 +247,7 @@
 
       <method name="setEmptyText">
         <body><![CDATA[
-          let index = 0;
-          index = this.searchMessages ? index + 1 : index;
-          index = this.searchCollections ? index + 2 : index;
+          let index = this.searchType == "messages" ? 0 : 1;
           this.searchFilter.setAttribute("emptytext",
                                          this._searchFilterEmptytext[index]);
           let input = document.getAnonymousElementByAttribute(this.searchFilter,

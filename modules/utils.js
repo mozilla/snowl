@@ -521,7 +521,7 @@ let SnowlUtils = {
   appendAsterisks: function(string) {
     // Support unicode word endings (which need to be delimted with a \s, as
     // a \b only applies to a \w).
-    let wordEnds = /\w\b(?!\*)|[\u0080-\uFFFF](?!\*)(?=\s+)/g;
+    let wordEnds = /[\w\u0080-\uFFFF](?!\*)(?=\s|$)/g;
     let asterisk = "$&*";
 
     // This version appends asterisks to every word.

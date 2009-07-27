@@ -84,9 +84,8 @@
                flex="1"
                type="search"
                emptytext=""
-               messages="true"
-               collections=""
-               persist="messages collections"
+               searchtype="messages"
+               persist="searchtype"
                oncommand="CollectionsView.onSearch(this.value)"/>
     </toolbaritem>
     <toolbarspring/>
