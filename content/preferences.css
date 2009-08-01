@@ -108,3 +108,19 @@ radio[pane="subscribe"]:active {
   margin-bottom: 0.5em;
   border-bottom: 1px solid threedlightshadow;
 }
+
+/******************************************************************************/
+/* Search Help dialog */
+
+#searchHelpContent {
+  -moz-box-flex: 1;
+  border: 0px solid transparent;
+}
+
+#body {
+  font: 8pt sans-serif;
+}
+
+.column1 {
+  width: 80px;
+}

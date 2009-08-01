@@ -361,7 +361,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     let quotesClosed = (!quotes || quotes.length%2 == 0) ? true : false;
     let oneNegation = false;
     // XXX: It would be nice to do unicode properly, \p{L} - Bug 258974.
-    let invalidInitial = new RegExp("^[^\"\\w\\u0080-\\uFFFF]|\\\|(?=\\s*\\\|)+");
+    let invalidInitial = new RegExp("^[^\"\\w\\u0080-\\uFFFF]|\\\|(?=\\s*[\|\-])+");
     let invalidNegation = new RegExp("\-.*[^\\w\\u0080-\\uFFFF]");
     let invalidUnquoted = new RegExp("^[^\-|\\w\\u0080-\\uFFFF]{1}?|.(?=[^\\w\\u0080-\\uFFFF])");
     let invalidQuoted = new RegExp("\"(?=[^\'\\w\\u0080-\\uFFFF])");

@@ -1,0 +1,37 @@
+<!-- Search Help -->
+<!ENTITY search.title              "Search Help">
+<!ENTITY search.caption            "Search Messages Guide">
+
+<!ENTITY search.header1            "Search is based on SQLite's Full Text Search (FTS) capabilities and limitations.">
+<!ENTITY search.header2            "Valid Syntax:">
+<!ENTITY search.example1           'foo, "foo*"'>
+<!ENTITY search.explanation1       "Match all items starting with 'foo'; both 'foo' and 'foobar'">
+<!ENTITY search.example2           '"foo"'>
+<!ENTITY search.explanation2       "Match all items containing exactly 'foo'; 'foo' but not 'foobar'">
+<!ENTITY search.example3           "foo bar">
+<!ENTITY search.explanation3       "Match all items with both 'foo' AND 'bar'">
+<!ENTITY search.example4           "foo | bar">
+<!ENTITY search.explanation4       "Match all items with either 'foo' OR 'bar'">
+<!ENTITY search.example5           "foo bar -baz">
+<!ENTITY search.explanation5       "Match all items with 'foo' AND 'bar' but NOT 'baz'">
+<!ENTITY search.example6           "">
+<!ENTITY search.explanation6       "Note: there can only be ONE negation term and it must be the LAST term in the search query.">
+
+<!ENTITY search.header3            "Syntax errors are indicated by a red background.">
+<!ENTITY search.header4            "Invalid syntax:">
+<!ENTITY search.example7           '"*foo bar", *bar'>
+<!ENTITY search.explanation7       "Wildcard prefixing is invalid.">
+<!ENTITY search.example8           '" foo bar  "'>
+<!ENTITY search.explanation8       "Leading and trailing spaces are invalid in a quoted string.">
+<!ENTITY search.example9           ".foo-bar?">
+<!ENTITY search.explanation9       "Non alphanumeric symbols are invalid in nonquoted strings.">
+<!ENTITY search.example10          '-"foo bar"'>
+<!ENTITY search.explanation10      "Quoted strings cannot be negated.">
+
+<!ENTITY search.header5            "Searching for symbols in quoted strings returns unexpected results.  In addition, wildcards are not supported within words.">
+<!ENTITY search.example11          '"foo-----bar"'>
+<!ENTITY search.explanation11      'Finds "foo bar", "foo-bar"'>
+<!ENTITY search.example12          '"foo-bar"'>
+<!ENTITY search.explanation12      'Finds "foo bar"'>
+<!ENTITY search.example13          '"foo b*r"'>
+<!ENTITY search.explanation13      'Finds "foo b r", "foo b=r", etc. but not "foo bar"'>

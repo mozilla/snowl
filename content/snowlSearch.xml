@@ -167,7 +167,6 @@
           <xul:menuitem id="searchHelpMenuitem"
                         label="&searchHelp.label;"
                         accesskey="&searchHelp.accesskey;"
-                        disabled="true"
                         oncommand="CollectionsView.onSearchHelp();"/>
         </xul:menupopup>
         <xul:stack flex="1">
