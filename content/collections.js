@@ -361,9 +361,9 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     let quotesClosed = (!quotes || quotes.length%2 == 0) ? true : false;
     let oneNegation = false;
     // XXX: It would be nice to do unicode properly, \p{L} - Bug 258974.
-    let invalidInitial = new RegExp("^[^\"\\w\\u0080-\\uFFFF]|\\\|(?=\\s*[\|\-])+");
+    let invalidInitial = new RegExp("^[^\"\\w\\u0080-\\uFFFF]|\\\|(?=\\s*[\|\-])+|\~(?!\\d(?=$|\\s)|\\s|$)");
     let invalidNegation = new RegExp("\-.*[^\\w\\u0080-\\uFFFF]");
-    let invalidUnquoted = new RegExp("^[^\-|\\w\\u0080-\\uFFFF]{1}?|.(?=[^\\w\\u0080-\\uFFFF])");
+    let invalidUnquoted = new RegExp("^[^\-|\~|\\w\\u0080-\\uFFFF]{1}?|.(?=[^\\w\\u0080-\\uFFFF])");
     let invalidQuoted = new RegExp("\"(?=[^\'\\w\\u0080-\\uFFFF])");
 
     if ((aValue != "" && aValue.match(invalidInitial)) ||
@@ -409,6 +409,10 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
           // Unquoted | means OR.  We do not use OR because it is 1)twice the
           // typing, 2)english-centric.
           term = "OR"
+        else if (term[0] == "~")
+          // Unquoted ~ means NEAR.  We do not use NEAR because it is 1)4x the
+          // typing, 2)english-centric.
+          term = "NEAR" + (term[1] ? "/" + term[1] : "");
         else
           // Add asterisk to non quoted term for sqlite fts non-exact match.
           term = SnowlUtils.appendAsterisks(term);
@@ -419,11 +423,14 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
     this._searchFilter.removeAttribute("invalid");
 
-    if (aValue.charAt(aValue.length - 1).match(/\s|\|/) ||
+    if (aValue.charAt(aValue.length - 1).match(/\s|\||\~/) ||
         (aValue.charAt(aValue.length - 1).match(/-/) &&
          aValue.charAt(aValue.length - 2).match(/\s/)) ||
+        (aValue.charAt(aValue.length - 1).match(/\d/) &&
+         aValue.charAt(aValue.length - 2).match(/\~/)) ||
         !quotesClosed)
-      // Don't run search on a space, or OR |, or negation -, or unclosed quote ".
+      // Don't run search on a space, or OR |, or negation -, or unclosed quote ",
+      // or NEAR ~ number.
       return;
 
     // Save string.
