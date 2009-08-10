@@ -1,4 +1,0 @@
-<!ENTITY page.title "Snowl: Río de mensajes">
-<!ENTITY currentButton.tooltip "Mostrar sólo mensajes actuales.">
-<!ENTITY bodyButton.tooltip "Mostrar resumen/contenido de mensajes.">
-<!ENTITY orderButton.tooltip "Invertir el orden de los mensajes.">
