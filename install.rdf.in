@@ -11,6 +11,20 @@
     <em:creator>Myk Melez</em:creator>
     <em:developer>alta88</em:developer>
     <em:developer>Atul Varma</em:developer>
+
+    <!-- localizers (from Babelzilla and other places) in alphabetical order
+       - by localization code -->
+    <em:translator>JTojnar</em:translator>        <!-- cs-CZ, Babelzilla -->
+    <em:translator>typh</em:translator>           <!-- da-DK, Babelzilla -->
+    <em:translator>geolocale</em:translator>      <!-- de-DE, Babelzilla -->
+    <em:translator>myahoo</em:translator>         <!-- fr-FR, Babelzilla -->
+    <em:translator>kkemenczy</em:translator>      <!-- hu-HU, Babelzilla -->
+    <em:translator>drry</em:translator>           <!-- ja-JP, Babelzilla -->
+    <em:translator>markh</em:translator>          <!-- nl-NL, Babelzilla -->
+    <em:translator>Wacław Jacek</em:translator>   <!-- pl-PL, Babelzilla -->
+    <em:translator>joildo</em:translator>         <!-- pt-BR, Babelzilla -->
+    <em:translator>steekid</em:translator>        <!-- zh-CN, Babelzilla -->
+
     <em:homepageURL>http://labs.mozilla.com/projects/snowl/</em:homepageURL>
     <em:optionsURL>chrome://snowl/content/preferences.xul</em:optionsURL>
     <!-- <em:aboutURL>chrome://snowl/content/about.xul</em:aboutURL> -->
