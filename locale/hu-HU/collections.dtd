@@ -1,0 +1,7 @@
+<!ENTITY nameCol.label "Név">
+<!ENTITY refresh.label "Frissítés">
+<!ENTITY refresh.accesskey "R">
+<!ENTITY refreshAll.label "Összes forrás frissítése">
+<!ENTITY refreshAll.accesskey "F">
+<!ENTITY unsubscribe.label "Leiratkozás">
+<!ENTITY unsubscribe.accesskey "L">

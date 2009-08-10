@@ -1,0 +1,22 @@
+<!ENTITY subscribe.title "Feliratkozás">
+<!ENTITY source.label "Feliratkozás az üzenetforrásra">
+<!ENTITY feeds.label "Hírforrás">
+<!ENTITY feeds.accesskey "F">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Hely:">
+<!ENTITY name.label "Név:">
+<!ENTITY subscribeButton.label "Feliratkozás">
+<!ENTITY subscribeButton.accesskey "S">
+<!ENTITY closeButton.label "Vissza">
+<!ENTITY closeButton.accesskey "V">
+<!ENTITY clearButton.label "Törlés">
+<!ENTITY clearButton.accesskey "T">
+<!ENTITY page.title "Snowl: feliratkozás az üzenetforrásra">
+<!ENTITY mail.label "Levél">
+<!ENTITY mail.accesskey "L">
+<!ENTITY newsgroup.label "Hírcsoport">
+<!ENTITY newsgroup.accesskey "H">
+<!ENTITY general.title "Általános">
+<!ENTITY subscriptions.title "Feliratkozások">
+<!ENTITY organize.title "Szervezés">

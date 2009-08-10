@@ -1,0 +1,58 @@
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!ENTITY listView.label "Lista">
+<!ENTITY listView.accesskey "l">
+<!ENTITY riverView.label "Folyó">
+<!ENTITY riverView.accesskey "f">
+<!ENTITY streamView.label "Folyam">
+<!ENTITY streamView.accesskey "t">
+<!ENTITY checkForNewMessages.label "Új üzenetek keresése">
+<!ENTITY checkForNewMessages.accesskey "k">
+<!ENTITY subscribe.label "Feliratkozás...">
+<!ENTITY subscribe.accesskey "s">
+<!ENTITY importOPML.label "OPML importálás...">
+<!ENTITY importOPML.accesskey "i">
+<!ENTITY exportOPML.label "OPML exportálás...">
+<!ENTITY exportOPML.accesskey "x">
+<!ENTITY options.label "Beállítások">
+<!ENTITY options.accesskey "B">
+<!ENTITY listViewSidebarMenuItem.label "Üzenetlista">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Üzenetlista">
+<!ENTITY streamViewSidebarMenuItem.label "Üzenetfolyam">
+<!ENTITY streamViewSidebarMenuItem.accesskey "t">
+<!ENTITY streamViewSidebar.label "Üzenetfolyam">
+<!ENTITY snowlLayoutMenu.label "Elrendezés">
+<!ENTITY snowlLayoutMenu.accesskey "e">
+<!ENTITY layoutClassic.label "Klasszikus">
+<!ENTITY layoutClassic.accesskey "k">
+<!ENTITY layoutVertical.label "Függőleges">
+<!ENTITY layoutVertical.accesskey "f">
+<!ENTITY layoutWideMessage.label "Széles üzenet">
+<!ENTITY layoutWideMessage.accesskey "Z">
+<!ENTITY layoutWideThread.label "Széles lista">
+<!ENTITY layoutWideThread.accesskey "L">
+<!ENTITY layoutStacked.label "Halmozott">
+<!ENTITY layoutStacked.accesskey "H">
+<!ENTITY headerNone.label "Nincs fejléc">
+<!ENTITY headerNone.accesskey "N">
+<!ENTITY headerBrief.label "Rövid fejléc">
+<!ENTITY headerBrief.accesskey "R">
+<!ENTITY headerFull.label "Teljes fejléc">
+<!ENTITY headerFull.accesskey "F">
+<!ENTITY toolbar.label "Oldalsáv eszköztár">
+<!ENTITY toolbar.accesskey "d">
+<!ENTITY viewtoolbar.label "Lista eszköztár">
+<!ENTITY viewtoolbar.accesskey "i">
+<!ENTITY hierarchyOff.label "Flat gyűjtemények">
+<!ENTITY hierarchyOff.accesskey "a">
+<!ENTITY hierarchyOn.label "Hierarchikus gyűjtemények">
+<!ENTITY hierarchyOn.accesskey "H">
+<!ENTITY toggleList.label "Snowl átkapcsolás listanézetbe">
+<!ENTITY toggleList.tooltip "Átkapcsolás listanézetbe">
+<!ENTITY toggleStream.label "Snowl átkapcsolás hírfolyamnézetbe">
+<!ENTITY toggleStream.tooltip "Átkapcsolás hírfolyamnézetbe">
+<!ENTITY toggleRiver.label "Snowl átkapcsolás hírfolyónézetbe">
+<!ENTITY toggleRiver.tooltip "Átkapcsolás hírfolyónézetbe">
+<!ENTITY toggleHeader.label "Snowl fejléc átkapcsolás">
+<!ENTITY toggleHeader.tooltip "Üzenetfejléc átkapcsolása: nincs, áttekintő vagy teljes">

@@ -1,0 +1,5 @@
+<!ENTITY subscribeButton.tooltip "Feliratkozás az üzenetforrásokra.">
+<!ENTITY unsubscribeButton.tooltip "Leiratkozás a kiválasztott üzenetforrásokról.">
+<!ENTITY refreshButton.tooltip "Összes üzenetforrás frissítése.">
+<!ENTITY exportButton.tooltip "Üzenetek exportálása OPML formátumba.">
+<!ENTITY writeButton.tooltip "Üzenetírás.">
