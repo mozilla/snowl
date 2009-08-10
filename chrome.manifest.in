@@ -46,7 +46,6 @@ skin    snowl   classic/1.0   @chrome_path@skin/mac/    os=Darwin
 skin    snowl   classic/1.0   @chrome_path@skin/linux/  os=Linux
 
 # localizations in alphabetical order
-locale  snowl   ca-AD   @chrome_path@locale/ca-AD/
 locale  snowl   cs-CZ   @chrome_path@locale/cs-CZ/
 locale  snowl   da-DK   @chrome_path@locale/da-DK/
 locale  snowl   de-DE   @chrome_path@locale/de-DE/

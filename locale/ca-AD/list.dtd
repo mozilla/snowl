@@ -1,6 +1,0 @@
-<!ENTITY placementButton.tooltip "Canvia lloc.">
-<!ENTITY currentButton.tooltip "Mostra només missatges actuals.">
-<!ENTITY unreadButton.tooltip "Mostra només missatges no llegits.">
-<!ENTITY authorCol.label "Autor/a">
-<!ENTITY subjectCol.label "Tema">
-<!ENTITY timestampCol.label "Data">
