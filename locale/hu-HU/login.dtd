@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Hitelesítéskérés">
+<!ENTITY realm.label "Üzenet a forrástót:">
+<!ENTITY username.label "Felhasználónév:">
+<!ENTITY password.label "Jelszó:">
+<!ENTITY showPassword.label "Jelszó megjelenítése">
+<!ENTITY rememberPassword.label "Jelszó megjegyzése, amennyiben helyes">
