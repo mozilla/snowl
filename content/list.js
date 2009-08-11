@@ -424,6 +424,7 @@ let SnowlMessageView = {
 
     if (message.read == MESSAGE_UNREAD || message.read == MESSAGE_NEW)
       this._setRead(true);
+
     // If new message selected, reset for toggle
     SnowlUtils.gMessagePosition.pageIndex = null;
   },
