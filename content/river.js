@@ -550,11 +550,17 @@ let SnowlMessageView = {
   },
 
   onDecrementPeriod: function(event) {
-    this._updatePeriod(new Date(this._periodLabel.startTime - 1));
+    let point = this._periodLabel.point || Date.today();
+    let newPoint = point.last().day();
+    this._periodLabel.point = newPoint;
+    this._updatePeriod(newPoint);
   },
 
   onIncrementPeriod: function(event) {
-    this._updatePeriod(new Date(this._periodLabel.endTime + 1));
+    let point = this._periodLabel.point || Date.today();
+    let newPoint = point.next().day();
+    this._periodLabel.point = newPoint;
+    this._updatePeriod(newPoint);
   },
 
   _updatePeriod: function(date) {
