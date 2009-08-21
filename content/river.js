@@ -209,46 +209,6 @@ let SnowlMessageView = {
     }
   },
 
-  get _periodStartTime() {
-    if (!this._periodMenu.selectedItem)
-      return 0;
-
-    switch (this._periodMenu.selectedItem.value) {
-      case "today":
-        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.today);
-      case "yesterday":
-        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.yesterday);
-      case "last7days":
-        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.sixDaysAgo.epoch);
-      case "last4weeks":
-        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.fourWeeksAgo.epoch);
-      case "all":
-      default:
-        return 0;
-    }
-  },
-
-  get _periodEndTime() {
-    if (!this._periodMenu.selectedItem)
-      return Number.MAX_VALUE;
-
-    switch (this._periodMenu.selectedItem.value) {
-      // Yesterday means only that day, but the rest of the periods are fairly
-      // open-ended, since they all include today, and in theory there shouldn't
-      // be any messages received after today.  I suppose we could exclude
-      // messages received in the future from these categories, but since that
-      // situation is exceptional, it's probably better to show those.
-      case "yesterday":
-        return SnowlDateUtils.jsToJulianDate(SnowlDateUtils.today);
-      case "today":
-      case "last7days":
-      case "last4weeks":
-      case "all":
-      default:
-        return Number.MAX_VALUE;
-    }
-  },
-
   get _writeButton() {
     delete this._writeButton;
     return this._writeButton = document.getElementById("writeButton");
@@ -424,20 +384,16 @@ let SnowlMessageView = {
       this._filter.value = params.filter;
 
     if ("period" in params) {
-      let item = this._periodMenuPopup.getElementsByAttribute("value", params.period)[0];
-      if (item) {
-        this._periodMenu.selectedItem = item;
-        this._periodMenu.setAttribute("selectedindex", this._periodMenu.selectedIndex);
-      }
-    }
-    else {
-      // Restore persisted selection or init
-      let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
-      if (selIndex >= 0)
-        this._periodMenu.selectedIndex = selIndex;
-      else {
-        this._periodMenu.setAttribute("selectedindex", 3); // "last7days"
-        this._periodMenu.selectedIndex = 3;
+      switch(params.period) {
+        case "day":
+          this._periodMenu.selectedIndex = 0;
+          break;
+        case "week":
+          this._periodMenu.selectedIndex = 1;
+          break;
+        case "month":
+          this._periodMenu.selectedIndex = 2;
+          break;
       }
     }
 
@@ -504,10 +460,9 @@ let SnowlMessageView = {
       filters.push({ expression: "messages.id IN (SELECT messageID FROM parts JOIN partsText ON parts.id = partsText.docid WHERE partsText.content MATCH :filter)",
                      parameters: { filter: SnowlUtils.appendAsterisks(this._filter.value) } });
 
-    if (this._periodMenu.selectedItem)
-      filters.push({ expression: "received >= :startTime AND received < :endTime",
-                     parameters: { startTime: this._periodStartTime,
-                                     endTime: this._periodEndTime } });
+    filters.push({ expression: "received >= :startTime AND received < :endTime",
+                   parameters: { startTime: this._startTime,
+                                   endTime: this._endTime } });
 
     this._collection.filters = filters;
 
@@ -576,10 +531,16 @@ let SnowlMessageView = {
     if (this._filter.value)
       newParams.push("filter=" + encodeURIComponent(this._filter.value));
 
-    let selIndex = parseInt(this._periodMenu.getAttribute("selectedindex"));
-    if (selIndex != -1) {
-      this._periodMenu.selectedIndex = selIndex;
-      newParams.push("period=" + encodeURIComponent(this._periodMenu.selectedItem.value));
+    switch(this._periodMenu.selectedIndex) {
+      case 0: // day
+        newParams.push("period=day");
+        break;
+      case 1: // week
+        newParams.push("period=week");
+        break;
+      case 2: // month
+        newParams.push("period=month");
+        break;
     }
 
     updateURI();
@@ -664,11 +625,9 @@ let SnowlMessageView = {
 
   onMessageAdded: function(message) {
 this._log.info("onMessageAdded: REFRESH RIVER");
-    // Don't add the message if the view isn't showing the latest available
-    // messages.  Currently, that only happens when the user selects "yesterday"
-    // from the period menu.
-    let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
-    if (period == "yesterday")
+    // Don't add the message if it was received outside the period of time
+    // for which the view is currently showing messages.
+    if (message.received < this._startTime || message.received > this._endTime)
       return;
 
     // Rebuild the view instead of adding the message if the view is showing
@@ -829,8 +788,6 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // by setting innerHTML to an empty string?
     while (this._contentBox.hasChildNodes())
       this._contentBox.removeChild(this._contentBox.lastChild);
-
-    let period = this._periodMenu.selectedItem ? this._periodMenu.selectedItem.value : "all";
 
     // Build the box for each message and add it to the view.
     let first = new Date();
