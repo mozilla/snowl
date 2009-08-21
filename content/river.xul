@@ -104,6 +104,20 @@
                        oncommand="SnowlMessageView.onCommandColumnsButton(event)"
                        tooltiptext="&columnsButton.tooltip;"/>
 
+        <menulist id="periodMenu" oncommand="SnowlMessageView.onSelectPeriod(event)">
+          <menupopup id="periodMenuPopup">
+            <menuitem label="&periodDay.label;"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/date.png"/>
+            <menuitem label="&periodWeek.label;"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/calendar_view_week.png"/>
+            <menuitem label="&periodMonth.label;"
+                      class="menuitem-iconic"
+                      image="chrome://snowl/content/icons/calendar_view_month.png"/>
+          </menupopup>
+        </menulist>
+
         <toolbarbutton id="decrementPeriodButton" label="&lt;"
                        class="tabbable"
                        oncommand="SnowlMessageView.onDecrementPeriod()"
@@ -114,35 +128,6 @@
                        oncommand="SnowlMessageView.onIncrementPeriod()"
                        tooltiptext="&incrementPeriodButton.tooltip;"/>
 
-        <menulist id="periodMenu"
-                  selectedindex=""
-                  persist="selectedindex"
-                  oncommand="SnowlMessageView.onCommandPeriodMenu(event)"
-                  hidden="true">
-          <menupopup id="periodMenuPopup">
-            <menuitem label="&periodAnytime.label;"
-                      value="all"
-                      class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/calendar.png"/>
-            <menuitem label="&periodToday.label;"
-                      value="today"
-                      class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/date.png"/>
-            <menuitem label="&periodYesterday.label;"
-                      value="yesterday"
-                      class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/date_previous.png"/>
-            <menuitem label="&periodLast7Days.label;"
-                      value="last7days"
-                      class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/calendar_view_week.png"/>
-            <menuitem label="&periodLast4Weeks.label;"
-                      value="last4weeks"
-                      class="menuitem-iconic"
-                      image="chrome://snowl/content/icons/calendar_view_month.png"/>
-          </menupopup>
-        </menulist>
- 
         <spacer flex="1"/>
 
         <!-- FIXME: change type="timed" to type="search" once we no longer

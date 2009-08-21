@@ -5,8 +5,6 @@
 <!ENTITY decrementPeriodButton.tooltip "Previous day">
 <!ENTITY incrementPeriodButton.tooltip "Next day">
 
-<!ENTITY periodAnytime.label          "Anytime">
-<!ENTITY periodToday.label            "Today">
-<!ENTITY periodYesterday.label        "Yesterday">
-<!ENTITY periodLast7Days.label        "Last 7 Days">
-<!ENTITY periodLast4Weeks.label       "Last 4 Weeks">
+<!ENTITY periodDay.label              "Day">
+<!ENTITY periodWeek.label             "Week">
+<!ENTITY periodMonth.label            "Month">

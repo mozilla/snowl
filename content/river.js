@@ -167,6 +167,48 @@ let SnowlMessageView = {
     return this._periodLabel = document.getElementById("periodLabel");
   },
 
+  _point: Date.today(),
+
+  get _startTime() {
+    // We have to create a new date from this._point to start out with
+    // because some Datejs functions mutate their operand, and we don't want
+    // to modify this._point in the process of deriving this value from it.
+    let date = new Date(this._point);
+
+    switch(this._periodMenu.selectedIndex) {
+      case 0: // day
+        return date.at("0am");
+      case 1: // week
+        return date.last().monday().at("0am");
+      case 2: // month
+        return date.set({ day: 1 }).at("0am");
+      default:
+        throw "unexpected period: " + this._periodMenu.selectedIndex;
+    }
+  },
+
+  get _endTime() {
+    // We have to create a new date from this._point to start out with
+    // because some Datejs functions mutate their operand, and we don't want
+    // to modify this._point in the process of deriving this value from it.
+    let date = new Date(this._point);
+
+    // To get the end of the current period, we get the beginning of
+    // the next period, subtract one millisecond (which converts the date
+    // into a time number representing the last millisecond of the current
+    // period), and then create a new date from the number.
+    switch(this._periodMenu.selectedIndex) {
+      case 0: // day
+        return new Date(date.next().day().at("0am") - 1);
+      case 1: // week
+        return new Date(date.next().monday().at("0am") - 1);
+      case 2: // month
+        return new Date(date.next().month().set({ day: 1 }).at("0am") - 1);
+      default:
+        throw "unexpected period: " + this._periodMenu.selectedIndex;
+    }
+  },
+
   get _periodStartTime() {
     if (!this._periodMenu.selectedItem)
       return 0;
@@ -308,7 +350,7 @@ let SnowlMessageView = {
 
     // Set the period to today.
     // FIXME: move this into _updateToolbar.
-    this._updatePeriod(new Date());
+    this._updatePeriodLabel();
 
     // _updateToolbar selects a collection, which triggers a view rebuild,
     // so we don't have to call rebuildView here.  This is pretty convoluted,
@@ -518,12 +560,6 @@ let SnowlMessageView = {
     
   },
 
-  onCommandPeriodMenu: function(event) {
-    this._periodMenu.setAttribute("selectedindex", this._periodMenu.selectedIndex);
-    this._updateURI();
-    this._applyFilters();
-  },
-
   _updateURI: function() {
     let newParams = [];
 
@@ -549,26 +585,74 @@ let SnowlMessageView = {
     updateURI();
   },
 
+  onSelectPeriod: function(event) {
+    this._updatePeriodLabel();
+    this.rebuild();
+  },
+
   onDecrementPeriod: function(event) {
-    let point = this._periodLabel.point || Date.today();
-    let newPoint = point.last().day();
-    this._periodLabel.point = newPoint;
-    this._updatePeriod(newPoint);
+    switch(this._periodMenu.selectedIndex) {
+      case 0: // day
+        this._point = this._point.last().day();
+        break;
+      case 1: // week
+        this._point = this._point.last().week();
+        break;
+      case 2: // month
+        this._point = this._point.last().month();
+        break;
+    }
+
+    this._updatePeriodLabel();
+    this.rebuild();
   },
 
   onIncrementPeriod: function(event) {
-    let point = this._periodLabel.point || Date.today();
-    let newPoint = point.next().day();
-    this._periodLabel.point = newPoint;
-    this._updatePeriod(newPoint);
-  },
+    switch(this._periodMenu.selectedIndex) {
+      case 0: // day
+        this._point = this._point.next().day();
+        break;
+      case 1: // week
+        this._point = this._point.next().week();
+        break;
+      case 2: // month
+        this._point = this._point.next().month();
+        break;
+    }
 
-  _updatePeriod: function(date) {
-    [this._periodLabel.startTime, this._periodLabel.endTime] =
-      SnowlDateUtils.getDayBounds(date);
-    this._periodLabel.setAttribute("value", SnowlDateUtils.formatDay(date));
+    this._updatePeriodLabel();
     this.rebuild();
   },
+
+  _updatePeriodLabel: function() {
+    switch(this._periodMenu.selectedIndex) {
+      case 0: // day
+        this._periodLabel.setAttribute("value", this._point.toString("d"));
+        break;
+      case 1: // week
+        // FIXME: make this localizable.
+        // XXX show start and end dates instead of the week number?
+        this._periodLabel.setAttribute("value", this._point.toString("yyyy") +
+                                       " week " + this._point.getWeek());
+        break;
+      case 2: // month
+        this._periodLabel.setAttribute("value", this._point.toString("y"));
+        break;
+    }
+  },
+
+  /**
+   * Return the start and end times (inclusive) for the given date.
+   *
+   * @param date {Date} the date
+   * @returns {Array} the start and end times
+   */
+  getDayBounds: function(date) {
+    return [new Date(date.getFullYear(), date.getMonth(), date.getDate()),
+            new Date(date.getFullYear(), date.getMonth(), date.getDate(),
+                     23, 59, 59, 999)];
+  },
+
 
 
   //**************************************************************************//
@@ -723,8 +807,8 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
     //}
 
-    constraints.push({ name: "received", operator: ">=", value: this._periodLabel.startTime });
-    constraints.push({ name: "received", operator: "<=", value: this._periodLabel.endTime });
+    constraints.push({ name: "received", operator: ">=", value: this._startTime });
+    constraints.push({ name: "received", operator: "<=", value: this._endTime });
 
     // Rebuild the view based on the constrained collection.
     this._rebuildView();
