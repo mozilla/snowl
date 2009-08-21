@@ -461,8 +461,8 @@ let SnowlMessageView = {
                      parameters: { filter: SnowlUtils.appendAsterisks(this._filter.value) } });
 
     filters.push({ expression: "received >= :startTime AND received < :endTime",
-                   parameters: { startTime: this._startTime,
-                                   endTime: this._endTime } });
+                   parameters: { startTime: SnowlDateUtils.jsToJulianDate(this._startTime),
+                                   endTime: SnowlDateUtils.jsToJulianDate(this._endTime) } });
 
     this._collection.filters = filters;
 
@@ -766,8 +766,10 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
     //}
 
-    constraints.push({ name: "received", operator: ">=", value: this._startTime });
-    constraints.push({ name: "received", operator: "<=", value: this._endTime });
+    constraints.push({ name: "received", operator: ">=",
+                       value: SnowlDateUtils.jsToJulianDate(this._startTime) });
+    constraints.push({ name: "received", operator: "<=",
+                       value: SnowlDateUtils.jsToJulianDate(this._endTime) });
 
     // Rebuild the view based on the constrained collection.
     this._rebuildView();
@@ -1020,10 +1022,10 @@ let Sources = {
         collection = new StorageCollection({ constraints: constraints });
       }
       else {
-        if (!source.messages)
-          source.refresh();
+        if (!item.source.messages)
+          item.source.refresh();
         collection = new MessageCollection({ constraints: constraints,
-                                             messages: source.messages });
+                                             messages: item.source.messages });
       }
     }
     else {
