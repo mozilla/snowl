@@ -108,18 +108,6 @@ let SnowlDateUtils = {
     6: strings.get("saturday")
   },
 
-  /**
-   * Return the start and end times (inclusive) for the given date.
-   *
-   * @param date {Date} the date
-   * @returns {Array} the start and end times
-   */
-  getDayBounds: function(date) {
-    return [new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-            new Date(date.getFullYear(), date.getMonth(), date.getDate(),
-                     23, 59, 59, 999)];
-  },
-
   // FIXME: accommodate daylight savings time (DST), which could cause
   // these calculations to be incorrect at times (the current implementation
   // is naive and ignores the existence of DST).

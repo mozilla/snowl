@@ -602,19 +602,6 @@ let SnowlMessageView = {
     }
   },
 
-  /**
-   * Return the start and end times (inclusive) for the given date.
-   *
-   * @param date {Date} the date
-   * @returns {Array} the start and end times
-   */
-  getDayBounds: function(date) {
-    return [new Date(date.getFullYear(), date.getMonth(), date.getDate()),
-            new Date(date.getFullYear(), date.getMonth(), date.getDate(),
-                     23, 59, 59, 999)];
-  },
-
-
 
   //**************************************************************************//
   // Event & Notification Handlers
