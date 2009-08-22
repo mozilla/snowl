@@ -632,17 +632,9 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     // Add the message to the view.
 //this._log.info("onMessageAdded: REFRESH RIVER message = "+message.toSource());
 
-    // Find the group box into which we're going to insert the message.
-    let groups = SnowlDateUtils.periods[period];
-    let groupIndex = 0;
-    while (message.received < groups[groupIndex].epoch)
-      ++groupIndex;
-    let groupBoxes = this._contentBox.getElementsByClassName("groupBox");
-    let groupBox = groupBoxes[groupIndex];
-
-    // Build the message box and add it to the group box.
+    // Build the message box and prepend it to the list of messages.
     let messageBox = this._buildMessageBox(message);
-    groupBox.insertBefore(messageBox, groupBox.firstChild);
+    this._contentBox.insertBefore(messageBox, this._contentBox.firstChild);
   },
 
   onCollectionsDeselect: function() {

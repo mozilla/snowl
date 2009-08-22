@@ -112,7 +112,7 @@ let SnowlDateUtils = {
   // these calculations to be incorrect at times (the current implementation
   // is naive and ignores the existence of DST).
 
-  // tomorrow, today, and yesterday return an epoch; twoDaysAgo etc. return
+  // tomorrow, today, and yesterday return an epoch; sixDaysAgo returns
   // an object that has epoch and name properties; while evening, afternoon,
   // and morning take a Date object and return an epoch.
   // FIXME: make the API consistent.
@@ -148,37 +148,9 @@ let SnowlDateUtils = {
                     sometimeYesterday.getDate());
   },
 
-  twoDaysAgo: {
-    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 2)) },
-    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
-  },
-
-  threeDaysAgo: {
-    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 3)) },
-    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
-  },
-
-  fourDaysAgo: {
-    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 4)) },
-    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
-  },
-
-  fiveDaysAgo: {
-    get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 5)) },
-    get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
-  },
-
   sixDaysAgo: {
     get epoch() { return new Date(SnowlDateUtils.today - (SnowlDateUtils.msInDay * 6)) },
     get name() { return SnowlDateUtils.days[this.epoch.getDay()] }
-  },
-
-  fourWeeksAgo: {
-    // We calculate four weeks from the beginning of the day tomorrow
-    // so that we include today in the four weeks.
-    get epoch() { return new Date(SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28)) },
-    // XXX This name getter is actually never used, so maybe we should remove it.
-    get name() { return SnowlDateUtils._formatDate(this.epoch) }
   },
 
   evening: function(date) {
@@ -191,53 +163,6 @@ let SnowlDateUtils = {
 
   morning: function(date) {
     return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6);
-  },
-
-  /**
-   * Various time periods broken up into subperiods.  Used by views to organize
-   * messages into groups.
-   * 
-   * I wonder if it makes more sense to specify start/end times rather than
-   * epochs (which are essentially start times). Among other benefits, we could
-   * potentially eliminate unused epochs like "The Future" and (in some cases)
-   * "Older" while fixing the bug that epochs never reached don't appear in views.
-   *
-   * XXX Can this code be consolidated with the today, yesterday, etc. getters
-   * it references?
-   */
-  periods: {
-    today: [
-      { name: strings.get("evening"),   get epoch() { return SnowlDateUtils.evening(SnowlDateUtils.today) } },
-      { name: strings.get("afternoon"), get epoch() { return SnowlDateUtils.afternoon(SnowlDateUtils.today) } },
-      { name: strings.get("morning"),   get epoch() { return SnowlDateUtils.morning(SnowlDateUtils.today) } },
-      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.today } }
-    ],
-    yesterday: [
-      { name: strings.get("evening"),   get epoch() { return SnowlDateUtils.evening(SnowlDateUtils.yesterday) } },
-      { name: strings.get("afternoon"), get epoch() { return SnowlDateUtils.afternoon(SnowlDateUtils.yesterday) } },
-      { name: strings.get("morning"),   get epoch() { return SnowlDateUtils.morning(SnowlDateUtils.yesterday) } },
-      { name: strings.get("weeHours"),  get epoch() { return SnowlDateUtils.yesterday } }
-    ],
-    last7days: [
-      { name: strings.get("today"),                             get epoch() { return SnowlDateUtils.today } },
-      { name: strings.get("yesterday"),                         get epoch() { return SnowlDateUtils.yesterday } },
-      { get name() { return SnowlDateUtils.twoDaysAgo.name },   get epoch() { return SnowlDateUtils.twoDaysAgo.epoch } },
-      { get name() { return SnowlDateUtils.threeDaysAgo.name }, get epoch() { return SnowlDateUtils.threeDaysAgo.epoch } },
-      { get name() { return SnowlDateUtils.fourDaysAgo.name },  get epoch() { return SnowlDateUtils.fourDaysAgo.epoch } },
-      { get name() { return SnowlDateUtils.fiveDaysAgo.name },  get epoch() { return SnowlDateUtils.fiveDaysAgo.epoch } },
-      { get name() { return SnowlDateUtils.sixDaysAgo.name },   get epoch() { return SnowlDateUtils.sixDaysAgo.epoch } }
-    ],
-    last4weeks: [
-      { name: strings.get("weekOne"),   get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 7) } },
-      { name: strings.get("weekTwo"),   get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 14) } },
-      { name: strings.get("weekThree"), get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 21) } },
-      { name: strings.get("weekFour"),  get epoch() { return SnowlDateUtils.tomorrow - (SnowlDateUtils.msInDay * 28) } }
-    ],
-    all: [
-      { name: strings.get("today"),     get epoch() { return SnowlDateUtils.today } },
-      { name: strings.get("yesterday"), get epoch() { return SnowlDateUtils.yesterday } },
-      { name: strings.get("older"),     epoch: 0 }
-    ]
   },
 
   /**
