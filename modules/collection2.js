@@ -355,7 +355,20 @@ MessageCollection.prototype = {
     MESSAGES: for each (let message in this.messages) {
       for each (let { name: name, operator: operator, value: value } in this.constraints) {
         with (message) {
-          if (!eval(name + operator + value))
+          let propertyValue, satisfies = false;
+          eval("propertyValue = " + name);
+          switch(operator) {
+            case "==":
+              satisfies = (propertyValue == value);
+              break;
+            case "<=":
+              satisfies = (propertyValue <= value);
+              break;
+            case ">=":
+              satisfies = (propertyValue >= value);
+              break;
+          }
+          if (!satisfies)
             continue MESSAGES;
         }
       }

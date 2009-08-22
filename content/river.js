@@ -766,10 +766,8 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     //                     parameters: { filter: SnowlUtils.appendAsterisks(SnowlMessageView._filter.value) } });
     //}
 
-    constraints.push({ name: "received", operator: ">=",
-                       value: SnowlDateUtils.jsToJulianDate(this._startTime) });
-    constraints.push({ name: "received", operator: "<=",
-                       value: SnowlDateUtils.jsToJulianDate(this._endTime) });
+    constraints.push({ name: "received", operator: ">=", value: this._startTime });
+    constraints.push({ name: "received", operator: "<=", value: this._endTime });
 
     // Rebuild the view based on the constrained collection.
     this._rebuildView();
@@ -990,7 +988,7 @@ let Sources = {
 
   onSelect: function(event) {
     let item = this._list.selectedItem;
-
+    // FIXME: figure out why item.label is an empty string (XUL bug?).
     this._log.info("selected item " + item.label +
                    (item.source ? " with source " +
                                   (item.source.id ? item.source.id : "")

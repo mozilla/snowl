@@ -56,6 +56,12 @@ let strings = new StringBundle("chrome://snowl/locale/utils.properties");
  * FIXME: replace this with Datejs <http://www.datejs.com/>.
  */
 let SnowlDateUtils = {
+  get _log() {
+    let log = Log4Moz.repository.getLogger("Snowl.DateUtils");
+    this.__defineGetter__("_log", function() log);
+    return this._log;
+  },
+
   get msInHour() 1000 * 60 * 60,
 
   get msInDay() this.msInHour * 24,

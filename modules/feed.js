@@ -199,9 +199,10 @@ SnowlFeed.prototype = {
    *        multiple feeds can give their messages the same received time
    */
   refresh: function(time) {
+    this._log.trace("start refresh");
+
     if (typeof time == "undefined" || time == null)
       time = new Date();
-//    this._log.info("start refresh " + this.machineURI.spec + " at " + time);
 
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:start", this);
@@ -214,15 +215,18 @@ SnowlFeed.prototype = {
       // Listen for notification callbacks so we can handle authentication.
       notificationCallbacks:  this
     });
+    this._log.info("refresh request finished");
 
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:end", this, request.status);
 
     this.lastStatus = request.status + " (" + request.statusText + ")";
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
+      this._log.trace("refresh request failed");
       this.onRefreshError();
       return;
     }
+    this._log.trace("refresh request succeeded");
 
     // _authInfo only gets set if we prompted the user to authenticate
     // and the user checked the "remember password" box.  Since we're here,
@@ -233,6 +237,7 @@ SnowlFeed.prototype = {
     // Parse the response.
     // Note: this happens synchronously, even though it uses a listener
     // callback, which makes it look like it happens asynchronously.
+    this._log.trace("parsing refresh response");
     let parser = Cc["@mozilla.org/feed-processor;1"].
                  createInstance(Ci.nsIFeedProcessor);
     parser.listener = {
@@ -246,6 +251,7 @@ SnowlFeed.prototype = {
 
     this.lastRefreshed = time;
 
+    this._log.trace("end refresh");
   },
 
   /**
