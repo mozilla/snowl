@@ -51,7 +51,7 @@ Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/collection.js");
+Cu.import("resource://snowl/modules/collection2.js");
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/utils.js");
 Cu.import("resource://snowl/modules/twitter.js");
@@ -114,12 +114,11 @@ let SnowlMessageView = {
     this._window = new XPCNativeWrapper(window);
     this._document = this._window.document;
 
-    this._collection = new SnowlCollection();
-
-    // We sort by ID in order to do an implicit sort on received time
-    // (so that we show messages in the order they are received) while making
-    // sure that we always show messages in the same order even when their
-    // received times are the same.
+    // We sort in descending order by ID (the default sort in StorageCollection)
+    // in order to do an implicit sort on received time (so that we show
+    // messages in the order they are received) while making sure that we always
+    // show messages in the same order even when their received times are
+    // the same.
     //
     // We could instead sort by received and timestamp, to show messages
     // as they are received, with messages received at the same time being
@@ -128,20 +127,17 @@ let SnowlMessageView = {
     // there to be a difference between what the user sees when they leave
     // the view open (and messages accumulate in it over time) versus what
     // they see when they open it anew.
-    this._collection.order = "messages.id DESC";
 
-    // Show the last couple hundred messages.
+    // We show only the last couple hundred messages.
     // We used to show all messages within a certain time period, like the last
     // week or the last day, but the purpose of the stream view is to let users
     // glance at recent activity as it scrolls by, not browse messages over long
     // periods of time, and a week's worth of messages is too many to usefully
-    // browse in the view.  And a day's worth of messages means that if you start
-    // your browser after not having used it for a day, you'll see nothing
+    // browse in the view.  And a day's worth of messages means that if you
+    // start your browser after not having used it for a day, you'll see nothing
     // in the view when you first open it, which is confusing and unexpected.
-    this._collection.limit = 250;
 
-    // Set messages to null, to trigger collection build (unlike List view).
-    this._collection.invalidate();
+    this._collection = new StorageCollection({ limit: 250 });
 
     this._initWriteForm();
     this._updateWriteButton();
@@ -216,7 +212,6 @@ let SnowlMessageView = {
   onSourceRemoved: function() {
     // We don't currently have a way to remove just the messages
     // from the removed source, so rebuild the entire view.
-    this._collection.invalidate();
     this._rebuildView();
   },
 
@@ -243,8 +238,7 @@ let SnowlMessageView = {
     while (contentBox.hasChildNodes())
       contentBox.removeChild(contentBox.lastChild);
 
-    for (let i = 0; i < this._collection.messages.length; ++i) {
-      let message = this._collection.messages[i];
+    for each (let message in this._collection) {
       let messageBox = this._buildMessageView(message);
       contentBox.appendChild(messageBox);
 

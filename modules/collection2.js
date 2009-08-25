@@ -305,7 +305,9 @@ StorageCollection.prototype = {
    * The messages in the collection.  Use this when you need an array
    * of messages (f.e. for concatenating with another array).  If you just need
    * to iterate messages, then just iterate across the collection object itself,
-   * which uses the custom iterator method below.
+   * which uses the custom iterator method below, since the iterator method
+   * lazily instantiates message objects, while this getter creates them all
+   * up front.
    */
   get messages() {
     let messages = [];
