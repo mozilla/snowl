@@ -49,6 +49,7 @@ Cu.import("resource://snowl/modules/URI.js");
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -270,15 +271,15 @@ StorageCollection.prototype = {
     }
 
     let author;
-    if (row.authorID) {
-      let person = new SnowlPerson(row.people_id,
-                                   row.people_name,
-                                   row.people_placeID,
-                                   row.people_homeURL,
-                                   row.people_iconURL);
-      let identity = new SnowlIdentity(row.identities_id,
-                                       row.identities_sourceID,
-                                       row.identities_externalID,
+    if (row.getResultByName("authorID")) {
+      let person = new SnowlPerson(row.getResultByName("people_id"),
+                                   row.getResultByName("people_name"),
+                                   row.getResultByName("people_placeID"),
+                                   row.getResultByName("people_homeURL"),
+                                   row.getResultByName("people_iconURL"));
+      let identity = new SnowlIdentity(row.getResultByName("identities_id"),
+                                       row.getResultByName("identities_sourceID"),
+                                       row.getResultByName("identities_externalID"),
                                        person);
       author = identity;
     }
