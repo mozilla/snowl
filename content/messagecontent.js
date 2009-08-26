@@ -228,7 +228,7 @@ var messageContent = {
 // Utils for headers.
 
 var messageHeaderUtils = {
-  ROWS_BRIEF: "28,*",
+  ROWS_BRIEF: "30,*",
 
   init: function() {
     var pin = document.getElementById("pinButton");

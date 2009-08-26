@@ -63,7 +63,7 @@
 
 #headerDeck, #headerFullTable {
   font: 9pt sans-serif;
-  border-spacing: 2px 0px;
+  border-spacing: 0px 0px;
   width: 100%;
 }
 
@@ -87,8 +87,14 @@ td {
   white-space: nowrap;
   width: 1%;
 }
+ 
+.headerButtons > toolbarbutton,
+.headerButtons > toolbarbutton[checked="true"] {
+  padding: 5px !important;
+}
 
 .headerLabel {
+  padding-left: 4px;
   font-weight: bold;
   text-align: right;
   width: 1%;
@@ -108,6 +114,7 @@ td {
 }
 
 #briefHeaderRow .headerDataLast {
+  padding-right: 4px;
   width: 1%;
 }
 
@@ -117,7 +124,7 @@ td {
 
 #headerDeck:not([header="brief"]) > #briefHeaderRow > .headerDataSubject,
 #headerDeck:not([header="brief"]) > #briefHeaderRow > .headerLabelSubject {
-  padding-top: 6px;
+  padding-top: 8px;
 }
 
 #headerDeck[deleted] > #briefHeaderRow > .headerDataSubject > #subject{

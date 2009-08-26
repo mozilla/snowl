@@ -1009,7 +1009,7 @@ let SnowlPlaces = {
     return this._log;
   },
 
-  _placesVersion: 2,
+  _placesVersion: 3,
   _placesConverted: false,
   _placesInitialized: false,
 

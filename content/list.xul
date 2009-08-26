@@ -57,6 +57,7 @@
          click is sent as select event. This effect is not bad but could not be
          recreated in the collections sidebar tree context popup. Quirky xul here. -->
     <popup id="snowlListContext"
+           onpopupshowing="SnowlMessageView.onTreeContextPopupShowing(event)"
            onpopuphidden="SnowlMessageView.onTreeContextPopupHidden(event)">
       <menuitem id="snowlOpenListMessageMenuitem"
                 disabled="true"

@@ -87,6 +87,12 @@ let SnowlMessageView = {
     delete this._snowlSidebar;
     return this._snowlSidebar = document.getElementById("snowlSidebar");
   },
+ 
+  get _snowlUnDeleteMessagesMenuitem() {
+    delete this._snowlUnDeleteMessagesMenuitem;
+    return this._snowlUnDeleteMessagesMenuitem =
+        document.getElementById("snowlUnDeleteMessagesMenuitem");
+  },
 
   get CollectionsView() {
     delete this._CollectionsView;
@@ -899,6 +905,13 @@ let SnowlMessageView = {
   onTreeContextPopupHidden: function(aEvent) {
 //    SnowlUtils.RestoreSelection(this._tree);
   },
+ 
+  onTreeContextPopupShowing: function(aEvent) {
+    if (this.Filters["deleted"])
+      this._snowlUnDeleteMessagesMenuitem.removeAttribute("disabled");
+    else
+      this._snowlUnDeleteMessagesMenuitem.setAttribute("disabled", true);
+  }
 
 };
 
