@@ -1,2 +1,22 @@
-<!ENTITY prefwindow.title "Préférences de Snowl">
-<!ENTITY noPreferences.message "Snowl n&apos;a pas encore de service des préférences.">
+<!ENTITY subscribe.title "S'abonner">
+<!ENTITY source.label "S'abonner à une source de messages">
+<!ENTITY feeds.label "Flux">
+<!ENTITY feeds.accesskey "f">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "t">
+<!ENTITY location.label "Adresse :">
+<!ENTITY name.label "Nom :">
+<!ENTITY subscribeButton.label "S'abonner">
+<!ENTITY subscribeButton.accesskey "b">
+<!ENTITY closeButton.label "Retour">
+<!ENTITY closeButton.accesskey "r">
+<!ENTITY clearButton.label "Effacer">
+<!ENTITY clearButton.accesskey "c">
+<!ENTITY page.title "Snowl : s'abonner à une source de messages">
+<!ENTITY mail.label "Courriel">
+<!ENTITY mail.accesskey "u">
+<!ENTITY newsgroup.label "Groupe">
+<!ENTITY newsgroup.accesskey "g">
+<!ENTITY general.title "Général">
+<!ENTITY subscriptions.title "Abonnements">
+<!ENTITY organize.title "Organiser">

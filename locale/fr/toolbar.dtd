@@ -1,0 +1,5 @@
+<!ENTITY subscribeButton.tooltip "S'abonner aux sources de messages.">
+<!ENTITY unsubscribeButton.tooltip "Se désabonner pour les sources de messages choisies.">
+<!ENTITY refreshButton.tooltip "Actualiser toutes les sources de messages.">
+<!ENTITY exportButton.tooltip "Exporter les sources de messages sous forme d'OPML.">
+<!ENTITY writeButton.tooltip "Écrire un message.">

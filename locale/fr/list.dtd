@@ -1,6 +1,8 @@
-<!ENTITY placementButton.tooltip "Inverser l&apos;emplacement.">
-<!ENTITY currentButton.tooltip "Ne voir que les messages en cours.">
+<!ENTITY page.title "Snowl">
+<!ENTITY placementButton.tooltip "Inverser l'emplacement.">
 <!ENTITY unreadButton.tooltip "Ne voir que les messages non lus.">
 <!ENTITY authorCol.label "Auteur">
 <!ENTITY subjectCol.label "Sujet">
 <!ENTITY timestampCol.label "Date">
+<!ENTITY openListMessage.label "Ouvrir le message">
+<!ENTITY openListMessage.accesskey "O">

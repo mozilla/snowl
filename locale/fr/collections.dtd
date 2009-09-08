@@ -1,5 +1,7 @@
 <!ENTITY nameCol.label "Nom">
-<!ENTITY subscribeButton.tooltip "S&apos;abonner à des sources de messages.">
-<!ENTITY unsubscribeButton.tooltip "Se désabonner de sources de messages.">
-<!ENTITY refreshButton.tooltip "Rafraîchir des sources de messages.">
-<!ENTITY exportButton.tooltip "Exporter les sources de messages en OPML.">
+<!ENTITY refresh.label "Rafraîchir">
+<!ENTITY refresh.accesskey "R">
+<!ENTITY refreshAll.label "Rafraîchir toutes les sources">
+<!ENTITY refreshAll.accesskey "a">
+<!ENTITY unsubscribe.label "Se désabonner">
+<!ENTITY unsubscribe.accesskey "d">

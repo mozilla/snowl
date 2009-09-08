@@ -1,4 +1,9 @@
 <!ENTITY page.title "Snowl : rivière de messages">
-<!ENTITY currentButton.tooltip "Ne voir que les messages récents.">
 <!ENTITY bodyButton.tooltip "Voir résumé / contenu des messages.">
-<!ENTITY orderButton.tooltip "Inverser l&apos;ordre des messages.">
+<!ENTITY orderButton.tooltip "Inverser l'ordre des messages.">
+<!ENTITY columnsButton.tooltip "Afficher les messages en colonnes.">
+<!ENTITY periodAnytime.label "Tout le temps">
+<!ENTITY periodToday.label "Aujourd'hui">
+<!ENTITY periodYesterday.label "Hier">
+<!ENTITY periodLast7Days.label "7 derniers jours">
+<!ENTITY periodLast4Weeks.label "4 dernières semaines">

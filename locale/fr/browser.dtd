@@ -1,5 +1,58 @@
-<!ENTITY riverView.label "Rivière de messages">
-<!ENTITY riverView.accesskey "v">
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
 <!ENTITY listView.label "Liste de messages">
 <!ENTITY listView.accesskey "m">
-<!ENTITY sidebar.label "Snowl">
+<!ENTITY riverView.label "Rivière de messages">
+<!ENTITY riverView.accesskey "v">
+<!ENTITY streamView.label "Flux">
+<!ENTITY streamView.accesskey "x">
+<!ENTITY checkForNewMessages.label "Vérifier les messages">
+<!ENTITY checkForNewMessages.accesskey "v">
+<!ENTITY subscribe.label "S'abonner…">
+<!ENTITY subscribe.accesskey "s">
+<!ENTITY importOPML.label "Import d'OPML…">
+<!ENTITY importOPML.accesskey "i">
+<!ENTITY exportOPML.label "Export d'OPML…">
+<!ENTITY exportOPML.accesskey "x">
+<!ENTITY options.label "Options">
+<!ENTITY options.accesskey "O">
+<!ENTITY listViewSidebarMenuItem.label "Liste de messages">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Liste de messages">
+<!ENTITY streamViewSidebarMenuItem.label "Liste de flux">
+<!ENTITY streamViewSidebarMenuItem.accesskey "t">
+<!ENTITY streamViewSidebar.label "Liste de flux">
+<!ENTITY snowlLayoutMenu.label "Disposition">
+<!ENTITY snowlLayoutMenu.accesskey "i">
+<!ENTITY layoutClassic.label "Classique">
+<!ENTITY layoutClassic.accesskey "C">
+<!ENTITY layoutVertical.label "Vertical">
+<!ENTITY layoutVertical.accesskey "v">
+<!ENTITY layoutWideMessage.label "Message entier">
+<!ENTITY layoutWideMessage.accesskey "e">
+<!ENTITY layoutWideThread.label "Liste entière">
+<!ENTITY layoutWideThread.accesskey "l">
+<!ENTITY layoutStacked.label "Empilé">
+<!ENTITY layoutStacked.accesskey "p">
+<!ENTITY headerNone.label "Pas d'en-tête">
+<!ENTITY headerNone.accesskey "n">
+<!ENTITY headerBrief.label "En-têtes réduits">
+<!ENTITY headerBrief.accesskey "d">
+<!ENTITY headerFull.label "En-têtes complets">
+<!ENTITY headerFull.accesskey "p">
+<!ENTITY toolbar.label "Barre d'outils du panneau latéral">
+<!ENTITY toolbar.accesskey "t">
+<!ENTITY viewtoolbar.label "Barre d'outils de la liste">
+<!ENTITY viewtoolbar.accesskey "i">
+<!ENTITY hierarchyOff.label "Collections simplifiées">
+<!ENTITY hierarchyOff.accesskey "f">
+<!ENTITY hierarchyOn.label "Collections hiérarchiques">
+<!ENTITY hierarchyOn.accesskey "h">
+<!ENTITY toggleList.label "Changement de vue de liste Snowl">
+<!ENTITY toggleList.tooltip "Changement de vue de liste">
+<!ENTITY toggleStream.label "Changement de vue de flux Snowl">
+<!ENTITY toggleStream.tooltip "Changement de vue de flux">
+<!ENTITY toggleRiver.label "Changement de vue de rivière Snowl">
+<!ENTITY toggleRiver.tooltip "Changement de vue de rivière">
+<!ENTITY toggleHeader.label "Changement d'en-tête Snowl">
+<!ENTITY toggleHeader.tooltip "Changer l'en-tête de message à vide, bref ou complet">
