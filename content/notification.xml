@@ -5,8 +5,8 @@
   %globalDTD;
   <!ENTITY % notificationDTD      SYSTEM "chrome://global/locale/notification.dtd">
   %notificationDTD;
-  <!--<!ENTITY % snowlNotificationDTD SYSTEM "chrome://snowl/locale/notification.dtd">-->
-  <!--%snowlNotificationDTD;-->
+  <!ENTITY % snowlNotificationDTD SYSTEM "chrome://snowl/locale/notification.dtd">
+  %snowlNotificationDTD;
   <!ENTITY % feedDTD SYSTEM "chrome://browser/locale/feeds/subscribe.dtd">
   %feedDTD;
 ]>
@@ -29,8 +29,7 @@
                   oncommand="this.parentNode.parentNode._doButtonCommand(event);">
           <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
           <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label"/>
-          <!-- FIXME: localize it. -->
-          <xul:button label="Undo" anonid="undoButton" oncommand="document.getBindingParent(this).undo()"/>
+          <xul:button label="&undo.label;" anonid="undoButton" oncommand="document.getBindingParent(this).undo()"/>
           <xul:spacer flex="1"/>
           <xul:description anonid="subscribeUsingDescription"/>
           <xul:menulist anonid="handlersMenuList" aria-labelledby="subscribeUsingDescription">

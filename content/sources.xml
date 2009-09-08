@@ -41,6 +41,8 @@
    %globalDTD;
    <!ENTITY % feedDTD SYSTEM "chrome://browser/locale/feeds/subscribe.dtd">
    %feedDTD;
+   <!ENTITY % sourcesDTD SYSTEM "chrome://snowl/locale/sources.dtd">
+   %sourcesDTD;
 ]>
 
 <bindings id="sourceBindings"
@@ -127,8 +129,7 @@
           <children/>
           <xul:image class="star-button" xbl:inherits="starred=subscription"/>
         </xul:hbox>
-        <!-- FIXME: localize it -->
-        <xul:label id="subscribeUsingDescription" value="Subscribe using:"/>
+        <xul:label id="subscribeUsingDescription" value="&subscribeUsing.label;"/>
         <xul:menulist id="handlersMenuList" aria-labelledby="subscribeUsingDescription">
           <xul:menupopup menugenerated="true" id="handlersMenuPopup">
             <xul:menuitem id="liveBookmarksMenuItem" label="&feedLiveBookmarks;" class="menuitem-iconic" image="chrome://browser/skin/page-livemarks.png" selected="true"/>

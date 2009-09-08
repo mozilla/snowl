@@ -49,6 +49,7 @@ const Cu = Components.utils;
 Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/Preferences.js");
+Cu.import("resource://snowl/modules/StringBundle.js");
 Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
 
@@ -113,6 +114,11 @@ function getPrefReaderForType(t) {
 
 
 let SnowlMessageView = {
+  get _strings() {
+    delete this._strings;
+    return this._strings =
+      new StringBundle("chrome://snowl/locale/river.properties");
+  },
 
   get _log() {
     delete this._log;
@@ -591,8 +597,7 @@ let SnowlMessageView = {
         this._periodLabel.setAttribute("value", this._point.toString("d"));
         break;
       case 1: // week
-        // FIXME: make this localizable.
-        // XXX show start and end dates instead of the week number?
+        // FIXME: show start and end dates instead of the week number.
         this._periodLabel.setAttribute("value", this._point.toString("yyyy") +
                                        " week " + this._point.getWeek());
         break;
@@ -940,6 +945,12 @@ let Sources = {
   //**************************************************************************//
   // Shortcuts
 
+  get _strings() {
+    delete this._strings;
+    return this._strings =
+      new StringBundle("chrome://snowl/locale/river.properties");
+  },
+
   get _list() {
     delete this._list;
     return this._list = document.getElementById("sourcesList");
@@ -1164,8 +1175,7 @@ dump("onMessageAdded: " + message + "\n");
     let otherTabFeeds = this._getFeedsInOtherTabs();
     if (otherTabFeeds.length > 0) {
       let item = document.createElementNS(XUL_NS, "richlistitem");
-      // FIXME: make this localizable.
-      item.setAttribute("label", "Other Tabs");
+      item.setAttribute("label", this._strings.get("otherTabs"));
       item.className = "header";
       this._list.appendChild(item);
 
@@ -1181,10 +1191,8 @@ dump("onMessageAdded: " + message + "\n");
     }
 
     let item = document.createElementNS(XUL_NS, "richlistitem");
-    // FIXME: make this localizable.
-    item.setAttribute("label", "Subscriptions");
-    // FIXME: make this localizable.
-    item.searchLabel = "Subscriptions";
+    item.setAttribute("label", this._strings.get("subscriptions"));
+    item.searchLabel = this._strings.get("subscriptions");
     item.className = "header";
     item.collection = new StorageCollection();
     this._list.appendChild(item);
@@ -1304,8 +1312,7 @@ dump("onMessageAdded: " + message + "\n");
   _notifySubscribe: function(feed) {
     let notificationBox = gBrowserWindow.getNotificationBox(window);
     let notification = notificationBox.appendNotification(
-      // FIXME: localize it.
-      "You've subscribed to " + feed.name + " in Snowl!",
+      this._strings.get("subscribed", [feed.name]),
       "snowlSubscribeFeed",
       "chrome://snowl/content/icons/snowl-16.png",
       notificationBox.PRIORITY_INFO_MEDIUM,
