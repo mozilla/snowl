@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html [
+  <!ENTITY % firstrunDTD SYSTEM "chrome://snowl/locale/firstrun.dtd">
+    %firstrunDTD;
+  <!ENTITY link.to.river "javascript:gBrowserWindow.openUILinkIn('chrome://snowl/content/river.xul', 'tab')">
+  <!ENTITY link.to.stream "javascript:gBrowserWindow.toggleSidebar('viewSnowlStream')">
+  <!ENTITY link.to.list "javascript:gBrowserWindow.toggleSidebar('viewSnowlList')">
+]>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+    <title>&snowl.title.getting.started.with.snowl;</title>
+    <link rel="stylesheet" href="chrome://snowl/content/startup.css" />
+    <script>
+      const Ci = Components.interfaces;
+      var gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
+                           getInterface(Ci.nsIWebNavigation).
+                           QueryInterface(Ci.nsIDocShellTreeItem).
+                           rootTreeItem.
+                           QueryInterface(Ci.nsIInterfaceRequestor).
+                           getInterface(Ci.nsIDOMWindow);
+    </script>
+  </head>
+  <body>
+    <div id="outer"><div id="middle"><div id="inner">
+      <div id="content">
+        <img src="chrome://snowl/content/logo.png" alt="Snowl" style="float: right;" />
+        <h2 class="title">&snowl.title.getting.started.with.snowl;</h2>
+        <p>&snowl.p.you.ve.just.installed.snowl;</p>
+
+        <p>&snowl.firstrun.access.tips;</p>
+
+        <p>&snowl.firstrun.buttons;</p>
+  
+        <p>&snowl.firstrun.suscribe.howto;</p>
+
+        <p>&snowl.firstrun.suscribe.twitter;</p>
+
+        <p>&snowl.firstrun.read.messages;</p>
+
+        <p>&snowl.firstrun.write.messages;</p>
+
+        <p>Get involved!
+          <a href="http://labs.mozilla.com/projects/snowl/">&snowl.a.learn.more.about.snowl;</a>,
+          <a href="https://labs.mozilla.com/forum/?CategoryID=27">&snowl.a.tell.us.what.you.think;</a>,
+          <a href="https://bugzilla.mozilla.org/buglist.cgi?product=Mozilla Labs&amp;component=Snowl">&snowl.a.browse.bug.reports;</a>,
+          <a href="https://bugzilla.mozilla.org/enter_bug.cgi?product=Mozilla Labs&amp;component=Snowl">&snowl.a.report.a.bug;</a>,
+          <a href="http://hg.mozilla.org/labs/snowl/">&snowl.a.check.out.the.source;</a>.
+        </p>
+      </div>
+    </div></div></div>
+  </body>
+</html>

@@ -78,7 +78,7 @@ let Snowl = {
     let lastVersion = this._prefs.get("lastVersion");
 
     if (!lastVersion) {
-      let url = "chrome://snowl/content/firstrun.html";
+      let url = "chrome://snowl/content/firstrun.xhtml";
       setTimeout(function() { window.openUILinkIn(url, "tab") }, 500);
     }
     // Don't show the "updated" page in the dev channel, since we update
