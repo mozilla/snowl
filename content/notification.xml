@@ -3,6 +3,8 @@
 <!DOCTYPE bindings [
   <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
   %globalDTD;
+  <!ENTITY % browserDTD SYSTEM "chrome://browser/locale/browser.dtd">
+  %browserDTD;
   <!ENTITY % notificationDTD      SYSTEM "chrome://global/locale/notification.dtd">
   %notificationDTD;
   <!ENTITY % snowlNotificationDTD SYSTEM "chrome://snowl/locale/notification.dtd">
@@ -28,18 +30,11 @@
         <xul:hbox anonid="details" align="center" flex="1"
                   oncommand="this.parentNode.parentNode._doButtonCommand(event);">
           <xul:image anonid="messageImage" class="messageImage" xbl:inherits="src=image"/>
-          <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label"/>
-          <xul:button label="&undo.label;" anonid="undoButton" oncommand="document.getBindingParent(this).undo()"/>
+          <xul:description anonid="messageText" class="messageText" xbl:inherits="xbl:text=label" flex="1"/>
           <xul:spacer flex="1"/>
-          <xul:description anonid="subscribeUsingDescription"/>
-          <xul:menulist anonid="handlersMenuList" aria-labelledby="subscribeUsingDescription">
-            <xul:menupopup menugenerated="true" anonid="handlersMenuPopup">
-              <xul:menuitem anonid="liveBookmarksMenuItem" label="&feedLiveBookmarks;" class="menuitem-iconic" image="chrome://browser/skin/page-livemarks.png" selected="true" />
-              <xul:menuseparator />
-            </xul:menupopup>
-          </xul:menulist>
-          <xul:checkbox anonid="alwaysUse" checked="false"/>
-          <xul:button label="&feedSubscribeNow;" anonid="subscribeButton"/>
+          <xul:button label="&undo.label;" anonid="undoButton" oncommand="document.getBindingParent(this).undo()"/>
+          <xul:button label="&preferencesCmd.label;" anonid="feedOptionsButton"
+                      oncommand="document.getBindingParent(this).openOptionsPanel(this)"/>
           <children/>
         </xul:hbox>
         <xul:toolbarbutton ondblclick="event.stopPropagation();"
@@ -48,6 +43,27 @@
                            tooltiptext="&closeNotification.tooltip;"
                            oncommand="document.getBindingParent(this).close();"/>
       </xul:hbox>
+      <xul:panel anonid="optionsPanel" style="padding: 10px">
+        <xul:vbox align="start">
+          <xul:hbox align="baseline">
+            <xul:description anonid="subscribeUsingDescription"/>
+            <xul:menulist anonid="handlersMenuList" aria-labelledby="subscribeUsingDescription">
+              <xul:menupopup menugenerated="true" anonid="handlersMenuPopup">
+                <xul:menuitem anonid="liveBookmarksMenuItem"
+                              label="&feedLiveBookmarks;"
+                              class="menuitem-iconic"
+                              image="chrome://browser/skin/page-livemarks.png"
+                              selected="true" />
+                <xul:menuseparator />
+              </xul:menupopup>
+            </xul:menulist>
+          </xul:hbox>
+          <xul:checkbox anonid="alwaysUse" checked="false"/>
+        </xul:vbox>
+        <xul:vbox align="end">
+          <xul:button label="&feedSubscribeNow;" anonid="subscribeButton"/>
+        </xul:vbox>
+      </xul:panel>
     </content>
 
     <implementation>
@@ -84,6 +100,15 @@
         <body><![CDATA[
           this._feed.unstore();
           this.close();
+        ]]></body>
+      </method>
+
+      <method name="openOptionsPanel">
+        <parameter name="optionsButton"/>
+        <body><![CDATA[
+          document.
+            getAnonymousElementByAttribute(this, 'anonid', 'optionsPanel').
+            openPopup(optionsButton, "after_start");
         ]]></body>
       </method>
 
