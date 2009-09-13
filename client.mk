@@ -37,7 +37,7 @@
 # Snowl-specific makefile.  This gets included by the generic Makefile.
 
 name              := snowl
-version           := 0.3pre3
+version           := 0.3
 extension_id      := snowl@mozilla.org
 
 site_url_base     := https://people.mozilla.com/~myk/snowl
