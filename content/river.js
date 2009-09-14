@@ -762,38 +762,53 @@ this._log.info("onMessageAdded: REFRESH RIVER");
   _rebuildID: null,
 
   _rebuildView: function() {
-    let begin = new Date();
-    let rebuildID = this._rebuildID = Cc["@mozilla.org/uuid-generator;1"].
-                                      getService(Ci.nsIUUIDGenerator).
-                                      generateUUID().toString();
+    let generator = this._makeRebuildViewGenerator();
 
-    // Reset the view by removing all its groups and messages.
+    // Reset the view by removing all its message boxes.
     // XXX Since contentBox is an HTML div, could we do this more quickly
     // by setting innerHTML to an empty string?
     while (this._contentBox.hasChildNodes())
       this._contentBox.removeChild(this._contentBox.lastChild);
 
-    // Build the box for each message and add it to the view.
+    (function() {
+      try {
+        let timeout = generator.next();
+        window.setTimeout(arguments.callee, timeout);
+      }
+      catch(ex if ex == StopIteration) {}
+    })()
+  },
+
+  _makeRebuildViewGenerator: function() {
     let first = new Date();
+
+    let rebuildID = this._rebuildID = Cc["@mozilla.org/uuid-generator;1"].
+                                      getService(Ci.nsIUUIDGenerator).
+                                      generateUUID().toString();
+    this._log.trace("started rebuild " + rebuildID);
+
     for each (let message in this._collection) {
       let before = new Date();
-      let messageBox = this._buildMessageBox(message);
-      this._contentBox.appendChild(messageBox);
+      this._contentBox.appendChild(this._buildMessageBox(message));
       let after = new Date();
       let timeout = this._rebuildViewTimeout;
-      this._log.trace("last: " + (after - before) + "ms; " +
+      this._log.trace("rebuild stats: " +
+                      "last: " + (after - before) + "ms; " +
                       "total: " + (after - first) + "ms; " +
                       "timeout: " + timeout + "ms");
-      Sync.sleep(timeout);
+      yield timeout;
 
-      // Stop rebuilding if another rebuild started while we were sleeping.
+      // Stop the rebuild if another rebuild started while we were yielded.
       if (this._rebuildID != rebuildID) {
-        this._log.debug(this._rebuildID + " != " + rebuildID + "; stopping rebuild");
+        this._log.trace("interrupted rebuild " + rebuildID + " for rebuild " +
+                        this._rebuildID);
         return;
       }
     }
 
-    this._log.info("time spent building view: " + (new Date() - begin) + "ms\n");
+    let last = new Date();
+    this._log.trace("finished rebuild " + rebuildID + " in " +
+                    ((last - first)/1000) + " seconds)");
   },
 
   _buildMessageBox: function(message) {
