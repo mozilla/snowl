@@ -734,6 +734,10 @@ this._log.info("onMessageAdded: REFRESH RIVER");
     this._writeForm.hidden = !event.target.checked;
   },
 
+  onRefresh: function() {
+    SnowlService.refreshAllSources();
+  },
+
 
   //**************************************************************************//
   // Content Generation

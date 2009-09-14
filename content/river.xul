@@ -158,7 +158,7 @@
       <toolbar id="snowlToolbar">
         <toolbarbutton id="snowlRefreshButton"
                        class="tabbable"
-                       oncommand="CollectionsView.onRefresh()"
+                       oncommand="SnowlMessageView.onRefresh()"
                        tooltiptext="&refreshButton.tooltip;"/>
         <toolbarspring/>
         <toolbarbutton id="writeButton" type="checkbox"
