@@ -967,23 +967,23 @@ if (fp.file.leafName != leafName) {
       return;
  
     var feedType = this._getFeedType();
-    var codeStr;
+    var codeStr = "";
 
     // change the background
     var header = this._elements["feedHeader"];
     this._contentSandbox.header = header;
-    switch (feedType) {
-      case Ci.nsIFeed.TYPE_VIDEO:
-        codeStr = "header.className = 'videoPodcastBackground'; ";
-        break;
-
-      case Ci.nsIFeed.TYPE_AUDIO:
-        codeStr = "header.className = 'audioPodcastBackground'; ";
-        break;
-
-      default:
-        codeStr = "header.className = 'feedBackground'; ";
-    }
+    //switch (feedType) {
+    //  case Ci.nsIFeed.TYPE_VIDEO:
+    //    codeStr = "header.className = 'videoPodcastBackground'; ";
+    //    break;
+    //
+    //  case Ci.nsIFeed.TYPE_AUDIO:
+    //    codeStr = "header.className = 'audioPodcastBackground'; ";
+    //    break;
+    //
+    //  default:
+    //    codeStr = "header.className = 'feedBackground'; ";
+    //}
 
 
     // Last-selected application
