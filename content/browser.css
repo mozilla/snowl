@@ -51,14 +51,26 @@ tab[snowl] > image {
 }
 
 #snowlToggleListButton {
+  list-style-image: url("chrome://snowl/content/icons/layout-24.png");
+}
+
+toolbar[iconsize="small"] #snowlToggleListButton {
   list-style-image: url("chrome://snowl/content/icons/layout.png");
 }
 
 #snowlToggleStreamButton {
+  list-style-image: url("chrome://snowl/content/icons/application_tile_horizontal-24.png");
+}
+
+toolbar[iconsize="small"] #snowlToggleStreamButton {
   list-style-image: url("chrome://snowl/content/icons/application_tile_horizontal.png");
 }
 
 #snowlToggleRiverButton {
+  list-style-image: url("chrome://snowl/content/icons/table_multiple-24.png");
+}
+
+toolbar[iconsize="small"] #snowlToggleRiverButton {
   list-style-image: url("chrome://snowl/content/icons/table_multiple.png");
 }
 
