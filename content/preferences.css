@@ -42,9 +42,8 @@
   padding: 5px 3px 1px;
 }
 
-/* XXX make a png, maybe also activity images */
 #SnowlPreferences radio[pane="subscribe"] {
-  list-style-image: url("chrome://snowl/content/icons/snowl-40.jpg");
+  list-style-image: url("chrome://snowl/content/icons/snowl-40.png");
 }
 
 radio[pane="subscribe"],

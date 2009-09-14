@@ -52,10 +52,10 @@
     <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/login.properties"/>
   </stringbundleset>
 
-  <hbox flex="1">
-    <image class="spaced authentication-icon question-icon"/>
+  <hbox flex="1" align="start">
+    <image src="chrome://snowl/content/icons/snowl-80.png"/>
     <description id="prompt" flex="1" style="width: 0;"/>
-    <image src="chrome://snowl/content/icons/snowl-40.jpg"/>
+    <image class="spaced authentication-icon question-icon"/>
   </hbox>
 
   <grid>
