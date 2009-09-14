@@ -201,7 +201,7 @@ a > img {
 /******************************************************************************/
 /* Sources */
 
-#sourcesList {
+#sourcesList, #toolbar, #snowlToolbar {
   -moz-appearance: none;
   color: -moz-dialogtext;
   background-color: -moz-dialog;
