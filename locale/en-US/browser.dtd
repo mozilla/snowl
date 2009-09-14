@@ -66,9 +66,9 @@
 
 <!-- These labels and access keys are for toolbar buttons -->
 
-<!ENTITY toggleList.label                     "Snowl Toggle List View">
-<!ENTITY toggleList.tooltip                   "Toggle List View">
-<!ENTITY toggleStream.label                   "Snowl Toggle Stream View">
-<!ENTITY toggleStream.tooltip                 "Toggle Stream View">
-<!ENTITY toggleRiver.label                    "Snowl Toggle River View">
-<!ENTITY toggleRiver.tooltip                  "Toggle River View">
+<!ENTITY toggleList.label                     "List">
+<!ENTITY toggleList.tooltip                   "Show/Hide the Snowl List of Messages">
+<!ENTITY toggleStream.label                   "Stream">
+<!ENTITY toggleStream.tooltip                 "Show/Hide the Snowl Message Stream">
+<!ENTITY toggleRiver.label                    "River">
+<!ENTITY toggleRiver.tooltip                  "Show/Hide the Snowl River of Messages">
