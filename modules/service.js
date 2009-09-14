@@ -263,10 +263,22 @@ let SnowlService = {
   },
 
   refreshStaleSources: function() {
-    if (!SnowlPlaces._placesConverted)
+    // This used to check SnowlPlaces._placesConverted, but that property
+    // doesn't seem to get set to true after SnowlPlaces::delayedInit gets run
+    // on startup, and we should always refresh stale sources when requested
+    // to do so, even if Places hasn't been converted yet.  In fact, we should
+    // refresh them even if Places isn't initialized, since only one view
+    // in Snowl depends on Places, and the rest of Snowl shouldn't be made
+    // to depend on Snowl's Places integration being ready.
+    // FIXME: replace this check with one in SnowlPlaces that handles any
+    // refreshes that have taken place before the Places integration was
+    // initialized/converted.
+    if (!SnowlPlaces._placesInitialized) {
+      this._log.info("not refreshing stale sources, as Places integration not inited");
       return;
+    }
 
-    this._log.info("Refreshing stale sources");
+    this._log.info("refreshing stale sources");
 
     let now = new Date();
     let staleSources = [];
