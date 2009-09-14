@@ -1120,7 +1120,6 @@ dump("onMessageAdded: " + message + "\n");
   _rebuild: function() {
     let subscribedFeeds = [];
     let feedToSelect = null;
-    let feedToSelectIsNew = false;
 
     if ("feedsToSubscribe" in params) {
       this._log.info("there are feeds to subscribe");
@@ -1147,7 +1146,6 @@ dump("onMessageAdded: " + message + "\n");
         }
         else {
           this._log.info("not yet subscribed; handling");
-          feedToSelectIsNew = true;
           feed = new SnowlFeed(null, feedInfo.title, new URI(feedInfo.href), undefined, null);
           feed.refresh(refreshTime);
           if (!this._handleFeed(feed)) {
@@ -1214,12 +1212,6 @@ dump("onMessageAdded: " + message + "\n");
                        source.name + " (" + source.id + ")");
         if (feedToSelect.id == source.id) {
           this._log.info("selecting feed " + feedToSelect);
-
-          // Gross hack: make sure the newly-subscribed feed has messages.
-          // FIXME: figure out why it doesn't have messages after we first
-          // subscribe to it.
-          if (feedToSelectIsNew)
-            item.source = feedToSelect;
 
           this._list.selectItem(item);
         }
