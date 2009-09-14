@@ -43,6 +43,7 @@ const Cu = Components.utils;
 
 // modules that are generic
 Cu.import("resource://snowl/modules/Observers.js");
+Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
@@ -330,9 +331,14 @@ SnowlSource.prototype = {
    * Insert a record for this source into the database, or update an existing
    * record; store placeID back into sources table.
    *
+   * @param pauseBetweenMessages {Boolean}
+   *        whether or not to pause between each message we persist; useful for
+   *        mixing up messages received at the same time from different sources
+   *        when refreshing multiple sources at once
+   *
    * FIXME: move this to a SnowlAccount interface.
    */
-  persist: function() {
+  persist: function(pauseBetweenMessages) {
     let statement, placeID;
     if (this.id) {
       statement = SnowlDatastore.createStatement(
@@ -399,8 +405,57 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
         Observers.notify("snowl:source:added", this.placeID);
       }
 
-      if (this.messages)
-        this.persistMessages();
+      if (this.messages) {
+        // Sort the messages by date, so we insert them from oldest to newest,
+        // which makes them show up in the correct order in views that expect
+        // messages to be inserted in that order and sort messages by their IDs.
+        this.messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
+                                          a.timestamp > b.timestamp ?  1 : 0);
+
+        let currentMessageIDs = [];
+        let messagesChanged = false;
+
+        for each (let message in this.messages) {
+          let added = false;
+          message.id = message._getInternalID();
+          if (!message.id) {
+            // Persist only new messages, ie without an id.
+            this._log.info("persisting new message " + message.externalID);
+      
+            try {
+              added = message.persist();
+            }
+            catch(ex) {
+              this._log.error("couldn't persist " + message.externalID + ": " + ex);
+              continue;
+            }
+          }
+
+          if (messagesChanged == false && added)
+            messagesChanged = true;
+          currentMessageIDs.push(message.id);
+
+          // Sleep for a bit to give other sources that are being refreshed
+          // at the same time the opportunity to insert messages themselves,
+          // so the messages appear mixed together in views that display them
+          // by the order in which they are received, which is more pleasing
+          // than if the messages were clumped together by source.
+          // As a side effect, this might reduce horkage of the UI thread
+          // during refreshes.
+          if (pauseBetweenMessages)
+            Sync.sleep(50);
+        }
+
+        // Update the current flag.
+        this.updateCurrentMessages(currentMessageIDs);
+
+        if (messagesChanged)
+          // Invalidate stats cache on completion of refresh with new messages.
+          SnowlService._collectionStatsByCollectionID = null;
+
+        // Notify collections view on completion of refresh.
+        Observers.notify("snowl:messages:completed", this.id);
+      }
 
       SnowlDatastore.dbConnection.commitTransaction();
     }
@@ -414,57 +469,6 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
 
     return this.id;
   },
-
-  persistMessages: strand(function() {
-    // Sort the messages by date, so we insert them from oldest to newest,
-    // which makes them show up in the correct order in views that expect
-    // messages to be inserted in that order and sort messages by their IDs.
-    this.messages.sort(function(a, b) a.timestamp < b.timestamp ? -1 :
-                                      a.timestamp > b.timestamp ?  1 : 0);
-
-    let currentMessageIDs = [];
-    let messagesChanged = false;
-
-    for each (let message in this.messages) {
-      let added = false;
-      message.id = message._getInternalID();
-      if (!message.id) {
-        // Persist only new messages, ie without an id.
-        this._log.info("persisting new message " + message.externalID);
-  
-        try {
-          added = message.persist();
-        }
-        catch(ex) {
-          this._log.error("couldn't persist " + message.externalID + ": " + ex);
-          continue;
-        }
-      }
-
-      if (messagesChanged == false && added)
-        messagesChanged = true;
-      currentMessageIDs.push(message.id);
-
-      // Sleep for a bit to give other sources that are being refreshed
-      // at the same time the opportunity to insert messages themselves,
-      // so the messages appear mixed together in views that display messages
-      // by the order in which they are received, which is more pleasing
-      // than if the messages were clumped together by source.
-      // As a side effect, this might reduce horkage of the UI thread
-      // during refreshes.
-      yield sleep(50);
-    }
-
-    // Update the current flag.
-    this.updateCurrentMessages(currentMessageIDs);
-
-    if (messagesChanged)
-      // Invalidate stats cache on completion of refresh with new messages.
-      SnowlService._collectionStatsByCollectionID = null;
-
-    // Notify collections view on completion of refresh.
-    Observers.notify("snowl:messages:completed", this.id);
-  }),
 
   unstore: function() {
     SnowlDatastore.dbConnection.beginTransaction();

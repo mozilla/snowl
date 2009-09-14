@@ -311,7 +311,7 @@ let SnowlService = {
           aSource.name + " - " + aSource.machineURI.spec);
       try {
         aSource.refresh(aRefreshTime);
-        aSource.persist();
+        aSource.persist(true);
       }
       catch(ex) {
         aSource.lastStatus = ex;
