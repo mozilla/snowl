@@ -1120,6 +1120,7 @@ dump("onMessageAdded: " + message + "\n");
   _rebuild: function() {
     let subscribedFeeds = [];
     let feedToSelect = null;
+    let feedSelected = false;
 
     if ("feedsToSubscribe" in params) {
       this._log.info("there are feeds to subscribe");
@@ -1214,9 +1215,13 @@ dump("onMessageAdded: " + message + "\n");
           this._log.info("selecting feed " + feedToSelect);
 
           this._list.selectItem(item);
+          feedSelected = true;
         }
       }
     }
+
+    if (!feedSelected)
+      this._list.selectItem(this._subscriptionsHeader);
   },
 
   /**
