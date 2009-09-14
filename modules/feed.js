@@ -246,11 +246,11 @@ SnowlFeed.prototype = {
   
     let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
     let win = ww.openWindow(null,
-                            "chrome://snowl/content/loginAsync.xul",
+                            "chrome://snowl/content/login-async.xul",
                             null,
                             "chrome,centerscreen,dialog",
                             args);
-  
+
     return cancelable;
   },
 
