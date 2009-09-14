@@ -252,8 +252,43 @@ SnowlTwitter.prototype = {
     return result.proceed;
   },
 
-  asyncPromptAuth: function() {
-    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+  asyncPromptAuth: function(channel, callback, context, level, authInfo) {
+    this._log.debug("asyncPromptAuth: this.name = " + this.name + "; this.username = " + this.username);
+    this._log.debug("asyncPromptAuth: this.name = " + this.name + "; authInfo.realm = " + authInfo.realm);
+
+    let args = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    args.AppendElement({ wrappedJSObject: this });
+    args.AppendElement(authInfo);
+
+    let t = this;
+    let okCallback = function(remember) {
+      if (remember)
+        t._authInfo = authInfo;
+      else
+        t._authInfo = null;
+      callback.onAuthAvailable(context, authInfo);
+    }
+    args.AppendElement({ wrappedJSObject: okCallback });
+
+    let cancelCallback = function() {
+      t._authInfo = null;
+      callback.onAuthCancelled(context, true);
+    }
+    args.AppendElement({ wrappedJSObject: cancelCallback });
+
+    let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
+    let win = ww.openWindow(null,
+                            "chrome://snowl/content/loginAsync.xul",
+                            null,
+                            "chrome,centerscreen,dialog",
+                            args);
+
+    return {
+      cancel: function() {
+        win.QueryInterface(Ci.nsIDOMWindowInternal).close();
+        callback.onAuthCancelled(context, false);
+      }
+    }
   },
 
 

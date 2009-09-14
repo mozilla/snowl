@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Snowl.
+   -
+   - The Initial Developer of the Original Code is Mozilla.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   Myk Melez <myk@mozilla.org>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+
+<!DOCTYPE dialog SYSTEM "chrome://snowl/locale/login.dtd">
+
+<dialog title="&dialog.title;"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        onload="doOnLoad()"
+        ondialogaccept="return doOK()"
+        ondialogcancel="return doCancel()">
+
+  <script type="application/javascript" src="chrome://snowl/content/login-async.js"/>
+
+  <stringbundleset id="stringbundleset">
+    <stringbundle id="snowlStringBundle" src="chrome://snowl/locale/login.properties"/>
+  </stringbundleset>
+
+  <hbox flex="1">
+    <image class="spaced authentication-icon question-icon"/>
+    <description id="prompt" flex="1" style="width: 0;"/>
+    <image src="chrome://snowl/content/icons/snowl-40.jpg"/>
+  </hbox>
+
+  <grid>
+    <columns>
+      <column/>
+      <column/>
+    </columns>
+    <rows>
+      <row align="center">
+        <hbox flex="1" pack="end">
+          <label value="&realm.label;"/>
+        </hbox>
+        <description id="realm" flex="1" crop="end"/>
+      </row>
+      <row align="center">
+        <hbox flex="1" pack="end">
+          <label value="&username.label;" control="username"/>
+        </hbox>
+        <textbox id="username"/>
+      </row>
+      <row align="center">
+        <hbox flex="1" pack="end">
+          <label value="&password.label;" control="password"/>
+        </hbox>
+        <textbox id="password" type="password"/>
+      </row>
+      <row align="center">
+        <box/>
+        <checkbox id="showPassword" label="&showPassword.label;"
+                  oncommand="doShowPassword()"/>
+      </row>
+      <row align="center">
+        <box/>
+        <checkbox id="rememberPassword" label="&rememberPassword.label;"/>
+      </row>
+    </rows>
+  </grid>
+
+
+</dialog>

@@ -182,8 +182,76 @@ SnowlFeed.prototype = {
     return result.proceed;
   },
 
-  asyncPromptAuth: function() {
-    throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+  asyncPromptAuth: function(channel, callback, context, level, authInfo) {
+    this._log.debug("asyncPromptAuth: this.name = " + this.name + "; this.username = " + this.username);
+    this._log.debug("asyncPromptAuth: this.name = " + this.name + "; authInfo.realm = " + authInfo.realm);
+  
+    let cancelable = {
+      cancel: function() {
+        if (win)
+          win.QueryInterface(Ci.nsIDOMWindowInternal).close();
+        callback.onAuthCancelled(context, false);
+      }
+    };
+  
+    // Check saved logins before prompting the user.  We get them
+    // from the login manager and try each in turn until one of them works
+    // or we run out of them.
+    if (!this._logins) {
+      let lm = Cc["@mozilla.org/login-manager;1"].getService(Ci.nsILoginManager);
+      // XXX Should we be using channel.URI.prePath in case the old URI
+      // redirects us to a new one at a different hostname?
+      this._logins = lm.findLogins({}, this.machineURI.prePath, null, authInfo.realm);
+    }
+  
+    let login = this._logins[this._loginIndex];
+    if (login) {
+      authInfo.username = login.username;
+      authInfo.password = login.password;
+      ++this._loginIndex;
+
+      let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+      let timerCallback = {
+        notify: function(timer) {
+          callback.onAuthAvailable(context, authInfo);
+        }
+      }
+      timer.initWithCallback(timerCallback, 0, Ci.nsITimer.TYPE_ONE_SHOT);
+
+      return cancelable;
+    }
+
+    // If we've made it this far, none of the saved logins worked, so we prompt
+    // the user to provide one.
+  
+    let args = Cc["@mozilla.org/supports-array;1"].createInstance(Ci.nsISupportsArray);
+    args.AppendElement({ wrappedJSObject: this });
+    args.AppendElement(authInfo);
+  
+    let t = this;
+    let okCallback = function(remember) {
+      if (remember)
+        t._authInfo = authInfo;
+      else
+        t._authInfo = null;
+      callback.onAuthAvailable(context, authInfo);
+    }
+    args.AppendElement({ wrappedJSObject: okCallback });
+  
+    let cancelCallback = function() {
+      t._authInfo = null;
+      callback.onAuthCancelled(context, true);
+    }
+    args.AppendElement({ wrappedJSObject: cancelCallback });
+  
+    let ww = Cc["@mozilla.org/embedcomp/window-watcher;1"].getService(Ci.nsIWindowWatcher);
+    let win = ww.openWindow(null,
+                            "chrome://snowl/content/loginAsync.xul",
+                            null,
+                            "chrome,centerscreen,dialog",
+                            args);
+  
+    return cancelable;
   },
 
 
