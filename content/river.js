@@ -597,9 +597,14 @@ let SnowlMessageView = {
         this._periodLabel.setAttribute("value", this._point.toString("d"));
         break;
       case 1: // week
-        // FIXME: show start and end dates instead of the week number.
-        this._periodLabel.setAttribute("value", this._point.toString("yyyy") +
-                                       " week " + this._point.getWeek());
+        let ([start, end] = [this._startTime, this._endTime]) {
+          this._periodLabel.setAttribute("value",
+            start.toString("yyyy MMM d - ") +
+            ((end.getYear()  != start.getYear())  ? end.toString("yyyy MMM d") :
+             (end.getMonth() != start.getMonth()) ? end.toString("MMM d") :
+                                                    end.toString("d ").trim())
+          );
+        }
         break;
       case 2: // month
         this._periodLabel.setAttribute("value", this._point.toString("y"));
