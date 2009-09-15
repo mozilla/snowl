@@ -1,5 +1,29 @@
 <!ENTITY nameCol.label "Nome">
-<!ENTITY subscribeButton.tooltip "Cadastrar fontes de mensagem.">
-<!ENTITY unsubscribeButton.tooltip "Descadastrar fontes de mensagem.">
-<!ENTITY refreshButton.tooltip "Atualizar fontes de mensagens.">
-<!ENTITY exportButton.tooltip "Exportar fontes de mensagem como OPML.">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Mark as Read">
+<!ENTITY markRead.accesskey "d">
+<!ENTITY refresh.label "Refresh Source">
+<!ENTITY refresh.accesskey "R">
+<!ENTITY refreshAll.label "Refresh All Sources">
+<!ENTITY refreshAll.accesskey "c">
+<!ENTITY removeSource.label "Remove Source">
+<!ENTITY removeSource.accesskey "S">
+<!ENTITY removeAuthor.label "Remove Author">
+<!ENTITY removeAuthor.accesskey "A">
+<!ENTITY newView.label "New View…">
+<!ENTITY newView.accesskey "V">
+<!ENTITY removeView.label "Remove View">
+<!ENTITY removeView.accesskey "w">
+<!ENTITY view.label "View:">
+<!ENTITY view.accesskey "V">
+<!ENTITY viewDefault.label "Default">
+<!ENTITY viewSources.label "Sources">
+<!ENTITY viewAuthors.label "Authors">
+<!ENTITY search.label "Search:">
+<!ENTITY search.accesskey "S">
+<!ENTITY searchMessages.label "Messages">
+<!ENTITY searchMessages.accesskey "M">
+<!ENTITY searchCollections.label "Collections">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Help">
+<!ENTITY searchHelp.accesskey "H">

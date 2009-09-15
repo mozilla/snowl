@@ -46,14 +46,24 @@ skin    snowl   classic/1.0   @chrome_path@skin/mac/    os=Darwin
 skin    snowl   classic/1.0   @chrome_path@skin/linux/  os=Linux
 
 # localizations in alphabetical order
+#
+# The non-en-US localizations in this list are those that are actively being
+# worked on at Babelzilla, even if they aren't complete, in which case
+# the missing strings may be replaced with their en-US equivalents.
+#
+# There may be other localizations at Babelzilla and in Snowl's source code
+# repository that are not actively being worked on, but they aren't list here,
+# since they are unlikely to be completed.
+#
+# Each localizer responsible for each of the localizations in this list
+# should be credited in install.rdf.in.
+#
 locale  snowl   cs-CZ   @chrome_path@locale/cs-CZ/
-locale  snowl   da-DK   @chrome_path@locale/da-DK/
 locale  snowl   de-DE   @chrome_path@locale/de-DE/
 locale  snowl   en-US   @chrome_path@locale/en-US/
-locale  snowl   fr-FR   @chrome_path@locale/fr-FR/
+locale  snowl   fr      @chrome_path@locale/fr/
 locale  snowl   hu-HU   @chrome_path@locale/hu-HU/
-locale  snowl   ja-JP   @chrome_path@locale/ja-JP/
 locale  snowl   nl-NL   @chrome_path@locale/nl-NL/
-locale  snowl   pl-PL   @chrome_path@locale/pl-PL/
 locale  snowl   pt-BR   @chrome_path@locale/pt-BR/
-locale  snowl   zh-CN   @chrome_path@locale/zh-CN/
+locale  snowl   pt-PT   @chrome_path@locale/pt-PT/
+locale  snowl   ru-RU   @chrome_path@locale/ru-RU/

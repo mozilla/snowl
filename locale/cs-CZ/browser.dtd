@@ -1,5 +1,10 @@
+<!-- The Tools > Snowl menu. -->
 <!ENTITY snowlMenu.label "Snowl">
 <!ENTITY snowlMenu.accesskey "w">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
 <!ENTITY listView.label "Seznam">
 <!ENTITY listView.accesskey "S">
 <!ENTITY riverView.label "Řeka">
@@ -16,12 +21,22 @@
 <!ENTITY exportOPML.accesskey "x">
 <!ENTITY options.label "Možnosti">
 <!ENTITY options.accesskey "M">
+<!ENTITY rebuildDB.label "Rebuild Places Database">
+<!ENTITY rebuildDB.accesskey "D">
+<!-- These labels and access keys are for items in the View > Sidebar menu,
+   - where the user needs more context that these are for Snowl commands,
+   - since the sidebar menu also includes commands for non-Snowl functions. 
+-->
 <!ENTITY listViewSidebarMenuItem.label "Seznam zpráv">
 <!ENTITY listViewSidebarMenuItem.accesskey "z">
 <!ENTITY listViewSidebar.label "Seznam zpráv">
 <!ENTITY streamViewSidebarMenuItem.label "Proud zpráv">
 <!ENTITY streamViewSidebarMenuItem.accesskey "P">
 <!ENTITY streamViewSidebar.label "Proud zpráv">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
 <!ENTITY snowlLayoutMenu.label "Rozhraní">
 <!ENTITY snowlLayoutMenu.accesskey "R">
 <!ENTITY layoutClassic.label "Klasické">
@@ -34,25 +49,14 @@
 <!ENTITY layoutWideThread.accesskey "m">
 <!ENTITY layoutStacked.label "Nad sebou">
 <!ENTITY layoutStacked.accesskey "N">
-<!ENTITY headerNone.label "Žádná hlavičku">
-<!ENTITY headerNone.accesskey "h">
-<!ENTITY headerBrief.label "Stručná hlavička">
-<!ENTITY headerBrief.accesskey "S">
-<!ENTITY headerFull.label "Úplná hlavička">
-<!ENTITY headerFull.accesskey "l">
+<!ENTITY showHeader.label "Show Header">
+<!ENTITY showHeader.accesskey "H">
 <!ENTITY toolbar.label "Postraní lišta">
 <!ENTITY toolbar.accesskey "P">
-<!ENTITY viewtoolbar.label "Lišta seznamu">
-<!ENTITY viewtoolbar.accesskey "u">
-<!ENTITY hierarchyOff.label "Rovné uspořádání kolekce">
-<!ENTITY hierarchyOff.accesskey "R">
-<!ENTITY hierarchyOn.label "Hierarchické uspořádání kolekce">
-<!ENTITY hierarchyOn.accesskey "H">
+<!-- These labels and access keys are for toolbar buttons -->
 <!ENTITY toggleList.label "Snowl přepínání zobrazení seznamu">
 <!ENTITY toggleList.tooltip "Přepnout zobrazení seznamu">
 <!ENTITY toggleStream.label "Snowl přepínání zobrazení proudů">
 <!ENTITY toggleStream.tooltip "Přepnout zobrazení proudu">
 <!ENTITY toggleRiver.label "Snowl přepínání zobrazení řeky">
 <!ENTITY toggleRiver.tooltip "Přepnout zobrazení řeky">
-<!ENTITY toggleHeader.label "Snowl přepínání hlavičky">
-<!ENTITY toggleHeader.tooltip "Přepnout hlavičku zprávy na žádnou, stručnou nebo plnou">

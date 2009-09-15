@@ -1,8 +1,13 @@
 <!ENTITY page.title "Snowl">
-<!ENTITY placementButton.tooltip "Přepne umístění.">
-<!ENTITY unreadButton.tooltip "Zobrazí pouze nepřečtené zprávy.">
+<!ENTITY sourceCol.label "Zdroj">
 <!ENTITY authorCol.label "Autor">
 <!ENTITY subjectCol.label "Předmět">
 <!ENTITY timestampCol.label "Datum">
 <!ENTITY openListMessage.label "Otevřít zprávu">
 <!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Vybrat vše">
+<!ENTITY selectAll.accesskey "v">
+<!ENTITY deleteMessages.label "Smazat vybrané zprávy">
+<!ENTITY deleteMessages.accesskey "S">
+<!ENTITY undeleteMessages.label "Zrušit vymazání vybraných zpráv">
+<!ENTITY undeleteMessages.accesskey "Z">

@@ -1,8 +1,13 @@
 <!ENTITY page.title "Snowl">
-<!ENTITY placementButton.tooltip "Inverser l'emplacement.">
-<!ENTITY unreadButton.tooltip "Ne voir que les messages non lus.">
+<!ENTITY sourceCol.label "Source">
 <!ENTITY authorCol.label "Auteur">
 <!ENTITY subjectCol.label "Sujet">
 <!ENTITY timestampCol.label "Date">
 <!ENTITY openListMessage.label "Ouvrir le message">
 <!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Select All">
+<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteMessages.label "Delete Selected Messages">
+<!ENTITY deleteMessages.accesskey "D">
+<!ENTITY undeleteMessages.label "Undelete Selected Messages">
+<!ENTITY undeleteMessages.accesskey "U">

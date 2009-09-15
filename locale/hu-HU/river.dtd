@@ -2,8 +2,8 @@
 <!ENTITY bodyButton.tooltip "Összegzés/tartalom megjelenítése.">
 <!ENTITY orderButton.tooltip "Üzenetek megjelenítése fordított sorrendben.">
 <!ENTITY columnsButton.tooltip "Üzenetek megjelenítése oszlopokban.">
-<!ENTITY periodAnytime.label "Bármikor">
-<!ENTITY periodToday.label "Ma">
-<!ENTITY periodYesterday.label "Tegnap">
-<!ENTITY periodLast7Days.label "Az elmúlt 7 nap">
-<!ENTITY periodLast4Weeks.label "Az elmúlt 4 hét">
+<!ENTITY decrementPeriodButton.tooltip "Previous day">
+<!ENTITY incrementPeriodButton.tooltip "Next day">
+<!ENTITY periodDay.label "Day">
+<!ENTITY periodWeek.label "Week">
+<!ENTITY periodMonth.label "Month">

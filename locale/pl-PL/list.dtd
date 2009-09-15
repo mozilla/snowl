@@ -1,8 +1,0 @@
-<!ENTITY page.title "Snowl">
-<!ENTITY placementButton.tooltip "Przełącz układ.">
-<!ENTITY unreadButton.tooltip "Wyświetlaj tylko nieprzeczytane wiadomości.">
-<!ENTITY authorCol.label "Autor">
-<!ENTITY subjectCol.label "Tytuł">
-<!ENTITY timestampCol.label "Data">
-<!ENTITY openListMessage.label "Otwórz wiadomość">
-<!ENTITY openListMessage.accesskey "O">

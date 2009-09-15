@@ -1,6 +1,0 @@
-<!ENTITY placementButton.tooltip "配置を切り替えます。">
-<!ENTITY currentButton.tooltip "現在のメッセージのみ表示します。">
-<!ENTITY unreadButton.tooltip "未読メッセージのみ表示します。">
-<!ENTITY authorCol.label "作者">
-<!ENTITY subjectCol.label "題名">
-<!ENTITY timestampCol.label "日時">

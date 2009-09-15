@@ -1,5 +1,0 @@
-<!ENTITY subscribeButton.tooltip "Abonner kilde">
-<!ENTITY unsubscribeButton.tooltip "Afmeld abonnement fra denne valgte kilde.">
-<!ENTITY refreshButton.tooltip "Opdater alle meddelelses kilder.">
-<!ENTITY exportButton.tooltip "Eksporter meddelelses kilder som OPML">
-<!ENTITY writeButton.tooltip "Skriv en meddelelse">

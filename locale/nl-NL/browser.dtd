@@ -1,5 +1,62 @@
-<!ENTITY riverView.label "Berichtenrivier">
-<!ENTITY riverView.accesskey "v">
+<!-- The Tools > Snowl menu. -->
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
 <!ENTITY listView.label "Berichtenlijst">
 <!ENTITY listView.accesskey "B">
-<!ENTITY sidebar.label "Snowl">
+<!ENTITY riverView.label "Berichtenrivier">
+<!ENTITY riverView.accesskey "v">
+<!ENTITY streamView.label "Stroom">
+<!ENTITY streamView.accesskey "t">
+<!ENTITY checkForNewMessages.label "Op nieuwe berichten controleren">
+<!ENTITY checkForNewMessages.accesskey "c">
+<!ENTITY subscribe.label "Abonneren…">
+<!ENTITY subscribe.accesskey "A">
+<!ENTITY importOPML.label "OPML importeren…">
+<!ENTITY importOPML.accesskey "i">
+<!ENTITY exportOPML.label "OPML exporteren…">
+<!ENTITY exportOPML.accesskey "x">
+<!ENTITY options.label "Opties">
+<!ENTITY options.accesskey "O">
+<!ENTITY rebuildDB.label "Plaatsdatabase herbouwen">
+<!ENTITY rebuildDB.accesskey "b">
+<!-- These labels and access keys are for items in the View > Sidebar menu,
+   - where the user needs more context that these are for Snowl commands,
+   - since the sidebar menu also includes commands for non-Snowl functions. 
+-->
+<!ENTITY listViewSidebarMenuItem.label "Berichtencollecties">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Berichtencollecties">
+<!ENTITY streamViewSidebarMenuItem.label "Berichtenstroom">
+<!ENTITY streamViewSidebarMenuItem.accesskey "t">
+<!ENTITY streamViewSidebar.label "Berichtenstroom">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY snowlLayoutMenu.label "Opmaak">
+<!ENTITY snowlLayoutMenu.accesskey "m">
+<!ENTITY layoutClassic.label "Klassiek">
+<!ENTITY layoutClassic.accesskey "K">
+<!ENTITY layoutVertical.label "Verticaal">
+<!ENTITY layoutVertical.accesskey "V">
+<!ENTITY layoutWideMessage.label "Breed bericht">
+<!ENTITY layoutWideMessage.accesskey "B">
+<!ENTITY layoutWideThread.label "Brede lijst">
+<!ENTITY layoutWideThread.accesskey "L">
+<!ENTITY layoutStacked.label "Gestapeld">
+<!ENTITY layoutStacked.accesskey "s">
+<!ENTITY showHeader.label "Header weergeven">
+<!ENTITY showHeader.accesskey "H">
+<!ENTITY toolbar.label "Zijbalkwerkbalk">
+<!ENTITY toolbar.accesskey "Z">
+<!-- These labels and access keys are for toolbar buttons -->
+<!ENTITY toggleList.label "Snowl lijstweergave wisselen">
+<!ENTITY toggleList.tooltip "Lijstweergave wisselen">
+<!ENTITY toggleStream.label "Snowl stroomweergave wisselen">
+<!ENTITY toggleStream.tooltip "Stroomweergave wisselen">
+<!ENTITY toggleRiver.label "Snowl rivierweergave wisselen">
+<!ENTITY toggleRiver.tooltip "Rivierweergave wisselen">

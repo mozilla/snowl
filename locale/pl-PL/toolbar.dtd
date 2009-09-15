@@ -1,5 +1,0 @@
-<!ENTITY subscribeButton.tooltip "Subskrybuj źródła wiadomości.">
-<!ENTITY unsubscribeButton.tooltip "Anuluj subskrypcję wybranych źródeł wiadomości.">
-<!ENTITY refreshButton.tooltip "Odśwież wszystkie źródła wiadomości.">
-<!ENTITY exportButton.tooltip "Wyeksportuj źródła wiadomości jako OPML.">
-<!ENTITY writeButton.tooltip "Napisz wiadomość.">

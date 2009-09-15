@@ -1,9 +1,0 @@
-<!ENTITY page.title "Snowl: 信息河流">
-<!ENTITY bodyButton.tooltip "显示信息摘要/内容。">
-<!ENTITY orderButton.tooltip "将信息反向顺序排列">
-<!ENTITY columnsButton.tooltip "分栏显示信息">
-<!ENTITY periodAnytime.label "任何时间">
-<!ENTITY periodToday.label "今天">
-<!ENTITY periodYesterday.label "昨天">
-<!ENTITY periodLast7Days.label "过去7天">
-<!ENTITY periodLast4Weeks.label "过去4周">
