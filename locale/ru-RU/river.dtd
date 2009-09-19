@@ -1,9 +1,0 @@
-<!ENTITY page.title "Snowl: поток сообщений">
-<!ENTITY bodyButton.tooltip "Показывать содержимое сообщений">
-<!ENTITY orderButton.tooltip "Отображать сообщения в обратном порядке.">
-<!ENTITY columnsButton.tooltip "Показывать сообщения по столбцам.">
-<!ENTITY decrementPeriodButton.tooltip "Предыдущий день">
-<!ENTITY incrementPeriodButton.tooltip "Следующий день">
-<!ENTITY periodDay.label "День">
-<!ENTITY periodWeek.label "Неделя">
-<!ENTITY periodMonth.label "Месяц">

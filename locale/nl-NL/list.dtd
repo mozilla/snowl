@@ -1,13 +1,6 @@
-<!ENTITY page.title "Snowl">
-<!ENTITY sourceCol.label "Source">
+<!ENTITY placementButton.tooltip "Plaatsing wisselen.">
+<!ENTITY currentButton.tooltip "Alleen huidige berichten weergeven.">
+<!ENTITY unreadButton.tooltip "Alleen ongelezen berichten weergeven.">
 <!ENTITY authorCol.label "Schrijver">
 <!ENTITY subjectCol.label "Onderwerp">
 <!ENTITY timestampCol.label "Datum">
-<!ENTITY openListMessage.label "Open Message">
-<!ENTITY openListMessage.accesskey "O">
-<!ENTITY selectAll.label "Select All">
-<!ENTITY selectAll.accesskey "A">
-<!ENTITY deleteMessages.label "Delete Selected Messages">
-<!ENTITY deleteMessages.accesskey "D">
-<!ENTITY undeleteMessages.label "Undelete Selected Messages">
-<!ENTITY undeleteMessages.accesskey "U">

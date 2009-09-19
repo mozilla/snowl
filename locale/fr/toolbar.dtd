@@ -2,8 +2,4 @@
 <!ENTITY unsubscribeButton.tooltip "Se désabonner pour les sources de messages choisies.">
 <!ENTITY refreshButton.tooltip "Actualiser toutes les sources de messages.">
 <!ENTITY exportButton.tooltip "Exporter les sources de messages sous forme d'OPML.">
-<!ENTITY unreadButton.tooltip "Show new and unread messages for selected collections.">
-<!ENTITY listToolbarButton.tooltip "Toggle View toolbar.">
 <!ENTITY writeButton.tooltip "Écrire un message.">
-<!ENTITY showDeletedButton.tooltip "Show deleted messages for selected collections.">
-<!ENTITY purgeDeletedButton.tooltip "Purge all deleted messages from selected collections.">

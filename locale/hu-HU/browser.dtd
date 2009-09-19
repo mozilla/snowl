@@ -1,10 +1,5 @@
-<!-- The Tools > Snowl menu. -->
 <!ENTITY snowlMenu.label "Snowl">
 <!ENTITY snowlMenu.accesskey "w">
-<!-- These labels and access keys are for items in the Tools > Snowl menu,
-   - where the user doesn't need to be reminded that these are Snowl commands,
-   - since it is obvious from their placement in the Snowl menu. 
--->
 <!ENTITY listView.label "Lista">
 <!ENTITY listView.accesskey "l">
 <!ENTITY riverView.label "Folyó">
@@ -21,22 +16,12 @@
 <!ENTITY exportOPML.accesskey "x">
 <!ENTITY options.label "Beállítások">
 <!ENTITY options.accesskey "B">
-<!ENTITY rebuildDB.label "Adatbázis újraépítése">
-<!ENTITY rebuildDB.accesskey "A">
-<!-- These labels and access keys are for items in the View > Sidebar menu,
-   - where the user needs more context that these are for Snowl commands,
-   - since the sidebar menu also includes commands for non-Snowl functions. 
--->
 <!ENTITY listViewSidebarMenuItem.label "Üzenetlista">
 <!ENTITY listViewSidebarMenuItem.accesskey "l">
 <!ENTITY listViewSidebar.label "Üzenetlista">
 <!ENTITY streamViewSidebarMenuItem.label "Üzenetfolyam">
 <!ENTITY streamViewSidebarMenuItem.accesskey "t">
 <!ENTITY streamViewSidebar.label "Üzenetfolyam">
-<!-- These labels and access keys are for items in the Tools > Snowl menu,
-   - where the user doesn't need to be reminded that these are Snowl commands,
-   - since it is obvious from their placement in the Snowl menu. 
--->
 <!ENTITY snowlLayoutMenu.label "Elrendezés">
 <!ENTITY snowlLayoutMenu.accesskey "e">
 <!ENTITY layoutClassic.label "Klasszikus">
@@ -49,14 +34,25 @@
 <!ENTITY layoutWideThread.accesskey "L">
 <!ENTITY layoutStacked.label "Halmozott">
 <!ENTITY layoutStacked.accesskey "H">
-<!ENTITY showHeader.label "Fejléc megjelenítése">
-<!ENTITY showHeader.accesskey "F">
+<!ENTITY headerNone.label "Nincs fejléc">
+<!ENTITY headerNone.accesskey "N">
+<!ENTITY headerBrief.label "Rövid fejléc">
+<!ENTITY headerBrief.accesskey "R">
+<!ENTITY headerFull.label "Teljes fejléc">
+<!ENTITY headerFull.accesskey "F">
 <!ENTITY toolbar.label "Oldalsáv eszköztár">
 <!ENTITY toolbar.accesskey "d">
-<!-- These labels and access keys are for toolbar buttons -->
+<!ENTITY viewtoolbar.label "Lista eszköztár">
+<!ENTITY viewtoolbar.accesskey "i">
+<!ENTITY hierarchyOff.label "Flat gyűjtemények">
+<!ENTITY hierarchyOff.accesskey "a">
+<!ENTITY hierarchyOn.label "Hierarchikus gyűjtemények">
+<!ENTITY hierarchyOn.accesskey "H">
 <!ENTITY toggleList.label "Snowl átkapcsolás listanézetbe">
 <!ENTITY toggleList.tooltip "Átkapcsolás listanézetbe">
 <!ENTITY toggleStream.label "Snowl átkapcsolás hírfolyamnézetbe">
 <!ENTITY toggleStream.tooltip "Átkapcsolás hírfolyamnézetbe">
 <!ENTITY toggleRiver.label "Snowl átkapcsolás hírfolyónézetbe">
 <!ENTITY toggleRiver.tooltip "Átkapcsolás hírfolyónézetbe">
+<!ENTITY toggleHeader.label "Snowl fejléc átkapcsolás">
+<!ENTITY toggleHeader.tooltip "Üzenetfejléc átkapcsolása: nincs, áttekintő vagy teljes">

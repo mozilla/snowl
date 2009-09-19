@@ -1,4 +1,3 @@
-<!-- Subscribe pane -->
 <!ENTITY subscribe.title "S'abonner">
 <!ENTITY source.label "S'abonner à une source de messages">
 <!ENTITY feeds.label "Flux">
@@ -13,18 +12,11 @@
 <!ENTITY closeButton.accesskey "r">
 <!ENTITY clearButton.label "Effacer">
 <!ENTITY clearButton.accesskey "c">
-<!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title "Snowl : s'abonner à une source de messages">
-<!-- The entities below are commented out because they aren't being used yet,
-   - and they may change before we start using them, so don't localize them. 
--->
 <!ENTITY mail.label "Courriel">
 <!ENTITY mail.accesskey "u">
 <!ENTITY newsgroup.label "Groupe">
 <!ENTITY newsgroup.accesskey "g">
-<!-- General pane -->
 <!ENTITY general.title "Général">
-<!-- Subscriptions pane -->
 <!ENTITY subscriptions.title "Abonnements">
-<!-- Organize pane -->
 <!ENTITY organize.title "Organiser">

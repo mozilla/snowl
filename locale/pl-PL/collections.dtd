@@ -1,0 +1,7 @@
+<!ENTITY nameCol.label "Nazwa">
+<!ENTITY refresh.label "Odśwież">
+<!ENTITY refresh.accesskey "O">
+<!ENTITY refreshAll.label "Odśwież wszystkie źródła">
+<!ENTITY refreshAll.accesskey "w">
+<!ENTITY unsubscribe.label "Anuluj subskrypcję">
+<!ENTITY unsubscribe.accesskey "A">

@@ -2,8 +2,4 @@
 <!ENTITY unsubscribeButton.tooltip "Leiratkozás a kiválasztott üzenetforrásokról.">
 <!ENTITY refreshButton.tooltip "Összes üzenetforrás frissítése.">
 <!ENTITY exportButton.tooltip "Üzenetek exportálása OPML formátumba.">
-<!ENTITY unreadButton.tooltip "Új és olvasatlan üzenetek megjelenítése a kiválasztott gyűjteményekből.">
-<!ENTITY listToolbarButton.tooltip "Eszköztár nézetének váltása.">
 <!ENTITY writeButton.tooltip "Üzenetírás.">
-<!ENTITY showDeletedButton.tooltip "Törölt üzenetek megjelenítése a kiválasztott gyűjteményekből.">
-<!ENTITY purgeDeletedButton.tooltip "Törölt elemek eltávolítása a kiválasztott gyűjteményekből.">

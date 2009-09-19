@@ -1,6 +1,0 @@
-<!ENTITY dialog.title "Требуется аутентификация">
-<!ENTITY realm.label "Сайт говорит:">
-<!ENTITY username.label "Имя пользователя:">
-<!ENTITY password.label "Пароль:">
-<!ENTITY showPassword.label "Показать пароль">
-<!ENTITY rememberPassword.label "Запомнить пароль, если он введён правильно">

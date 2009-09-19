@@ -1,6 +1,0 @@
-<!ENTITY dialog.title "Autenticação Solicitada">
-<!ENTITY realm.label "A fonte diz:">
-<!ENTITY username.label "Utilizador:">
-<!ENTITY password.label "Senha:">
-<!ENTITY showPassword.label "Mostrar senha">
-<!ENTITY rememberPassword.label "Lembrar esta senha se estiver correta">

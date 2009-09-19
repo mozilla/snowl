@@ -1,0 +1,22 @@
+<!ENTITY subscribe.title "Subskrybuj">
+<!ENTITY source.label "Subskrybuj źródło wiadomości">
+<!ENTITY feeds.label "Kanał">
+<!ENTITY feeds.accesskey "K">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Położenie:">
+<!ENTITY name.label "Nazwa:">
+<!ENTITY subscribeButton.label "Subskrybuj">
+<!ENTITY subscribeButton.accesskey "S">
+<!ENTITY closeButton.label "Wstecz">
+<!ENTITY closeButton.accesskey "W">
+<!ENTITY clearButton.label "Wyczyść">
+<!ENTITY clearButton.accesskey "c">
+<!ENTITY page.title "Snowl: Subskrybuj źródło wiadomości">
+<!ENTITY mail.label "Poczta">
+<!ENTITY mail.accesskey "P">
+<!ENTITY newsgroup.label "Grupa dyskusyjna">
+<!ENTITY newsgroup.accesskey "G">
+<!ENTITY general.title "Ogólne">
+<!ENTITY subscriptions.title "Subskrypcje">
+<!ENTITY organize.title "Zarządzaj">

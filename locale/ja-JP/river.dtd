@@ -1,0 +1,4 @@
+<!ENTITY page.title "Snowl: メッセージの流れ">
+<!ENTITY currentButton.tooltip "現在のメッセージのみ表示します。">
+<!ENTITY bodyButton.tooltip "メッセージの要約・内容を表示します。">
+<!ENTITY orderButton.tooltip "メッセージの順序を反転します。">

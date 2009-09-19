@@ -1,4 +1,3 @@
-<!-- Subscribe pane -->
 <!ENTITY subscribe.title "Feliratkozás">
 <!ENTITY source.label "Feliratkozás az üzenetforrásra">
 <!ENTITY feeds.label "Hírforrás">
@@ -13,18 +12,11 @@
 <!ENTITY closeButton.accesskey "V">
 <!ENTITY clearButton.label "Törlés">
 <!ENTITY clearButton.accesskey "T">
-<!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title "Snowl: feliratkozás az üzenetforrásra">
-<!-- The entities below are commented out because they aren't being used yet,
-   - and they may change before we start using them, so don't localize them. 
--->
 <!ENTITY mail.label "Levél">
 <!ENTITY mail.accesskey "L">
 <!ENTITY newsgroup.label "Hírcsoport">
 <!ENTITY newsgroup.accesskey "H">
-<!-- General pane -->
 <!ENTITY general.title "Általános">
-<!-- Subscriptions pane -->
 <!ENTITY subscriptions.title "Feliratkozások">
-<!-- Organize pane -->
 <!ENTITY organize.title "Szervezés">

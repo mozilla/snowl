@@ -2,8 +2,8 @@
 <!ENTITY bodyButton.tooltip "Zobrazí shrnutí/obsah zprávy">
 <!ENTITY orderButton.tooltip "Převrátí pořádí zpráv.">
 <!ENTITY columnsButton.tooltip "Zobrazí zprávy ve sloupcích.">
-<!ENTITY decrementPeriodButton.tooltip "Předchozí den">
-<!ENTITY incrementPeriodButton.tooltip "Následující den">
-<!ENTITY periodDay.label "Den">
-<!ENTITY periodWeek.label "Týden">
-<!ENTITY periodMonth.label "Měsíc">
+<!ENTITY periodAnytime.label "Kdykoliv">
+<!ENTITY periodToday.label "Dnes">
+<!ENTITY periodYesterday.label "Včera">
+<!ENTITY periodLast7Days.label "Posledních 7 dní">
+<!ENTITY periodLast4Weeks.label "Poslední 4 týdny">

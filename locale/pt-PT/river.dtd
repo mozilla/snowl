@@ -1,9 +1,0 @@
-<!ENTITY page.title "Snowl: Rio de Mensagens">
-<!ENTITY bodyButton.tooltip "Mostrar resumo/conteúdo da mensagem.">
-<!ENTITY orderButton.tooltip "Inverter a ordem das mensagens.">
-<!ENTITY columnsButton.tooltip "Mostrar as mensagens em colunas.">
-<!ENTITY decrementPeriodButton.tooltip "Dia anterior">
-<!ENTITY incrementPeriodButton.tooltip "Dia seguinte">
-<!ENTITY periodDay.label "Dia">
-<!ENTITY periodWeek.label "Semana">
-<!ENTITY periodMonth.label "Mês">

@@ -1,0 +1,7 @@
+<!ENTITY nameCol.label "名称">
+<!ENTITY refresh.label "刷新">
+<!ENTITY refresh.accesskey "R">
+<!ENTITY refreshAll.label "刷新所有源">
+<!ENTITY refreshAll.accesskey "A">
+<!ENTITY unsubscribe.label "取消订阅">
+<!ENTITY unsubscribe.accesskey "U">

@@ -1,0 +1,58 @@
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!ENTITY listView.label "Lista wiadomości">
+<!ENTITY listView.accesskey "L">
+<!ENTITY riverView.label "Rzeka wiadomości">
+<!ENTITY riverView.accesskey "R">
+<!ENTITY streamView.label "Strumień">
+<!ENTITY streamView.accesskey "S">
+<!ENTITY checkForNewMessages.label "Sprawdź, czy są nowe wiadomości">
+<!ENTITY checkForNewMessages.accesskey "S">
+<!ENTITY subscribe.label "Subskrybuj...">
+<!ENTITY subscribe.accesskey "s">
+<!ENTITY importOPML.label "Zaimportuj OPML...">
+<!ENTITY importOPML.accesskey "i">
+<!ENTITY exportOPML.label "Wyeksportuj OPML...">
+<!ENTITY exportOPML.accesskey "e">
+<!ENTITY options.label "Opcje">
+<!ENTITY options.accesskey "O">
+<!ENTITY listViewSidebarMenuItem.label "Lista wiadomości">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Lista wiadomości">
+<!ENTITY streamViewSidebarMenuItem.label "Strumień wiadomości">
+<!ENTITY streamViewSidebarMenuItem.accesskey "s">
+<!ENTITY streamViewSidebar.label "Strumień wiadomości">
+<!ENTITY snowlLayoutMenu.label "Układy">
+<!ENTITY snowlLayoutMenu.accesskey "u">
+<!ENTITY layoutClassic.label "Klasyczny">
+<!ENTITY layoutClassic.accesskey "K">
+<!ENTITY layoutVertical.label "Pionowy">
+<!ENTITY layoutVertical.accesskey "P">
+<!ENTITY layoutWideMessage.label "Szeroka wiadomość">
+<!ENTITY layoutWideMessage.accesskey "w">
+<!ENTITY layoutWideThread.label "Szeroka lista">
+<!ENTITY layoutWideThread.accesskey "l">
+<!ENTITY layoutStacked.label "Stos">
+<!ENTITY layoutStacked.accesskey "S">
+<!ENTITY headerNone.label "Brak nagłówka">
+<!ENTITY headerNone.accesskey "B">
+<!ENTITY headerBrief.label "Skrócony nagłówek">
+<!ENTITY headerBrief.accesskey "S">
+<!ENTITY headerFull.label "Pełny nagłówek">
+<!ENTITY headerFull.accesskey "P">
+<!ENTITY toolbar.label "Pasek narzędzi panelu">
+<!ENTITY toolbar.accesskey "n">
+<!ENTITY viewtoolbar.label "Pasek narzędzi listy">
+<!ENTITY viewtoolbar.accesskey "i">
+<!ENTITY hierarchyOff.label "Płaska kolekcja">
+<!ENTITY hierarchyOff.accesskey "a">
+<!ENTITY hierarchyOn.label "Hierarchiczna kolecja">
+<!ENTITY hierarchyOn.accesskey "H">
+<!ENTITY toggleList.label "Snowl - przełącz widok listy">
+<!ENTITY toggleList.tooltip "Przełącz widok listy">
+<!ENTITY toggleStream.label "Snowl - przełącz widok strumienia">
+<!ENTITY toggleStream.tooltip "Przełącz widok strumienia">
+<!ENTITY toggleRiver.label "Snowl - przełącz widok rzeki">
+<!ENTITY toggleRiver.tooltip "Przełącz widok rzeki">
+<!ENTITY toggleHeader.label "Snowl - przełącz nagłówek">
+<!ENTITY toggleHeader.tooltip "Przełącz wyświetlanie nagłówka wiadomości na brak, skrócony albo pełny">

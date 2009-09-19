@@ -1,9 +1,4 @@
 <!ENTITY page.title "Snowl: Nachrichtenverlauf">
+<!ENTITY currentButton.tooltip "Nur aktuelle Nachrichten zeigen.">
 <!ENTITY bodyButton.tooltip "Nachrichtenzusammenfassungen/ -inhalte zeigen.">
 <!ENTITY orderButton.tooltip "Die Reihenfolge der Nachrichten umkehren.">
-<!ENTITY columnsButton.tooltip "Show the messages in columns.">
-<!ENTITY decrementPeriodButton.tooltip "Previous day">
-<!ENTITY incrementPeriodButton.tooltip "Next day">
-<!ENTITY periodDay.label "Day">
-<!ENTITY periodWeek.label "Week">
-<!ENTITY periodMonth.label "Month">

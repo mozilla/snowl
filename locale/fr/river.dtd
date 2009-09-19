@@ -2,8 +2,8 @@
 <!ENTITY bodyButton.tooltip "Voir résumé / contenu des messages.">
 <!ENTITY orderButton.tooltip "Inverser l'ordre des messages.">
 <!ENTITY columnsButton.tooltip "Afficher les messages en colonnes.">
-<!ENTITY decrementPeriodButton.tooltip "Previous day">
-<!ENTITY incrementPeriodButton.tooltip "Next day">
-<!ENTITY periodDay.label "Day">
-<!ENTITY periodWeek.label "Week">
-<!ENTITY periodMonth.label "Month">
+<!ENTITY periodAnytime.label "Tout le temps">
+<!ENTITY periodToday.label "Aujourd'hui">
+<!ENTITY periodYesterday.label "Hier">
+<!ENTITY periodLast7Days.label "7 derniers jours">
+<!ENTITY periodLast4Weeks.label "4 dernières semaines">

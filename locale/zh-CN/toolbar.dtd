@@ -1,0 +1,5 @@
+<!ENTITY subscribeButton.tooltip "订阅该信息源。">
+<!ENTITY unsubscribeButton.tooltip "取消订阅选定的信息源。">
+<!ENTITY refreshButton.tooltip "刷新所有信息源。">
+<!ENTITY exportButton.tooltip "信息源导出为 OPML 。">
+<!ENTITY writeButton.tooltip "写信息。">
