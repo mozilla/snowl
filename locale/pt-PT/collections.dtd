@@ -1,0 +1,29 @@
+<!ENTITY nameCol.label "Nome">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Marcar como Lido">
+<!ENTITY markRead.accesskey "o">
+<!ENTITY refresh.label "Recarregar">
+<!ENTITY refresh.accesskey "R">
+<!ENTITY refreshAll.label "Recarregar todas as fontes">
+<!ENTITY refreshAll.accesskey "t">
+<!ENTITY removeSource.label "Remover Fonte">
+<!ENTITY removeSource.accesskey "F">
+<!ENTITY removeAuthor.label "Remover Autor">
+<!ENTITY removeAuthor.accesskey "A">
+<!ENTITY newView.label "Nova Vista ...">
+<!ENTITY newView.accesskey "V">
+<!ENTITY removeView.label "Remover Vista">
+<!ENTITY removeView.accesskey "a">
+<!ENTITY view.label "Vista:">
+<!ENTITY view.accesskey "V">
+<!ENTITY viewDefault.label "Padrão">
+<!ENTITY viewSources.label "Fontes">
+<!ENTITY viewAuthors.label "Autores">
+<!ENTITY search.label "Pesquisar:">
+<!ENTITY search.accesskey "P">
+<!ENTITY searchMessages.label "Mensagens">
+<!ENTITY searchMessages.accesskey "M">
+<!ENTITY searchCollections.label "Colecções">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Ajuda">
+<!ENTITY searchHelp.accesskey "A">

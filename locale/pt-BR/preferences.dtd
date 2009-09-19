@@ -1,2 +1,30 @@
-<!ENTITY prefwindow.title "Preferências Snowl">
-<!ENTITY noPreferences.message "Snowl ainda não tem preferências configuradas.">
+<!-- Subscribe pane -->
+<!ENTITY subscribe.title "Subscribe">
+<!ENTITY source.label "Subscribe to a Message Source">
+<!ENTITY feeds.label "Feed">
+<!ENTITY feeds.accesskey "F">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Location:">
+<!ENTITY name.label "Name:">
+<!ENTITY subscribeButton.label "Subscribe">
+<!ENTITY subscribeButton.accesskey "S">
+<!ENTITY closeButton.label "Back">
+<!ENTITY closeButton.accesskey "B">
+<!ENTITY clearButton.label "Clear">
+<!ENTITY clearButton.accesskey "C">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
+<!ENTITY page.title "Snowl: Subscribe to Message Source">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
+<!ENTITY mail.label "Mail">
+<!ENTITY mail.accesskey "M">
+<!ENTITY newsgroup.label "Newsgroup">
+<!ENTITY newsgroup.accesskey "N">
+<!-- General pane -->
+<!ENTITY general.title "General">
+<!-- Subscriptions pane -->
+<!ENTITY subscriptions.title "Subscriptions">
+<!-- Organize pane -->
+<!ENTITY organize.title "Organize">

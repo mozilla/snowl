@@ -1,6 +1,0 @@
-<!ENTITY dialog.title "要求验证身份">
-<!ENTITY realm.label "信息源回应：">
-<!ENTITY username.label "用户名：">
-<!ENTITY password.label "密码：">
-<!ENTITY showPassword.label "显示密码">
-<!ENTITY rememberPassword.label "如果密码正确则记住">

@@ -1,0 +1,9 @@
+<!ENTITY subscribeButton.tooltip "Subscrever fonte da mensagem.">
+<!ENTITY unsubscribeButton.tooltip "Remover as fontes de mensagens seleccionadas.">
+<!ENTITY refreshButton.tooltip "Recarregar todas as fontes.">
+<!ENTITY exportButton.tooltip "Exportar fontes das mensagens como OPML.">
+<!ENTITY unreadButton.tooltip "Mostrar mensagens novas e não lidas para as colecções seleccionadas.">
+<!ENTITY listToolbarButton.tooltip "Mostrar Barra de Ferramentas.">
+<!ENTITY writeButton.tooltip "Escrever uma mensagem.">
+<!ENTITY showDeletedButton.tooltip "Mostrar mensagens apagadas para as colecções seleccionadas.">
+<!ENTITY purgeDeletedButton.tooltip "Limpar todas as mensagens apagadas das colecções seleccionadas.">

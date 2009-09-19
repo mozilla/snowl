@@ -1,8 +1,13 @@
 <!ENTITY page.title "Snowl">
-<!ENTITY placementButton.tooltip "Átkapcsolás">
-<!ENTITY unreadButton.tooltip "Csak olvasatlan üzenetek megjelenítése.">
+<!ENTITY sourceCol.label "Source">
 <!ENTITY authorCol.label "Szerző">
 <!ENTITY subjectCol.label "Tárgy">
 <!ENTITY timestampCol.label "Dátum">
 <!ENTITY openListMessage.label "Üzenet megnyitása">
 <!ENTITY openListMessage.accesskey "M">
+<!ENTITY selectAll.label "Select All">
+<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteMessages.label "Delete Selected Messages">
+<!ENTITY deleteMessages.accesskey "D">
+<!ENTITY undeleteMessages.label "Undelete Selected Messages">
+<!ENTITY undeleteMessages.accesskey "U">

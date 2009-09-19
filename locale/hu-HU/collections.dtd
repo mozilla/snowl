@@ -1,7 +1,29 @@
 <!ENTITY nameCol.label "Név">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Megjelölés olvasottként">
+<!ENTITY markRead.accesskey "M">
 <!ENTITY refresh.label "Frissítés">
 <!ENTITY refresh.accesskey "R">
 <!ENTITY refreshAll.label "Összes forrás frissítése">
 <!ENTITY refreshAll.accesskey "F">
-<!ENTITY unsubscribe.label "Leiratkozás">
-<!ENTITY unsubscribe.accesskey "L">
+<!ENTITY removeSource.label "Forrás eltávolítása">
+<!ENTITY removeSource.accesskey "F">
+<!ENTITY removeAuthor.label "Szerző eltávolítása">
+<!ENTITY removeAuthor.accesskey "e">
+<!ENTITY newView.label "Új nézet">
+<!ENTITY newView.accesskey "n">
+<!ENTITY removeView.label "Nézet eltávolítása">
+<!ENTITY removeView.accesskey "z">
+<!ENTITY view.label "Nézet:">
+<!ENTITY view.accesskey "N">
+<!ENTITY viewDefault.label "Alapértelmezett">
+<!ENTITY viewSources.label "Források">
+<!ENTITY viewAuthors.label "Szerzők">
+<!ENTITY search.label "Keresés:">
+<!ENTITY search.accesskey "K">
+<!ENTITY searchMessages.label "Üzenetek">
+<!ENTITY searchMessages.accesskey "t">
+<!ENTITY searchCollections.label "Gyűjtemények">
+<!ENTITY searchCollections.accesskey "G">
+<!ENTITY searchHelp.label "Súgó">
+<!ENTITY searchHelp.accesskey "S">

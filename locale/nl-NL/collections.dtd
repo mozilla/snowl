@@ -1,5 +1,29 @@
 <!ENTITY nameCol.label "Naam">
-<!ENTITY subscribeButton.tooltip "Abonneren op berichtenbronnen.">
-<!ENTITY unsubscribeButton.tooltip "Abonnement op berichtenbronnen opzeggen.">
-<!ENTITY refreshButton.tooltip "Berichtenbronnen vernieuwen.">
-<!ENTITY exportButton.tooltip "Berichtenbronnen als OPML exporteren.">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Als gelezen markeren">
+<!ENTITY markRead.accesskey "M">
+<!ENTITY refresh.label "Bron vernieuwen">
+<!ENTITY refresh.accesskey "V">
+<!ENTITY refreshAll.label "Alle bronnen vernieuwen">
+<!ENTITY refreshAll.accesskey "u">
+<!ENTITY removeSource.label "Bron verwijderen">
+<!ENTITY removeSource.accesskey "w">
+<!ENTITY removeAuthor.label "Schrijver verwijderen">
+<!ENTITY removeAuthor.accesskey "j">
+<!ENTITY newView.label "Nieuwe weergave…">
+<!ENTITY newView.accesskey "N">
+<!ENTITY removeView.label "Weergave verwijderen">
+<!ENTITY removeView.accesskey "d">
+<!ENTITY view.label "Weergave:">
+<!ENTITY view.accesskey "g">
+<!ENTITY viewDefault.label "Standaard">
+<!ENTITY viewSources.label "Bronnen">
+<!ENTITY viewAuthors.label "Schrijvers">
+<!ENTITY search.label "Zoeken:">
+<!ENTITY search.accesskey "Z">
+<!ENTITY searchMessages.label "Berichten">
+<!ENTITY searchMessages.accesskey "h">
+<!ENTITY searchCollections.label "Collecties">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Help">
+<!ENTITY searchHelp.accesskey "p">

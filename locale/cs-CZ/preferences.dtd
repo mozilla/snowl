@@ -1,3 +1,4 @@
+<!-- Subscribe pane -->
 <!ENTITY subscribe.title "Odebírat">
 <!ENTITY source.label "Odebírat zdroj zpráv">
 <!ENTITY feeds.label "Kanál">
@@ -12,11 +13,18 @@
 <!ENTITY closeButton.accesskey "Z">
 <!ENTITY clearButton.label "Vymazat">
 <!ENTITY clearButton.accesskey "V">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title "Snowl: Odebírat zdroj zpráv">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
 <!ENTITY mail.label "Pošta">
 <!ENTITY mail.accesskey "P">
 <!ENTITY newsgroup.label "Diskusní skupina">
 <!ENTITY newsgroup.accesskey "D">
+<!-- General pane -->
 <!ENTITY general.title "Hlavní">
+<!-- Subscriptions pane -->
 <!ENTITY subscriptions.title "Příspěvky">
+<!-- Organize pane -->
 <!ENTITY organize.title "Setřídit">

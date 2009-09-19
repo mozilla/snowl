@@ -1,7 +1,29 @@
 <!ENTITY nameCol.label "Jméno">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Označit jako přečtené">
+<!ENTITY markRead.accesskey "p">
 <!ENTITY refresh.label "Obnovit">
 <!ENTITY refresh.accesskey "t">
 <!ENTITY refreshAll.label "Obnovit všechny zdroje">
 <!ENTITY refreshAll.accesskey "v">
-<!ENTITY unsubscribe.label "Zrušit odběr">
-<!ENTITY unsubscribe.accesskey "Z">
+<!ENTITY removeSource.label "Odstranit zdroj">
+<!ENTITY removeSource.accesskey "d">
+<!ENTITY removeAuthor.label "Odstranit autora">
+<!ENTITY removeAuthor.accesskey "a">
+<!ENTITY newView.label "New View…">
+<!ENTITY newView.accesskey "V">
+<!ENTITY removeView.label "Remove View">
+<!ENTITY removeView.accesskey "w">
+<!ENTITY view.label "View:">
+<!ENTITY view.accesskey "V">
+<!ENTITY viewDefault.label "Výchozí">
+<!ENTITY viewSources.label "Zdroje">
+<!ENTITY viewAuthors.label "Autoři">
+<!ENTITY search.label "Hledání:">
+<!ENTITY search.accesskey "H">
+<!ENTITY searchMessages.label "Zprávy">
+<!ENTITY searchMessages.accesskey "Z">
+<!ENTITY searchCollections.label "Kolekce">
+<!ENTITY searchCollections.accesskey "K">
+<!ENTITY searchHelp.label "Nápověda">
+<!ENTITY searchHelp.accesskey "N">

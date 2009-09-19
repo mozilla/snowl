@@ -1,7 +1,29 @@
 <!ENTITY nameCol.label "Nom">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Mark as Read">
+<!ENTITY markRead.accesskey "d">
 <!ENTITY refresh.label "Rafraîchir">
 <!ENTITY refresh.accesskey "R">
 <!ENTITY refreshAll.label "Rafraîchir toutes les sources">
 <!ENTITY refreshAll.accesskey "a">
-<!ENTITY unsubscribe.label "Se désabonner">
-<!ENTITY unsubscribe.accesskey "d">
+<!ENTITY removeSource.label "Remove Source">
+<!ENTITY removeSource.accesskey "S">
+<!ENTITY removeAuthor.label "Remove Author">
+<!ENTITY removeAuthor.accesskey "A">
+<!ENTITY newView.label "New View…">
+<!ENTITY newView.accesskey "V">
+<!ENTITY removeView.label "Remove View">
+<!ENTITY removeView.accesskey "w">
+<!ENTITY view.label "View:">
+<!ENTITY view.accesskey "V">
+<!ENTITY viewDefault.label "Default">
+<!ENTITY viewSources.label "Sources">
+<!ENTITY viewAuthors.label "Authors">
+<!ENTITY search.label "Search:">
+<!ENTITY search.accesskey "S">
+<!ENTITY searchMessages.label "Messages">
+<!ENTITY searchMessages.accesskey "M">
+<!ENTITY searchCollections.label "Collections">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Help">
+<!ENTITY searchHelp.accesskey "H">

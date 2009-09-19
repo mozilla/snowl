@@ -1,0 +1,26 @@
+<!-- Search Help -->
+<!ENTITY search.title "Search Help">
+<!ENTITY search.caption "Search Messages Guide">
+<!ENTITY search.header1 "Search is based on SQLite's Full Text Search (FTS) capabilities and limitations.">
+<!ENTITY search.header2 "Valid Syntax:">
+<!ENTITY search.explanation1 "Match all items starting with 'foo'; both 'foo' and 'foobar'.">
+<!ENTITY search.explanation2 "Match all items containing exactly 'foo'; 'foo' but not 'foobar'.">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Match all items with both 'foo' AND 'bar'.">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Match all items with either 'foo' OR 'bar'.">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Match all items with 'foo' AND 'bar' but NOT 'baz'.">
+<!ENTITY search.example6 "">
+<!ENTITY search.explanation6 "Note: there can only be ONE negation term and it must be the LAST term in the search query.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Match all items where 'foo' is NEAR 'bar', meaning within N words of 'bar'.  Valid values for N are 0-9 (default is 10 if N is blank).">
+<!ENTITY search.explanation8 "Match all items where 'foo' is within 2 words of 'bar' and 'bar' is within 10 words of ''baz biff''.">
+<!ENTITY search.header3 "Syntax errors are indicated by a red background.">
+<!ENTITY search.header4 "Invalid syntax:">
+<!ENTITY search.explanation9 "Wildcard prefixing is invalid.">
+<!ENTITY search.explanation10 "Leading and trailing spaces are invalid in a quoted string.">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Non alphanumeric symbols are invalid in nonquoted strings.">
+<!ENTITY search.explanation12 "Quoted strings cannot be negated.">
+<!ENTITY search.header5 "Searching for symbols in quoted strings returns unexpected results.  In addition, wildcards are not supported within words.">
