@@ -34,12 +34,24 @@
 #
 # ***** END LICENSE BLOCK *****
 
-# Snowl-specific makefile.  This gets included by the generic Makefile.
+# Project-specific makefile.  This gets included by the generic Makefile.
 
-name              := snowl
-version           := 0.3
 extension_id      := snowl@mozilla.org
 
-site_url_base     := https://people.mozilla.com/~myk/snowl
-site_path_local   := website
-site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl
+# The name of the extension for use in filenames (like when packaging XPIs).
+name              := snowl
+
+# The next release version of the extension.  When building for the rel channel,
+# make will use this value verbatim.  But when building for the dev channel,
+# it will append a string to this value that makes the version be less than
+# the future release version but greater than any previous dev version.
+# For example, if the next release version is 1.4, a dev version for it might be
+# 1.4x0d200909191530, where "x0d" is required by a peculiarity of Mozilla's
+# version comparator (nsIVersionComparator) and the rest of the string is
+# a timestamp.
+version           := 0.3
+
+# These variables control publication of the extension to a remote website.
+site_url_base     := https://people.mozilla.com/~myk/snowl/dist
+site_path_local   := dist
+site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl/dist

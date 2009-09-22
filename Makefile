@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #   Dan Mills <thunder@mozilla.com> (original author)
+#   Myk Melez <myk@mozilla.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -80,12 +81,12 @@ ifeq ($(channel),dev)
   # Development build updates are managed by the website, so we construct
   # an update URL that points to the update manifest we are going to create.
   update_name     := update-$(channel).rdf
-  update_url      := $(site_url_base)/dist/$(update_name)
+  update_url      := $(site_url_base)/$(update_name)
   update_url_tag  := <em:updateURL>$(update_url)</em:updateURL>
-  package_version := $(version)d$(date)
+  package_version := $(version)x0d$(date)
   package_name    := $(name)-$(channel)-$(package_version).xpi
   package_alias   := $(name)-$(channel)-latest.xpi
-  package_url     := $(site_url_base)/dist/$(package_name)
+  package_url     := $(site_url_base)/$(package_name)
   # Automatically archive chrome in JAR archive when building for this channel.
   jar             := 1
 
@@ -163,7 +164,8 @@ endif
 substitute := perl -p -e 's/@([^@]+)@/defined $$ENV{$$1} ? $$ENV{$$1} : $$&/ge'
 
 # The variables to substitute for their values in .in files.
-export package_version update_url_tag package_url revision_id chrome_path channel
+export package_version update_url_tag package_url revision_id chrome_path \
+       channel extension_id
 
 
 ################################################################################
@@ -186,9 +188,9 @@ build: substitute $(jar_dependency)
 package: build $(package_files)
 	zip -ur $(package_name) $(package_files) -x \*.in
 ifneq ($(package_url),)
-	mv $(package_name) $(site_path_local)/dist/
-	ln -s -f $(package_name) $(site_path_local)/dist/$(package_alias)
-	mv update.rdf $(site_path_local)/dist/$(update_name)
+	mv $(package_name) $(site_path_local)/
+	ln -s -f $(package_name) $(site_path_local)/$(package_alias)
+	mv update.rdf $(site_path_local)/$(update_name)
 endif
 
 publish:
