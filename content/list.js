@@ -87,7 +87,12 @@ let SnowlMessageView = {
     delete this._snowlSidebar;
     return this._snowlSidebar = document.getElementById("snowlSidebar");
   },
- 
+
+  get _sidebarBox() {
+    delete this._sidebarBox;
+    return this._sidebarBox = document.getElementById("sidebar-box");
+  },
+
   get _snowlUnDeleteMessagesMenuitem() {
     delete this._snowlUnDeleteMessagesMenuitem;
     return this._snowlUnDeleteMessagesMenuitem =
@@ -188,18 +193,22 @@ let SnowlMessageView = {
 
   init: function() {
     // Move sidebar-box into our box for layouts
-    let sidebarBox = document.getElementById("sidebar-box");
-    this._snowlSidebar.appendChild(sidebarBox);
+    this._snowlSidebar.appendChild(this._sidebarBox);
+    this._snowlSidebar.hidden = (this._sidebarBox.hidden || this._sidebarBox.collapsed);
 
     // Save position of sidebar/splitter (for wide message layout change)
     let sidebarSplitter = document.getElementById("sidebar-splitter");
     this.gSidebarSplitterSiblingID = sidebarSplitter.nextSibling.id;
 
-    // Listen for sidebar-box hidden attr change, to toggle properly
-    sidebarBox.addEventListener("DOMAttrModified",
+    // Listen for sidebar-box hidden attr change, to toggle properly. For AiOS
+    // collapse vs. unload sidebar compatibility, hide list rather than unload.
+    this._sidebarBox.addEventListener("DOMAttrModified",
         function(aEvent) { 
-          if (aEvent.target.id == "sidebar-box" && aEvent.attrName == "hidden")
-            SnowlMessageView._snowlSidebar.hidden = (aEvent.newValue == "true");
+          if (aEvent.target.id == "sidebar-box")
+            if (aEvent.attrName == "hidden" || aEvent.attrName == "collapsed")
+              SnowlMessageView._snowlSidebar.hidden = (aEvent.newValue == "true");
+            if (aEvent.attrName == "sidebarcommand")
+              SnowlMessageView.show(aEvent.newValue == "viewSnowlList");
         }, false);
 
     // Restore previous layout, if error or first time default to 'classic' view
@@ -214,17 +223,12 @@ let SnowlMessageView = {
     this._tree.view = this;
   },
 
-  show: function() {
-    this._snowlViewContainer.hidden = false;
-    this._snowlViewSplitter.hidden = false;
-  },
-
-  hide: function() {
-    this._snowlViewContainer.hidden = true;
-    this._snowlViewSplitter.hidden = true;
+  show: function(aShow) {
+    this._snowlViewContainer.hidden = !aShow;
+    this._snowlViewSplitter.hidden = !aShow;
 
     // XXX Should we somehow destroy the view here (f.e. by setting
-    // this._tree.view to null)?
+    // this._tree.view to null) if aShow is false?
   },
 
 

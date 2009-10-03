@@ -71,7 +71,7 @@ let ListSidebar = {
   // Event & Notification Handlers
 
   onLoad: function() {
-    gBrowserWindow.SnowlMessageView.show();
+    gBrowserWindow.SnowlMessageView.show(true);
     this._updateWriteButton();
     this._rebuildDBMenuitem.removeAttribute("disabled");
     Observers.add("snowl:source:added",    this.onSourcesChanged, this);
@@ -79,7 +79,7 @@ let ListSidebar = {
   },
 
   onUnload: function() {
-    gBrowserWindow.SnowlMessageView.hide();
+    gBrowserWindow.SnowlMessageView.show(false);
     this._rebuildDBMenuitem.setAttribute("disabled", true);
     CollectionsView.unloadObservers();
     Observers.remove("snowl:source:added",    this.onSourcesChanged, this);

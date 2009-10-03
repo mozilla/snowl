@@ -1,5 +1,7 @@
 <!ENTITY author.label                 "Author:">
+<!ENTITY author.accesskey             "A">
 <!ENTITY subject.label                "Subject:">
+<!ENTITY subject.accesskey            "S">
 <!ENTITY timestamp.label              "Date:">
 <!ENTITY link.label                   "Link:">
 

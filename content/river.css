@@ -235,9 +235,9 @@ richlistitem.source[preview="true"][selected="true"] {
 /* Dogmark */
 
 #dogmark[state="open"] {
-  list-style-image: url(chrome://snowl/content/dogmark-opened.png);
+  list-style-image: url(chrome://snowl/content/icons/dogmark-opened.png);
 }
 
 #dogmark[state="closed"] {
-  list-style-image: url(chrome://snowl/content/dogmark-closed.png);
+  list-style-image: url(chrome://snowl/content/icons/dogmark-closed.png);
 }
