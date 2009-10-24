@@ -454,6 +454,7 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
           SnowlService._collectionStatsByCollectionID = null;
 
         // Notify collections view on completion of refresh.
+        SnowlService.sourcesByID[this.id].busy = false;
         Observers.notify("snowl:messages:completed", this.id);
       }
 

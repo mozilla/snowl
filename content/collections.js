@@ -217,10 +217,7 @@ let CollectionsView = {
   },
 
   onMessagesCompleted: function(aSourceId) {
-    // Source refresh completed, reset busy property.
-    if (SnowlService.sourcesByID[aSourceId])
-      SnowlService.sourcesByID[aSourceId].busy = false;
-      
+    // Source refresh completed, refresh tree.
     this._tree.treeBoxObject.invalidate();
   },
 

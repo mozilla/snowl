@@ -298,10 +298,10 @@ let SnowlService = {
     }
 
     if (allSources.length > 0) {
-      // Don't set busy on 'all' until we know when the last one is done so it
-      // can be unset.
+      // TODO: Don't set busy on 'all' until we know when the last one is done
+      // so it can be unset.
 //      this._collectionStatsByCollectionID["all"].busy = true;
-      Observers.notify("snowl:messages:completed", "refresh");
+//      Observers.notify("snowl:messages:completed", "refresh");
     }
 
     // We specify the same refresh time when refreshing sources so that all
