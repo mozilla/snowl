@@ -301,7 +301,9 @@ let SnowlService = {
       // TODO: Don't set busy on 'all' until we know when the last one is done
       // so it can be unset.
 //      this._collectionStatsByCollectionID["all"].busy = true;
-//      Observers.notify("snowl:messages:completed", "refresh");
+
+      // Invalidate tree to show new state.
+      Observers.notify("snowl:messages:completed", "refresh");
     }
 
     // We specify the same refresh time when refreshing sources so that all

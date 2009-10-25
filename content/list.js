@@ -110,7 +110,8 @@ let SnowlMessageView = {
     "snowlSourceCol": "source.name",
     "snowlAuthorCol": "author.person.name",
     "snowlSubjectCol": "subject",
-    "snowlTimestampCol": "timestamp"
+    "snowlTimestampCol": "timestamp",
+    "snowlDateReceivedCol": "received"
   },
 
   Filters: {},
@@ -143,6 +144,9 @@ let SnowlMessageView = {
 
       case "snowlTimestampCol":
         return SnowlDateUtils._formatDate(this._collection.messages[aRow].timestamp);
+
+      case "snowlDateReceivedCol":
+        return SnowlDateUtils._formatDate(this._collection.messages[aRow].received);
 
       default:
         return null;
@@ -593,7 +597,6 @@ let SnowlMessageView = {
       return;
 
     let column = aEvent.target;
-    let property = this._columnProperties[column.id];
     let sortResource = this._tree.getAttribute("sortResource");
     let sortDirection = this._tree.getAttribute("sortDirection");
 

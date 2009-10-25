@@ -62,7 +62,7 @@
 }
 
 #headerDeck, #headerFullTable {
-  font: 9pt sans-serif;
+  font-family: sans-serif;
   border-spacing: 0px 0px;
   width: 100%;
 }
@@ -124,7 +124,7 @@ td {
 
 #headerDeck:not([header="brief"]) > #briefHeaderRow > .headerDataSubject,
 #headerDeck:not([header="brief"]) > #briefHeaderRow > .headerLabelSubject {
-  padding-top: 8px;
+  padding-top: .5em;
 }
 
 #headerDeck[deleted] > #briefHeaderRow > .headerDataSubject > #subject{

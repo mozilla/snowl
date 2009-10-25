@@ -259,6 +259,17 @@ let SnowlDateUtils = {
                                       date.getHours(),
                                       date.getMinutes(),
                                       date.getSeconds());
+  },
+
+  /**
+   * RFC822 allows for military timezones, which have since been deprecated due
+   * to an error in the spec; Z is unambigous so we will convert Z only to UT
+   *  here, not the other offset chars.
+   * @param date {Date} the date to format
+   * @returns converted RFC822 date that Date understands.
+   */
+  RFC822Date: function(date) {
+    return date.replace(/\b[zZ]{1}\b/, "UT");
   }
 };
 

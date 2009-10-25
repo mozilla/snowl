@@ -410,8 +410,8 @@ SnowlFeed.prototype = {
     message.source = this;
     message.externalID = aExternalID;
     message.subject = aEntry.title.text;
-    message.timestamp = aEntry.updated               ? new Date(aEntry.updated)
-                      : aEntry.published             ? new Date(aEntry.published)
+    message.timestamp = aEntry.updated               ? new Date(SnowlDateUtils.RFC822Date(aEntry.updated))
+                      : aEntry.published             ? new Date(SnowlDateUtils.RFC822Date(aEntry.published))
                       : aEntry.fields.get("dc:date") ? ISO8601DateUtils.parse(aEntry.fields.get("dc:date"))
                       : null;
     message.received = aReceived;
