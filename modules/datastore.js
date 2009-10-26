@@ -74,7 +74,7 @@ let SnowlDatastore = {
   //**************************************************************************//
   // Database Creation & Access
 
-  _dbVersion: 13,
+  _dbVersion: 14,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -113,7 +113,9 @@ let SnowlDatastore = {
           "username TEXT",
           "lastRefreshed REAL",
           "importance INTEGER",
-          "placeID INTEGER"
+          "placeID INTEGER",
+          // JSON object string.
+          "attributes TEXT"
         ]
       },
 
@@ -149,8 +151,12 @@ let SnowlDatastore = {
           "received REAL",
 
           "link TEXT",
-          "current BOOLEAN DEFAULT 1",
-          "read BOOLEAN DEFAULT 0"
+          "current INTEGER DEFAULT 1",
+          "read INTEGER DEFAULT 0",
+          // JSON object string.
+          "headers TEXT",
+          // JSON object string.
+          "attributes TEXT"
         ]
       },
 
@@ -355,6 +361,9 @@ let SnowlDatastore = {
     }
 
     this.dbConnection = dbConnection;
+
+    // Register sqlite regex function.
+    this.dbConnection.createFunction("REGEXP", 2, this._dbRegexp);
   },
 
   _dbCreate: function(dbConnection) {
@@ -407,6 +416,13 @@ let SnowlDatastore = {
     );
   },
 
+  _dbDropIndex: function(dbConnection, index) {
+    dbConnection.executeSimpleSQL(
+      "DROP INDEX " + index.name
+    );
+  },
+
+ 
   _dbInsertDefaultData: function(aDBConnection) {
     let params = ["name", "iconURL", "orderKey", "grouped", "groupIDColumn",
                   "groupNameColumn", "groupHomeURLColumn",
@@ -424,6 +440,25 @@ let SnowlDatastore = {
     }
   },
 
+  _dbRegExpString: null,
+  _dbRegExp: null,
+
+  /**
+   * Define regexp function for sqlite.
+   * (0) = Regex Expression
+   * (1) = Column value to test
+   */
+  _dbRegexp: {
+    onFunctionCall: function(val) {
+      if (this._dbRegExp == null || val.getString(0) != this._dbRegExpString) {
+        this._dbRegExpString = val.getString(0);
+        this._dbRegExp = new RegExp(this._dbRegExpString);
+      }
+      if (val.getString(1).match(this._dbRegExp)) return 1;
+      else return 0;
+    }
+  },
+
   /**
    * Migrate the database schema from one version to another.  Calls out to
    * version pair specific migrator functions below.  Handles migrations from
@@ -434,6 +469,9 @@ let SnowlDatastore = {
    *   0.2pre2  : 5
    *   0.2pre3  : 8
    *   0.2pre3.1: 8
+   *   ..
+   *   0.3      : 13
+   *   0.3pre1  : 14
    *
    * Also handles migrations from each version to the next higher one for folks
    * tracking development releases or the repository.  And might handle migrations
@@ -480,11 +518,11 @@ let SnowlDatastore = {
    * FIXME: special case the calling of this function so we don't have to
    * rename it every time we increase the schema version.
    */
-  _dbMigrate0To13: function(dbConnection) {
+  _dbMigrate0To14: function(dbConnection) {
     this._dbCreate(dbConnection);
   },
 
-  _dbMigrate4To13: function(dbConnection) {
+  _dbMigrate4To14: function(dbConnection) {
     this._dbMigrate4To5(dbConnection);
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
@@ -494,9 +532,10 @@ let SnowlDatastore = {
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate5To13: function(dbConnection) {
+  _dbMigrate5To14: function(dbConnection) {
     this._dbMigrate5To6(dbConnection);
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
@@ -505,9 +544,10 @@ let SnowlDatastore = {
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate6To13: function(dbConnection) {
+  _dbMigrate6To14: function(dbConnection) {
     this._dbMigrate6To7(dbConnection);
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
@@ -515,41 +555,52 @@ let SnowlDatastore = {
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate7To13: function(dbConnection) {
+  _dbMigrate7To14: function(dbConnection) {
     this._dbMigrate7To8(dbConnection);
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate8To13: function(dbConnection) {
+  _dbMigrate8To14: function(dbConnection) {
     this._dbMigrate8To9(dbConnection);
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate9To13: function(dbConnection) {
+  _dbMigrate9To14: function(dbConnection) {
     this._dbMigrate9To10(dbConnection);
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate10To13: function(dbConnection) {
+  _dbMigrate10To14: function(dbConnection) {
     this._dbMigrate10To11(dbConnection);
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
-  _dbMigrate11To13: function(dbConnection) {
+  _dbMigrate11To14: function(dbConnection) {
     this._dbMigrate11To12(dbConnection);
     this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
+  },
+
+  _dbMigrate12To14: function(dbConnection) {
+    this._dbMigrate12To13(dbConnection);
+    this._dbMigrate13To14(dbConnection);
   },
 
   _dbMigrate4To5: function(aDBConnection) {
@@ -718,6 +769,34 @@ let SnowlDatastore = {
     dbConnection.executeSimpleSQL("DROP TABLE metadata");
     dbConnection.executeSimpleSQL("DROP TABLE personMetadata");
     dbConnection.executeSimpleSQL("DROP TABLE attributes");
+  },
+
+  /**
+   * Migrate the database schema from version 13 to 14.
+   */
+  _dbMigrate13To14: function(dbConnection) {
+    dbConnection.executeSimpleSQL("ALTER TABLE sources ADD COLUMN attributes TEXT");
+
+    // Move the old messages table out of the way.
+    this._dbDropIndex(dbConnection, this._dbSchema.indexes[0]);
+    dbConnection.executeSimpleSQL("ALTER TABLE messages RENAME TO messagesOld");
+
+    // Create the new messages table and its index.
+    this._dbCreateTable(dbConnection, "messages", this._dbSchema.tables.messages);
+    this._dbCreateIndex(dbConnection, this._dbSchema.indexes[0]);
+
+    // Copy messages, converting their read and current flags to integers.
+    dbConnection.executeSimpleSQL(
+      "INSERT INTO messages(id, sourceID, externalID, subject, authorID, " +
+      "                     timestamp, received, link, current, read) " +
+      "SELECT      messagesOld.id, sourceID, CAST(externalID AS INTEGER), subject, " +
+      "            authorID, timestamp, received, link, " +
+      "            CAST(current AS INTEGER), CAST(read AS INTEGER) " +
+      "FROM        messagesOld JOIN sources ON messagesOld.sourceID = sources.id "
+    );
+
+    // Drop the old messages table.
+    dbConnection.executeSimpleSQL("DROP TABLE messagesOld");
   },
 
   get _selectHasSourceStatement() {
