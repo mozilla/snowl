@@ -61,12 +61,12 @@ var messageContent = {
   title: null,
   message: null,
 
-  _attributes: null,
-  get attributes() {
-    if (this._attributes)
-      return this._attributes;
+  _headers: null,
+  get headers() {
+    if (this._headers)
+      return this._headers;
 
-    return this._attributes = this.message.attributes;
+    return this._headers = this.message.headers;
   },
 
   init: function() {
@@ -97,7 +97,7 @@ var messageContent = {
   },
 
   createTitle: function() {
-    this.title = this.message ? this.message.subject :
+    this.title = this.message ? this.message.subject || this.message.excerpt :
                                 strings.get("messageNotFoundTitle", [this.id]);
     top.document.title = this.title;
   },
@@ -116,7 +116,7 @@ var messageContent = {
     if (message) {
       // Brief headers
       var subjectLink = document.getElementById("subject");
-      subjectLink.appendChild(document.createTextNode(message.subject));
+      subjectLink.appendChild(document.createTextNode(message.subject || message.excerpt));
       if (message.link) {
         SnowlUtils.safelySetURIAttribute(subjectLink,
                                          "href",
@@ -151,14 +151,17 @@ var messageContent = {
   },
 
   createFullHeader: function(headerDeck) {
-//window.SnowlUtils._log.info("createHeader: attributes - "+this.attributes.toSource());
-    // Iterate through message attributes object and create full header.
+//window.SnowlUtils._log.info("createHeader: headers - "+this.headers.toSource());
+    if (!this.headers)
+      return;
+
+    // Iterate through message headers object and create full header.
     var name, value, headerRow, headerRowLabel, headerRowData;
     var fullHeaderTable = headerDeck.parentNode.getElementsByClassName("fullHeaderTable")[0];
     if (fullHeaderTable.className != "fullHeaderTable")
       return;
 
-    for ([name, value] in Iterator(this.attributes)) {
+    for ([name, value] in Iterator(this.headers)) {
       headerRow = document.createElementNS(HTML_NS, "tr");
       headerRow.className = "fullHeaderRow";
       headerRowLabel = document.createElementNS(HTML_NS, "td");
@@ -322,7 +325,7 @@ var messageHeaderUtils = {
       // XXX: set index to 1, as full header removed for now (createFullHeader
       // will not run, nor will button toggle to full).
       headerDeck = document.getElementById("headerDeck");
-      headerIndex = ++headerIndex > 1 ? 0 : headerIndex++;
+      headerIndex = ++headerIndex > 2 ? 0 : headerIndex++;
       headerBcaster.setAttribute("headerIndex", headerIndex);
     }
 
@@ -334,7 +337,7 @@ var messageHeaderUtils = {
 
     // The message is found in the scope of the parent frameset document.
     var messageContent = parent.wrappedJSObject.messageContent;
-    if (headerIndex == 2 && !messageContent._attributes)
+    if (headerIndex == 2 && !messageContent._headers)
       messageContent.createFullHeader(headerDeck);
   },
 

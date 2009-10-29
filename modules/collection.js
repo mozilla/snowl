@@ -279,6 +279,7 @@ this._log.info("got " + groups.length + " groups");
           link:       statement.row.link ? URI.get(statement.row.link) : null,
           current:    statement.row.current,
           read:       statement.row.read,
+          headers:    JSON.parse(statement.row.headers),
           content:    content
         });
 
@@ -318,6 +319,7 @@ this._log.info("got " + groups.length + " groups");
       "messages.link",
       "messages.current",
       "messages.read",
+      "messages.headers",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",
       "identities.externalID AS identities_externalID",

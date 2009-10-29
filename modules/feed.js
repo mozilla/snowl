@@ -458,7 +458,101 @@ SnowlFeed.prototype = {
         });
     }
 
-    return message;
+    // Add headers.
+    message.headers = {};
+    let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
+                 fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
+    while (fields.hasMoreElements()) {
+      let field = fields.getNext().QueryInterface(Ci.nsIProperty);
+
+      // FIXME: create people records for these.
+      if (field.name == "authors") {
+        let count = 1;
+        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+        while (values.hasMoreElements()) {
+          let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
+          // FIXME: store people records in a separate table with individual
+          // columns for each person attribute (i.e. name, email, url)?
+          if (value.name)
+            message.headers["atom:author" + (count == 1 ? "" : count) + "_name"] = value.name;
+          if (value.email)
+            message.headers["atom:author" + (count == 1 ? "" : count) + "_email"] = value.email;
+          if (value.uri && value.uri.spec)
+            message.headers["atom:author" + (count == 1 ? "" : count) + "_uri"] = value.uri.spec;
+          count++;
+//this._log.info("header-authors: name:value - "+field.name+" : "+value.toSource());
+        }
+      }
+
+      else if (field.name == "links") {
+        let rel, count = 1;
+        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+        while (values.hasMoreElements()) {
+          let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
+          // FIXME: store link records in a separate table with individual
+          // colums for each link attribute (i.e. href, type, rel, title)?
+          rel = value.get("rel") ? value.get("rel") : "";
+          message.headers["atom:link" + count + (rel ? "_" + rel : rel)] = value.get("href");
+          if (value.get("title"))
+            message.headers["atom:link" + count + "_title"] = value.get("title");
+          if (value.get("type"))
+            message.headers["atom:link" + count + "_type"] = value.get("type");
+          if (value.get("hreflang"))
+            message.headers["atom:link" + count  + "_hreflang"] = value.get("hreflang");
+          if (value.get("length"))
+            message.headers["atom:link" + count + "_length"] = value.get("length");
+          count++;
+//this._log.info("header-links: name:value - "+"atom:link_" + value.get('rel')+" : "+value.get("href"));
+        }
+      }
+
+      else if (field.name == "categories") {
+        // Categories don't work, Bug 493175.
+        let count = 1;
+        let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+        while (values.hasMoreElements()) {
+          let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
+          if (value.term)
+            message.headers["category" + count + "_term"] = value.term;
+          if (value.scheme)
+            message.headers["category" + count + "_scheme"] = value.scheme;
+          if (value.label)
+            message.headers["category" + count + "_label"] = value.label;
+          count++;
+//this._log.info("header-categories: name:value - "+field.name+" : "+value.toSource());
+        }
+      }
+
+      // For some reason, the values of certain simple fields (like RSS2 guid)
+      // are property bags containing the value instead of the value itself.
+      // For those, we need to unwrap the extra layer. This strange behavior
+      // has been filed as bug 427907.
+      else if (typeof field.value == "object") {
+        if (field.value instanceof Ci.nsIPropertyBag2) {
+          let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
+          message.headers[field.name] = value;
+//this._log.info("header-nsIPropertyBag2: name:value - "+field.name+" : "+value);
+        }
+        else if (field.value instanceof Ci.nsIArray) {
+          let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
+          while (values.hasMoreElements()) {
+            // FIXME: values might not always have this interface.
+            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
+            message.headers[field.name] = value.get(field.name);
+//this._log.info("header-nsIArray: name:value - "+field.name+" : "+value);
+          }
+        }
+      }
+
+      else {
+        message.headers[field.name] = field.value.substring(0, 500) +
+                                      (field.value.length > 500 ? " [...]" : "");
+//this._log.info("header: name:value - "+field.name+" : "+message.headers[field.name]);
+      }
+    }
+
+//this._log.info("headers: end - "+message.headers.toSource());
+   return message;
   },
 
   /**

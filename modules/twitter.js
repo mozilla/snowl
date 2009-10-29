@@ -436,8 +436,14 @@ SnowlTwitter.prototype = {
     message.externalID = item.id;
     message.timestamp = new Date(item.created_at);
     message.received = received || new Date();
-    message.author = new SnowlIdentity(null, this.id, item.user.id);
-    message.author.person = new SnowlPerson(null, item.user.screen_name, null, item.user.url, item.user.profile_image_url);
+    message.author = new SnowlIdentity(null,
+                                       this.id,
+                                       item.user.id);
+    message.author.person = new SnowlPerson(null,
+                                            item.user.screen_name,
+                                            null,
+                                            item.user.url,
+                                            item.user.profile_image_url);
 
     message.content =
       new SnowlMessagePart({
@@ -445,6 +451,18 @@ SnowlTwitter.prototype = {
         content:     item.text,
         mediaType:   "text/plain"
       });
+
+    // Add headers.
+    message.headers = {};
+    for (let [name, value] in Iterator(item)) {
+      // FIXME: populate a "recipient" field with in_reply_to_user_id.
+      if (name == "user") {
+        for (let [uname, uvalue] in Iterator(value))
+          message.headers["user:" + uname] = uvalue;
+      }
+      else
+        message.headers[name] = value;
+    }
 
     return message;
   },

@@ -69,7 +69,7 @@ SnowlMessage.retrieve = function(id) {
   // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
     "SELECT sourceID, externalID, subject, authorID, " +
-    "       timestamp, received, link, current, read " +
+    "       timestamp, received, link, current, read, headers " +
     "FROM messages " +
     "WHERE messages.id = :id"
   );
@@ -86,7 +86,8 @@ SnowlMessage.retrieve = function(id) {
         received:   SnowlDateUtils.julianToJSDate(statement.row.received),
         link:       statement.row.link ? URI.get(statement.row.link) : null,
         current:    statement.row.current,
-        read:       statement.row.read
+        read:       statement.row.read,
+        headers:    JSON.parse(statement.row.headers)
       });
 
       if (statement.row.authorID)
@@ -198,6 +199,8 @@ SnowlMessage.prototype = {
   current: null,
   summary: null,
   content: null,
+  headers: {},
+  attributes: {},
 
   get excerpt() {
     let construct = this.content || this.summary;
@@ -247,9 +250,11 @@ SnowlMessage.prototype = {
     // FIXME: persist message.current.
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO messages " +
-      "( sourceID,  externalID,  subject,  authorID,  timestamp,  received,  link,  " + /*current,  */ " read) " +
+      "( sourceID,  externalID,  subject,  authorID,  timestamp, received, link, " +
+      /*current, */ " read, headers ) " +
       "VALUES " +
-      "(:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, " + /*:current,  */ ":read)"
+      "(:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, " +
+      /*:current, */ ":read, :headers )"
     );
     this.__defineGetter__("_insertMessageStmt", function() statement);
     return this._insertMessageStmt;
@@ -266,7 +271,8 @@ SnowlMessage.prototype = {
       "link = :link, " +
       // FIXME: persist message.current.
       //"current = :current, " +
-      "read = :read " +
+      "read = :read, " +
+      "headers = :headers " +
       "WHERE id = :id"
     );
     this.__defineGetter__("_updateMessageStmt", function() statement);
@@ -333,6 +339,7 @@ SnowlMessage.prototype = {
     // FIXME: persist message.current.
     //statement.params.current    = this.current;
     statement.params.read       = this.read;
+    statement.params.headers    = JSON.stringify(this.headers);
 
     statement.execute();
 

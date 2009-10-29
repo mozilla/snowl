@@ -176,6 +176,7 @@ StorageCollection.prototype = {
       "messages.link",
       "messages.current",
       "messages.read",
+      "messages.headers",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",
       "identities.externalID AS identities_externalID",
@@ -295,6 +296,7 @@ StorageCollection.prototype = {
       received:   SnowlDateUtils.julianToJSDate(row.getResultByName("received")),
       read:       row.getResultByName("read") ? true : false,
       current:    row.getResultByName("current"),
+      headers:    JSON.parse(row.getResultByName("headers")),
       content:    content,
       summary:    summary
     });
