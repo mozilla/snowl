@@ -42,6 +42,12 @@ let gBrowserWindow = window.QueryInterface(Ci.nsIInterfaceRequestor).
                      getInterface(Ci.nsIDOMWindow);
 
 let SubscriptionListener = {
+
+  get stringBundle() {
+    delete this._stringBundle;
+    return this._stringBundle = document.getElementById("snowlStringBundle");
+  },
+
   observe: function(topic, subject, data) {
     let source = Subscriber.account;
   
@@ -49,74 +55,63 @@ let SubscriptionListener = {
     if (subject != source)
       return;
   
-      let code, message, errorMsg;
-      // If blank, fine
-      let identity = source.name;
-      let stringBundle = document.getElementById("snowlStringBundle");
-  
+    let code, message, errorMsg;
+    // If blank, fine
+    let identity = source.name;
+
     switch(topic) {
       case "snowl:subscribe:connect:start":
         code = "active";
-        message = stringBundle.getString("messageConnecting");
+        message = this.stringBundle.getString("messageConnecting");
         break;
       case "snowl:subscribe:connect:end":
         if (data.split(":")[0] == "duplicate") {
-          code = "error";
-          message = stringBundle.getString("messageDuplicate");
-          identity = data.split(":")[1];
+          this.duplicate(data);
         }
         else if (data == "invalid") {
-          code = "error";
-          message = stringBundle.getString("messageInvalid");
+          this.invalid(data);
         }
         else if (data == "logindata") {
-          code = "error";
-          message = stringBundle.getString("messageInvalidLoginData");
-        }
-        else if (data < 200 || data > 299) {
-          code = "error";
-          message = stringBundle.getString("messageConnectionError");
-          if (data == 401)
-            message = stringBundle.getString("messagePassword");
+          this.logindata(data);
         }
         else if (data.split(":", 1)[0] == "error") {
           code = "error";
           errorMsg = data.split("error:")[1];
-          message = stringBundle.getFormattedString("messageGenericError", [errorMsg]);
+          message = this.stringBundle.getFormattedString("messageGenericError", [errorMsg]);
+        }
+        else if (data < 200 || data > 299) {
+          code = "error";
+          message = this.stringBundle.getString("messageConnectionError");
+          if (data == 401)
+            message = this.stringBundle.getString("messagePassword");
         }
         else {
           // Under most circumstances, this message will be replaced immediately
           // by the "getting messages" message.
           code = "complete";
-          message = stringBundle.getString("messageConnected");
+          message = this.stringBundle.getString("messageConnected");
         }
         break;
       case "snowl:subscribe:get:start":
         code = "active";
-        message = stringBundle.getString("messageGettingMessages");
+        message = this.stringBundle.getString("messageGettingMessages");
         break;
       case "snowl:subscribe:get:progress":
         return;
         break;
       case "snowl:subscribe:get:end":
         code = "complete";
-        message = stringBundle.getString("messageSuccess");
+        message = this.stringBundle.getString("messageSuccess");
         break;
     }
-    Subscriber.setStatus(code, message, identity);
-  }
-};
 
-let Subscriber = {
-  // Logger
-  get _log() {
-    delete this._log;
-    return this._log = Log4Moz.repository.getLogger("Snowl.Subscribe");
+    this.setStatus(code, message, identity);
   },
+  
 
   setStatus: function(code, message, identity) {
     let nameBox = document.getElementById("nameTextbox");
-    nameBox.setAttribute("value", identity);
+    nameBox.value = identity;
     let statusIcon = document.getElementById("statusIcon");
     let statusMessage = document.getElementById("statusMessage");
     statusIcon.setAttribute("status", code);
@@ -125,6 +120,36 @@ let Subscriber = {
       statusMessage.removeChild(statusMessage.firstChild);
 
     statusMessage.appendChild(document.createTextNode(message));
+  },
+
+  invalid: function(data) {
+    let code = "error";
+    let message = this.stringBundle.getString("messageInvalid");
+    let identity = null;
+    this.setStatus(code, message, identity);
+  },
+
+  logindata: function(data) {
+    let code = "error";
+    let message = this.stringBundle.getString("messageInvalidLoginData");
+    let identity = null;
+    this.setStatus(code, message, identity);
+  },
+
+  duplicate: function(data) {
+    let code = "error";
+    let message = this.stringBundle.getString("messageDuplicate");
+    let identity = data.split(":")[1];
+    this.setStatus(code, message, identity);
+  }
+
+};
+
+let Subscriber = {
+  // Logger
+  get _log() {
+    delete this._log;
+    return this._log = Log4Moz.repository.getLogger("Snowl.Subscribe");
   },
 
 
@@ -253,87 +278,88 @@ let Subscriber = {
   //**************************************************************************//
   // Subscribe
 
-  subscribeTwitter: function(name, credentials, callback) {
-    this._log.info("subscribing to Twitter account " + name + " with username " + credentials.username);
+  subscribeTwitter: function(aName, aCredentials, aCallback) {
+    if (!aCredentials.username || !aCredentials.password) {
+      SubscriptionListener.logindata("logindata");
+      return;
+    }
 
     // FIXME: pass name and credentials to the SnowlTwitter constructor
     // and make it be responsible for constructing the name from the username
     // if necessary and setting up the credentials.
+    let name = aName;
     if (!name)
-      name = "Twitter - " + credentials.username;
+      name = "Twitter - " + aCredentials.username;
     this.account = new SnowlTwitter(null, name);
-    this.account.username = credentials.username;
+
+    let [name, username] = SnowlService.hasSourceUsername(this.account.machineURI.spec,
+                                                          aCredentials.username);
+    if (name && aCredentials.username == username) {
+      SubscriptionListener.duplicate("duplicate:" + username);
+      this.account = null;
+      return;
+    }
+
+    this._log.info("subscribing to Twitter" + (aName ? " account " + aName : "") +
+                   " with username " + aCredentials.username);
+
+    this.account.username = aCredentials.username;
     // credentials isn't a real nsIAuthInfo, but it's close enough for what
     // we do with it, which is to retrieve the username and password from it
     // and save them via the login manager if the user asked us to remember
     // their credentials.
-    if (credentials.remember)
-      this.account._authInfo = credentials;
-
-    if (!credentials.username) {
-      this._log.info("can't subscribe to Twitter account " + name + ": no username");
-      Observers.notify("snowl:subscribe:connect:end", this.account, "logindata");
-      // FIXME: reset this.account to null here.
-      return;
-    }
-
-    let [name, username] = SnowlService.hasSourceUsername(this.account.machineURI.spec, credentials.username);
-    if (name && credentials.username == username) {
-      this._log.info("can't subscribe to Twitter account " + name + ": duplicate");
-      Observers.notify("snowl:subscribe:connect:end", this.account, "duplicate:" + username);
-      // FIXME: reset this.account to null here.
-      return;
-    }
+    if (aCredentials.remember)
+      this.account._authInfo = aCredentials;
 
     this.account.refresh(null);
+
+    // If error on connect, do not persist.
+    if (this.account.error) {
+      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
+      this.account = null;
+      return;
+    }
+
     this.account.persist();
     this.account = null;
 
-    if (callback)
-      callback();
+    if (aCallback)
+      aCallback();
   },
 
-  subscribeFeed: function(name, machineURI, callback) {
-    this._log.info("subscribing to feed " + name +
-                   " <" + (machineURI ? machineURI.spec : "") + ">");
-
-    // FIXME: fix the API so I don't have to pass a bunch of null and undefined
-    // values (that undefined value, incidentally, can probably be null).
-    this.account = new SnowlFeed(null, name, machineURI, undefined, null);
-
-    // FIXME: move this above the object instantiation above, as there's
-    // no point creating an object when we don't even have a valid URI to assign
-    // to it.  Unfortunately, this gets complicated, as the observer assumes
-    // the presence of the account property in this object (a dependency we will
-    // have to break).
-    if (!machineURI) {
-      Observers.notify("snowl:subscribe:connect:end", this.account, "invalid");
-      this._log.error("could not subscribe to feed: no machine URI");
-      // FIXME: reset this.account to null here.
+  subscribeFeed: function(aName, aMachineURI, aCallback) {
+    if (!aMachineURI) {
+      SubscriptionListener.invalid("invalid");
       return;
     }
 
-    let name = SnowlService.hasSource(machineURI.spec);
+    let name = SnowlService.hasSource(aMachineURI.spec);
     if (name) {
-      Observers.notify("snowl:subscribe:connect:end", this.account, "duplicate:" + name);
-      this._log.error("could not subscribe to feed: duplicate");
-      // FIXME: reset this.account to null here.
+      SubscriptionListener.duplicate("duplicate:" + name);
       return;
     }
 
-    // Catch exceptions while refreshing the source.  Even if it failed,
-    // we still want to subscribe to the source, since it might be a temporary
-    // failure.
-    // FIXME: provide an informative message to the user about the problem.
-    try {
-      this.account.refresh(null);
+    this._log.info("subscribing to feed " + (aName ? aName : "") +
+                   " <" + (aMachineURI ? aMachineURI.spec : "") + ">");
+
+    // FIXME: fix the API so I don't have to pass a bunch of null values.
+    this.account = new SnowlFeed(null, aName, aMachineURI, null, null);
+
+    this.account.refresh(null);
+
+    // If error on connect, or error due to null result.doc (not a feed) despite
+    // a successful connect (filtered bad domain or not found url), do not persist.
+    if (this.account.error) {
+      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
+      this.account = null;
+      return;
     }
-    catch(ex) {}
+
     this.account.persist();
     this.account = null;
 
-    if (callback)
-      callback();
+    if (aCallback)
+      aCallback();
   }
 
 };

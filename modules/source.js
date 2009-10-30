@@ -304,8 +304,11 @@ SnowlSource.prototype = {
 
   onRefreshError: function() {
     this.error = true;
-    SnowlService.sourcesByID[this.id].error = true;
-    Observers.notify("snowl:messages:completed", this.id);
+    if (this.id) {
+      // Only for existing stored sources; notify refreshes collections tree state.
+      SnowlService.sourcesByID[this.id].error = true;
+      Observers.notify("snowl:messages:completed", this.id);
+    }
     this._log.error("Refresh error: " + this.lastStatus);
   },
 

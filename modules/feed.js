@@ -283,7 +283,7 @@ SnowlFeed.prototype = {
       // Listen for notification callbacks so we can handle authentication.
       notificationCallbacks:  this
     });
-    this._log.info("refresh request finished");
+    this._log.info("refresh request finished, status: " + request.status);
 
     // FIXME: remove subscribe from this notification's name.
     Observers.notify("snowl:subscribe:connect:end", this, request.status);
@@ -332,10 +332,12 @@ SnowlFeed.prototype = {
     this.lastResult = result;
 
     // result.doc is null when the processor failed to parse the feed.
+    // Note that it is possible to enter an invalid domain or url, but due to
+    // isps often returning a valid page, the only result will be a null doc.
     // FIXME: report a more descriptive error message and figure out a better
     // way to handle this condition.
     if (result.doc == null) {
-      this.lastStatus = "result.doc is null";
+      this.lastStatus = "result.doc is null, no valid feed found at this url";
       this.onRefreshError();
       return;
     }
