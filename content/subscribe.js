@@ -279,7 +279,7 @@ let Subscriber = {
   // Subscribe
 
   subscribeTwitter: function(aName, aCredentials, aCallback) {
-    if (!aCredentials.username || !aCredentials.password) {
+    if (!aCredentials.username) { // || !aCredentials.password
       SubscriptionListener.logindata("logindata");
       return;
     }
@@ -304,12 +304,6 @@ let Subscriber = {
                    " with username " + aCredentials.username);
 
     this.account.username = aCredentials.username;
-    // credentials isn't a real nsIAuthInfo, but it's close enough for what
-    // we do with it, which is to retrieve the username and password from it
-    // and save them via the login manager if the user asked us to remember
-    // their credentials.
-    if (aCredentials.remember)
-      this.account._authInfo = aCredentials;
 
     this.account.refresh(null);
 

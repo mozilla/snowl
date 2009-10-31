@@ -121,8 +121,11 @@ let WriteForm = {
 
     let content = this._writeTextbox.value;
     let callback = function() { WriteForm.onMessageSent() };
-    // FIXME: pass an error callback and display a message to users on error.
-    this._target.send(content, callback);
+    // FIXME: pass an error callback and display a message to users on error, but
+    // for now use the success callback - can't have a disabled box and throbber..
+    let errorcallback = function() { WriteForm.onMessageSent() };
+
+    this._target.send(content, callback, errorcallback);
   },
 
   onMessageSent: function() {
@@ -135,7 +138,7 @@ let WriteForm = {
     this._writeTextbox.value = "";
 
     this._resetSendStatusTimeoutID =
-      window.setTimeout(function() { WriteForm.resetSendStatus() }, 5000);
+      window.setTimeout(function() { WriteForm.resetSendStatus() }, 3000);
   },
 
 

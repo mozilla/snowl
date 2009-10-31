@@ -144,16 +144,16 @@
               <hbox flex="1" pack="end">
                 <label control="twitterPassword" value="&password.label;"/>
               </hbox>
-              <textbox id="twitterPassword" type="password"/>
+              <textbox id="twitterPassword" type="password" disabled="true"/>
             </row>
             <row align="center">
               <box/>
-              <checkbox id="showTwitterPassword" label="&showPassword.label;"
+              <checkbox id="showTwitterPassword" label="&showPassword.label;" disabled="true"
                         oncommand="SnowlPreferences.onShowTwitterPassword()"/>
             </row>
             <row align="center">
               <box/>
-              <checkbox id="rememberTwitterPassword" label="&rememberPassword.label;"/>
+              <checkbox id="rememberTwitterPassword" label="&rememberPassword.label;" disabled="true"/>
             </row>
             <row>
               <box/>
