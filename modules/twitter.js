@@ -434,6 +434,10 @@ SnowlTwitter.prototype = {
 
     message.source = this;
     message.externalID = item.id;
+    // Place tweet text in subject; avoids requiring parts.content or parts.summary
+    // as excerpt, used when no subject; non lazy retrieval of parts from the db
+    // in List view is not a perfomance enhancer for large lists.
+    message.subject = item.text;
     message.timestamp = new Date(item.created_at);
     message.received = received || new Date();
     message.author = new SnowlIdentity(null,
