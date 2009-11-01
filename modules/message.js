@@ -69,7 +69,7 @@ SnowlMessage.retrieve = function(id) {
   // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
     "SELECT sourceID, externalID, subject, authorID, " +
-    "       timestamp, received, link, current, read, headers " +
+    "       timestamp, received, link, current, read, headers, attributes " +
     "FROM messages " +
     "WHERE messages.id = :id"
   );
@@ -87,7 +87,8 @@ SnowlMessage.retrieve = function(id) {
         link:       statement.row.link ? URI.get(statement.row.link) : null,
         current:    statement.row.current,
         read:       statement.row.read,
-        headers:    JSON.parse(statement.row.headers)
+        headers:    JSON.parse(statement.row.headers),
+        attributes: JSON.parse(statement.row.attributes)
       });
 
       if (statement.row.authorID)
@@ -251,10 +252,10 @@ SnowlMessage.prototype = {
     let statement = SnowlDatastore.createStatement(
       "INSERT INTO messages " +
       "( sourceID,  externalID,  subject,  authorID,  timestamp, received, link, " +
-      /*current, */ " read, headers ) " +
+      /*current, */ " read, headers, attributes ) " +
       "VALUES " +
       "(:sourceID, :externalID, :subject, :authorID, :timestamp, :received, :link, " +
-      /*:current, */ ":read, :headers )"
+      /*:current, */ ":read, :headers, :attributes )"
     );
     this.__defineGetter__("_insertMessageStmt", function() statement);
     return this._insertMessageStmt;
@@ -272,7 +273,8 @@ SnowlMessage.prototype = {
       // FIXME: persist message.current.
       //"current = :current, " +
       "read = :read, " +
-      "headers = :headers " +
+      "headers = :headers, " +
+      "attributes = :attributes " +
       "WHERE id = :id"
     );
     this.__defineGetter__("_updateMessageStmt", function() statement);
@@ -340,6 +342,7 @@ SnowlMessage.prototype = {
     //statement.params.current    = this.current;
     statement.params.read       = this.read;
     statement.params.headers    = JSON.stringify(this.headers);
+    statement.params.attributes = JSON.stringify(this.attributes);
 
     statement.execute();
 

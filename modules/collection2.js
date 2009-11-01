@@ -177,6 +177,7 @@ StorageCollection.prototype = {
       "messages.current",
       "messages.read",
       "messages.headers",
+      "messages.attributes",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",
       "identities.externalID AS identities_externalID",
@@ -297,6 +298,7 @@ StorageCollection.prototype = {
       read:       row.getResultByName("read") ? true : false,
       current:    row.getResultByName("current"),
       headers:    JSON.parse(row.getResultByName("headers")),
+      attributes: JSON.parse(row.getResultByName("attributes")),
       content:    content,
       summary:    summary
     });

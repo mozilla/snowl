@@ -315,6 +315,14 @@ let Subscriber = {
     }
 
     this.account.persist();
+
+    // If error on db, don't show success.
+    if (this.account.error) {
+      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
+      this.account = null;
+      return;
+    }
+
     this.account = null;
 
     if (aCallback)
@@ -350,6 +358,14 @@ let Subscriber = {
     }
 
     this.account.persist();
+
+    // If error on db, don't show success.
+    if (this.account.error) {
+      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
+      this.account = null;
+      return;
+    }
+
     this.account = null;
 
     if (aCallback)

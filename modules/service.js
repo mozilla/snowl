@@ -209,13 +209,15 @@ let SnowlService = {
                            row.username,
                            SnowlDateUtils.julianToJSDate(row.lastRefreshed),
                            row.importance,
-                           row.placeID);
+                           row.placeID,
+                           JSON.parse(row.attributes));
   },
 
   get _accountsStatement() {
     delete this._accountsStatement;
     return this._accountsStatement = SnowlDatastore.createStatement(
-      "SELECT id, type, name, machineURI, humanURI, username, lastRefreshed, importance, placeID " +
+      "SELECT id, type, name, machineURI, humanURI, username, " +
+      "       lastRefreshed, importance, placeID, attributes " +
       "FROM sources"
     );
   },
@@ -314,6 +316,7 @@ let SnowlService = {
     // browser in the morning after leaving it off overnight).
     let refreshTime = new Date();
     for each (let source in allSources) {
+this._log.info("refreshStaleSources: refreshInterval - "+source.refreshInterval);
       this.refreshSourceTimer(source, refreshTime);
     }
   },

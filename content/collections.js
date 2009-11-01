@@ -712,22 +712,27 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   removeSource: function() {
     // Single selection removal of source for now; all messages, authors, and the
     // subscription are permanently removed.
-    let source,  sourceID, selectedSourceIDs = [];
+    let source, sourceID, selectedSourceIDs = [];
     let selectedSource = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
     let query = new SnowlQuery(selectedSource.uri);
 
     if (!query.queryTypeSource)
       return;
 
-    selectedSourceIDs.push(query.queryID);
+    selectedSourceIDs.push([query.queryID, query.queryUri]);
 
     // Delete loop here, if multiple selections..
     for (let i = 0; i < selectedSourceIDs.length; ++i) {
-      sourceID = selectedSourceIDs[i];
+      sourceID = selectedSourceIDs[i][0];
       source = SnowlService.sourcesByID[sourceID];
       this._log.info("removeSource: Removing source - " +
-                     source.id + " : " + source.name);
-      source.unstore();
+                     sourceID + " : " + (source ? source.name : selectedSourceIDs[i][1]));
+      if (source)
+        source.unstore();
+      else
+        // Places record, but no db record; clean up Places bookmarks with
+        // sourceID in its prefixed uri.
+        SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + sourceID, true);
     }
   },
 

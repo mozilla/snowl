@@ -115,7 +115,7 @@ let SnowlDatastore = {
           "importance INTEGER",
           "placeID INTEGER",
           // JSON object string.
-          "attributes TEXT"
+          "attributes TEXT DEFAULT '{}'"
         ]
       },
 
@@ -154,9 +154,9 @@ let SnowlDatastore = {
           "current INTEGER DEFAULT 1",
           "read INTEGER DEFAULT 0",
           // JSON object string.
-          "headers TEXT",
+          "headers TEXT DEFAULT '{}'",
           // JSON object string.
-          "attributes TEXT"
+          "attributes TEXT DEFAULT '{}'"
         ]
       },
 
@@ -775,7 +775,7 @@ let SnowlDatastore = {
    * Migrate the database schema from version 13 to 14.
    */
   _dbMigrate13To14: function(dbConnection) {
-    dbConnection.executeSimpleSQL("ALTER TABLE sources ADD COLUMN attributes TEXT");
+    dbConnection.executeSimpleSQL("ALTER TABLE sources ADD COLUMN attributes TEXT DEFAULT '{}'");
 
     // Move the old messages table out of the way.
     this._dbDropIndex(dbConnection, this._dbSchema.indexes[0]);
@@ -789,7 +789,7 @@ let SnowlDatastore = {
     dbConnection.executeSimpleSQL(
       "INSERT INTO messages(id, sourceID, externalID, subject, authorID, " +
       "                     timestamp, received, link, current, read) " +
-      "SELECT      messagesOld.id, sourceID, CAST(externalID AS INTEGER), subject, " +
+      "SELECT      messagesOld.id, sourceID, externalID, subject, " +
       "            authorID, timestamp, received, link, " +
       "            CAST(current AS INTEGER), CAST(read AS INTEGER) " +
       "FROM        messagesOld JOIN sources ON messagesOld.sourceID = sources.id "

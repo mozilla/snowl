@@ -121,7 +121,8 @@ const AUTH_REALM = "Snowl";
 // FIXME: make the constructor accept credentials instead of passing them
 // to the subscribe function.
 
-function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
+function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername,
+                      aLastRefreshed, aImportance, aPlaceID, aAttributes) {
   // Use the given machine URI, if available.  We use this in unit tests
   // to point the account to a test server rather than the actual Twitter
   // servers.
@@ -130,7 +131,8 @@ function SnowlTwitter(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefres
   // FIXME: figure out a better solution than hanging the first mixed in init()
   // method on this object's prototype but calling the second one directly
   // because it didn't actually get mixed in because it already existed!
-  this.init(aID, aName, machineURI, HUMAN_URI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+  this.init(aID, aName, machineURI, HUMAN_URI, aUsername,
+            aLastRefreshed, aImportance, aPlaceID, aAttributes);
   SnowlTarget.prototype.init.call(this);
 }
 
@@ -160,7 +162,7 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // SnowlSource
 
-  refreshInterval: 1000 * 60 * 3, // 3 minutes
+  _defaultRefreshInterval: 1000 * 60 * 3, // 3 minutes
 
   // refresh is defined elsewhere.
 

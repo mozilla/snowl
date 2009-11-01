@@ -78,8 +78,10 @@ function stringToArray(string) {
   return array;
 }
 
-function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
-  this.init(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID);
+function SnowlFeed(aID, aName, aMachineURI, aHumanURI, aUsername,
+                   aLastRefreshed, aImportance, aPlaceID, aAttributes) {
+  this.init(aID, aName, aMachineURI, aHumanURI, aUsername,
+            aLastRefreshed, aImportance, aPlaceID, aAttributes);
 }
 
 SnowlFeed.prototype = {
@@ -114,6 +116,14 @@ SnowlFeed.prototype = {
   implements: function(cls) {
     return (this._classes.indexOf(cls) != -1);
   },
+
+
+  //**************************************************************************//
+  // SnowlSource
+
+  _defaultRefreshInterval: 1000 * 60 * 30, // 30 minutes
+
+  // refresh is defined elsewhere.
 
 
   //**************************************************************************//

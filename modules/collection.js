@@ -150,6 +150,7 @@ SnowlCollection.prototype = {
           current:    statement.row.current,
           read:       statement.row.read,
           headers:    JSON.parse(statement.row.headers),
+          attributes: JSON.parse(statement.row.attributes),
           content:    content
         });
 
@@ -190,6 +191,7 @@ SnowlCollection.prototype = {
       "messages.current",
       "messages.read",
       "messages.headers",
+      "messages.attributes",
       "identities.id AS identities_id",
       "identities.sourceID AS identities_sourceID",
       "identities.externalID AS identities_externalID",

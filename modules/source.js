@@ -142,7 +142,9 @@ SnowlSource.retrieve = function(id) {
   // FIXME: memoize this.
   let statement = SnowlDatastore.createStatement(
     "SELECT type, name, machineURI, humanURI, username, lastRefreshed, " +
-    "importance, placeID FROM sources WHERE id = :id"
+    "       importance, placeID, attributes " +
+    "FROM sources " +
+    "WHERE id = :id"
   );
 
   try {
@@ -166,7 +168,8 @@ SnowlSource.retrieve = function(id) {
                                row.username,
                                row.lastRefreshed ? SnowlDateUtils.julianToJSDate(row.lastRefreshed) : null,
                                row.importance,
-                               row.placeID);
+                               row.placeID,
+                               JSON.parse(row.attributes));
     }
   }
   finally {
@@ -177,7 +180,8 @@ SnowlSource.retrieve = function(id) {
 }
 
 SnowlSource.prototype = {
-  init: function(aID, aName, aMachineURI, aHumanURI, aUsername, aLastRefreshed, aImportance, aPlaceID) {
+  init: function(aID, aName, aMachineURI, aHumanURI, aUsername,
+                 aLastRefreshed, aImportance, aPlaceID, aAttributes) {
     this.id = aID;
     this.name = aName;
     this.machineURI = aMachineURI;
@@ -188,10 +192,8 @@ SnowlSource.prototype = {
     // specified in order for its non-set value to remain null.
     this.importance = aImportance || null;
     this.placeID = aPlaceID;
+    this.attributes = aAttributes;
   },
-
-  // How often to refresh sources, in milliseconds.
-  refreshInterval: 1000 * 60 * 30, // 30 minutes
 
   // For adding isBusy property to collections tree.
   busy: false,
@@ -237,12 +239,20 @@ SnowlSource.prototype = {
   // was checked for updates to its set of messages.
   lastRefreshed: null,
 
+  get refreshInterval() {
+    return this.attributes["refreshInterval"] ? this.attributes["refreshInterval"] :
+                                                this._defaultRefreshInterval;
+  },
+
   // An integer representing how important this source is to the user
   // relative to other sources to which the user is subscribed.
   importance: null,
 
   // The ID of the place representing this source in a list of collections.
   placeID: null,
+
+  // The source's attributes.
+  attributes: {},
 
   // The collection of messages from this source.
   messages: null,
@@ -465,7 +475,8 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     }
     catch(ex) {
       SnowlDatastore.dbConnection.rollbackTransaction();
-      throw ex;
+      this.lastStatus = ex;
+      this.onRefreshError();
     }
     finally {
       statement.reset();
