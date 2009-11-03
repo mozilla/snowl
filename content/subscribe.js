@@ -329,7 +329,7 @@ let Subscriber = {
     this.doSubscribe();
   },
 
-  doSubscribe: function() {
+  doSubscribe: function(aCallback) {
     this.account.refresh(null);
 
     // If error on connect, or error due to null result.doc (not a feed) despite

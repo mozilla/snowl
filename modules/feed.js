@@ -283,7 +283,8 @@ SnowlFeed.prototype = {
     let request = new Request({
       // The feed processor is going to parse the response, so we override
       // the MIME type in order to turn off parsing by XMLHttpRequest itself.
-      overrideMimeType:       "text/plain",
+      // XXX: overrideMimeType removed, text/plain hoses non ascii, ???
+//      overrideMimeType:       "text/plain",
       url:                    this.machineURI,
       // Listen for notification callbacks so we can handle authentication.
       notificationCallbacks:  this
