@@ -331,20 +331,25 @@ SnowlMessage.prototype = {
       statement.params.received = SnowlDateUtils.jsToJulianDate(this.received);
     }
 
-    // Set params that are common to both types of queries.
-    statement.params.sourceID   = this.source.id;
-    statement.params.externalID = this.externalID;
-    statement.params.subject    = this.subject;
-    statement.params.authorID   = this.author ? this.author.id : null;
-    statement.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
-    statement.params.link       = this.link ? this.link.spec : null;
-    // FIXME: persist message.current.
-    //statement.params.current    = this.current;
-    statement.params.read       = this.read;
-    statement.params.headers    = JSON.stringify(this.headers);
-    statement.params.attributes = JSON.stringify(this.attributes);
-
-    statement.execute();
+    try {
+      // Set params that are common to both types of queries.
+      statement.params.sourceID   = this.source.id;
+      statement.params.externalID = this.externalID;
+      statement.params.subject    = this.subject;
+      statement.params.authorID   = this.author ? this.author.id : null;
+      statement.params.timestamp  = SnowlDateUtils.jsToJulianDate(this.timestamp);
+      statement.params.link       = this.link ? this.link.spec : null;
+      // FIXME: persist message.current.
+      //statement.params.current    = this.current;
+      statement.params.read       = this.read;
+      statement.params.headers    = JSON.stringify(this.headers);
+      statement.params.attributes = JSON.stringify(this.attributes);
+  
+      statement.execute();
+    }
+    finally {
+      statement.reset();
+    }
 
     if (this.id) {
       // FIXME: update the message parts (content, summary).
@@ -495,33 +500,39 @@ SnowlMessagePart.prototype = {
       // FIXME: update the existing record as appropriate.
     }
     else {
-      this._stmtInsertPart.params.messageID     = message.id;
-      this._stmtInsertPart.params.partType      = this.partType;
-      this._stmtInsertPart.params.content       = this.content;
-      this._stmtInsertPart.params.mediaType     = this.mediaType;
-      this._stmtInsertPart.params.baseURI       = (this.baseURI ? this.baseURI.spec : null);
-      this._stmtInsertPart.params.languageTag   = this.languageTag;
-      this._stmtInsertPart.execute();
-  
-      this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-  
-      // Insert a plaintext version of the content into the partsText fulltext
-      // table, converting it to plaintext first if necessary (and possible).
-      switch (this.mediaType) {
-        case "text/html":
-        case "application/xhtml+xml":
-        case "text/plain":
-          // Give the fulltext record the same doc ID as the row ID of the parts
-          // record so we can join them together to get the part (and thence the
-          // message) when doing a fulltext search.
-          this._stmtInsertPartText.params.docid = this.id;
-          this._stmtInsertPartText.params.content = this.plainText();
-          this._stmtInsertPartText.execute();
-          break;
-  
-        default:
-          // It isn't a type we understand, so don't do anything with it.
-          // XXX If it's text/*, shouldn't we fulltext index it anyway?
+      try {
+        this._stmtInsertPart.params.messageID     = message.id;
+        this._stmtInsertPart.params.partType      = this.partType;
+        this._stmtInsertPart.params.content       = this.content;
+        this._stmtInsertPart.params.mediaType     = this.mediaType;
+        this._stmtInsertPart.params.baseURI       = (this.baseURI ? this.baseURI.spec : null);
+        this._stmtInsertPart.params.languageTag   = this.languageTag;
+        this._stmtInsertPart.execute();
+    
+        this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+    
+        // Insert a plaintext version of the content into the partsText fulltext
+        // table, converting it to plaintext first if necessary (and possible).
+        switch (this.mediaType) {
+          case "text/html":
+          case "application/xhtml+xml":
+          case "text/plain":
+            // Give the fulltext record the same doc ID as the row ID of the parts
+            // record so we can join them together to get the part (and thence the
+            // message) when doing a fulltext search.
+            this._stmtInsertPartText.params.docid = this.id;
+            this._stmtInsertPartText.params.content = this.plainText();
+            this._stmtInsertPartText.execute();
+            break;
+    
+          default:
+            // It isn't a type we understand, so don't do anything with it.
+            // XXX If it's text/*, shouldn't we fulltext index it anyway?
+        }
+      }
+      finally {
+        this._stmtInsertPart.reset();
+        this._stmtInsertPartText.reset();
       }
     }
   }

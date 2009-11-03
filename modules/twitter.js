@@ -46,7 +46,6 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
-Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/request.js");
@@ -142,10 +141,8 @@ SnowlTwitter.prototype = {
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlTwitter,
 
-  get _log() {
-    let logger = Log4Moz.repository.getLogger("Snowl.Twitter." + this.username);
-    this.__defineGetter__("_log", function() logger);
-    return this._log;
+  get _logName() {
+    return "Snowl.Twitter." + this.username;
   },
 
 
@@ -341,7 +338,7 @@ SnowlTwitter.prototype = {
       time = new Date();
 //    this._log.info("start refresh " + this.username + " at " + time);
 
-    Observers.notify("snowl:subscribe:get:start", this);
+    Observers.notify("snowl:refresh:connect:start", this);
 
     // URL parameters that modify the return value of the request.
     let params = [];
@@ -376,9 +373,9 @@ SnowlTwitter.prototype = {
       requestHeaders: requestHeaders
     });
 
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
+    Observers.notify("snowl:refresh:connect:end", this, request.status);
 
+    this.attributes["statusCode"] = request.status;
     this.lastStatus = request.status + " (" + request.statusText + ")";
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
       this.onRefreshError();
@@ -393,12 +390,14 @@ SnowlTwitter.prototype = {
       this._authInfo = null;
     }
 
+    Observers.notify("snowl:refresh:get:start", this);
+
     let items = JSON.parse(request.responseText);
     this.messages = this._processItems(items, time);
 
     this.lastRefreshed = time;
 
-    Observers.notify("snowl:subscribe:get:end", this);
+    Observers.notify("snowl:refresh:get:end", this);
   },
 
 

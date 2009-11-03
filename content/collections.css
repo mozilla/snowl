@@ -92,6 +92,12 @@
 }
 
 /* Error on collection indicator */
-#sourcesViewTreeChildren::-moz-tree-image(hasError) {
+#sourcesViewTreeChildren::-moz-tree-image(hasError),
+#sourcesViewTreeChildren::-moz-tree-image(isDisabled) {
   list-style-image: url("chrome://snowl/content/icons/exclamation.png");
+}
+
+/* Source is paused/disabled */
+#sourcesViewTreeChildren::-moz-tree-cell-text(isDisabled) {
+  color: GrayText;
 }

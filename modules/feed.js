@@ -46,7 +46,6 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/ISO8601DateUtils.jsm");
 
 // modules that are generic
-Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/request.js");
@@ -90,11 +89,8 @@ SnowlFeed.prototype = {
   // need to check it to find out what kind of object an instance is.
   constructor: SnowlFeed,
 
-  // XXX Move this to SnowlSource?
-  get _log() {
-    let logger = Log4Moz.repository.getLogger("Snowl.Feed " + this.name);
-    this.__defineGetter__("_log", function() logger);
-    return this._log;
+  get _logName() {
+    return "Snowl.Feed " + (this.name ? this.name : "<new feed>");
   },
 
   // If we prompt the user to authenticate, and the user asks us to remember
@@ -282,8 +278,7 @@ SnowlFeed.prototype = {
     if (typeof time == "undefined" || time == null)
       time = new Date();
 
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:connect:start", this);
+    Observers.notify("snowl:refresh:connect:start", this);
 
     let request = new Request({
       // The feed processor is going to parse the response, so we override
@@ -295,9 +290,9 @@ SnowlFeed.prototype = {
     });
     this._log.info("refresh request finished, status: " + request.status);
 
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:connect:end", this, request.status);
+    Observers.notify("snowl:refresh:connect:end", this, request.status);
 
+    this.attributes["statusCode"] = request.status;
     this.lastStatus = request.status + " (" + request.statusText + ")";
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
       this._log.trace("refresh request failed");
@@ -311,6 +306,8 @@ SnowlFeed.prototype = {
     // it means the request succeeded, so we save the login.
     if (this._authInfo)
       this._saveLogin();
+
+    Observers.notify("snowl:refresh:get:start", this);
 
     // Parse the response.
     // Note: this happens synchronously, even though it uses a listener
@@ -368,11 +365,9 @@ SnowlFeed.prototype = {
     if (!this.humanURI)
       this.humanURI = feed.link;
 
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:get:start", this);
     this.messages = this._processFeed(feed, time);
-    // FIXME: remove subscribe from this notification's name.
-    Observers.notify("snowl:subscribe:get:end", this);
+
+    Observers.notify("snowl:refresh:get:end", this);
   },
 
 

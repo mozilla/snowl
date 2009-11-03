@@ -42,6 +42,7 @@ const Cr = Components.results;
 const Cu = Components.utils;
 
 // modules that are generic
+Cu.import("resource://snowl/modules/log4moz.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/Sync.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -192,7 +193,13 @@ SnowlSource.prototype = {
     // specified in order for its non-set value to remain null.
     this.importance = aImportance || null;
     this.placeID = aPlaceID;
-    this.attributes = aAttributes;
+    this.attributes = aAttributes || new Object;
+  },
+
+  get _log() {
+    let logger = Log4Moz.repository.getLogger(this._logName);
+    this.__defineGetter__("_log", function() logger);
+    return this._log;
   },
 
   // For adding isBusy property to collections tree.
@@ -314,12 +321,35 @@ SnowlSource.prototype = {
 
   onRefreshError: function() {
     this.error = true;
+    if (this.attributes["statusCode"] = 404) {
+      this.attributes["refreshStatus"] = "disabled";
+      SnowlService.sourcesByID[this.id].attributes["refreshStatus"] = "disabled";
+    }
+
+    this._log.error("Refresh error: " + this.lastStatus);
+  },
+
+  onDbCompleted: function() {
+    // Database source record updated, set notifications and states.
     if (this.id) {
       // Only for existing stored sources; notify refreshes collections tree state.
-      SnowlService.sourcesByID[this.id].error = true;
+      SnowlService.sourcesByID[this.id].busy = false;
+      SnowlService.sourcesByID[this.id].error = this.error;
+      SnowlService.refreshingCount = --SnowlService.refreshingCount;
+    }
+    Observers.notify("snowl:messages:completed", this.id);
+  },
+
+  onDbError: function() {
+    this.error = true;
+    if (this.id) {
+      // Only for existing stored sources; notify refreshes collections tree state.
+      SnowlService.sourcesByID[this.id].busy = false;
+      SnowlService.sourcesByID[this.id].error = this.error;
+      SnowlService.refreshingCount = --SnowlService.refreshingCount;
       Observers.notify("snowl:messages:completed", this.id);
     }
-    this._log.error("Refresh error: " + this.lastStatus);
+    this._log.error("Database error: " + this.lastStatus);
   },
 
   retrieveMessages: function() {
@@ -362,15 +392,38 @@ SnowlSource.prototype = {
         "     humanURI = :humanURI,      " +
         "     username = :username,      " +
         "lastRefreshed = :lastRefreshed, " +
-        "   importance = :importance     " +
-        "WHERE     id = :id"
+        "   importance = :importance,    " +
+        "   attributes = :attributes     " +
+        "WHERE      id = :id"
       );
     }
     else {
       statement = SnowlDatastore.createStatement(
-        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username,  lastRefreshed,  importance) " +
-        "VALUES              (:name, :type, :machineURI, :humanURI, :username, :lastRefreshed, :importance)"
+        "INSERT INTO sources ( name,  type,  machineURI,  humanURI,  username, " +
+        "                      lastRefreshed,  importance, attributes) " +
+        "VALUES              ( :name, :type, :machineURI, :humanURI, :username, " +
+        "                      :lastRefreshed, :importance, :attributes)"
       );
+    }
+
+    // Need to get a transaction lock.
+    if (SnowlDatastore.dbConnection.transactionInProgress) {
+      this.attributes["statusCode"] = "db:transactionInProgress";
+      this.lastStatus = "Database temporarily busy, could not get transaction lock";
+      if (this.id) {
+        // Only for existing stored sources; notify refreshes collections tree state.
+        SnowlService.sourcesByID[this.id].busy = false;
+        SnowlService.sourcesByID[this.id].error = this.error;
+        SnowlService.refreshingCount = --SnowlService.refreshingCount;
+//        Observers.notify("snowl:messages:completed", this.id);
+      }
+      else {
+        // New subscriptions need to return feedback.
+        this.error = true;
+        this._log.info("persist: " + this.lastStatus);
+      }
+
+      return;
     }
 
     SnowlDatastore.dbConnection.beginTransaction();
@@ -382,12 +435,15 @@ SnowlSource.prototype = {
       statement.params.username = this.username;
       statement.params.lastRefreshed = this.lastRefreshed ? SnowlDateUtils.jsToJulianDate(this.lastRefreshed) : null;
       statement.params.importance = this.importance;
+      statement.params.attributes = JSON.stringify(this.attributes);
       if (this.id)
         statement.params.id = this.id;
       statement.step();
       if (!this.id) {
         // Extract the ID of the source from the newly-created database record.
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
+        // New source, bump refreshing count.
+        SnowlService.refreshingCount = ++SnowlService.refreshingCount;
 
         // Update message authors to include the source ID.
         // FIXME: make SnowlIdentity records have a source property
@@ -465,18 +521,17 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
         if (messagesChanged)
           // Invalidate stats cache on completion of refresh with new messages.
           SnowlService._collectionStatsByCollectionID = null;
-
-        // Notify collections view on completion of refresh.
-        SnowlService.sourcesByID[this.id].busy = false;
-        Observers.notify("snowl:messages:completed", this.id);
       }
 
       SnowlDatastore.dbConnection.commitTransaction();
+
+      // Source successfully stored/updated.
+      this.onDbCompleted();
     }
     catch(ex) {
       SnowlDatastore.dbConnection.rollbackTransaction();
       this.lastStatus = ex;
-      this.onRefreshError();
+      this.onDbError();
     }
     finally {
       statement.reset();

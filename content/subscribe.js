@@ -60,11 +60,11 @@ let SubscriptionListener = {
     let identity = source.name;
 
     switch(topic) {
-      case "snowl:subscribe:connect:start":
+      case "snowl:refresh:connect:start":
         code = "active";
         message = this.stringBundle.getString("messageConnecting");
         break;
-      case "snowl:subscribe:connect:end":
+      case "snowl:refresh:connect:end":
         if (data.split(":")[0] == "duplicate") {
           this.duplicate(data);
         }
@@ -73,6 +73,11 @@ let SubscriptionListener = {
         }
         else if (data == "logindata") {
           this.logindata(data);
+        }
+        else if (data.split(":", 1)[0] == "error" &&
+                 source.attributes["statusCode"] == "db:transactionInProgress") {
+          code = "error";
+          message = this.stringBundle.getString("messageDbBusy");
         }
         else if (data.split(":", 1)[0] == "error") {
           code = "error";
@@ -92,14 +97,11 @@ let SubscriptionListener = {
           message = this.stringBundle.getString("messageConnected");
         }
         break;
-      case "snowl:subscribe:get:start":
+      case "snowl:refresh:get:start":
         code = "active";
         message = this.stringBundle.getString("messageGettingMessages");
         break;
-      case "snowl:subscribe:get:progress":
-        return;
-        break;
-      case "snowl:subscribe:get:end":
+      case "snowl:refresh:get:end":
         code = "complete";
         message = this.stringBundle.getString("messageSuccess");
         break;
@@ -183,19 +185,17 @@ let Subscriber = {
   addObservers: function() {
     // FIXME: integrate the subscription listener into this object
     // as individual notification handler functions.
-    Observers.add("snowl:subscribe:connect:start", SubscriptionListener);
-    Observers.add("snowl:subscribe:connect:end",   SubscriptionListener);
-    Observers.add("snowl:subscribe:get:start",     SubscriptionListener);
-    Observers.add("snowl:subscribe:get:progress",  SubscriptionListener);
-    Observers.add("snowl:subscribe:get:end",       SubscriptionListener);
+    Observers.add("snowl:refresh:connect:start", SubscriptionListener);
+    Observers.add("snowl:refresh:connect:end",   SubscriptionListener);
+    Observers.add("snowl:refresh:get:start",     SubscriptionListener);
+    Observers.add("snowl:refresh:get:end",       SubscriptionListener);
   },
 
   removeObservers: function() {
-    Observers.remove("snowl:subscribe:connect:start", SubscriptionListener);
-    Observers.remove("snowl:subscribe:connect:end",   SubscriptionListener);
-    Observers.remove("snowl:subscribe:get:start",     SubscriptionListener);
-    Observers.remove("snowl:subscribe:get:progress",  SubscriptionListener);
-    Observers.remove("snowl:subscribe:get:end",       SubscriptionListener);
+    Observers.remove("snowl:refresh:connect:start", SubscriptionListener);
+    Observers.remove("snowl:refresh:connect:end",   SubscriptionListener);
+    Observers.remove("snowl:refresh:get:start",     SubscriptionListener);
+    Observers.remove("snowl:refresh:get:end",       SubscriptionListener);
   },
 
 
@@ -305,28 +305,7 @@ let Subscriber = {
 
     this.account.username = aCredentials.username;
 
-    this.account.refresh(null);
-
-    // If error on connect, do not persist.
-    if (this.account.error) {
-      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
-      this.account = null;
-      return;
-    }
-
-    this.account.persist();
-
-    // If error on db, don't show success.
-    if (this.account.error) {
-      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
-      this.account = null;
-      return;
-    }
-
-    this.account = null;
-
-    if (aCallback)
-      aCallback();
+    this.doSubscribe();
   },
 
   subscribeFeed: function(aName, aMachineURI, aCallback) {
@@ -347,12 +326,16 @@ let Subscriber = {
     // FIXME: fix the API so I don't have to pass a bunch of null values.
     this.account = new SnowlFeed(null, aName, aMachineURI, null, null);
 
+    this.doSubscribe();
+  },
+
+  doSubscribe: function() {
     this.account.refresh(null);
 
     // If error on connect, or error due to null result.doc (not a feed) despite
     // a successful connect (filtered bad domain or not found url), do not persist.
     if (this.account.error) {
-      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
+      Observers.notify("snowl:refresh:connect:end", this.account, "error:" + this.account.lastStatus);
       this.account = null;
       return;
     }
@@ -361,7 +344,7 @@ let Subscriber = {
 
     // If error on db, don't show success.
     if (this.account.error) {
-      Observers.notify("snowl:subscribe:connect:end", this.account, "error:" + this.account.lastStatus);
+      Observers.notify("snowl:refresh:connect:end", this.account, "error:" + this.account.lastStatus);
       this.account = null;
       return;
     }

@@ -920,14 +920,19 @@ let SnowlDatastore = {
    * @returns {integer} the ID of the newly-created record
    */
   insertMessage: function(aSourceID, aExternalID, aSubject, aAuthorID, aTimestamp, aReceived, aLink) {
-    this._insertMessageStatement.params.sourceID = aSourceID;
-    this._insertMessageStatement.params.externalID = aExternalID;
-    this._insertMessageStatement.params.subject = aSubject;
-    this._insertMessageStatement.params.authorID = aAuthorID;
-    this._insertMessageStatement.params.timestamp = aTimestamp;
-    this._insertMessageStatement.params.received = aReceived;
-    this._insertMessageStatement.params.link = aLink;
-    this._insertMessageStatement.execute();
+    try {
+      this._insertMessageStatement.params.sourceID = aSourceID;
+      this._insertMessageStatement.params.externalID = aExternalID;
+      this._insertMessageStatement.params.subject = aSubject;
+      this._insertMessageStatement.params.authorID = aAuthorID;
+      this._insertMessageStatement.params.timestamp = aTimestamp;
+      this._insertMessageStatement.params.received = aReceived;
+      this._insertMessageStatement.params.link = aLink;
+      this._insertMessageStatement.execute();
+    }
+    finally {
+      this._insertMessageStatement.reset();
+    }
 
     return this.dbConnection.lastInsertRowID;
   },
