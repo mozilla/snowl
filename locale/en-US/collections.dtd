@@ -7,6 +7,10 @@
 <!ENTITY refresh.accesskey            "R">
 <!ENTITY refreshAll.label             "Refresh All Sources">
 <!ENTITY refreshAll.accesskey         "c">
+<!ENTITY pause.label                  "Pause Refresh">
+<!ENTITY pause.accesskey              "P">
+<!ENTITY resume.label                 "Resume Refresh">
+<!ENTITY resume.accesskey             "m">
 <!ENTITY removeSource.label           "Remove Source">
 <!ENTITY removeSource.accesskey       "S">
 <!ENTITY removeAuthor.label           "Remove Author">

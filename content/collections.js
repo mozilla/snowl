@@ -717,6 +717,38 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     }
   },
 
+  setRefreshStatus: function(aStatus, aAll) {
+    // aStatus is 'paused' or 'active' or 'disabled'.
+    let source, sourceID, selectedSource, selectedSourceIDs = [];
+    if (aAll) {
+      for each (source in SnowlService.sources) {
+        source.attributes["refreshStatus"] = aStatus;
+        source.persistAttributes();
+        SnowlService.sourcesByID[source.id].attributes["refreshStatus"] = aStatus;
+      }
+    }
+    else {
+      // Single selection pause/resume refresh of source for now.
+      selectedSource = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
+      let query = new SnowlQuery(selectedSource.uri);
+  
+      if (!query.queryTypeSource)
+        return;
+  
+      selectedSourceIDs.push(query.queryID);
+  
+      // Delete loop here, if multiple selections..
+      for (let i = 0; i < selectedSourceIDs.length; ++i) {
+        source = SnowlService.sourcesByID[selectedSourceIDs[i]];
+        source.attributes["refreshStatus"] = aStatus;
+        source.persistAttributes();
+        SnowlService.sourcesByID[source.id].attributes["refreshStatus"] = aStatus;
+      }
+    }
+
+    // Refresh tree.
+    this._tree.treeBoxObject.invalidate();
+  },
 
   removeSource: function() {
     // Single selection removal of source for now; all messages, authors, and the
@@ -1031,7 +1063,21 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   buildContextMenu: function(aPopup) {
-    // extra contextmenu customization here
+    // Additional collections tree contextmenu rules.
+    let selection = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
+    let query = new SnowlQuery(selection.uri);
+
+    if (query.queryTypeSource) {
+      let source = SnowlService.sourcesByID[query.queryID];
+      if (source.attributes["refreshStatus"] == "paused") {
+        document.getElementById("snowlCollectionPauseMenuitem").hidden = true;
+        document.getElementById("snowlCollectionResumeMenuitem").hidden = false;
+      }
+      else {
+        document.getElementById("snowlCollectionPauseMenuitem").hidden = false;
+        document.getElementById("snowlCollectionResumeMenuitem").hidden = true;
+      }
+    }
   },
 
   _collectionChildStats: {},
@@ -1261,6 +1307,9 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
   if (source && source.attributes["refreshStatus"] &&
       source.attributes["refreshStatus"] == "disabled" && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isDisabled"));
+  if (source && source.attributes["refreshStatus"] &&
+      source.attributes["refreshStatus"] == "paused" && !node.containerOpen)
+    aProperties.AppendElement(this._getAtomFor("isPaused"));
 
   if ((query.queryFolder != SnowlPlaces.collectionsSourcesID &&
        query.queryFolder != SnowlPlaces.collectionsAuthorsID) &&
@@ -1338,7 +1387,9 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
 
   if ((nodeStats && (nodeStats.n || nodeStats.busy)) ||
       (source && (source.busy || source.error ||
-      (source.attributes["refreshStatus"] && source.attributes["refreshStatus"] == "disabled"))))
+      (source.attributes["refreshStatus"] &&
+      (source.attributes["refreshStatus"] == "disabled" ||
+       source.attributes["refreshStatus"] == "paused")))))
     // Don't set icon, let css handle it for 'new' or 'busy' or 'error'.
     // "all" collection (only) has a busy property so we can set an indicator on
     // a closed container.

@@ -540,6 +540,24 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     return this.id;
   },
 
+  get _persistAttributesStmt() {
+    let statement = SnowlDatastore.createStatement(
+      "UPDATE sources SET attributes = :attributes WHERE id = :id");
+    this.__defineGetter__("_persistAttributesStmt", function() statement);
+    return this._persistAttributesStmt;
+  },
+
+  persistAttributes: function() {
+    try {
+      this._persistAttributesStmt.params.id = this.id;
+      this._persistAttributesStmt.params.attributes = JSON.stringify(this.attributes);
+      this._persistAttributesStmt.step()
+    }
+    finally {
+      this._persistAttributesStmt.reset();
+    }
+  },
+
   unstore: function() {
     SnowlDatastore.dbConnection.beginTransaction();
     try {

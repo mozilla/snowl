@@ -97,7 +97,18 @@
   list-style-image: url("chrome://snowl/content/icons/exclamation.png");
 }
 
+/* Source is paused */
+#sourcesViewTreeChildren::-moz-tree-image(isPaused) {
+  list-style-image: url("chrome://snowl/content/icons/control_play.png");
+}
+
 /* Source is paused/disabled */
+#sourcesViewTreeChildren::-moz-tree-cell-text(isPaused),
 #sourcesViewTreeChildren::-moz-tree-cell-text(isDisabled) {
   color: GrayText;
+}
+
+#sourcesViewTreeChildren::-moz-tree-cell-text(selected, isPaused),
+#sourcesViewTreeChildren::-moz-tree-cell-text(selected, isDisabled) {
+  color: -moz-cellhighlighttext;
 }

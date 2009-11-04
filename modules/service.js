@@ -287,6 +287,7 @@ let SnowlService = {
     for each (let source in this.sources)
       if (now - source.lastRefreshed > source.refreshInterval &&
           !this.sourcesByID[source.id].busy &&
+          source.attributes["refreshStatus"] != "paused" &&
           source.attributes["refreshStatus"] != "disabled")
         // Do not autorefresh (as opposed to user initiated refresh) if a source
         // is permanently disabled (404 error eg); do not refresh busy source.
@@ -303,21 +304,26 @@ let SnowlService = {
   },
 
   refreshAllSources: function(sources) {
-    let cachedsource;
+    let cachedsource, refreshSources = [];
     let allSources = sources ? sources : this.sources;
 
     // Set busy property.
     for each (let source in allSources) {
       cachedsource = this.sourcesByID[source.id];
       if (cachedsource) {
+        if (cachedsource.attributes["refreshStatus"] == "paused")
+          continue;
         cachedsource.busy = true;
         cachedsource.error = false;
         cachedsource.attributes["refreshStatus"] = "active";
       }
+
+      refreshSources.push(source);
       this.refreshingCount = ++this.refreshingCount;
     }
+this._log.info("refreshAllSources: count - "+this.refreshingCount);
 
-    if (allSources.length > 0)
+    if (refreshSources.length > 0)
       // Invalidate collections tree to show new state.
       Observers.notify("snowl:messages:completed", "refresh");
 
@@ -328,7 +334,7 @@ let SnowlService = {
     // when retrieved in the same refresh (f.e. when the user starts their
     // browser in the morning after leaving it off overnight).
     let refreshTime = new Date();
-    for each (let source in allSources)
+    for each (let source in refreshSources)
       this.refreshSourceTimer(source, refreshTime);
   },
 
