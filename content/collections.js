@@ -1021,30 +1021,44 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   getSelectionConstraints: function() {
     // Return contraints object based on selected itemIds in the collections
     // tree and persist the list
-    let constraints = [], selectedItemIds = [];
-    let itemId, uri, rangeFirst = { }, rangeLast = { }, stop = false;
+    let constraints = [], selectedItemIds = [], containerItemIdQueries = {};
+    let node, itemId, uri, rangeFirst = { }, rangeLast = { }, stop = false;
     let numRanges = this._tree.view.selection.getRangeCount();
 
     for (let i = 0; i < numRanges && !stop; i++) {
       this._tree.view.selection.getRangeAt(i, rangeFirst, rangeLast);
       for (let index = rangeFirst.value; index <= rangeLast.value; index++) {
-        itemId = this._tree.view.nodeForTreeIndex(index).itemId;
+        node = this._tree.view.nodeForTreeIndex(index);
+        itemId = node.itemId;
         selectedItemIds.push(itemId);
-        uri = this._tree.view.nodeForTreeIndex(index).uri;
+        uri = node.uri;
         let query = new SnowlQuery(uri);
         if (query.queryFolder == SnowlPlaces.collectionsSystemID) {
           // Collection folder that returns all records, break with no constraints.
           // There may be other such 'system' collections but more likely collections
-          // will be rows which are user defined snowl: queries.  Selection of a
-          // user created Places 'folder', ie non tag or saved search will clear
-          // the messages view (null constraint will be added below).
+          // will be rows which are user defined snowl: queries.
           constraints = [];
           stop = true;
           break;
         }
+        else if (node.hasChildren) {
+          // Container: user created folder is selected; get object with all
+          // collection itemIds, which has a property containing queryId and
+          // groupId for the item.  Iterate through to construct constraints.
+          containerItemIdQueries = this.getContainerCollectionItemIds(node);
+
+          for each (let { itemId: itemId, qId: qId, qGroupId: qGroupId } in containerItemIdQueries) {
+            let constraint = { };
+            constraint.expression = qGroupId + " = :groupValue" + itemId;
+            constraint.parameters = { };
+            constraint.parameters["groupValue" + itemId] = qId;
+            constraint.operator = "OR";
+            constraints.push(constraint);
+          }
+        }
         else {
-          // Construct the contraint to be passed to the collection object for
-          // the db query.
+          // Non container: construct the contraint to be passed to the collection
+          // object for the db query.
           let constraint = { };
           constraint.expression = query.queryGroupIDColumn +
                                   " = :groupValue" + index;
@@ -1122,6 +1136,53 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     result.viewer = oldViewer;
 
     return this._collectionChildStats[aNode.itemId] = count;
+  },
+
+  _containerCollectionItemIds: [],
+  getContainerCollectionItemIds: function(aNode) {
+    // Rollup all child collection itemIds within a container and any child
+    // containers.
+    let query, qIds = [], itemIdQueries = {}, restoreOpenStateNodes = {};
+
+    function getContainerItemIds(aNode) {
+      let queryParms = {itemId:null, qId:null, qGroupId:null};
+      query = new SnowlQuery(aNode.uri);
+
+      if (query.queryProtocol == "snowl:") {
+        queryParms.itemId = aNode.itemId;
+        queryParms.qId = query.queryID;
+        queryParms.qGroupId = query.queryGroupIDColumn;
+        if (qIds.indexOf(query.queryID) == -1) {
+          // Add non dupe queryID items only.
+          qIds.push(query.queryID);
+          itemIdQueries[aNode.itemId] = queryParms;
+        }
+      }
+
+      if (!PlacesUtils.nodeIsContainer(aNode) || !aNode.hasChildren)
+        return itemIdQueries;
+
+      restoreOpenStateNodes[aNode.itemId] = aNode.containerOpen;
+      asContainer(aNode);
+      aNode.containerOpen = true;
+
+      for (let child = 0; child < aNode.childCount; child++) {
+        let childNode = aNode.getChild(child);
+        itemIdQueries = getContainerItemIds(childNode);
+      }
+
+      aNode.containerOpen = restoreOpenStateNodes[aNode.itemId];
+      return itemIdQueries;
+    }
+
+    // Null the viewer while looking for nodes
+    let result = CollectionsView._tree.getResult();
+    let oldViewer = result.viewer;
+    result.viewer = null;
+    getContainerItemIds(aNode);
+    result.viewer = oldViewer;
+
+    return this._containerCollectionItemIds = itemIdQueries;
   },
 
 
