@@ -307,7 +307,7 @@ let SnowlService = {
     let cachedsource, refreshSources = [];
     let allSources = sources ? sources : this.sources;
 
-    // Set busy property.
+    // Set busy property, reset states.
     for each (let source in allSources) {
       cachedsource = this.sourcesByID[source.id];
       if (cachedsource) {
@@ -316,6 +316,7 @@ let SnowlService = {
         cachedsource.busy = true;
         cachedsource.error = false;
         cachedsource.attributes["refreshStatus"] = "active";
+        cachedsource.persistAttributes();
       }
 
       refreshSources.push(source);

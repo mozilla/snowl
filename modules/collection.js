@@ -222,7 +222,12 @@ SnowlCollection.prototype = {
         conditions.push(" WHERE (");
       else
         conditions.push(operator);
-      conditions.push(condition.expression);
+      if (condition.type == "ARRAY")
+        // Cannot bind parameterize an array within a statement, do not be limited
+        // to sqlite default 999 parms limit.
+        conditions.push(condition.expression + " (" + condition.parameters + ")")
+      else
+        conditions.push(condition.expression);
     }
     if (conditions.length > 0)
       conditions.push(")");
@@ -250,8 +255,12 @@ SnowlCollection.prototype = {
     let statement = SnowlDatastore.createStatement(query);
 
     for each (let condition in this.constraints)
-      for (let [name, value] in Iterator(condition.parameters))
-        statement.params[name] = value;
+      if (condition.type != "ARRAY")
+        for (let [name, value] in Iterator(condition.parameters)) {
+          statement.params[name] = value;
+this._log.info("_generateStatement: name:value - "+name+" : "+value.toString());
+this._log.info("_generateStatement: params - "+statement.params[name]);
+      }
 
     for each (let condition in this.filters)
       for (let [name, value] in Iterator(condition.parameters))

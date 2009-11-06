@@ -326,6 +326,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     // Get constraints based on selected rows
     let constraints = this.getSelectionConstraints();
 
+    if (!constraints) {
+        gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+        return;
+    }
+
     let collection = new SnowlCollection(null,
                                          name,
                                          null, 
@@ -1021,7 +1026,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   getSelectionConstraints: function() {
     // Return contraints object based on selected itemIds in the collections
     // tree and persist the list
-    let constraints = [], selectedItemIds = [], containerItemIdQueries = {};
+    let constraints = [], selectedItemIds = [], sources =[], authors = [];
     let node, itemId, uri, rangeFirst = { }, rangeLast = { }, stop = false;
     let numRanges = this._tree.view.selection.getRangeCount();
 
@@ -1033,63 +1038,80 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         selectedItemIds.push(itemId);
         uri = node.uri;
         let query = new SnowlQuery(uri);
+
         if (query.queryFolder == SnowlPlaces.collectionsSystemID) {
-          // Collection folder that returns all records, break with no constraints.
-          // There may be other such 'system' collections but more likely collections
-          // will be rows which are user defined snowl: queries.
+          // Collection folder that returns all records, reset constraints
+          // and break.  There may be other such 'system' collections but more
+          // likely collections will be rows which are user defined snowl: queries.
           constraints = [];
           stop = true;
           break;
         }
-        else if (node.hasChildren) {
-          // Container: user created folder is selected; get object with all
-          // collection itemIds, which has a property containing queryId and
-          // groupId for the item.  Iterate through to construct constraints.
-          containerItemIdQueries = this.getContainerCollectionItemIds(node);
-
-          for each (let { itemId: itemId, qId: qId, qGroupId: qGroupId } in containerItemIdQueries) {
-            let constraint = { };
-            constraint.expression = qGroupId + " = :groupValue" + itemId;
-            constraint.parameters = { };
-            constraint.parameters["groupValue" + itemId] = qId;
-            constraint.operator = "OR";
-            constraints.push(constraint);
-          }
+        else if (node.hasChildren &&
+                 query.queryFolder != SnowlPlaces.collectionsAuthorsID &&
+                 query.queryFolder != SnowlPlaces.collectionsSourcesID) {
+          // Container: user created folder is selected; get array with query
+          // objects, which have properties queryId, groupId.  Only add non
+          // dupe ids to list.
+          this.getContainerCollectionItemIds(node).forEach(function(itemIdObj) {
+            if (itemIdObj.qGroupId == "sources.id" && sources.indexOf(itemIdObj.qId, 0) < 0)
+              sources.push(itemIdObj.qId);
+            if (itemIdObj.qGroupId == "people.id" && authors.indexOf(itemIdObj.qId, 0) < 0)
+              authors.push(itemIdObj.qId);
+          })
         }
         else {
-          // Non container: construct the contraint to be passed to the collection
-          // object for the db query.
-          let constraint = { };
-          constraint.expression = query.queryGroupIDColumn +
-                                  " = :groupValue" + index;
-          constraint.parameters = { };
-          constraint.parameters["groupValue" + index] = query.queryID;
-          constraint.operator = "OR";
-          constraints.push(constraint);
+          // Non container: single selection.  Only add non dupes.
+          if (query.queryTypeSource && sources.indexOf(query.queryID, 0) < 0)
+            sources.push(query.queryID);
+          if (query.queryTypeAuthor && authors.indexOf(query.queryID, 0) < 0)
+            authors.push(query.queryID);
         }
       }
     }
 
+    if (!stop) {
+      if (!sources.length && !authors.length)
+        constraints = null;
+      if (sources.length > 0)
+        constraints.push({expression:"sources.id IN",
+                          parameters:sources.sort,
+                          operator:"OR",
+                          type:"ARRAY"});
+      if (authors.length > 0)
+        constraints.push({expression:"people.id IN",
+                          parameters:authors.sort,
+                          operator:"OR",
+                          type:"ARRAY"});
+    }
+
     this.itemIds = selectedItemIds.length ? selectedItemIds : -1;
-//this._log.info("getSelectionConstraints: constraints = " + constraints.toSource());
+//this._log.info("getSelectionConstraints: constraints = " + (constraints ? constraints.toSource() : null));
 //this._log.info("getSelectionConstraints: itemIds = " + this.itemIds);
     return constraints;
   },
 
   buildContextMenu: function(aPopup) {
     // Additional collections tree contextmenu rules.
-    let selection = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
-    let query = new SnowlQuery(selection.uri);
+    let multiselect = this._tree.currentSelectedIndex == -1 ? true : false;
 
-    if (query.queryTypeSource) {
-      let source = SnowlService.sourcesByID[query.queryID];
-      if (source.attributes["refreshStatus"] == "paused") {
-        document.getElementById("snowlCollectionPauseMenuitem").hidden = true;
-        document.getElementById("snowlCollectionResumeMenuitem").hidden = false;
-      }
-      else {
-        document.getElementById("snowlCollectionPauseMenuitem").hidden = false;
-        document.getElementById("snowlCollectionResumeMenuitem").hidden = true;
+    if (multiselect) {
+      /* Multiselect */
+    }
+    else {
+      let selection = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
+      let query = new SnowlQuery(selection.uri);
+  
+      if (query.queryTypeSource) {
+        let source = SnowlService.sourcesByID[query.queryID];
+        if (source.attributes["refreshStatus"] == "paused") {
+          document.getElementById("snowlCollectionPauseMenuitem").hidden = true;
+          document.getElementById("snowlCollectionResumeMenuitem").hidden = false;
+        }
+        else {
+          document.getElementById("snowlCollectionPauseMenuitem").hidden = false;
+          document.getElementById("snowlCollectionResumeMenuitem").hidden = true;
+        }
       }
     }
   },
@@ -1142,20 +1164,19 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   getContainerCollectionItemIds: function(aNode) {
     // Rollup all child collection itemIds within a container and any child
     // containers.
-    let query, qIds = [], itemIdQueries = {}, restoreOpenStateNodes = {};
+    let query, qIds = [], itemIdQueries = [], restoreOpenStateNodes = {};
 
     function getContainerItemIds(aNode) {
-      let queryParms = {itemId:null, qId:null, qGroupId:null};
+      let queryParms = {qId:null, qGroupId:null};
       query = new SnowlQuery(aNode.uri);
 
       if (query.queryProtocol == "snowl:") {
-        queryParms.itemId = aNode.itemId;
         queryParms.qId = query.queryID;
         queryParms.qGroupId = query.queryGroupIDColumn;
         if (qIds.indexOf(query.queryID) == -1) {
           // Add non dupe queryID items only.
           qIds.push(query.queryID);
-          itemIdQueries[aNode.itemId] = queryParms;
+          itemIdQueries.push(queryParms);
         }
       }
 
