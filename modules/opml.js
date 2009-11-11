@@ -109,7 +109,7 @@ let SnowlOPML = {
 
     // Populate the <body> element with <outline> elements.
     // FIXME: export all accounts, not just sources but also targets.
-    for each (let source in SnowlService.sources) {
+    for each (let source in SnowlService.sourcesByID) {
       let outline = doc.createElement("outline");
 
       // XXX also set the title element per the OPML 2 spec?

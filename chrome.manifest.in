@@ -13,7 +13,7 @@ style chrome://global/content/customizeToolbar.xul chrome://snowl/content/browse
 overlay chrome://mozapps/content/extensions/about.xul chrome://snowl/content/about.xul
 
 # For customizing Places bookmarks dialog.
-overlay chrome://browser/content/places/bookmarkProperties.xul chrome://snowl/content/bookmarkProperties.xul
+overlay chrome://browser/content/places/bookmarkProperties2.xul chrome://snowl/content/bookmarkProperties2.xul
 
 # Note: we overlay the river view via xul-overlay processing instructions
 # because chrome.manifest instructions require exact URLs, and the river view's

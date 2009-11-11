@@ -159,9 +159,16 @@ SnowlTwitter.prototype = {
   //**************************************************************************//
   // SnowlSource
 
-  _defaultRefreshInterval: 1000 * 60 * 3, // 3 minutes
-
-  // refresh is defined elsewhere.
+  // The default attributes for this source type.  Documentation in source.js.
+  attributes: {
+    refresh: {
+      interval: 1000 * 60 * 3
+    },
+    retention: {
+      deleteDays: 10,
+      deleteNumber: 500
+    }
+  },
 
 
   //**************************************************************************//
@@ -375,8 +382,8 @@ SnowlTwitter.prototype = {
 
     Observers.notify("snowl:refresh:connect:end", this, request.status);
 
-    this.attributes["statusCode"] = request.status;
-    this.lastStatus = request.status + " (" + request.statusText + ")";
+    this.attributes.refresh["code"] = request.status;
+    this.attributes.refresh["text"] = request.status + " (" + request.statusText + ")";
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
       this.onRefreshError();
       return;
@@ -609,8 +616,10 @@ SnowlTwitter.prototype = {
   }
 };
 
+Mixins.meld(SnowlSource.prototype.attributes, true, false, SnowlService._log).
+       into(SnowlTwitter.prototype.attributes);
 Mixins.mix(SnowlSource).into(SnowlTwitter);
 Mixins.mix(SnowlSource.prototype).into(SnowlTwitter.prototype);
 Mixins.mix(SnowlTarget).into(SnowlTwitter);
 Mixins.mix(SnowlTarget.prototype).into(SnowlTwitter.prototype);
-SnowlService.addAccountType(SnowlTwitter);
+SnowlService.addAccountType(SnowlTwitter, SnowlTwitter.prototype.attributes);

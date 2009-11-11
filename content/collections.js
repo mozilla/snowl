@@ -46,7 +46,6 @@ Cu.import("resource://snowl/modules/URI.js");
 Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/collection.js");
 Cu.import("resource://snowl/modules/datastore.js");
-Cu.import("resource://snowl/modules/feed.js");
 Cu.import("resource://snowl/modules/identity.js");
 Cu.import("resource://snowl/modules/opml.js");
 Cu.import("resource://snowl/modules/service.js");
@@ -726,10 +725,10 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     // aStatus is 'paused' or 'active' or 'disabled'.
     let source, sourceID, selectedSource, selectedSourceIDs = [];
     if (aAll) {
-      for each (source in SnowlService.sources) {
-        source.attributes["refreshStatus"] = aStatus;
+      for each (source in SnowlService.sourcesByID) {
+        source.attributes.refresh["status"] = aStatus;
         source.persistAttributes();
-        SnowlService.sourcesByID[source.id].attributes["refreshStatus"] = aStatus;
+        SnowlService.sourcesByID[source.id].attributes.refresh["status"] = aStatus;
       }
     }
     else {
@@ -745,9 +744,9 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       // Delete loop here, if multiple selections..
       for (let i = 0; i < selectedSourceIDs.length; ++i) {
         source = SnowlService.sourcesByID[selectedSourceIDs[i]];
-        source.attributes["refreshStatus"] = aStatus;
+        source.attributes.refresh["status"] = aStatus;
         source.persistAttributes();
-        SnowlService.sourcesByID[source.id].attributes["refreshStatus"] = aStatus;
+        SnowlService.sourcesByID[source.id].attributes.refresh["status"] = aStatus;
       }
     }
 
@@ -867,8 +866,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       mode: "view"
     };
 
-    let dialogURL = "chrome://browser/content/places/bookmarkProperties.xul";
-    let features = "centerscreen,chrome,modal,resizable=no";
+    let dialogURL = "chrome://browser/content/places/bookmarkProperties2.xul";
+    let features = "centerscreen,chrome,dialog,resizable,modal";
     window.openDialog(dialogURL, "",  features, info);
 
     if ("performed" in info && info.performed) {
@@ -1075,12 +1074,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         constraints = null;
       if (sources.length > 0)
         constraints.push({expression:"sources.id IN",
-                          parameters:sources.sort,
+                          parameters:sources,
                           operator:"OR",
                           type:"ARRAY"});
       if (authors.length > 0)
         constraints.push({expression:"people.id IN",
-                          parameters:authors.sort,
+                          parameters:authors,
                           operator:"OR",
                           type:"ARRAY"});
     }
@@ -1104,7 +1103,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   
       if (query.queryTypeSource) {
         let source = SnowlService.sourcesByID[query.queryID];
-        if (source.attributes["refreshStatus"] == "paused") {
+        if (source && source.attributes.refresh["status"] == "paused") {
           document.getElementById("snowlCollectionPauseMenuitem").hidden = true;
           document.getElementById("snowlCollectionResumeMenuitem").hidden = false;
         }
@@ -1386,11 +1385,11 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
     aProperties.AppendElement(this._getAtomFor("isBusy"));
   if (source && source.error && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasError"));
-  if (source && source.attributes["refreshStatus"] &&
-      source.attributes["refreshStatus"] == "disabled" && !node.containerOpen)
+  if (source && source.attributes.refresh &&
+      source.attributes.refresh["status"] == "disabled" && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isDisabled"));
-  if (source && source.attributes["refreshStatus"] &&
-      source.attributes["refreshStatus"] == "paused" && !node.containerOpen)
+  if (source && source.attributes.refresh &&
+      source.attributes.refresh["status"] == "paused" && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isPaused"));
 
   if ((query.queryFolder != SnowlPlaces.collectionsSourcesID &&
@@ -1469,9 +1468,9 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
 
   if ((nodeStats && (nodeStats.n || nodeStats.busy)) ||
       (source && (source.busy || source.error ||
-      (source.attributes["refreshStatus"] &&
-      (source.attributes["refreshStatus"] == "disabled" ||
-       source.attributes["refreshStatus"] == "paused")))))
+      (source.attributes.refresh &&
+      (source.attributes.refresh["status"] == "disabled" ||
+       source.attributes.refresh["status"] == "paused")))))
     // Don't set icon, let css handle it for 'new' or 'busy' or 'error'.
     // "all" collection (only) has a busy property so we can set an indicator on
     // a closed container.
@@ -1592,6 +1591,40 @@ PlacesUIUtils.getBestTitle =
      }
 
      return title || this.getString("noTitle");
+};
+
+
+/**
+ * Override showItemProperties and add additional properties.
+ */
+PlacesUIUtils.showItemProperties =
+  function(aItemId, aType, aReadOnly) {
+    var info = {
+      action: "edit",
+      type: aType,
+      itemId: aItemId,
+      readOnly: aReadOnly
+    };
+
+    if (CollectionsView._tree.id == "sourcesView")
+      if (!CollectionsView.isBookmark()) {
+//SnowlPlaces._log.info("showItemProperties: Start");
+        let index = CollectionsView._tree.currentSelectedIndex;
+        let selectedSource = CollectionsView._tree.view.nodeForTreeIndex(index);
+        let query = new SnowlQuery(selectedSource.uri);
+        if (!query.queryTypeSource)
+          return;
+
+        info.mode = "properties";
+        info.queryId = query.queryID;
+//SnowlPlaces._log.info("showItemProperties: attributes - "+
+//  SnowlService.sourcesByID[query.queryID].attributes.toSource());
+//        info.attributes = SnowlService.sourcesByID[query.queryID].attributes;
+//SnowlPlaces._log.info("showItemProperties: attributes - "+info.attributes.toSource());
+        return this._showBookmarkDialog(info, true);
+      }
+
+    return this._showBookmarkDialog(info);
 };
 
 /**

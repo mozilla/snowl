@@ -42,7 +42,9 @@ Cu.import("resource://snowl/modules/Observers.js");
 
 // modules that are Snowl-specific
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/URI.js");
+Cu.import("resource://snowl/modules/utils.js");
 
 /**
  * BookmarkPropertiesPanel overrides here.
@@ -59,7 +61,8 @@ BookmarkPropertiesPanel._fillAddProperties =
       document.title = this._title;
       this._createNewView();
       // Edit the new item
-      gEditItemOverlay.initPanel(this._itemId, { hiddenRows: this._hiddenRows });
+      gEditItemOverlay.initPanel(this._itemId,
+                                 { hiddenRows: this._hiddenRows });
 //this._log.info("_fillAddProperties: custom END");
       return;
     }
@@ -71,13 +74,23 @@ BookmarkPropertiesPanel.Places_fillEditProperties =
   BookmarkPropertiesPanel._fillEditProperties;
 
 BookmarkPropertiesPanel._fillEditProperties =
-  function BPP__fillAEditProperties() {
+  function BPP__fillEditProperties() {
+//this._log.info("_fillEditProperties: custom START");
     this.Places_fillEditProperties();
 
     // Sources/Authors location field readonly; no sidebar for snowl query.
     if (this._uri && this._uri.schemeIs("snowl")) {
       this._element("locationField").setAttribute("readonly", true);
       this._element("loadInSidebarCheckbox").collapsed = true;
+    }
+
+    let dialogInfo = window.arguments[0];
+    if ("mode" in dialogInfo && dialogInfo.mode == "properties") {
+      this._mode = dialogInfo.mode;
+      this._queryId = dialogInfo.queryId;
+//this._log.info("_fillEditProperties: queryId - "+this._queryId);
+      SnowlPreferencesCommon.initProperties(this._queryId);
+      
     }
 };
 
@@ -86,10 +99,15 @@ BookmarkPropertiesPanel.Places_onDialogAccept =
 
 BookmarkPropertiesPanel.onDialogAccept =
   function BPP__onDialogAccept() {
-    // Update names for a View or Source/Author item.
-    SnowlPlaces.renamePlace(this._itemId,
-                            this._uri ? this._uri.spec : null,
-                            this._element("userEnteredName").label);
+//this._log.info("onDialogAccept: START ");
+    SnowlPreferencesCommon.persistProperties(this._queryId);
+
+    // Update names for a View or Source/Author item, if changed.
+    var newTitle = this._element("userEnteredName").label;
+    if (this._title != newTitle)
+      SnowlPlaces.renamePlace(this._itemId,
+                              this._uri ? this._uri.spec : null,
+                              this._element("userEnteredName").label);
 
     this.Places_onDialogAccept();
 };
@@ -99,6 +117,7 @@ BookmarkPropertiesPanel.onDialogAccept =
  */
 
 BookmarkPropertiesPanel._log = Log4Moz.repository.getLogger("Snowl.BookmarkProperties");
+SnowlPreferencesCommon._log = BookmarkPropertiesPanel._log;
 BookmarkPropertiesPanel._mode = null;
 
 /**

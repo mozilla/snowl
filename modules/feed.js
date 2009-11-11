@@ -117,9 +117,12 @@ SnowlFeed.prototype = {
   //**************************************************************************//
   // SnowlSource
 
-  _defaultRefreshInterval: 1000 * 60 * 30, // 30 minutes
-
-  // refresh is defined elsewhere.
+  // The default attributes for this source type.  Documentation in source.js.
+  attributes: {
+    refresh: {
+      interval: 1000 * 60 * 30
+    }
+  },
 
 
   //**************************************************************************//
@@ -293,8 +296,8 @@ SnowlFeed.prototype = {
 
     Observers.notify("snowl:refresh:connect:end", this, request.status);
 
-    this.attributes["statusCode"] = request.status;
-    this.lastStatus = request.status + " (" + request.statusText + ")";
+    this.attributes.refresh["code"] = request.status;
+    this.attributes.refresh["text"] = request.status + " (" + request.statusText + ")";
     if (request.status < 200 || request.status > 299 || request.responseText.length == 0) {
       this._log.trace("refresh request failed");
       this.onRefreshError();
@@ -345,7 +348,7 @@ SnowlFeed.prototype = {
     // FIXME: report a more descriptive error message and figure out a better
     // way to handle this condition.
     if (result.doc == null) {
-      this.lastStatus = "result.doc is null, no valid feed found at this url";
+      this.attributes.refresh["text"] = "result.doc is null, no valid feed found at this url";
       this.onRefreshError();
       return;
     }
@@ -621,7 +624,13 @@ SnowlFeed.prototype = {
   }
 
 };
+//SnowlService._log.info("mixin: feed.attr - "+SnowlFeed.prototype.attributes.toSource());
+//SnowlService._log.info("mixin: source.attr - "+SnowlSource.prototype.attributes.toSource());
+
+Mixins.meld(SnowlSource.prototype.attributes, true, false, SnowlService._log).
+       into(SnowlFeed.prototype.attributes);
+//SnowlService._log.info("mixin: DONE feed.attr - "+SnowlFeed.prototype.attributes.toSource());
 
 Mixins.mix(SnowlSource).into(SnowlFeed);
 Mixins.mix(SnowlSource.prototype).into(SnowlFeed.prototype);
-SnowlService.addAccountType(SnowlFeed);
+SnowlService.addAccountType(SnowlFeed, SnowlFeed.prototype.attributes);

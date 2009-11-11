@@ -97,7 +97,7 @@ let ListSidebar = {
   // Selectively enable/disable the button for writing a message depending on
   // whether or not the user has an account that supports writing.
   _updateWriteButton: function() {
-    this._writeButton.disabled = (SnowlService.targets.length == 0);
+    this._writeButton.disabled = (SnowlService.targetsByID.length == 0);
   }
 
 }

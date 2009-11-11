@@ -153,7 +153,7 @@ let WriteForm = {
 
     this._targetMenu.removeAllItems();
 
-    for each (let target in SnowlService.targets) {
+    for each (let target in SnowlService.targetsByID) {
       let targetItem = this._targetMenu.appendItem(target.name, target.id);
       targetItem.target = target;
     }

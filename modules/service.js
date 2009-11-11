@@ -46,6 +46,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // modules that are generic
 Cu.import("resource://snowl/modules/log4moz.js");
+Cu.import("resource://snowl/modules/Mixins.js");
 Cu.import("resource://snowl/modules/Observers.js");
 Cu.import("resource://snowl/modules/Preferences.js");
 Cu.import("resource://snowl/modules/URI.js");
@@ -183,6 +184,7 @@ let SnowlService = {
   onSourcesChanged: function() {
     // Invalidate the cache of sources indexed by ID.
     this._sourcesByID = null;
+    this._targetsByID = null;
   },
 
 
@@ -190,15 +192,75 @@ let SnowlService = {
   // Accounts, Sources, Targets
 
   _accountTypeConstructors: {},
-  addAccountType: function(constructor) {
+  addAccountType: function(constructor, typeAttributes) {
     if (constructor in this._accountTypeConstructors)
       this._log.warn("constructor for " + constructor.name +
                      "already exists");
     this._accountTypeConstructors[constructor.name] = constructor;
+
+    if (!this.hasSource(constructor.name)) {
+      // Create a record for an account type, eq SnowlFeed or SnowlTwitter, that
+      // will contain global attributes for that source type.
+      this.insertSourceType(constructor.name,
+                            "SnowlAccountType",
+                            constructor.name,
+                            SnowlDateUtils.jsToJulianDate(new Date),
+                            typeAttributes);
+    }
+
+    // XXX: probably better to do this on a db version change within database.js,
+    // but the source type objects don't seem to be ready.
+    this.initAccountAttributes(constructor, typeAttributes);
+  },
+
+  get _initAccountAttributesStatement() {
+    let statement = SnowlDatastore.createStatement(
+      "SELECT id, type, name, machineURI, humanURI, username, " +
+      "       lastRefreshed, importance, placeID, attributes " +
+      "FROM sources " +
+      "WHERE type = :type OR machineURI = :type");
+    this.__defineGetter__("_initAccountAttributesStatement", function() { return statement });
+    return this._initAccountAttributesStatement;
+  },
+
+  // If attributes are added or removed in the global source or individual
+  // source types, the db needs to be updated.  For existing attributes, the
+  // values persisted in the db must be retained.
+  initAccountAttributes: function(constructor, typeAttributes) {
+    let account = {}, meldAttributes = {}, count = 1;
+
+    try {
+      this._initAccountAttributesStatement.params.type = constructor.name;
+      while (this._initAccountAttributesStatement.step()) { //&& count < 5
+        account = this._constructAccount(this._initAccountAttributesStatement.row);
+        meldAttributes = typeAttributes;
+
+//this._log.info("initAccountAttributes: OLD name:account.attributes - "+
+//  account.name + " : " + account.attributes.toSource());
+//this._log.info("initAccountAttributes: TYPE.attributes - "+meldAttributes.toSource());
+
+        Mixins.meld(account.attributes, false, true, SnowlService._log).into(meldAttributes);
+        // Meld any existing db attributes into new typeAttributes; those removed
+        // are thus tossed.  Set new account attributes back and persist.
+        account.attributes = meldAttributes;
+//this._log.info("initAccountAttributes: NEW name:account.attributes - "+
+//  account.name + " : " + account.attributes.toSource() +"\n");
+//this._log.info("\n");
+        account.persistAttributes();
+//        count++;
+      }
+    }
+    finally {
+      this._initAccountAttributesStatement.reset();
+    }
+
   },
 
   _constructAccount: function(row) {
-    let constructor = this._accountTypeConstructors[row.type];
+    let type = row.type == "SnowlAccountType" ? row.machineURI : row.type;
+//this._log.info("accounts: type:name - "+type+" : "+row.name);
+    let constructor = this._accountTypeConstructors[type];
+//this._log.info("accounts: constructor - "+constructor);
     if (!constructor)
       throw "no constructor for type " + row.type;
 
@@ -223,15 +285,20 @@ let SnowlService = {
   },
 
   /**
-   * Get all accounts.
+   * Get all accounts.  For types SnowlAccountType, store separately.
    */
+  _accountTypesByType: {},
   get accounts() {
+//this._log.info("accounts: GET accounts");
     let accounts = [];
-
     try {
       while (this._accountsStatement.step()) {
         try {
-          accounts.push(this._constructAccount(this._accountsStatement.row));
+          if (this._accountsStatement.row.type == "SnowlAccountType")
+            this._accountTypesByType[this._accountsStatement.row.machineURI] =
+                this._constructAccount(this._accountsStatement.row);
+          else
+            accounts.push(this._constructAccount(this._accountsStatement.row));
         }
         catch(ex) {
           this._log.error(ex);
@@ -246,6 +313,7 @@ let SnowlService = {
   },
 
   get sources() {
+//this._log.info("accounts: GET sources");
     return this.accounts.filter(function(acct) acct.implements(SnowlSource));
   },
 
@@ -261,7 +329,19 @@ let SnowlService = {
   },
 
   get targets() {
+//this._log.info("accounts: GET targets");
     return this.accounts.filter(function(acct) acct.implements(SnowlTarget));
+  },
+
+  _targetsByID: null,
+  get targetsByID() {
+    if (!this._targetsByID) {
+      this._targetsByID = {};
+      for each (let target in this.targets)
+        this._targetsByID[target.id] = target;
+    }
+
+    return this._targetsByID;
   },
 
   refreshStaleSources: function() {
@@ -284,14 +364,15 @@ let SnowlService = {
 
     let now = new Date();
     let staleSources = [];
-    for each (let source in this.sources)
+    for each (let source in this.sourcesByID) {
       if (now - source.lastRefreshed > source.refreshInterval &&
           !this.sourcesByID[source.id].busy &&
-          source.attributes["refreshStatus"] != "paused" &&
-          source.attributes["refreshStatus"] != "disabled")
+          source.attributes.refresh["status"] != "paused" &&
+          source.attributes.refresh["status"] != "disabled")
         // Do not autorefresh (as opposed to user initiated refresh) if a source
         // is permanently disabled (404 error eg); do not refresh busy source.
         staleSources.push(source);
+    }
     this.refreshAllSources(staleSources);
   },
 
@@ -305,17 +386,18 @@ let SnowlService = {
 
   refreshAllSources: function(sources) {
     let cachedsource, refreshSources = [];
-    let allSources = sources ? sources : this.sources;
+    let allSources = sources ? sources : this.sourcesByID;
 
     // Set busy property, reset states.
     for each (let source in allSources) {
+this._log.info("refreshStaleSources: int - "+source.refreshInterval);
       cachedsource = this.sourcesByID[source.id];
       if (cachedsource) {
-        if (cachedsource.attributes["refreshStatus"] == "paused")
+        if (cachedsource.attributes.refresh["status"] == "paused")
           continue;
         cachedsource.busy = true;
         cachedsource.error = false;
-        cachedsource.attributes["refreshStatus"] = "active";
+        cachedsource.attributes.refresh["status"] = "active";
         cachedsource.persistAttributes();
       }
 
@@ -348,14 +430,14 @@ this._log.info("refreshAllSources: count - "+this.refreshingCount);
         aSource.refresh(aRefreshTime);
       }
       catch(ex) {
-        aSource.lastStatus = ex;
+        aSource.attributes.refresh["text"] = ex;
         aSource.onRefreshError();
       }
       try {
         aSource.persist(true);
       }
       catch(ex) {
-        aSource.lastStatus = ex;
+        aSource.attributes.refresh["text"] = ex;
         aSource.onDbError();
       }
     } };
@@ -420,6 +502,22 @@ this._log.info("refreshAllSources: count - "+this.refreshingCount);
    */
   hasSourceUsername: function(aMachineURI, aUsername) {
     return SnowlDatastore.selectHasSourceUsername(aMachineURI, aUsername);
+  },
+
+  /**
+   * Store into sources a SnowlAccountType record, for each type of source, to
+   * contain default attributes.
+   *
+   * @param aName          {string}  the name
+   * @param aType          {string}  the system source type 'SnowlAccountType'
+   * @param aMachineURI    {string}  the type of source
+   * @param aLastRefreshed {date}  the date
+   * @param aAttributes    {string}  the JSON attribute string
+   *
+   * @returns {integer} the id of the new record.
+   */
+  insertSourceType: function(aName, aType, aMachineURI, aLastRefreshed, aAttributes) {
+    return SnowlDatastore.insertSourceType(aName, aType, aMachineURI, aLastRefreshed, aAttributes);
   },
 
   /**

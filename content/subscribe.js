@@ -75,7 +75,7 @@ let SubscriptionListener = {
           this.logindata(data);
         }
         else if (data.split(":", 1)[0] == "error" &&
-                 source.attributes["statusCode"] == "db:transactionInProgress") {
+                 source.attributes.refresh["code"] == "db:transactionInProgress") {
           code = "error";
           message = this.stringBundle.getString("messageDbBusy");
         }
@@ -335,7 +335,9 @@ let Subscriber = {
     // If error on connect, or error due to null result.doc (not a feed) despite
     // a successful connect (filtered bad domain or not found url), do not persist.
     if (this.account.error) {
-      Observers.notify("snowl:refresh:connect:end", this.account, "error:" + this.account.lastStatus);
+      Observers.notify("snowl:refresh:connect:end",
+                       this.account,
+                       "error:" + this.account.attributes.refresh["text"]);
       this.account = null;
       return;
     }
@@ -344,7 +346,9 @@ let Subscriber = {
 
     // If error on db, don't show success.
     if (this.account.error) {
-      Observers.notify("snowl:refresh:connect:end", this.account, "error:" + this.account.lastStatus);
+      Observers.notify("snowl:refresh:connect:end",
+                       this.account,
+                       "error:" + this.account.attributes.refresh["text"]);
       this.account = null;
       return;
     }

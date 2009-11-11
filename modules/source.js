@@ -193,7 +193,7 @@ SnowlSource.prototype = {
     // specified in order for its non-set value to remain null.
     this.importance = aImportance || null;
     this.placeID = aPlaceID;
-    this.attributes = aAttributes || new Object;
+    this.attributes = aAttributes || this.attributes;
   },
 
   get _log() {
@@ -205,9 +205,8 @@ SnowlSource.prototype = {
   // For adding isBusy property to collections tree.
   busy: false,
 
-  // For adding hasError property to collections tree, status message.
+  // For adding hasError property to collections tree.
   error: false,
-  lastStatus: null,
 
   id: null,
 
@@ -243,12 +242,15 @@ SnowlSource.prototype = {
   username: null,
 
   // A JavaScript Date object representing the last time this source
-  // was checked for updates to its set of messages.
+  // was checked for updates to its set of messages.  If source attributes not
+  // set to use default source type value, then use the sources custom value.
   lastRefreshed: null,
 
   get refreshInterval() {
-    return this.attributes["refreshInterval"] ? this.attributes["refreshInterval"] :
-                                                this._defaultRefreshInterval;
+    return this.attributes.refresh["useDefault"] ?
+        SnowlService._accountTypesByType[this.constructor.name].
+                     attributes.refresh["interval"] :
+        this.attributes.refresh["interval"];
   },
 
   // An integer representing how important this source is to the user
@@ -258,8 +260,42 @@ SnowlSource.prototype = {
   // The ID of the place representing this source in a list of collections.
   placeID: null,
 
-  // The source's attributes.
-  attributes: {},
+  //**************************************************************************//
+  // The default global attributes for a all sources.  Source types may override
+  // and add their own attributes (but need to consider such exceptions in
+  // generic handling).  The attributes objects are combined by Mixins.meld().
+  attributes: {
+    refresh: {
+      // If true for the default Type, overrides individual setting; if
+      // true for individual source, overrides default if default is false.
+      useDefault: true,
+      // 30 minutes
+      interval: 1000 * 60 * 30,
+      // Status determines behavior of auto and user refreshes:
+      // 'active' - auto refresh on interval, immediately on user action
+      // 'paused' - no refresh on auto or user action, set by user
+      // 'disabled' - refresh only on user action, auto set on permanent error
+      status: "active",
+      // Code, usually response code, or internal error code.
+      code: "",
+      // Descriptive error message.
+      text: ""
+    },
+    retention: {
+      // If true for the default Type, overrides individual setting; if
+      // true for individual source, overrides default if default is false.
+      useDefault: true,
+      // If 0, do not delete any messaged; if 1, delete by days; if 2 delete
+      // by number of messages.
+      deleteBy: 0,
+      // If radio checked, delete messages older than number (of days).
+      deleteDays: 30,
+      // If radio checked, delete messages greater than number (of messages).
+      deleteNumber: 500,
+      // If true, messages will never be auto deleted.
+      keepFlagged: true
+    }
+  },
 
   // The collection of messages from this source.
   messages: null,
@@ -321,12 +357,13 @@ SnowlSource.prototype = {
 
   onRefreshError: function() {
     this.error = true;
-    if (this.attributes["statusCode"] = 404) {
-      this.attributes["refreshStatus"] = "disabled";
-      SnowlService.sourcesByID[this.id].attributes["refreshStatus"] = "disabled";
+    if (this.attributes.refresh["code"] == 401 ||
+        this.attributes.refresh["code"] == 404) {
+      this.attributes.refresh["status"] = "disabled";
+      SnowlService.sourcesByID[this.id].attributes.refresh["status"] = "disabled";
     }
 
-    this._log.error("Refresh error: " + this.lastStatus);
+    this._log.error("Refresh error: " + this.attributes.refresh["text"]);
   },
 
   onDbCompleted: function() {
@@ -349,7 +386,7 @@ SnowlSource.prototype = {
       SnowlService.refreshingCount = --SnowlService.refreshingCount;
       Observers.notify("snowl:messages:completed", this.id);
     }
-    this._log.error("Database error: " + this.lastStatus);
+    this._log.error("Database error: " + this.attributes.refresh["text"]);
   },
 
   retrieveMessages: function() {
@@ -408,8 +445,8 @@ SnowlSource.prototype = {
 
     // Need to get a transaction lock.
     if (SnowlDatastore.dbConnection.transactionInProgress) {
-      this.attributes["statusCode"] = "db:transactionInProgress";
-      this.lastStatus = "Database temporarily busy, could not get transaction lock";
+      this.attributes.refresh["code"] = "db:transactionInProgress";
+      this.attributes.refresh["text"] = "Database temporarily busy, could not get transaction lock";
       if (this.id) {
         // Only for existing stored sources; notify refreshes collections tree state.
         SnowlService.sourcesByID[this.id].busy = false;
@@ -420,7 +457,7 @@ SnowlSource.prototype = {
       else {
         // New subscriptions need to return feedback.
         this.error = true;
-        this._log.info("persist: " + this.lastStatus);
+        this._log.info("persist: " + this.attributes.refresh["text"]);
       }
 
       return;
@@ -530,7 +567,8 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
     }
     catch(ex) {
       SnowlDatastore.dbConnection.rollbackTransaction();
-      this.lastStatus = ex;
+      this.attributes.refresh["code"] = "db:error";
+      this.attributes.refresh["text"] = ex;
       this.onDbError();
     }
     finally {

@@ -70,7 +70,63 @@ function mixin(source, target) {
     else
        target[attribute] = source[attribute];
   }
-}
+};
+
+/**
+ * Meld attributes, like mixin but recursive to include object hierarchy,
+ *  for example to handle a JSON object.
+ *
+ * @param   source  {Object}  the object that provides attributes
+ * @param   target  {Object}  the object that receives attributes
+ * @param   keep    {Boolean} if true, source attributes not in the target are
+ *                            retained; if false, the target does not get them.
+ * @param   replace {Boolean} if true, source attribute replaces the same
+ *                            attribute in the target are; if false, the target
+ *                            retains its attribute value.
+ * @param   logger  {Object}  reference to logging function
+ */
+function meldin(source, target, keep, replace, logger) {
+  for (let attribute in source) {
+//logger.info("meldin: - keep:replace:attribute - " +keep+" : " +replace+" : " + attribute);
+    // Recursive mixin of objects of objects
+    if (typeof source[attribute] == "object" && typeof target[attribute] == "object") {
+//logger.info("meldin: - Object MATCH - " +attribute);
+      meldin(source[attribute], target[attribute], keep, replace, logger);
+    }
+    else {
+//logger.info("meldin: - Property - " +attribute);
+
+      // Don't mix in attributes that already exist in the target, unless replace
+      // is false.
+      if (attribute in target && !replace) {
+//logger.info("meldin: - SKIP (!replace) - " +attribute);
+        continue;
+      }
+
+      // Don't add attributes in target but not in source to source if keep is false.
+      if (!(attribute in target) && !keep) {
+//logger.info("meldin: - SKIP (!keep) - " +attribute);
+        continue;
+      }
+
+//logger.info("meldin: - add/replace to Target - " +attribute);
+
+      let getter = source.__lookupGetter__(attribute);
+      let setter = source.__lookupSetter__(attribute);
+
+      // We can have a getter, a setter, or both.  If we have either, we only
+      // define one or both of them.  Otherwise, we assign the property directly.
+      if (getter || setter) {
+        if (getter)
+          target.__defineGetter__(attribute, getter);
+      if (setter)
+        target.__defineSetter__(attribute, setter);
+      }
+      else
+         target[attribute] = source[attribute];
+    }
+  }
+};
 
 // FIXME: support both source and target arguments accepting arrays of objects.
 let Mixins = {
@@ -81,5 +137,13 @@ let Mixins = {
         mixin(this.source, target);
       }
     };
-  }
+  },
+  meld: function(source, keep, replace, logger) {
+    return {
+      source: source,
+      into: function(target) {
+        meldin(this.source, target, keep, replace, logger);
+      }
+    };
+  },
 };

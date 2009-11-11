@@ -896,6 +896,41 @@ let SnowlDatastore = {
     return hasIdentity;
   },
 
+  get _insertSourceTypeStatement() {
+    let statement = this.createStatement(
+      "INSERT INTO sources ( name,  type,  machineURI, lastRefreshed, attributes) " +
+      "VALUES              ( :name, :type, :machineURI, :lastRefreshed, :attributes)"
+    );
+    this.__defineGetter__("_insertSourceTypeStatement", function() { return statement });
+    return this._insertSourceTypeStatement;
+  },
+
+  /**
+   * Insert a record into the sources table, used for inserting type records only.
+   * 
+   * @param aName        {string}  the name
+   * @param aType        {string}  indicating a source type - 'SnowlAccountType'
+   * @param aMachineURI  {string}  name of the constructor, the type of source
+   * @param aAttributes  {string}  default attributes for this source type
+   *
+   * @returns {integer} the ID of the newly-created record
+   */
+  insertSourceType: function(aName, aType, aMachineURI, aLastRefreshed, aAttributes) {
+    try {
+      this._insertSourceTypeStatement.params.name = aName;
+      this._insertSourceTypeStatement.params.type = aType;
+      this._insertSourceTypeStatement.params.machineURI = aMachineURI;
+      this._insertSourceTypeStatement.params.lastRefreshed = aLastRefreshed;
+      this._insertSourceTypeStatement.params.attributes = JSON.stringify(aAttributes);
+      this._insertSourceTypeStatement.execute();
+    }
+    finally {
+      this._insertSourceTypeStatement.reset();
+    }
+
+    return this.dbConnection.lastInsertRowID;
+  },
+
   get _insertMessageStatement() {
     let statement = this.createStatement(
       "INSERT INTO messages(sourceID, externalID, subject, authorID, timestamp, received, link) \
