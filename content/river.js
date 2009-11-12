@@ -1144,6 +1144,9 @@ dump("onMessageAdded: " + message + "\n");
   },
 
   onMessagesCompleted: function(aSourceId) {
+    // River view doesn't unload observers when page is closed.
+    if (typeof SnowlService == 'undefined')
+      return;
     // Enable refresh button.
     if (SnowlService.refreshingCount == 0)
       SnowlMessageView._refreshButton.removeAttribute("disabled");
