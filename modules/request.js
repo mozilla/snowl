@@ -97,7 +97,15 @@ function Request(args) {
   this._log.trace("sending request with body: " + this.body);
   // XXX This will throw an exception NS_ERROR_FAILURE if the domain name
   // cannot be resolved.  How should we handle this?
-  return this._request.send(this.body);
+  try {
+    this._request.send(this.body);
+  }
+  catch (ex) {
+    this.error = true;
+    this.throwText = ex;
+  }
+
+  return;
 }
 
 Request.prototype = {
@@ -105,6 +113,9 @@ Request.prototype = {
   async: false,
   body: null,
   requestHeaders: null,
+  error: false,
+  throwStatus : "GET:error",
+  throwText : "",
 
   get _log() {
     let log = Log4Moz.repository.getLogger("Request");
@@ -112,13 +123,15 @@ Request.prototype = {
     return this._log;
   },
 
-  get status() this._request.status,
+  get status() {
+    return this.error ? this.throwStatus : this._request.status;
+  },
 
   // Sometimes getting statusText throws.  When it does, we return the exception
   // instead, which seems more useful.
   get statusText() {
     try {
-      return this._request.statusText;
+      return this.error ? this.throwText : this._request.statusText;
     }
     catch(ex) {
       return ex;

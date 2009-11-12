@@ -73,6 +73,11 @@ let SnowlMessageView = {
     return this._writeForm = document.getElementById("writeForm");
   },
 
+  get _refreshButton() {
+    delete this._refreshButton;
+    return this._refreshButton = document.getElementById("snowlRefreshButton");
+  },
+
   _window: null,
   _document: null,
 
@@ -102,9 +107,10 @@ let SnowlMessageView = {
   // Initialization & Destruction
 
   onLoad: function() {
-    Observers.add("snowl:message:added",   this.onMessageAdded,   this);
-    Observers.add("snowl:source:added",    this.onSourcesChanged, this);
-    Observers.add("snowl:source:unstored", this.onSourceRemoved,  this);
+    Observers.add("snowl:message:added",      this.onMessageAdded,      this);
+    Observers.add("snowl:source:added",       this.onSourcesChanged,    this);
+    Observers.add("snowl:source:unstored",    this.onSourceRemoved,     this);
+    Observers.add("snowl:messages:completed", this.onMessagesCompleted, this);
 
     this.onResize();
 
@@ -146,9 +152,10 @@ let SnowlMessageView = {
   },
 
   onunLoad: function() {
-    Observers.remove("snowl:message:added",   this.onMessageAdded,   this);
-    Observers.remove("snowl:source:added",    this.onSourcesChanged, this);
-    Observers.remove("snowl:source:unstored", this.onSourceRemoved,  this);
+    Observers.remove("snowl:message:added",      this.onMessageAdded,      this);
+    Observers.remove("snowl:source:added",       this.onSourcesChanged,    this);
+    Observers.remove("snowl:source:unstored",    this.onSourceRemoved,     this);
+    Observers.remove("snowl:messages:completed", this.onMessagesCompleted, this);
   },
 
   _initWriteForm: function() {
@@ -213,6 +220,15 @@ let SnowlMessageView = {
     // We don't currently have a way to remove just the messages
     // from the removed source, so rebuild the entire view.
     this._rebuildView();
+  },
+
+  onMessagesCompleted: function(aSourceId) {
+    // Enable refresh button.
+    if (SnowlService.refreshingCount == 0)
+      this._refreshButton.removeAttribute("disabled");
+    // Disable refresh button.
+    if (aSourceId == "refresh")
+      this._refreshButton.setAttribute("disabled", true);
   },
 
   onToggleGroup: function(event) {

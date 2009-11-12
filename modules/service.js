@@ -388,9 +388,12 @@ let SnowlService = {
     let cachedsource, refreshSources = [];
     let allSources = sources ? sources : this.sourcesByID;
 
+    if (this.refreshingCount > 0)
+      // Do not refresh if any source in the current cycle is not finished.
+      return;
+
     // Set busy property, reset states.
     for each (let source in allSources) {
-this._log.info("refreshStaleSources: int - "+source.refreshInterval);
       cachedsource = this.sourcesByID[source.id];
       if (cachedsource) {
         if (cachedsource.attributes.refresh["status"] == "paused")
@@ -407,7 +410,8 @@ this._log.info("refreshStaleSources: int - "+source.refreshInterval);
 this._log.info("refreshAllSources: count - "+this.refreshingCount);
 
     if (refreshSources.length > 0)
-      // Invalidate collections tree to show new state.
+      // Invalidate collections tree to show new state.  Also disable list view
+      // refresh button so no db concurrency trouble.
       Observers.notify("snowl:messages:completed", "refresh");
 
     // We specify the same refresh time when refreshing sources so that all

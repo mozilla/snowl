@@ -88,8 +88,8 @@ let CollectionsView = {
   },
 
   get _refreshButton() {
-    delete this._toggleListToolbarButton;
-    return this._toggleListToolbarButton = document.getElementById("snowlRefreshButton");
+    delete this._refreshButton;
+    return this._refreshButton = document.getElementById("snowlRefreshButton");
   },
 
   get _toggleListToolbarButton() {
@@ -226,6 +226,9 @@ let CollectionsView = {
     // Enable refresh button.
     if (SnowlService.refreshingCount == 0)
       this._refreshButton.removeAttribute("disabled");
+    // Disable refresh button.
+    if (aSourceId == "refresh")
+      this._refreshButton.setAttribute("disabled", true);
   },
 
   onSourceRemoved: function() {

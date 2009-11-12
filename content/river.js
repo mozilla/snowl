@@ -225,6 +225,11 @@ let SnowlMessageView = {
     return this._writeForm = document.getElementById("writeForm");
   },
 
+  get _refreshButton() {
+    delete this._refreshButton;
+    return this._refreshButton = document.getElementById("snowlRefreshButton");
+  },
+
   get _dogmark() {
     delete this._dogmark;
     return this._dogmark = document.getElementById("dogmark");
@@ -996,8 +1001,9 @@ let Sources = {
 
   onLoad: function() {
     this._rebuild();
-    Observers.add("snowl:source:unstored", this.onSourceUnstored, this);
-    Observers.add("snowl:message:added", this.onMessageAdded, this);
+    Observers.add("snowl:source:unstored",    this.onSourceUnstored,    this);
+    Observers.add("snowl:message:added",      this.onMessageAdded,      this);
+    Observers.add("snowl:messages:completed", this.onMessagesCompleted, this);
   },
 
   onSelect: function(event) {
@@ -1135,6 +1141,15 @@ dump("onMessageAdded: " + message + "\n");
         break;
       }
     }
+  },
+
+  onMessagesCompleted: function(aSourceId) {
+    // Enable refresh button.
+    if (SnowlService.refreshingCount == 0)
+      SnowlMessageView._refreshButton.removeAttribute("disabled");
+    // Disable refresh button.
+    if (aSourceId == "refresh")
+      SnowlMessageView._refreshButton.setAttribute("disabled", true);
   },
 
 
