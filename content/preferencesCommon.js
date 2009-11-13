@@ -43,19 +43,55 @@ let SnowlPreferencesCommon = {
   },
 
   _queryId: null,
+  _sourceType: null,
 
   // Type of source, default attribute values.
   SourceType: null,
   // This message source.
   Source: null,
 
-  initProperties: function(aQueryId) {
+  onPaneLoad: function() {
+    // On preferences dialog load.
+    this._sourceType = this._("settingsRadio").selectedItem.value;
+    this.SourceType = SnowlService._accountTypesByType[this._sourceType];
+    this.Source = this.SourceType;
+
+//SnowlPreferences._log.info("onPaneLoad: type - "+this._sourceType);
+//SnowlPreferences._log.info("onPaneLoad: attributes - "+this.Source.attributes.toSource());
+
+    this._("refreshStatusBox").hidden = true;
+    this._("refresh.useDefault").label = SnowlPreferences._strings.get("settingsDefaultText");
+    this._("retention.useDefault").label = SnowlPreferences._strings.get("settingsDefaultText");
+
+    this.initSettings();
+    this.onCheckKeepMsg();
+  },
+
+  initProperties: function(aQueryId, aName) {
+    // On properties dialog load.
     this._queryId = aQueryId;
     this.Source = SnowlService.sourcesByID[this._queryId];
-    this.SourceType = SnowlService._accountTypesByType[this.Source.constructor.name];
-//this._log.info("initProperties: attributes - "+aQueryId);
+
+    if (!this.Source) {
+      this._log.error(aName + ", places id " + this._queryId +
+                      ", is not found - remove this source or rebuild database.");
+      this._("bookmarkproperties").cancelDialog();
+      return;
+    }
+
+    this._sourceType = this.Source.constructor.name;
+    this.SourceType = SnowlService._accountTypesByType[this._sourceType];
+//this._log.info("initProperties: queryId - "+this._queryId);
 //this._log.info("initProperties: attributes - "+this.Source.attributes.toSource());
 
+    this.initSettings();
+    this._("refreshState").value = this.Source.attributes.refresh["status"];
+    this._("refreshDate").value = SnowlDateUtils._formatDate(this.Source.lastRefreshed);
+    this._("refreshCode").value = this.Source.attributes.refresh["code"];
+    this._("refreshError").value = this.Source.attributes.refresh["text"];
+  },
+
+  initSettings: function() {
     // Refresh settings.
     if ("refresh" in this.Source.attributes &&
         "useDefault" in this.Source.attributes.refresh &&
@@ -71,11 +107,6 @@ let SnowlPreferencesCommon = {
     else
       this._("refresh.minutes").value =
           this.SourceType.attributes.refresh["interval"] / 1000 / 60;
-
-    this._("refreshState").value = this.Source.attributes.refresh["status"];
-    this._("refreshDate").value = SnowlDateUtils._formatDate(this.Source.lastRefreshed);
-    this._("refreshCode").value = this.Source.attributes.refresh["code"];
-    this._("refreshError").value = this.Source.attributes.refresh["text"];
 
     this.onUseDefaultRefreshSettings();
 
@@ -127,6 +158,10 @@ let SnowlPreferencesCommon = {
   },
 
   onUseDefaultRefreshSettings: function() {
+    if (!this._queryId)
+      // Not for source type preferences.
+      return;
+
     let useDefault = document.getElementById("refresh.useDefault").checked;
     this._('refreshMinutes').disabled = useDefault;
     this._('refresh.minutes').disabled = useDefault;
@@ -134,16 +169,18 @@ let SnowlPreferencesCommon = {
   },
 
   onUseDefaultRetentionSettings: function() {
+    if (!this._queryId)
+      // Not for source type preferences.
+      return;
+
     let useDefault = document.getElementById("retention.useDefault").checked;
     this._('retention.keepMsg').disabled = useDefault;
     this._('retention.keepNewMsgMinLabel').disabled = useDefault;
     this._('retention.keepOldMsgMinLabel').disabled = useDefault;
 
     let keepMsg = document.getElementById("retention.keepMsg").value;
-    this._('retention.keepNewMsgMin').disabled =
-        useDefault || keepMsg != 1;
-    this._('retention.keepOldMsgMin').disabled =
-        useDefault || keepMsg != 2;
+    this._('retention.keepNewMsgMin').disabled = useDefault || keepMsg != 1;
+    this._('retention.keepOldMsgMin').disabled = useDefault || keepMsg != 2;
   },
 
   onCheckKeepMsg: function() {
@@ -162,7 +199,13 @@ let SnowlPreferencesCommon = {
     this.Source.attributes.retention["deleteNumber"] = this._("retention.keepOldMsgMin").valueNumber;
     this.Source.attributes.retention["keepFlagged"] = this._("retention.keepFlagged").checked;
     this.Source.persistAttributes();
-    SnowlService.sourcesByID[this._queryId].attributes = this.Source.attributes;
+//this._log.info("persistProperties: source - "+this.Source.name);
+    if (this._queryId)
+      // An individual source.
+      SnowlService.sourcesByID[this._queryId].attributes = this.Source.attributes;
+    else
+      // A source type.
+      SnowlService._accountTypesByType[this._sourceType = this.Source.attributes];
   }
 
 }

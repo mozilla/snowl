@@ -89,8 +89,8 @@ BookmarkPropertiesPanel._fillEditProperties =
       this._mode = dialogInfo.mode;
       this._queryId = dialogInfo.queryId;
 //this._log.info("_fillEditProperties: queryId - "+this._queryId);
-      SnowlPreferencesCommon.initProperties(this._queryId);
-      
+
+      SnowlPreferencesCommon.initProperties(this._queryId, this._title);
     }
 };
 

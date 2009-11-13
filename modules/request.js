@@ -95,8 +95,8 @@ function Request(args) {
   }
 
   this._log.trace("sending request with body: " + this.body);
-  // XXX This will throw an exception NS_ERROR_FAILURE if the domain name
-  // cannot be resolved.  How should we handle this?
+  // Cleanly handle NS_ERROR_FAILURE exceptions, thrown if the domain name
+  // cannot be resolved.
   try {
     this._request.send(this.body);
   }
@@ -114,7 +114,7 @@ Request.prototype = {
   body: null,
   requestHeaders: null,
   error: false,
-  throwStatus : "GET:error",
+  throwStatus : "connection:error",
   throwText : "",
 
   get _log() {

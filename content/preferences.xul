@@ -38,7 +38,10 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <?xml-stylesheet href="chrome://global/skin/"?>
+<?xml-stylesheet href="chrome://browser/skin/"?>
 <?xml-stylesheet href="chrome://snowl/content/preferences.css"?>
+
+<?xul-overlay href="chrome://snowl/content/preferencesCustomize.xul"?>
 
 <!DOCTYPE prefwindow [
   <!ENTITY % snowlPreferencesDTD SYSTEM "chrome://snowl/locale/preferences.dtd">
@@ -52,10 +55,12 @@
             type="prefwindow"
             windowtype="Snowl:Preferences"
             XXXondialoghelp="openPrefsHelp()"
+            ondialogaccept="SnowlPreferences.onAccept();"
             persist="width height screenX screenY lastSelected sizemode"
-            onload="SnowlPreferences.onLoad()">
+            onload="SnowlPreferences.onLoad();">
 
   <script type="application/javascript" src="chrome://snowl/content/preferences.js"/>
+  <script type="application/javascript" src="chrome://snowl/content/preferencesCommon.js"/>
   <script type="application/javascript" src="chrome://snowl/content/strands.js"/>
   <script type="application/javascript" src="chrome://snowl/content/subscribe.js"/>
 
@@ -180,7 +185,33 @@
       <description id="statusMessage" flex="1"/>
     </hbox>
   </prefpane>
-  
+
+  <!-- Settings -->
+  <prefpane id="settings"
+            flex="1"
+            label="&settings.title;"
+            onpaneload="SnowlPreferencesCommon.onPaneLoad();">
+      <groupbox>
+        <caption label="&settings.label;"/>
+        <radiogroup id="settingsRadio"
+                    orient="horizontal"
+                    oncommand="SnowlPreferencesCommon.onPaneLoad();">
+          <!-- Attribute value must equal the source type's contstructor name. -->
+          <radio label="&feeds.label;"
+                 value="SnowlFeed"
+                 accesskey="&feeds.accesskey;"/>
+          <radio label="&twitter.label;"
+                 value="SnowlTwitter"
+                 accesskey="&twitter.accesskey;"/>
+          <!--<radio label="&mail.label;" disabled="true"-->
+          <!--       accesskey="&mail.accesskey;"/>-->
+          <!--<radio label="&newsgroup.label;" disabled="true"-->
+          <!--       accesskey="&newsgroup.accesskey;"/>-->
+        </radiogroup>
+        <vbox id="editBookmarkPanelContent"/>
+      </groupbox>
+  </prefpane>
+
   <!-- Subscriptions
   <prefpane id="subscriptions"
             label="&subscriptions.title;"

@@ -102,6 +102,11 @@ let SnowlPreferences = {
   onPaneLoad: function() {
     Subscriber.addObservers();
     window.addEventListener("unload", function() { Subscriber.removeObservers(); }, false);
+    SnowlPreferencesCommon._log = this._log;
+  },
+
+  onAccept: function() {
+    SnowlPreferencesCommon.persistProperties();
   },
 
   onSubscribeFeed: function() {

@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ***** BEGIN LICENSE BLOCK *****
+   - Version: MPL 1.1/GPL 2.0/LGPL 2.1
+   -
+   - The contents of this file are subject to the Mozilla Public License Version
+   - 1.1 (the "License"); you may not use this file except in compliance with
+   - the License. You may obtain a copy of the License at
+   - http://www.mozilla.org/MPL/
+   -
+   - Software distributed under the License is distributed on an "AS IS" basis,
+   - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+   - for the specific language governing rights and limitations under the
+   - License.
+   -
+   - The Original Code is Snowl.
+   -
+   - The Initial Developer of the Original Code is Mozilla.
+   - Portions created by the Initial Developer are Copyright (C) 2008
+   - the Initial Developer. All Rights Reserved.
+   -
+   - Contributor(s):
+   -   alta88 <alta88@gmail.com>
+   -
+   - Alternatively, the contents of this file may be used under the terms of
+   - either the GNU General Public License Version 2 or later (the "GPL"), or
+   - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+   - in which case the provisions of the GPL or the LGPL are applicable instead
+   - of those above. If you wish to allow use of your version of this file only
+   - under the terms of either the GPL or the LGPL, and not to allow others to
+   - use your version of this file under the terms of the MPL, indicate your
+   - decision by deleting the provisions above and replace them with the notice
+   - and other provisions required by the GPL or the LGPL. If you do not delete
+   - the provisions above, a recipient may use your version of this file under
+   - the terms of any one of the MPL, the GPL or the LGPL.
+   -
+   - ***** END LICENSE BLOCK ***** -->
+
+<!DOCTYPE prefwindow [
+  <!ENTITY % snowlPreferencesDTD SYSTEM "chrome://snowl/locale/preferences.dtd">
+  %snowlPreferencesDTD;
+]>
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <!-- Overlay settings onto both preferences.xul and bookmarkProperties.xul2 -->
+  <vbox id="editBookmarkPanelContent">
+    <separator/>
+    <tabbox id="folderPropTabBox">
+      <tabs id="folderPropTabs">
+        <tab id="Refresh"
+             label="&refresh.label;"/>
+        <tab id="Retention"
+             label="&retention.label;"/>
+      </tabs>
+      <!--  -->
+
+      <tabpanels id="folderPropTabPanels">
+        <vbox id="RefreshPanel">
+          <description hidefor="imap,pop3" class="desc">&refreshText.label;</description>
+          <hbox align="center">
+            <checkbox id="refresh.useDefault"
+                      accesskey="&retentionUseType.accesskey;"
+                      label="&retentionUseType.label;"
+                      oncommand="SnowlPreferencesCommon.onUseDefaultRefreshSettings()"/>
+          </hbox>
+          <hbox id="refreshBox"
+                class="indent"
+                align="center">
+            <label id="refreshMinutes"
+                   value="&refreshMinutes.label;"
+                   control="refresh.minutes"
+                   accesskey="refreshMinutes.accesskey;"/>
+            <textbox id="refresh.minutes"
+                     type="number"
+                     min="1"
+                     size="4"
+                     value="40"
+                     aria-labelledby="refreshMinutes refresh.minutes refresh.minutesLabel"/>
+            <label id="refresh.minutesLabel"
+                   value="&minutes.label;"
+                   control="refresh.minutes"/>
+          </hbox>
+          <vbox id="refreshStatusBox"
+                hidden="">
+            <separator/>
+            <description id="refreshDefaultText" class="desc">&refreshStatus.label;</description>
+            <grid flex="1">
+              <columns>
+                <column/>
+                <column flex="1"/>
+              </columns>
+              <rows>
+                <row align="center">
+                  <label value="&refreshState.label;"
+                         control="refreshState"/>
+                  <textbox id="refreshState"
+                           readonly="true"/>
+                </row>
+                <row align="center">
+                  <label value="&refreshDate.label;"
+                         control="refreshDate"/>
+                  <textbox id="refreshDate"
+                           readonly="true"/>
+                </row>
+                <row align="center">
+                  <label value="&refreshCode.label;"
+                         control="refreshCode"/>
+                  <textbox id="refreshCode"
+                           readonly="true"/>
+                </row>
+                <row align="center">
+                  <label value="&refreshError.label;"
+                         control="refreshError"/>
+                  <textbox id="refreshError"
+                           readonly="true"/>
+                </row>
+              </rows>
+            </grid>
+          </vbox>
+        </vbox>
+        <vbox id="RetentionPanel" align="start">
+          <description hidefor="imap,pop3" class="desc">&retentionCleanup.label;</description>
+          <hbox align="center">
+            <checkbox id="retention.useDefault"
+                      accesskey="&retentionUseType.accesskey;"
+                      label="&retentionUseType.label;"
+                      oncommand="SnowlPreferencesCommon.onUseDefaultRetentionSettings()"/>
+          </hbox>
+          <vbox>
+            <hbox class="indent">
+              <radiogroup id="retention.keepMsg"
+                          aria-labelledby="retention.useDefault">
+                <radio value="0"
+                       accesskey="&retentionKeepAll.accesskey;"
+                       label="&retentionKeepAll.label;"
+                       oncommand="SnowlPreferencesCommon.onCheckKeepMsg();"/>
+                <hbox flex="1" align="center">
+                  <radio id="keepNewMsg"
+                         accesskey="&retentionKeepRecent.accesskey;" 
+                         value="1"
+                         label="&retentionKeepRecent.label;"
+                         oncommand="SnowlPreferencesCommon.onCheckKeepMsg();"/>
+                  <textbox id="retention.keepNewMsgMin"
+                           type="number"
+                           min="1"
+                           increment="10"
+                           size="4"
+                           value="100"
+                           aria-labelledby="keepNewMsg retention.keepNewMsgMin retention.keepNewMsgMinLabel"/>
+                  <label id="retention.keepNewMsgMinLabel"
+                         value="&message.label;"
+                         control="retention.keepNewMsgMin"/>
+                </hbox>
+                <hbox flex="1" align="center">
+                  <radio id="keepMsg"
+                         accesskey="&retentionDeleteMsg.accesskey;"
+                         value="2"
+                         label="&retentionDeleteMsg.label;"
+                         oncommand="SnowlPreferencesCommon.onCheckKeepMsg();"/>
+                  <textbox id="retention.keepOldMsgMin"
+                           type="number"
+                           min="1"
+                           size="2"
+                           value="30"
+                           aria-labelledby="keepMsg retention.keepOldMsgMin retention.keepOldMsgMinLabel"/>
+                  <label value="&daysOld.label;"
+                         control="retention.keepOldMsgMin"
+                         id="retention.keepOldMsgMinLabel"/>
+                </hbox>
+              </radiogroup>
+            </hbox>
+            <hbox class="indent">
+              <vbox>
+                <checkbox id="retention.keepFlagged"
+                          label="&retentionKeepFlagged.label;"
+                          accesskey="&retentionKeepFlagged.accesskey;"
+                          observes="retention.keepMsg" checked="true"/>
+              </vbox>
+            </hbox>
+          </vbox>
+        </vbox>
+      <!--  -->
+      </tabpanels>
+    </tabbox>
+  </vbox>
+</overlay>

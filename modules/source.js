@@ -243,11 +243,14 @@ SnowlSource.prototype = {
 
   // A JavaScript Date object representing the last time this source
   // was checked for updates to its set of messages.  If source attributes not
-  // set to use default source type value, then use the sources custom value.
+  // set to use default source type value *and* source type setting does not
+  // override customizations on individual sources, then use the custom value.
   lastRefreshed: null,
 
   get refreshInterval() {
-    return this.attributes.refresh["useDefault"] ?
+    return this.attributes.refresh["useDefault"] ||
+        SnowlService._accountTypesByType[this.constructor.name].
+                     attributes.refresh["useDefault"] ?
         SnowlService._accountTypesByType[this.constructor.name].
                      attributes.refresh["interval"] :
         this.attributes.refresh["interval"];

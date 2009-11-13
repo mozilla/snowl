@@ -17,6 +17,9 @@
 <!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title                         "Snowl: Subscribe to Message Source">
 
+<!-- Customize pane -->
+<!ENTITY settings.title                     "Customize">
+<!ENTITY settings.label                     "Customize default settings for a Message Source type">
 
 <!-- The entities below are commented out because they aren't being used yet,
    - and they may change before we start using them, so don't localize them. -->
@@ -37,8 +40,8 @@
 
 <!-- Refresh and Retention panel entities, currently used by Properties dialog -->
 <!ENTITY refresh.label                      "Refresh">
-<!ENTITY refreshText.label                  "The refresh interval may be customized for this source.">
-<!ENTITY refreshMinutes.label               "Refresh this source every">
+<!ENTITY refreshText.label                  "The refresh interval may be customized.">
+<!ENTITY refreshMinutes.label               "Refresh every">
 <!ENTITY refreshMinutes.accesskey           "R">
 <!ENTITY minutes.label                      "minutes">
 <!ENTITY refreshStatus.label                "Current refresh connection status for this source.">
@@ -48,7 +51,7 @@
 <!ENTITY refreshError.label                 "Last error message:">
 
 <!ENTITY retention.label                    "Retention">
-<!ENTITY retentionCleanup.label             "Messages for this source can be deleted according to the following rules.">
+<!ENTITY retentionCleanup.label             "Messages can be deleted according to the following rules.">
 <!ENTITY retentionUseType.label             "Use default setting for this message type">
 <!ENTITY retentionUseType.accesskey         "d">
 <!ENTITY retentionKeepAll.label             "Don't delete any messages">

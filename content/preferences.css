@@ -46,11 +46,13 @@
   list-style-image: url("chrome://snowl/content/icons/snowl-40.png");
 }
 
-radio[pane="subscribe"],
-radio[pane="subscribe"]:hover,
-radio[pane="subscribe"][selected="true"],
-radio[pane="subscribe"]:active {
-  -moz-image-region: rect(0px, 0px, 0px, 0px)
+#SnowlPreferences radio[pane="settings"] {
+  list-style-image: url("chrome://browser/skin/preferences/Options.png");
+  -moz-image-region: rect(0px, 224px, 32px, 192px)  
+}
+
+prefpane#settings .indent {
+  margin-left: 0px;
 }
 
 /* pinstripe description */
@@ -87,25 +89,6 @@ radio[pane="subscribe"]:active {
 
 #statusIcon[status="error"] {
   list-style-image: url("chrome://global/skin/icons/error-16.png");
-}
-
-/******************************************************************************/
-/* Feed Subscribe page */
-
-#content {
-  border: 1px solid threedshadow;
-  padding: 1em;
-  -moz-border-radius: 10px;
-  background-color: -moz-field;
-  color: -moz-fieldtext;
-  width: 44em;
-}
-
-#title {
-  font-size: 2em;
-  margin-top: 0;
-  margin-bottom: 0.5em;
-  border-bottom: 1px solid threedlightshadow;
 }
 
 /******************************************************************************/
