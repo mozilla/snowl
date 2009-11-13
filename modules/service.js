@@ -120,10 +120,6 @@ let SnowlService = {
 
     Observers.add("snowl:source:added",    this.onSourcesChanged, this);
     Observers.add("snowl:source:unstored", this.onSourcesChanged, this);
-
-    // FIXME: refresh stale sources on startup in a way that doesn't hang
-    // the UI thread.
-    //this.refreshStaleSources();
   },
 
   _timer: null,
@@ -231,23 +227,14 @@ let SnowlService = {
 
     try {
       this._initAccountAttributesStatement.params.type = constructor.name;
-      while (this._initAccountAttributesStatement.step()) { //&& count < 5
+      while (this._initAccountAttributesStatement.step()) {
         account = this._constructAccount(this._initAccountAttributesStatement.row);
         meldAttributes = typeAttributes;
-
-//this._log.info("initAccountAttributes: OLD name:account.attributes - "+
-//  account.name + " : " + account.attributes.toSource());
-//this._log.info("initAccountAttributes: TYPE.attributes - "+meldAttributes.toSource());
-
         Mixins.meld(account.attributes, false, true, SnowlService._log).into(meldAttributes);
         // Meld any existing db attributes into new typeAttributes; those removed
         // are thus tossed.  Set new account attributes back and persist.
         account.attributes = meldAttributes;
-//this._log.info("initAccountAttributes: NEW name:account.attributes - "+
-//  account.name + " : " + account.attributes.toSource() +"\n");
-//this._log.info("\n");
         account.persistAttributes();
-//        count++;
       }
     }
     finally {
@@ -258,9 +245,7 @@ let SnowlService = {
 
   _constructAccount: function(row) {
     let type = row.type == "SnowlAccountType" ? row.machineURI : row.type;
-//this._log.info("accounts: type:name - "+type+" : "+row.name);
     let constructor = this._accountTypeConstructors[type];
-//this._log.info("accounts: constructor - "+constructor);
     if (!constructor)
       throw "no constructor for type " + row.type;
 
@@ -289,7 +274,6 @@ let SnowlService = {
    */
   _accountTypesByType: {},
   get accounts() {
-//this._log.info("accounts: GET accounts");
     let accounts = [];
     try {
       while (this._accountsStatement.step()) {
@@ -313,7 +297,6 @@ let SnowlService = {
   },
 
   get sources() {
-//this._log.info("accounts: GET sources");
     return this.accounts.filter(function(acct) acct.implements(SnowlSource));
   },
 
@@ -329,7 +312,6 @@ let SnowlService = {
   },
 
   get targets() {
-//this._log.info("accounts: GET targets");
     return this.accounts.filter(function(acct) acct.implements(SnowlTarget));
   },
 
@@ -360,7 +342,7 @@ let SnowlService = {
       return;
     }
 
-    this._log.info("refreshing stale sources");
+    this._log.debug("refreshing stale sources");
 
     let now = new Date();
     let staleSources = [];
@@ -407,7 +389,8 @@ let SnowlService = {
       refreshSources.push(source);
       this.refreshingCount = ++this.refreshingCount;
     }
-this._log.info("refreshAllSources: count - "+this.refreshingCount);
+
+    this._log.debug("refreshAllSources: count - "+this.refreshingCount);
 
     if (refreshSources.length > 0)
       // Invalidate collections tree to show new state.  Also disable list view

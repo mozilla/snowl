@@ -87,29 +87,19 @@ function mixin(source, target) {
  */
 function meldin(source, target, keep, replace, logger) {
   for (let attribute in source) {
-//logger.info("meldin: - keep:replace:attribute - " +keep+" : " +replace+" : " + attribute);
     // Recursive mixin of objects of objects
     if (typeof source[attribute] == "object" && typeof target[attribute] == "object") {
-//logger.info("meldin: - Object MATCH - " +attribute);
       meldin(source[attribute], target[attribute], keep, replace, logger);
     }
     else {
-//logger.info("meldin: - Property - " +attribute);
-
       // Don't mix in attributes that already exist in the target, unless replace
       // is false.
-      if (attribute in target && !replace) {
-//logger.info("meldin: - SKIP (!replace) - " +attribute);
+      if (attribute in target && !replace)
         continue;
-      }
 
       // Don't add attributes in target but not in source to source if keep is false.
-      if (!(attribute in target) && !keep) {
-//logger.info("meldin: - SKIP (!keep) - " +attribute);
+      if (!(attribute in target) && !keep)
         continue;
-      }
-
-//logger.info("meldin: - add/replace to Target - " +attribute);
 
       let getter = source.__lookupGetter__(attribute);
       let setter = source.__lookupSetter__(attribute);

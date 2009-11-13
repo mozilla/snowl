@@ -343,7 +343,6 @@ SnowlTwitter.prototype = {
   refresh: function(time) {
     if (typeof time == "undefined" || time == null)
       time = new Date();
-//    this._log.info("start refresh " + this.username + " at " + time);
 
     Observers.notify("snowl:refresh:connect:start", this);
 

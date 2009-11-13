@@ -56,14 +56,12 @@ BookmarkPropertiesPanel._fillAddProperties =
   function BPP__fillAddProperties() {
     let dialogInfo = window.arguments[0];
     if ("mode" in dialogInfo && dialogInfo.mode == "view") {
-//this._log.info("_fillAddProperties: custom START");
       this._mode = dialogInfo.mode;
       document.title = this._title;
       this._createNewView();
       // Edit the new item
       gEditItemOverlay.initPanel(this._itemId,
                                  { hiddenRows: this._hiddenRows });
-//this._log.info("_fillAddProperties: custom END");
       return;
     }
 
@@ -75,7 +73,6 @@ BookmarkPropertiesPanel.Places_fillEditProperties =
 
 BookmarkPropertiesPanel._fillEditProperties =
   function BPP__fillEditProperties() {
-//this._log.info("_fillEditProperties: custom START");
     this.Places_fillEditProperties();
 
     // Sources/Authors location field readonly; no sidebar for snowl query.
@@ -88,8 +85,6 @@ BookmarkPropertiesPanel._fillEditProperties =
     if ("mode" in dialogInfo && dialogInfo.mode == "properties") {
       this._mode = dialogInfo.mode;
       this._queryId = dialogInfo.queryId;
-//this._log.info("_fillEditProperties: queryId - "+this._queryId);
-
       SnowlPreferencesCommon.initProperties(this._queryId, this._title);
     }
 };
@@ -99,7 +94,6 @@ BookmarkPropertiesPanel.Places_onDialogAccept =
 
 BookmarkPropertiesPanel.onDialogAccept =
   function BPP__onDialogAccept() {
-//this._log.info("onDialogAccept: START ");
     SnowlPreferencesCommon.persistProperties(this._queryId);
 
     // Update names for a View or Source/Author item, if changed.
@@ -133,14 +127,12 @@ BookmarkPropertiesPanel._createNewView =
     PlacesUIUtils.ptm.doTransaction(txn);
     this._itemId = PlacesUtils.bookmarks.getIdForItemAt(SnowlPlaces.userRootID,
                                                         SnowlPlaces.DEFAULT_INDEX);
-//this._log.info("_createNewView: folder itemid:title - "+this._itemId+" : "+this._title);
 
     var txn = this._getCreateNewViewShortcutTransaction(SnowlPlaces.collectionsSystemID,
                                                         SnowlPlaces.DEFAULT_INDEX);
     PlacesUIUtils.ptm.doTransaction(txn);
     this._itemId = PlacesUtils.bookmarks.getIdForItemAt(SnowlPlaces.collectionsSystemID,
                                                         SnowlPlaces.DEFAULT_INDEX);
-//this._log.info("_createNewView: shortcut itemid:title - "+this._itemId+" : "+this._title);
 };
 
 /**

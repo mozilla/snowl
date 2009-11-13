@@ -491,7 +491,6 @@ SnowlFeed.prototype = {
           if (value.uri && value.uri.spec)
             message.headers["atom:author" + (count == 1 ? "" : count) + "_uri"] = value.uri.spec;
           count++;
-//this._log.info("header-authors: name:value - "+field.name+" : "+value.toSource());
         }
       }
 
@@ -513,7 +512,6 @@ SnowlFeed.prototype = {
           if (value.get("length"))
             message.headers["atom:link" + count + "_length"] = value.get("length");
           count++;
-//this._log.info("header-links: name:value - "+"atom:link_" + value.get('rel')+" : "+value.get("href"));
         }
       }
 
@@ -530,7 +528,6 @@ SnowlFeed.prototype = {
           if (value.label)
             message.headers["category" + count + "_label"] = value.label;
           count++;
-//this._log.info("header-categories: name:value - "+field.name+" : "+value.toSource());
         }
       }
 
@@ -542,7 +539,6 @@ SnowlFeed.prototype = {
         if (field.value instanceof Ci.nsIPropertyBag2) {
           let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
           message.headers[field.name] = value;
-//this._log.info("header-nsIPropertyBag2: name:value - "+field.name+" : "+value);
         }
         else if (field.value instanceof Ci.nsIArray) {
           let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
@@ -550,7 +546,6 @@ SnowlFeed.prototype = {
             // FIXME: values might not always have this interface.
             let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
             message.headers[field.name] = value.get(field.name);
-//this._log.info("header-nsIArray: name:value - "+field.name+" : "+value);
           }
         }
       }
@@ -558,11 +553,9 @@ SnowlFeed.prototype = {
       else {
         message.headers[field.name] = field.value.substring(0, 500) +
                                       (field.value.length > 500 ? " [...]" : "");
-//this._log.info("header: name:value - "+field.name+" : "+message.headers[field.name]);
       }
     }
 
-//this._log.info("headers: end - "+message.headers.toSource());
    return message;
   },
 
@@ -624,13 +617,9 @@ SnowlFeed.prototype = {
   }
 
 };
-//SnowlService._log.info("mixin: feed.attr - "+SnowlFeed.prototype.attributes.toSource());
-//SnowlService._log.info("mixin: source.attr - "+SnowlSource.prototype.attributes.toSource());
 
 Mixins.meld(SnowlSource.prototype.attributes, true, false, SnowlService._log).
        into(SnowlFeed.prototype.attributes);
-//SnowlService._log.info("mixin: DONE feed.attr - "+SnowlFeed.prototype.attributes.toSource());
-
 Mixins.mix(SnowlSource).into(SnowlFeed);
 Mixins.mix(SnowlSource.prototype).into(SnowlFeed.prototype);
 SnowlService.addAccountType(SnowlFeed, SnowlFeed.prototype.attributes);

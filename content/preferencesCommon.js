@@ -56,9 +56,6 @@ let SnowlPreferencesCommon = {
     this.SourceType = SnowlService._accountTypesByType[this._sourceType];
     this.Source = this.SourceType;
 
-//SnowlPreferences._log.info("onPaneLoad: type - "+this._sourceType);
-//SnowlPreferences._log.info("onPaneLoad: attributes - "+this.Source.attributes.toSource());
-
     this._("refreshStatusBox").hidden = true;
     this._("refresh.useDefault").label = SnowlPreferences._strings.get("settingsDefaultText");
     this._("retention.useDefault").label = SnowlPreferences._strings.get("settingsDefaultText");
@@ -81,8 +78,6 @@ let SnowlPreferencesCommon = {
 
     this._sourceType = this.Source.constructor.name;
     this.SourceType = SnowlService._accountTypesByType[this._sourceType];
-//this._log.info("initProperties: queryId - "+this._queryId);
-//this._log.info("initProperties: attributes - "+this.Source.attributes.toSource());
 
     this.initSettings();
     this._("refreshState").value = this.Source.attributes.refresh["status"];
@@ -117,10 +112,6 @@ let SnowlPreferencesCommon = {
       this._("retention.useDefault").checked = false;
     else
       this._("retention.useDefault").checked = true;
-
-//this._log.info("initProperties: deleteby - "+this.SourceType.attributes.retention["deleteBy"]);
-//this._log.info("initProperties: radio id 0 - "+document.getElementById("retention.keepMsg").id);
-//          childNodes[0].id);
 
     if ("retention" in this.Source.attributes &&
         "deleteBy" in this.Source.attributes.retention)
@@ -190,7 +181,6 @@ let SnowlPreferencesCommon = {
   },
 
   persistProperties: function(aQueryId) {
-//this._log.info("persistProperties: START - "+aQueryId);
     this.Source.attributes.refresh["useDefault"] = this._("refresh.useDefault").checked;
     this.Source.attributes.refresh["interval"] = this._("refresh.minutes").value * 1000 * 60;
     this.Source.attributes.retention["useDefault"] = this._("retention.useDefault").checked;
@@ -199,7 +189,6 @@ let SnowlPreferencesCommon = {
     this.Source.attributes.retention["deleteNumber"] = this._("retention.keepOldMsgMin").valueNumber;
     this.Source.attributes.retention["keepFlagged"] = this._("retention.keepFlagged").checked;
     this.Source.persistAttributes();
-//this._log.info("persistProperties: source - "+this.Source.name);
     if (this._queryId)
       // An individual source.
       SnowlService.sourcesByID[this._queryId].attributes = this.Source.attributes;

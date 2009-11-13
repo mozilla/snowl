@@ -508,7 +508,7 @@ SnowlSource.prototype = {
           "UPDATE sources " +
           "SET    placeID = " + this.placeID +
           " WHERE      id = " + this.id);
-this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id);
+        this._log.debug("persist placeID:sources.id - " + this.placeID + " : " + this.id);
 
         // Use 'added' here for collections observer for more specificity
         Observers.notify("snowl:source:added", this.placeID);
@@ -646,7 +646,6 @@ this._log.info("persist placeID:sources.id - " + this.placeID + " : " + this.id)
    * @param aCurrentMessageIDs  {array} messages table ids of the current list
    */
   updateCurrentMessages: function(aCurrentMessageIDs) {
-//this._log.info("updateCurrentMessages:  aCurrentMessageIDs - " + aCurrentMessageIDs);
     SnowlDatastore.dbConnection.executeSimpleSQL(
       "UPDATE messages SET current = " + MESSAGE_NON_CURRENT +
       " WHERE sourceID = " + this.id + " AND current = " + MESSAGE_CURRENT
