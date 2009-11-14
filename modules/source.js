@@ -193,7 +193,7 @@ SnowlSource.prototype = {
     // specified in order for its non-set value to remain null.
     this.importance = aImportance || null;
     this.placeID = aPlaceID;
-    this.attributes = aAttributes || this.attributes;
+    this.attributes = aAttributes || this.Attributes;
   },
 
   get _log() {
@@ -267,6 +267,10 @@ SnowlSource.prototype = {
   // The default global attributes for a all sources.  Source types may override
   // and add their own attributes (but need to consider such exceptions in
   // generic handling).  The attributes objects are combined by Mixins.meld().
+  // If a global or source type attribute is changed, db maintenance must remove
+  // that source type record (SnowlFeed, SnowlTwitter) so it may be rebuilt with
+  // all new values (also will overwrite user changes, if any), or update only
+  // those attributes changing.
   attributes: {
     refresh: {
       // If true for the default Type, overrides individual setting; if
@@ -298,6 +302,14 @@ SnowlSource.prototype = {
       // If true, messages will never be auto deleted.
       keepFlagged: true
     }
+  },
+
+  // Retrieve the melded global and source default attributes, and customizations,
+  // for seeding newly subscribed source attributes.
+  get Attributes() {
+    delete this._Attributes;
+    return this._Attributes =
+      SnowlService._accountTypesByType[this.constructor.name].attributes;
   },
 
   // The collection of messages from this source.

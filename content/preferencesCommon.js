@@ -194,7 +194,7 @@ let SnowlPreferencesCommon = {
       SnowlService.sourcesByID[this._queryId].attributes = this.Source.attributes;
     else
       // A source type.
-      SnowlService._accountTypesByType[this._sourceType = this.Source.attributes];
+      SnowlService._accountTypesByType[this._sourceType].attributes = this.Source.attributes;
   }
 
 }

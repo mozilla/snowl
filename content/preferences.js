@@ -145,7 +145,7 @@ let SnowlPreferences = {
     document.getElementById("nameTextbox").value = "";
     document.getElementById("twitterUsername").value = "";
     document.getElementById("twitterPassword").value = "";
-    SubscriptionListener.setStatus("none", "");
+    SubscriptionListener.setStatus("none", "", null);
   }
 
 }
