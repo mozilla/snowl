@@ -75,6 +75,7 @@ let SnowlDatastore = {
   // Database Creation & Access
 
   _dbVersion: 14,
+  _dbFileIsNew: false,
 
   _dbSchema: {
     // Note: datetime values like messages:timestamp are stored as Julian dates.
@@ -374,6 +375,7 @@ let SnowlDatastore = {
       dbConnection.schemaVersion = this._dbVersion;
       this._dbInsertDefaultData(dbConnection);
       dbConnection.commitTransaction();
+      this._dbFileIsNew = true;
     }
     catch(ex) {
       dbConnection.rollbackTransaction();
@@ -1458,9 +1460,12 @@ this._log.info("init: Initializing Snowl Places User Root...");
       snowlPlacesRoot = items[0];
       // Check snowl Places version
       let version = this.getPlacesVersion(snowlPlacesRoot);
-      if (version != this._placesVersion || !this._placesConverted) {
-        // If version is not valid or converted flag not set then rebuild the
-        // snowl Places structure.
+      if (version != this._placesVersion ||
+          !this._placesConverted ||
+          SnowlDatastore._dbFileIsNew) {
+        // If version is not current or converted flag not set or the messages
+        // db has been newly created (on new install or file not found/corrupt),
+        // then rebuild the snowl Places structure.
         PlacesUtils.bookmarks.removeItem(snowlPlacesRoot);
         snowlPlacesRoot = -1;
         this._placesConverted = false;

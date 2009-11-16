@@ -95,7 +95,8 @@ BookmarkPropertiesPanel.Places_onDialogAccept =
 
 BookmarkPropertiesPanel.onDialogAccept =
   function BPP__onDialogAccept() {
-    SnowlPreferencesCommon.persistProperties(this._queryId);
+    if (this._mode == "properties")
+      SnowlPreferencesCommon.persistProperties(this._queryId);
 
     // Update names for a View or Source/Author item, if changed.
     var newTitle = this._element("userEnteredName").label;
