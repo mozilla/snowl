@@ -758,6 +758,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   removeSource: function() {
+    // Need to confirm.
+    let titleMsg = strings.get("removeSourceTitleMsg");
+    let dialogMsg = strings.get("removeSourceDialogMsg");
+    if (!SnowlService._promptSvc.confirm(window, titleMsg, dialogMsg))
+      return;
+
     // Single selection removal of source for now; all messages, authors, and the
     // subscription are permanently removed.
     let source, sourceID, selectedSourceIDs = [];
@@ -785,6 +791,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   removeAuthor: function() {
+    // Need to confirm.
+    let titleMsg = strings.get("removeAuthorTitleMsg");
+    let dialogMsg = strings.get("removeAuthorDialogMsg");
+    if (!SnowlService._promptSvc.confirm(window, titleMsg, dialogMsg))
+      return;
+
     // Removing an author permanently purges all of the author's messages (they
     // do not go into a deleted status).
 //this._log.info("removeAuthor: START curIndex:curSelectedIndex = "+
@@ -883,6 +895,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   removeView: function() {
+    // Need to confirm.
+    let titleMsg = strings.get("removeViewTitleMsg");
+    let dialogMsg = strings.get("removeViewDialogMsg");
+    if (!SnowlService._promptSvc.confirm(window, titleMsg, dialogMsg))
+      return;
+
     if (this._tree.selectedNode) {
       let removeNode =
           this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
@@ -1609,23 +1627,19 @@ PlacesUIUtils.showItemProperties =
       readOnly: aReadOnly
     };
 
-    if (CollectionsView._tree.id == "sourcesView")
-      if (!CollectionsView.isBookmark()) {
-//SnowlPlaces._log.info("showItemProperties: Start");
-        let index = CollectionsView._tree.currentSelectedIndex;
-        let selectedSource = CollectionsView._tree.view.nodeForTreeIndex(index);
-        let query = new SnowlQuery(selectedSource.uri);
-        if (!query.queryTypeSource)
-          return;
-
-        info.mode = "properties";
+    if (CollectionsView._tree.id == "sourcesView") {
+      let index = CollectionsView._tree.currentSelectedIndex;
+      let selectedSource = CollectionsView._tree.view.nodeForTreeIndex(index);
+      let query = new SnowlQuery(selectedSource.uri);
+      if (query.queryProtocol == "snowl:") {
         info.queryId = query.queryID;
-//SnowlPlaces._log.info("showItemProperties: attributes - "+
-//  SnowlService.sourcesByID[query.queryID].attributes.toSource());
-//        info.attributes = SnowlService.sourcesByID[query.queryID].attributes;
-//SnowlPlaces._log.info("showItemProperties: attributes - "+info.attributes.toSource());
+        info.collection = query.queryTypeSource ? "source" : "author";
+        if (query.queryTypeSource)
+          info.mode = "properties";
+
         return this._showBookmarkDialog(info, true);
       }
+    }
 
     return this._showBookmarkDialog(info);
 };

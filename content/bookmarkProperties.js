@@ -82,7 +82,8 @@ BookmarkPropertiesPanel._fillEditProperties =
     }
 
     let dialogInfo = window.arguments[0];
-    if ("mode" in dialogInfo && dialogInfo.mode == "properties") {
+    if ("mode" in dialogInfo && dialogInfo.mode == "properties" &&
+        "collection" in dialogInfo && dialogInfo.collection == "source") {
       this._mode = dialogInfo.mode;
       this._queryId = dialogInfo.queryId;
       SnowlPreferencesCommon.initProperties(this._queryId, this._title);

@@ -45,8 +45,9 @@
   <!-- Overlay settings onto both preferences.xul and bookmarkProperties.xul2 -->
   <vbox id="editBookmarkPanelContent">
     <separator/>
-    <tabbox id="folderPropTabBox">
-      <tabs id="folderPropTabs">
+    <tabbox id="propertiesTabBox"
+            hidden="true">
+      <tabs id="propertiesTabs">
         <tab id="Refresh"
              label="&refresh.label;"/>
         <tab id="Retention"
@@ -54,7 +55,7 @@
       </tabs>
       <!--  -->
 
-      <tabpanels id="folderPropTabPanels">
+      <tabpanels id="propertiesTabPanels">
         <vbox id="RefreshPanel">
           <description hidefor="imap,pop3" class="desc">&refreshText.label;</description>
           <hbox align="center">

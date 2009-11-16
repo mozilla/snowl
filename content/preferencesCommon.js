@@ -52,9 +52,7 @@ let SnowlPreferencesCommon = {
 
   onPaneLoad: function() {
     // On preferences dialog load.
-    this._sourceType = this._("settingsRadio").selectedItem.value;
-    this.SourceType = SnowlService._accountTypesByType[this._sourceType];
-    this.Source = this.SourceType;
+    this.initSourceTypeProperties();
 
     this._("refreshStatusBox").hidden = true;
     this._("refresh.useDefault").label = SnowlPreferences._strings.get("settingsDefaultText");
@@ -62,6 +60,12 @@ let SnowlPreferencesCommon = {
 
     this.initSettings();
     this.onCheckKeepMsg();
+  },
+
+  initSourceTypeProperties: function() {
+    this._sourceType = this._("settingsRadio").selectedItem.value;
+    this.SourceType = SnowlService._accountTypesByType[this._sourceType];
+    this.Source = this.SourceType;
   },
 
   initProperties: function(aQueryId, aName) {
@@ -87,6 +91,9 @@ let SnowlPreferencesCommon = {
   },
 
   initSettings: function() {
+    // Show properties.
+    this._("propertiesTabBox").hidden = false;
+
     // Refresh settings.
     if ("refresh" in this.Source.attributes &&
         "useDefault" in this.Source.attributes.refresh &&
@@ -181,6 +188,11 @@ let SnowlPreferencesCommon = {
   },
 
   persistProperties: function(aQueryId) {
+    if (!this._queryId)
+      // Reinit source type object, if perform a subscribe before a save,
+      // attributes are polluted..
+      this.initSourceTypeProperties();
+
     this.Source.attributes.refresh["useDefault"] = this._("refresh.useDefault").checked;
     this.Source.attributes.refresh["interval"] = this._("refresh.minutes").value * 1000 * 60;
     this.Source.attributes.retention["useDefault"] = this._("retention.useDefault").checked;
@@ -189,6 +201,7 @@ let SnowlPreferencesCommon = {
     this.Source.attributes.retention["deleteNumber"] = this._("retention.keepOldMsgMin").valueNumber;
     this.Source.attributes.retention["keepFlagged"] = this._("retention.keepFlagged").checked;
     this.Source.persistAttributes();
+
     if (this._queryId)
       // An individual source.
       SnowlService.sourcesByID[this._queryId].attributes = this.Source.attributes;
