@@ -114,6 +114,7 @@ let CollectionsView = {
 
   Filters: {
     unread: false,
+    flagged: false,
     deleted: false,
     searchterms: null
   },
@@ -128,6 +129,8 @@ let CollectionsView = {
       this._toggleListToolbarButton.setAttribute("checked", true);
 
     this.Filters["unread"] = document.getElementById("snowlUnreadButton").
+                                      checked ? true : false;
+    this.Filters["flagged"] = document.getElementById("snowlFlaggedButton").
                                       checked ? true : false;
     this.Filters["deleted"] = document.getElementById("snowlShowDeletedButton").
                                       checked ? true : false;
@@ -492,7 +495,19 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     aEvent.target.checked = !aEvent.target.checked;
     this.Filters["unread"] = aEvent.target.checked ? true : false;
 
-    if (this.itemIds == -1 && !this.Filters["unread"] &&
+    if (this.itemIds == -1 && !this.Filters["unread"] && !this.Filters["flagged"] &&
+        !this.Filters["deleted"] && !this.Filters["searchterms"])
+      // If no selection and unchecking, clear list (don't select 'All').
+      gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+    else
+      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
+  },
+
+  onCommandFlaggedButton: function(aEvent) {
+    aEvent.target.checked = !aEvent.target.checked;
+    this.Filters["flagged"] = aEvent.target.checked ? true : false;
+
+    if (this.itemIds == -1 && !this.Filters["unread"] && !this.Filters["flagged"] &&
         !this.Filters["deleted"] && !this.Filters["searchterms"])
       // If no selection and unchecking, clear list (don't select 'All').
       gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();

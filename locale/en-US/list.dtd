@@ -5,6 +5,10 @@
 <!ENTITY subjectCol.label             "Subject">
 <!ENTITY timestampCol.label           "Date">
 <!ENTITY datereceivedCol.label        "Date Received">
+<!ENTITY readCol.label                "Read">
+<!ENTITY flaggedCol.label             "Flagged">
+
+<!ENTITY sortBy.label                 "Sort By ">
 
 <!ENTITY openListMessage.label        "Open Message">
 <!ENTITY openListMessage.accesskey    "O">

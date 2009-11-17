@@ -111,7 +111,9 @@ let SnowlMessageView = {
     "snowlAuthorCol": "author.person.name",
     "snowlSubjectCol": "subject",
     "snowlTimestampCol": "timestamp",
-    "snowlDateReceivedCol": "received"
+    "snowlDateReceivedCol": "received",
+    "snowlReadCol": "read",
+    "snowlFlaggedCol": "attributes.flagged"
   },
 
   Filters: {},
@@ -121,6 +123,9 @@ let SnowlMessageView = {
 
   //**************************************************************************//
   // nsITreeView
+
+  _treebox: null,
+  setTree: function(treebox){ this._treebox = treebox; },
 
   get rowCount() {
 //this._log.info("get rowCount: " + this._collection.messages.length);
@@ -153,17 +158,6 @@ let SnowlMessageView = {
     }
   },
 
-  _treebox: null,
-  setTree: function(treebox){ this._treebox = treebox; },
-  cycleHeader: function(aColumn) {},
-
-  isContainer: function(aRow) { return false },
-  isSeparator: function(aRow) { return false },
-  isSorted: function() { return false },
-  getLevel: function(aRow) { return 0 },
-  getImageSrc: function(aRow, aColumn) { return null },
-  getRowProperties: function (aRow, aProperties) {},
-
   getCellProperties: function (aRow, aColumn, aProperties) {
     // We have to set this on each cell rather than on the row as a whole
     // because the text styling we apply to unread/deleted messages has to be
@@ -180,15 +174,44 @@ let SnowlMessageView = {
     if (this._collection.messages[aRow].current == MESSAGE_NON_CURRENT_DELETED ||
         this._collection.messages[aRow].current == MESSAGE_CURRENT_DELETED)
       aProperties.AppendElement(this._atomSvc.getAtom("deleted"));
+
+    if (aColumn.id == "snowlFlaggedCol" &&
+        this._collection.messages[aRow].attributes.flagged)
+      aProperties.AppendElement(this._atomSvc.getAtom("flagged"));
+
+    this.getColumnProperties(aColumn, aProperties);
   },
 
-  getColumnProperties: function(aColumnID, aColumn, aProperties) {},
+  getColumnProperties: function(aColumn, aProperties) {
+    aProperties.AppendElement(this._atomSvc.getAtom("col-" + aColumn.id));
+  },
 
+  cycleCell: function(aRow, aColumn) {
+    if (aColumn.id == "snowlFlaggedCol") {
+      this._collection.messages[aRow].attributes["flagged"] =
+          !this._collection.messages[aRow].attributes["flagged"];
+      this._collection.messages[aRow].persistAttributes();
+    }
+    if (aColumn.id == "snowlReadCol") {
+      let read = this._collection.messages[aRow].read;
+      this._collection.messages[aRow].read = (read == MESSAGE_UNREAD ||
+                                              read == MESSAGE_NEW) ?
+                                              MESSAGE_READ : MESSAGE_UNREAD;
+      this._collection.messages[aRow].persist();
+    }
+  },
+
+  cycleHeader: function(aColumn) {},
+  isContainer: function(aRow) { return false },
+  isSeparator: function(aRow) { return false },
+  isSorted: function() { return false },
+  getLevel: function(aRow) { return 0 },
+  getImageSrc: function(aRow, aColumn) { return null },
+  getRowProperties: function (aRow, aProperties) {},
   // We could implement inline tagging with an editable "Tags" column
   // by making this true, adding editable="true" to the tree tag, and
   // then marking only the tags column as editable.
   isEditable: function() { return false },
-
   canDrop: function(aRow, aOrientation) { return false },
 
 
@@ -265,6 +288,11 @@ let SnowlMessageView = {
       filters.push({ expression: "(read = " + MESSAGE_UNREAD + " OR" +
                                  " read = " + MESSAGE_NEW + ")",
                      parameters: {} });
+
+    if (this.Filters["flagged"])
+      // FIXME: this must be turned into a regex.
+      filters.push({ expression: "(messages.attributes = :attributes)",
+                     parameters: { attributes: '{"flagged":true}'} });
 
     if (this.Filters["deleted"])
       filters.push({ expression: "(current = " + MESSAGE_NON_CURRENT_DELETED + " OR" +

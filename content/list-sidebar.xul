@@ -142,6 +142,13 @@
                    persist="checked"
                    oncommand="CollectionsView.onCommandUnreadButton(event)"
                    tooltiptext="&unreadButton.tooltip;"/>
+    <toolbarbutton id="snowlFlaggedButton"
+                   class="tabbable"
+                   type="checkbox"
+                   autoCheck="false"
+                   persist="checked"
+                   oncommand="CollectionsView.onCommandFlaggedButton(event)"
+                   tooltiptext="&flaggedButton.tooltip;"/>
     <toolbarbutton id="writeButton"
                    class="tabbable"
                    type="checkbox"

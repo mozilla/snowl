@@ -140,8 +140,26 @@
                    persist="width ordinal hidden sortDirection"
                    class="sortDirectionIndicator"
                    onclick="SnowlMessageView.onClickColumnHeader(event)"/>
+          <splitter class="tree-splitter"/>
+          <treecol id="snowlReadCol" label="&readCol.label;" flex="1"
+                   persist="ordinal hidden sortDirection"
+                   class="treecol-image treecol-sortdirection"
+                   cycler="true"
+                   fixed="true"
+                   tooltiptext="&sortBy.label;&readCol.label;"
+                   onclick="SnowlMessageView.onClickColumnHeader(event)"/>
+          <splitter class="tree-splitter"/>
+          <treecol id="snowlFlaggedCol" label="&flaggedCol.label;" flex="1"
+                   persist="ordinal hidden sortDirection"
+                   class="treecol-image treecol-sortdirection"
+                   cycler="true"
+                   fixed="true"
+                   tooltiptext="&sortBy.label;&flaggedCol.label;"
+                   onclick="SnowlMessageView.onClickColumnHeader(event)"/>
         </treecols>
+<!-- 
 
+-->
         <treechildren flex="1"
                       onclick="SnowlMessageView.onClick(event)"
                       onmousedown="SnowlMessageView.onListTreeMouseDown(event)"/>

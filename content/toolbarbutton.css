@@ -80,6 +80,10 @@
   list-style-image: url("chrome://snowl/content/icons/asterisk_orange.png");
 }
 
+#snowlFlaggedButton {
+  list-style-image: url("chrome://snowl/content/icons/flag_blue.png");
+}
+
 #writeButton {
   list-style-image: url("chrome://snowl/content/icons/email_add.png");
 }

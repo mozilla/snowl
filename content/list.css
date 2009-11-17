@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Myk Melez <myk@mozilla.org>
+ *   alta88 <alta88@gmai.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,8 +35,36 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#snowlView {
+  height: 12em;
+}
+
+/* */
+#snowlFlaggedCol {
+  list-style-image: url("chrome://snowl/content/icons/flag_blue.png");
+}
+#snowlFlaggedCol > image {
+  margin-left: 4px;
+  margin-bottom: 2px;
+}
+#snowlView > treechildren::-moz-tree-image(col-snowlFlaggedCol) {
+  list-style-image: url("chrome://snowl/content/icons/bullet_white.png");
+}
+#snowlView > treechildren::-moz-tree-image(col-snowlFlaggedCol, flagged) {
+  list-style-image: url("chrome://snowl/content/icons/bullet_blue.png");
+}
+
+#snowlReadCol {
+  list-style-image: url("chrome://snowl/content/icons/eye.png");
+}
 #snowlView > treechildren::-moz-tree-cell-text(unread) {
   font-weight: bold !important
+}
+#snowlView > treechildren::-moz-tree-image(col-snowlReadCol) {
+  list-style-image: url("chrome://snowl/content/icons/bullet_white.png");
+}
+#snowlView > treechildren::-moz-tree-image(col-snowlReadCol, unread) {
+  list-style-image: url("chrome://snowl/content/icons/bullet_blue.png");
 }
 
 #snowlView > treechildren::-moz-tree-image(new) {
@@ -44,24 +73,4 @@
 
 #snowlView > treechildren::-moz-tree-cell-text(deleted) {
   text-decoration: line-through;
-}
-
-/* XXX: these 2 rules were used by only the unread button, are they needed still?
-/* Don't style the buttons natively because they look ugly on Linux.
- * FIXME: test on other platforms and style conditionally as appropriate,
- * and figure out how to make them look pretty on Linux.
-.snowlToolbarButton {
-  -moz-appearance: none;
-  min-width: 24px;
-  min-height: 24px;
-} */
-
-/* Hide the button labels, since they would otherwise take up space,
- * even if empty, and throw off the centering of the button icons.
-.snowlToolbarButton .toolbarbutton-text {
-  display: none;
-} */
-
-#snowlView {
-  height: 12em;
 }

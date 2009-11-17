@@ -371,6 +371,24 @@ SnowlMessage.prototype = {
     return added;
   },
 
+  get _persistAttributesStmt() {
+    let statement = SnowlDatastore.createStatement(
+      "UPDATE messages SET attributes = :attributes WHERE id = :id");
+    this.__defineGetter__("_persistAttributesStmt", function() statement);
+    return this._persistAttributesStmt;
+  },
+
+  persistAttributes: function() {
+    try {
+      this._persistAttributesStmt.params.id = this.id;
+      this._persistAttributesStmt.params.attributes = JSON.stringify(this.attributes);
+      this._persistAttributesStmt.step()
+    }
+    finally {
+      this._persistAttributesStmt.reset();
+    }
+  },
+
   get _getInternalIDStmt() {
     let statement = SnowlDatastore.createStatement(
       "SELECT id FROM messages WHERE sourceID = :sourceID AND externalID = :externalID"
