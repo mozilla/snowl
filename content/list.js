@@ -54,6 +54,8 @@ Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/service.js");
 Cu.import("resource://snowl/modules/utils.js");
 
+let strings = new StringBundle("chrome://snowl/locale/message.properties");
+
 let SnowlMessageView = {
   // Logger
   get _log() {
@@ -187,11 +189,8 @@ let SnowlMessageView = {
   },
 
   cycleCell: function(aRow, aColumn) {
-    if (aColumn.id == "snowlFlaggedCol") {
-      this._collection.messages[aRow].attributes["flagged"] =
-          !this._collection.messages[aRow].attributes["flagged"];
-      this._collection.messages[aRow].persistAttributes();
-    }
+    if (aColumn.id == "snowlFlaggedCol")
+      this._setFlagged(aRow);
     if (aColumn.id == "snowlReadCol") {
       let read = this._collection.messages[aRow].read;
       this._collection.messages[aRow].read = (read == MESSAGE_UNREAD ||
@@ -290,9 +289,8 @@ let SnowlMessageView = {
                      parameters: {} });
 
     if (this.Filters["flagged"])
-      // FIXME: this must be turned into a regex.
-      filters.push({ expression: "(messages.attributes = :attributes)",
-                     parameters: { attributes: '{"flagged":true}'} });
+      filters.push({ expression: "(messages.attributes REGEXP :regexp)",
+                     parameters: { regexp: '"flagged":true'} });
 
     if (this.Filters["deleted"])
       filters.push({ expression: "(current = " + MESSAGE_NON_CURRENT_DELETED + " OR" +
@@ -480,13 +478,22 @@ let SnowlMessageView = {
     if (aEvent.altKey || aEvent.metaKey || aEvent.ctrlKey)
       return;
 
-    // which is either the charCode or the keyCode, depending on which is set.
+    // |which| is either the charCode or the keyCode, depending on which is set.
 //    this._log.info("onKeyPress: which = " + aEvent.which);
 
-    if (aEvent.charCode == "r".charCodeAt(0))
+    if (aEvent.charCode == strings.get("messageMarkRead").charCodeAt(0))
       this._toggleRead(false);
-    if (aEvent.charCode == "R".charCodeAt(0))
+    else if (aEvent.charCode == strings.get("messageMarkAllRead").charCodeAt(0))
       this._toggleRead(true);
+    else if (aEvent.charCode == strings.get("messageMarkFlagged").charCodeAt(0))
+      this._toggleFlagged(false);
+//    else if (aEvent.charCode == strings.get("messageMarkAllFlagged").charCodeAt(0))
+//      this._toggleFlagged(true);
+    else if (aEvent.charCode == strings.get("messageDelete").charCodeAt(0))
+      this.onDeleteMessages(false);
+    else if (aEvent.charCode == strings.get("messageUndelete").charCodeAt(0) &&
+        this.Filters["deleted"])
+      this.onUnDeleteMessages();
     else if (aEvent.charCode == " ".charCodeAt(0))
       this._onSpacePress(aEvent);
     else if (aEvent.keyCode == "13")
@@ -617,6 +624,25 @@ let SnowlMessageView = {
 
     SnowlService._collectionStatsByCollectionID = null;
     this.CollectionsView._tree.treeBoxObject.invalidate();
+  },
+
+  _toggleFlagged: function(aAll) {
+    if (this._tree.currentIndex == -1)
+      return;
+
+    let row = this._tree.currentIndex;
+
+//    if (aAll)
+//      this._setAllFlagged(row);
+//    else
+    this._setFlagged(row);
+  },
+
+  _setFlagged: function(aRow) {
+    this._collection.messages[aRow].attributes["flagged"] =
+        !this._collection.messages[aRow].attributes["flagged"];
+    this._collection.messages[aRow].persistAttributes();
+    this._tree.boxObject.invalidateRow(aRow);
   },
 
   onClickColumnHeader: function(aEvent) {
@@ -942,10 +968,7 @@ let SnowlMessageView = {
   },
  
   onTreeContextPopupShowing: function(aEvent) {
-    if (this.Filters["deleted"])
-      this._snowlUnDeleteMessagesMenuitem.removeAttribute("disabled");
-    else
-      this._snowlUnDeleteMessagesMenuitem.setAttribute("disabled", true);
+    this._snowlUnDeleteMessagesMenuitem.hidden = this.Filters["deleted"];
   }
 
 };
