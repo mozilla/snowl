@@ -968,7 +968,7 @@ let SnowlMessageView = {
   },
  
   onTreeContextPopupShowing: function(aEvent) {
-    this._snowlUnDeleteMessagesMenuitem.hidden = this.Filters["deleted"];
+    this._snowlUnDeleteMessagesMenuitem.hidden = !this.Filters["deleted"];
   }
 
 };

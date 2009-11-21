@@ -167,6 +167,7 @@ SnowlMessage.delete = function(aMessage) {
 SnowlMessage.markDeletedState = function(aMessageIDs, aState) {
   // If aState is true, mark deleted; if false, mark undeleted.  Make sure caller
   // checks for delete status first.
+  // FIXME: make this async.
   SnowlDatastore.dbConnection.beginTransaction();
   try {
     SnowlDatastore.dbConnection.executeSimpleSQL(

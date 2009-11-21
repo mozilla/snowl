@@ -292,8 +292,8 @@ SnowlSource.prototype = {
       // If true for the default Type, overrides individual setting; if
       // true for individual source, overrides default if default is false.
       useDefault: true,
-      // If 0, do not delete any messaged; if 1, delete by days; if 2 delete
-      // by number of messages.
+      // If 0, do not delete any messaged; if 1, delete by number of messages;
+      // if 2, delete by days old.
       deleteBy: 0,
       // If radio checked, delete messages older than number (of days).
       deleteDays: 30,

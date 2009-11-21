@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Myk Melez <myk@mozilla.org>
+ *   alta88 <alta88@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -52,7 +53,9 @@ Cu.import("resource://snowl/modules/Preferences.js");
 Cu.import("resource://snowl/modules/URI.js");
 
 // modules that are Snowl-specific
+Cu.import("resource://snowl/modules/constants.js");
 Cu.import("resource://snowl/modules/datastore.js");
+Cu.import("resource://snowl/modules/message.js");
 Cu.import("resource://snowl/modules/source.js");
 Cu.import("resource://snowl/modules/target.js");
 Cu.import("resource://snowl/modules/utils.js");
@@ -66,6 +69,10 @@ const SNOWL_HANDLER_TITLE = "Snowl";
 
 // How often to check if sources need refreshing, in milliseconds.
 const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
+// How often to check message retention policies, in milliseconds.
+// TODO: retention check run based on last run.
+const RETENTION_CHECK_INTERVAL = 60 * 1000 * 60 * 12 ; // 12 hours
+//const RETENTION_CHECK_INTERVAL = 30 * 1000; // 30 seconds
 
 let SnowlService = {
   get gBrowserWindow() {
@@ -116,22 +123,35 @@ let SnowlService = {
   _init: function() {
     this._initLogging();
     this._registerFeedHandler();
-    this._initTimer();
+    this._initRefreshTimer();
+    this._initRetentionTimer();
 
     Observers.add("snowl:source:added",    this.onSourcesChanged, this);
     Observers.add("snowl:source:unstored", this.onSourcesChanged, this);
   },
 
-  _timer: null,
-  _initTimer: function() {
-    this._timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  _refreshTimer: null,
+  _initRefreshTimer: function() {
+    this._refreshTimer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
     let callback = {
       _svc: this,
       notify: function(aTimer) { this._svc.refreshStaleSources() }
     };
-    this._timer.initWithCallback(callback,
-                                 REFRESH_CHECK_INTERVAL,
-                                 Ci.nsITimer.TYPE_REPEATING_SLACK);
+    this._refreshTimer.initWithCallback(callback,
+                                        REFRESH_CHECK_INTERVAL,
+                                        Ci.nsITimer.TYPE_REPEATING_SLACK);
+  },
+
+  _retentionTimer: null,
+  _initRetentionTimer: function() {
+    this._retentionTimer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let callback = {
+      _svc: this,
+      notify: function(aTimer) { this._svc.retentionCheck() }
+    };
+    this._retentionTimer.initWithCallback(callback,
+                                          RETENTION_CHECK_INTERVAL,
+                                          Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
   _initLogging: function() {
@@ -431,6 +451,171 @@ let SnowlService = {
 
     timer.initWithCallback(callback, 10, Ci.nsITimer.TYPE_ONE_SHOT);
   },
+
+
+  /**
+   * Determine whether or not, and by what policy, to mark messages deleted
+   * according to individual source and global source type settings.
+   *
+   */
+  retentionCheck: function() {
+    let query, daysOld, daysOldDate, daysOldDateJulian, messagesNumber, keepFlagged;
+    let skipTypes = {}, byNumberTypes = {}, typeAttributes;
+    let now = new Date();
+
+    let selectStr    = "SELECT id WHERE";
+    let acctTypeStr  = " sourceID IN (SELECT id from sources WHERE type = ";
+    let sourceStr    = " sourceID = ";
+    let byDaysStr1   = " AND ( CASE WHEN timestamp ISNULL THEN received < ";
+    let byDaysStr2   = "            ELSE timestamp < ";
+    let byDaysStr3   = "       END )";
+    let byNumberStr1 = " AND id NOT IN ( SELECT id FROM messages WHERE sourceID = ";
+    let byNumberStr2 = "                 ORDER BY id DESC LIMIT ";
+    let flaggedStr   = " AND id NOT IN ( SELECT id WHERE attributes REGEXP '\"flagged\":true' )";
+    let deletedStr   = " AND ( current = " + MESSAGE_NON_CURRENT + " OR" +
+                       "       current = " + MESSAGE_CURRENT + " )";
+
+    // Preprocessing for higher probability cases; skip unnecessary per source
+    // checks by using broader sql statements.
+    for each (let accountType in this._accountTypesByType) {
+//this._log.info("retentionCheck: accountType:attrs - "+accountType.name+" : " +accountType.attributes.toSource());
+      query = null;
+      if (accountType.attributes.retention.useDefault) {
+        if (accountType.attributes.retention.deleteBy == MESSAGE_NODELETE) {
+//this._log.info("retentionCheck: accountType0:query - "+accountType.name+" : " +query);
+          skipTypes[accountType.name] = accountType.name;
+//          continue;
+        }
+        if (accountType.attributes.retention.deleteBy == MESSAGE_BYMESSAGESNUMBER) {
+          // Delete > number of messages.  Must be handled on per source basis..
+          byNumberTypes[accountType.name] = accountType.name;
+
+//this._log.info("retentionCheck: accountType1:query - "+accountType.name+" : " +query);
+//          continue;
+        }
+        if (accountType.attributes.retention.deleteBy == MESSAGE_BYDAYSOLD) {
+          // Delete > days old messages.  Convert to julian date stored in db.
+          daysOld = accountType.attributes.retention.deleteDays;
+          daysOldDate = now - (daysOld * 1000 * 60 * 60 * 24);
+          daysOldDateJulian = SnowlDateUtils.jsToJulianDate(new Date(daysOldDate));
+          keepFlagged = accountType.attributes.retention.keepFlagged;
+          query = selectStr;
+          query += acctTypeStr + "'" + accountType.name + "')";
+          query += byDaysStr1 + daysOldDateJulian;
+          query += byDaysStr2 + daysOldDateJulian;
+          query += byDaysStr3;
+          query += keepFlagged ? flaggedStr : "";
+          query += deletedStr;
+//this._log.info("retentionCheck: accountType2:query - "+accountType.name+" : " +query);
+          skipTypes[accountType.name] = accountType.name;
+          this.retentionDeleteTimer(accountType.name, query);
+//          continue;
+        }
+      }
+//this._log.info("retentionCheck: accountType:query - "+accountType.name+" : " +query);
+    }
+
+    if (skipTypes.__count__ == this._accountTypesByType.__count__)
+      // All account types have useDefault=true, and default is either 'no delete'
+      // or 'delete by days old' (handled above).
+      return;
+
+//this._log.info("retentionCheck: gotAction");
+
+/**/
+    for each (let source in this.sourcesByID) {
+      query = null;
+      daysOld = null;
+      messagesNumber = null;
+      keepFlagged = null;
+
+      typeAttributes = this._accountTypesByType[source.constructor.name].attributes;
+//this._log.info("retentionCheck: source - "+source.name);
+//this._log.info("retentionCheck: source.constructor.name - " +source.constructor.name);
+      if (source.constructor.name in skipTypes ||
+          (!source.constructor.name in byNumberTypes &&
+          ((source.attributes.retention.useDefault &&
+           typeAttributes.retention.deleteBy == MESSAGE_NODELETE) ||
+          (!source.attributes.retention.useDefault &&
+           source.attributes.retention.deleteBy == MESSAGE_NODELETE)))) {
+        // The type for this source has already been handled, or useDefault for
+        // this source is true and source type default is 'no delete' (source
+        // type useDefault override is not set to true), or useDefault is false
+        // and setting is 'no delete'.
+//this._log.info("retentionCheck: source No Delete - "+source.name);
+        continue;
+      }
+//this._log.info("retentionCheck: source.constructor.name - " +source.constructor.name);
+      if (source.constructor.name in byNumberTypes) {
+//this._log.info("retentionCheck: source - "+source.name);
+        // Default override set for source type, delete by number of messages.
+        messagesNumber = typeAttributes.retention.deleteNumber;
+        keepFlagged = typeAttributes.retention.keepFlagged;
+      }
+      else {
+        if (source.attributes.retention.useDefault) {
+          if (typeAttributes.retention.deleteBy == MESSAGE_BYDAYSOLD)
+            daysOld = typeAttributes.retention.deleteDays;
+          if (typeAttributes.retention.deleteBy == MESSAGE_BYMESSAGESNUMBER)
+            messagesNumber = typeAttributes.retention.deleteNumber;
+          keepFlagged = typeAttributes.retention.keepFlagged;
+        }
+        else {
+          if (source.attributes.retention.deleteBy == MESSAGE_BYDAYSOLD)
+            daysOld = source.attributes.retention.deleteDays;
+          if (source.attributes.retention.deleteBy == MESSAGE_BYMESSAGESNUMBER)
+            messagesNumber = source.attributes.retention.deleteNumber;
+          keepFlagged = source.attributes.retention.keepFlagged;
+        }
+      }
+
+      if (daysOld) {
+        // Convert to julian date stored in db.
+        daysOldDate = now - (daysOld * 1000 * 60 * 60 * 24);
+        daysOldDateJulian = SnowlDateUtils.jsToJulianDate(new Date(daysOldDate));
+        query = selectStr;
+        query += sourceStr + source.id;
+        query += byDaysStr1 + daysOldDateJulian;
+        query += byDaysStr2 + daysOldDateJulian;
+        query += byDaysStr3;
+        query += keepFlagged ? flaggedStr : "";
+        query += deletedStr;
+      }
+      else if (messagesNumber) {
+        query = selectStr;
+        query += sourceStr + source.id;
+        query += byNumberStr1 + source.id;
+        query += byNumberStr2 + messagesNumber + " )";
+        query += keepFlagged ? flaggedStr : "";
+        query += deletedStr;
+      }
+
+//this._log.info("retentionCheck: source:query - "+source.name+" : " +query);
+      if (query)
+        this.retentionDeleteTimer(source.name, query);
+    }
+
+    // Refresh the collections tree.
+    this._collectionStatsByCollectionID = null;
+    Observers.notify("snowl:messages:completed", "refresh");
+  },
+
+  retentionDeleteTimer: function(sourceName, query) {
+    let timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    let callback = { notify: function(aTimer) {
+      SnowlService._log.info("Message retention cleanup: " + sourceName + " : " +query);
+      try {
+        SnowlMessage.markDeletedState(query, true);
+      }
+      catch(ex) {
+        // FIXME: Errors here are likely due to db lock concurrency.
+        throw (ex);
+      }
+    } };
+
+    timer.initWithCallback(callback, 100, Ci.nsITimer.TYPE_ONE_SHOT);
+  },
+
 
   /**
    * Determine whether or not the datastore contains the message with the given ID.

@@ -129,20 +129,20 @@ let SnowlPreferencesCommon = {
           this.SourceType.attributes.retention["deleteBy"];
 
     if ("retention" in this.Source.attributes &&
-        "deleteDays" in this.Source.attributes.retention)
-      this._("retention.keepNewMsgMin").value =
-          this.Source.attributes.retention["deleteDays"];
-    else
-      this._("retention.keepNewMsgMin").value =
-          this.SourceType.attributes.retention["deleteDays"];
-
-    if ("retention" in this.Source.attributes &&
         "deleteNumber" in this.Source.attributes.retention)
-      this._("retention.keepOldMsgMin").value =
+      this._("retention.keepNewMsgMin").value =
           this.Source.attributes.retention["deleteNumber"];
     else
-      this._("retention.keepOldMsgMin").value =
+      this._("retention.keepNewMsgMin").value =
           this.SourceType.attributes.retention["deleteNumber"];
+
+    if ("retention" in this.Source.attributes &&
+        "deleteDays" in this.Source.attributes.retention)
+      this._("retention.keepOldMsgMin").value =
+          this.Source.attributes.retention["deleteDays"];
+    else
+      this._("retention.keepOldMsgMin").value =
+          this.SourceType.attributes.retention["deleteDays"];
 
     if ("retention" in this.Source.attributes &&
         "keepFlagged" in this.Source.attributes.retention)
@@ -197,8 +197,8 @@ let SnowlPreferencesCommon = {
     this.Source.attributes.refresh["interval"] = this._("refresh.minutes").value * 1000 * 60;
     this.Source.attributes.retention["useDefault"] = this._("retention.useDefault").checked;
     this.Source.attributes.retention["deleteBy"] = this._("retention.keepMsg").selectedIndex;
-    this.Source.attributes.retention["deleteDays"] = this._("retention.keepNewMsgMin").valueNumber;
-    this.Source.attributes.retention["deleteNumber"] = this._("retention.keepOldMsgMin").valueNumber;
+    this.Source.attributes.retention["deleteNumber"] = this._("retention.keepNewMsgMin").valueNumber;
+    this.Source.attributes.retention["deleteDays"] = this._("retention.keepOldMsgMin").valueNumber;
     this.Source.attributes.retention["keepFlagged"] = this._("retention.keepFlagged").checked;
     this.Source.persistAttributes();
 

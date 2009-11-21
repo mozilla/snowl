@@ -971,8 +971,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     // Source or Author name change.  The 'name' field is updated in the people
     // table for Authors; the externalID in identities table continues to identify
     // the unique author as sent by the source, either by name or email.
-//this._log.info("updateCollectionNames: uri - "+aRenameObj.uri);
-    let newTitle = aRenameObj.title;
+    let newTitle = aRenameObj.title.replace(/\'/g, "''");
     let uri = aRenameObj.uri;
     let query = new SnowlQuery(uri);
     let table = query.queryTypeSource ? "sources" :
@@ -990,7 +989,6 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
       // Redo list so new name is reflected.
       gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
-//this._log.info("updateCollectionNames: newUri - "+newUri);
     }
   },
 

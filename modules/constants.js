@@ -48,7 +48,10 @@ const EXPORTED_SYMBOLS = ["TEXT_CONSTRUCT_TYPES",
                           "MESSAGE_CURRENT_PENDING_PURGE",
                           "MESSAGE_UNREAD",
                           "MESSAGE_READ",
-                          "MESSAGE_NEW"];
+                          "MESSAGE_NEW",
+                          "MESSAGE_NODELETE",
+                          "MESSAGE_BYMESSAGESNUMBER",
+                          "MESSAGE_BYDAYSOLD"];
 
 // Internet media type to nsIFeedTextConstruct::type mappings.
 const TEXT_CONSTRUCT_TYPES = {
@@ -83,3 +86,7 @@ const MESSAGE_CURRENT_PENDING_PURGE = 4;
 const MESSAGE_UNREAD = 0;
 const MESSAGE_READ = 1;
 const MESSAGE_NEW = 2;
+// In JSON object messages.attributes retention.deleteBy property
+const MESSAGE_NODELETE = 0;
+const MESSAGE_BYMESSAGESNUMBER = 1;
+const MESSAGE_BYDAYSOLD = 2;
