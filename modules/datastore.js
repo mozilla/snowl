@@ -442,22 +442,29 @@ let SnowlDatastore = {
     }
   },
 
-  _dbRegExpString: null,
-  _dbRegExp: null,
-
   /**
-   * Define regexp function for sqlite.
-   * (0) = Regex Expression
-   * (1) = Column value to test
+   * Define regexp test function for sqlite.  This method creates a global
+   * regexp object to be reused by sqlite.  Getter names are used as tokens
+   * in the sqlite statement and any |test| expression can be added.
+   * XXX:  Using executeAsync will cause Fx to freeze after a few runs of a
+   * statement with a regexp function.
+   *
+   * Usage:
+   * (0) = Name of getter returning regex object to test.
+   * (1) = Column value to test.
+   * Statement eg, "WHERE attributes REGEXP_TEST 'FLAGGED_TRUE'"
+   *
+   * @return {Boolean} indicates if regex test successful; record returned if true.
    */
   _dbRegexp: {
-    onFunctionCall: function(val) {
-      if (this._dbRegExp == null || val.getString(0) != this._dbRegExpString) {
-        this._dbRegExpString = val.getString(0);
-        this._dbRegExp = new RegExp(this._dbRegExpString);
-      }
-      if (val.getString(1).match(this._dbRegExp)) return 1;
-      else return 0;
+     get FLAGGED_TRUE() {
+       if (!this._FLAGGED_TRUE)
+         this._FLAGGED_TRUE = new RegExp('"flagged":true');
+       return this._FLAGGED_TRUE;
+     },
+
+    onFunctionCall: function(aArgs) {
+      return this[aArgs.getString(0)].test(aArgs.getString(1)) ? true : false;
     }
   },
 
@@ -473,7 +480,7 @@ let SnowlDatastore = {
    *   0.2pre3.1: 8
    *   ..
    *   0.3      : 13
-   *   0.3pre1  : 14
+   *   0.4pre1  : 14
    *
    * Also handles migrations from each version to the next higher one for folks
    * tracking development releases or the repository.  And might handle migrations

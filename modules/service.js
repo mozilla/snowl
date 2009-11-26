@@ -471,7 +471,8 @@ let SnowlService = {
     let byDaysStr3   = "       END )";
     let byNumberStr1 = " AND id NOT IN ( SELECT id FROM messages WHERE sourceID = ";
     let byNumberStr2 = "                 ORDER BY id DESC LIMIT ";
-    let flaggedStr   = " AND id NOT IN ( SELECT id WHERE attributes REGEXP '\"flagged\":true' )";
+    let flaggedStr   = " AND id NOT IN ( SELECT id FROM messages WHERE attributes " +
+                       "                 REGEXP 'FLAGGED_TRUE' )";
     let deletedStr   = " AND ( current = " + MESSAGE_NON_CURRENT + " OR" +
                        "       current = " + MESSAGE_CURRENT + " )";
 
@@ -608,8 +609,9 @@ let SnowlService = {
         SnowlMessage.markDeletedState(query, true);
       }
       catch(ex) {
-        // FIXME: Errors here are likely due to db lock concurrency.
-        throw (ex);
+        // FIXME: Errors here are likely due to db lock concurrency.  Either
+        // wait for next cycle or reset interval and try again for X times etc.
+//        throw (ex);
       }
     } };
 

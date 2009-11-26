@@ -289,8 +289,8 @@ let SnowlMessageView = {
                      parameters: {} });
 
     if (this.Filters["flagged"])
-      filters.push({ expression: "(messages.attributes REGEXP :regexp)",
-                     parameters: { regexp: '"flagged":true'} });
+      filters.push({ expression: "(messages.attributes REGEXP :regexptoken)",
+                     parameters: { regexptoken: "FLAGGED_TRUE"} });
 
     if (this.Filters["deleted"])
       filters.push({ expression: "(current = " + MESSAGE_NON_CURRENT_DELETED + " OR" +
