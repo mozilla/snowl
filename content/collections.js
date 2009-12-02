@@ -178,7 +178,7 @@ let CollectionsView = {
     Observers.add("snowl:source:unstored",    this.onSourceRemoved,     this);
     Observers.add("snowl:messages:completed", this.onMessagesCompleted, this);
     Observers.add("itemchanged",              this.onItemChanged,       this);
-    Observers.add("snowl:author:removed",     this.onSourceRemoved,     this);
+    Observers.add("snowl:author:removed",     this.onAuthorRemoved,     this);
 //this._log.info("loadObservers");
   },
 
@@ -188,7 +188,7 @@ let CollectionsView = {
     Observers.remove("snowl:source:unstored",    this.onSourceRemoved,     this);
     Observers.remove("snowl:messages:completed", this.onMessagesCompleted, this);
     Observers.remove("itemchanged",              this.onItemChanged,       this);
-    Observers.remove("snowl:author:removed",     this.onSourceRemoved,     this);
+    Observers.remove("snowl:author:removed",     this.onAuthorRemoved,     this);
 //this._log.info("unloadObservers");
   },
 
@@ -243,6 +243,19 @@ let CollectionsView = {
       this.itemIds = -1;
       gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
       }
+
+    // Source/author remove completed, refresh tree (stats).
+    this._tree.treeBoxObject.invalidate();
+  },
+
+  onAuthorRemoved: function() {
+    // Author remove completed, similar tree reset as for Source.
+    this.onSourceRemoved();
+
+    // Re-select the selected collections (for authors removal).
+    // XXX: implement this to only reselect if necessary.
+//    if (this.isAuthorForSelectedCollection(authorId))
+      gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
   },
 
   noSelect: false,
@@ -570,6 +583,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       this._collectionsViewMenuPopup.appendChild(menuItem);
     }
 
+    if (SnowlPlaces.collectionsAuthorsID == -1)
+      document.getElementById("collectionVewAuthor").hidden = true;
+    else
+      document.getElementById("collectionVewAuthor").hidden = false;
+
     if (this._collectionsViewMenuPopup.lastChild.id == "collectionVewMenuSep")
       this._collectionsViewMenuPopup.lastChild.hidden = true;
     else
@@ -803,6 +821,10 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         // sourceID in its prefixed uri.
         SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + sourceID, true);
     }
+
+    // Clear the collections stats cache and invalidate tree to rebuild.
+    SnowlService._collectionStatsByCollectionID = null;
+    Observers.notify("snowl:source:unstored");
   },
 
   removeAuthor: function() {
@@ -814,9 +836,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
     // Removing an author permanently purges all of the author's messages (they
     // do not go into a deleted status).
-//this._log.info("removeAuthor: START curIndex:curSelectedIndex = "+
-//  this._tree.currentIndex+" : "+this._tree.currentSelectedIndex);
-    let sourceNode, personID;
+    let sourceNode, personID, sourceID;
     let selectedSourceNodeID = [];
     let selectedSourceNodesIDs = [];
 
@@ -832,13 +852,14 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
     this._log.info("removeAuthor: Removing author - " +
                    selectedSource.title + " : " + selectedSource.itemId);
-    selectedSourceNodeID = [selectedSource, query.queryID];
+    selectedSourceNodeID = [selectedSource, query.queryID, query.querySourceID];
     selectedSourceNodesIDs.push(selectedSourceNodeID);
 
     // Delete loop here, if multiple selections..
     for (let i = 0; i < selectedSourceNodesIDs.length; ++i) {
       sourceNode = selectedSourceNodesIDs[i][0];
       personID = selectedSourceNodesIDs[i][1];
+      sourceID = selectedSourceNodesIDs[i][2];
       SnowlDatastore.dbConnection.beginTransaction();
       try {
         // Delete messages
@@ -847,26 +868,25 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
             "(SELECT id FROM parts WHERE messageID IN " +
             "(SELECT id FROM messages WHERE authorID IN " +
             "(SELECT id FROM identities WHERE personID = " + personID + ")))");
-//this._log.info("removeAuthor: Delete messages PARTSTEXT DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM parts " +
             "WHERE messageID IN " +
             "(SELECT id FROM messages WHERE authorID IN " +
             "(SELECT id FROM identities WHERE personID = " + personID + "))");
-//this._log.info("removeAuthor: Delete messages PARTS DONE");
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM messages " +
             "WHERE authorID IN " +
             "(SELECT id FROM identities WHERE personID = " + personID + ")");
-//this._log.info("removeAuthor: Delete messages DONE");
         // Delete people/identities
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM identities " +
             "WHERE personID = " + personID);
         SnowlDatastore.dbConnection.executeSimpleSQL("DELETE FROM people " +
             "WHERE id = " + personID);
-//this._log.info("removeAuthor: Delete people/identities DONE");
 
-        // Finally, clean up Places bookmark by author's place itemId.
-        PlacesUtils.bookmarks.removeItem(sourceNode.itemId);
-//this._log.info("removeAuthor: Delete Places DONE");
+        // Finally, clean up Places bookmark by author's place itemId.  Remove
+        // authors that may have been placed in custom folders, as their messages
+        // won't be there anymore.
+        SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + sourceID +
+                                           "&a.id=" + personID + "&", true);
+//        PlacesUtils.bookmarks.removeItem(sourceNode.itemId);
 
         SnowlDatastore.dbConnection.commitTransaction();
       }
@@ -876,6 +896,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       }
     }
 
+    // Clear the collections stats cache and notify.
+    SnowlService._collectionStatsByCollectionID = null;
     Observers.notify("snowl:author:removed");
   },
 
@@ -927,20 +949,22 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       if (baseItem)
         PlacesUtils.bookmarks.removeItem(baseItem);
 
-    if (scItem) {
-      // Removing a shortcut bookmark does not remove its history uri entry
-      // (in moz_places), so remove it like this.  Cannot use removePage since
-      // it explicitly excludes 'place:' uris.
-      let PlacesDB = Cc["@mozilla.org/browser/nav-history-service;1"].
-                     getService(Ci.nsPIPlacesDatabase);
-      PlacesDB.DBConnection.executeSimpleSQL(
-          "DELETE FROM moz_places WHERE id = " +
-          "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
+      if (scItem) {
+        // Removing a shortcut bookmark does not remove its history uri entry
+        // (in moz_places), so remove it like this.  Cannot use removePage since
+        // it explicitly excludes 'place:' uris.
+        // XXX: commented out since Places autodeletes these records, but only
+        // on restart.
+//        let PlacesDB = Cc["@mozilla.org/browser/nav-history-service;1"].
+//                       getService(Ci.nsPIPlacesDatabase);
+//        PlacesDB.DBConnection.executeSimpleSQL(
+//            "DELETE FROM moz_places WHERE id = " +
+//            "(SELECT fk FROM moz_bookmarks WHERE id = " + scItem + " )");
 
-      PlacesUtils.bookmarks.removeItem(scItem);
-    }
-
-    this._resetCollectionsView = true;
+        PlacesUtils.bookmarks.removeItem(scItem);
+      }
+  
+      this._resetCollectionsView = true;
     }
   },
 
@@ -1119,8 +1143,9 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     }
 
     this.itemIds = selectedItemIds.length ? selectedItemIds : -1;
-//this._log.info("getSelectionConstraints: constraints = " + (constraints ? constraints.toSource() : null));
-//this._log.info("getSelectionConstraints: itemIds = " + this.itemIds);
+    this._log.debug("getSelectionConstraints: constraints = " +
+        (constraints ? constraints.toSource() : null));
+    this._log.debug("getSelectionConstraints: itemIds = " + this.itemIds);
     return constraints;
   },
 
@@ -1129,7 +1154,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     let multiselect = this._tree.currentSelectedIndex == -1 ? true : false;
 
     if (multiselect) {
-      /* Multiselect */
+      /* Multiselect or no selection */
+      document.getElementById("snowlCollectionMarkAllRead").hidden = true;
+      document.getElementById("snowlCollectionPauseAllMenuitem").hidden = true;
+      document.getElementById("snowlCollectionResumeAllMenuitem").hidden = true;
+      document.getElementById("snowlPlacesContextRemoveSourceSep").hidden = true;
     }
     else {
       let selection = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
@@ -1260,7 +1289,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     this._collectionsViewMenu.selectedIndex = 0;
 
     // Remove the root folder (and all its children) to trigger the rebuild.
-    PlacesUtils.bookmarks.removeFolder(SnowlPlaces.snowlPlacesFolderId);
+    PlacesUtils.bookmarks.removeItem(SnowlPlaces.snowlPlacesFolderId);
 
     SnowlPlaces._placesInitialized = false;
     SnowlPlaces.delayedInit();
@@ -1292,6 +1321,17 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 
       this._log.info("buildPlacesDatabase: Found " + count + " records in table - " + table);
 
+      if (table == "people") {
+        let titleMsg = strings.get("rebuildPlacesAuthorTitleMsg");
+        let dialogMsg = strings.get("rebuildPlacesAuthorDialogMsg", [count]);
+        if (!SnowlService._promptSvc.confirm(window, titleMsg, dialogMsg)) {
+          PlacesUtils.bookmarks.removeItem(SnowlPlaces.collectionsAuthorsID);
+          SnowlPlaces.snowlPlacesQueries["snowlCollectionsAuthors"] = -1;
+          this._log.info("buildPlacesDatabase: Skipping Authors build");
+          continue;
+        }
+      }
+
       for each (collection in collections) {
         let id, title, machineURI, externalID, iconURI, sourceID, placeID;
         if (table == "sources") {
@@ -1300,11 +1340,10 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
           sourceID = collection.id;
         }
         else if (table == "people") {
-          // XXX: lookup favicon in collections table rather than hardcoding.
           iconURI = collection.iconURL ? URI.get(collection.iconURL) :
                     collection.homeURL ? SnowlSource.faviconSvc.
                                                      getFaviconForPage(collection.homeURL) :
-                    URI.get("chrome://snowl/skin/person-16.png");
+                    null;
 
           // Get the sourceID and externalID of the author.
           // XXX: NOTE - currently there is a 1 to 1 relationship between an
@@ -1330,8 +1369,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         gMessageViewWindow.XULBrowserWindow.
                            setOverLink(strings.get("rebuildPlacesConverted") + " " +
                                        table + " - " + collection.name);
-//this._log.info("buildPlacesDatabase: Converted to places - " +
-//  table + " - " + collection.name);
+        this._log.debug("buildPlacesDatabase: Converted to places - " +
+            table + " - " + collection.name);
 
         yield sleep(10);
       }
@@ -1340,6 +1379,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     gMessageViewWindow.XULBrowserWindow.
                        setOverLink(strings.get("rebuildPlacesCompleted"));
     this._log.info("buildPlacesDatabase: Rebuild Places Database completed");
+
+    // Reset map and rebuild collection View menuitems, in case authors collection
+    // built or not built.
+    SnowlPlaces.resetNameItemMap();
+    this._resetCollectionsView = true;
+    this._log.debug("buildPlacesDatabase: map - "+SnowlPlaces.snowlPlacesQueries.toSource());
 
     SnowlPlaces._placesConverted = true;
     SnowlPlaces.setPlacesVersion(SnowlPlaces.snowlPlacesFolderId);
@@ -1381,7 +1426,8 @@ function SnowlTreeViewCanDrop(aRow, aOrientation) {
                                            SnowlPlaces.SNOWL_USER_VIEWLIST_ANNO);
   }
   if ((isSys || isView) &&
-      (dropNodes.length > 1 || (ip && ip.itemId != SnowlPlaces.collectionsSystemID)))
+      (dropNodes.length > 1 ||
+      (ip && ip.itemId != SnowlPlaces.collectionsSystemID)))
     return false;
 
   return ip && PlacesControllerDragHelper.canDrop(ip);
@@ -1396,13 +1442,13 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
   this._getCellProperties(aRow, aColumn, aProperties);
 
   let query, anno, propStr, propArr, prop, collID, source, nodeStats, childStats;
-  let node = this._visibleElements[aRow].node;
+  let node = this._visibleElements[aRow];
   query = new SnowlQuery(node.uri);
 
   // Set title property.
   aProperties.AppendElement(this._getAtomFor("title-" + node.title));
 
-  // Set new and unread propeties.
+  // Set propeties.
   collID = query.queryTypeSource ? "s" + query.queryID :
            query.queryTypeAuthor ? "a" + query.queryID :
           (query.queryFolder == SnowlPlaces.collectionsSystemID ||
@@ -1410,12 +1456,21 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
            query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
   source = SnowlService.sourcesByID[query.queryID];
 
+  if (!node.icon && source && source.constructor.name == "SnowlFeed")
+    // Set default favicon property for feed sources, if none.
+    aProperties.AppendElement(this._getAtomFor("defaultFeedIcon"));
+  if (query.queryTypeAuthor)
+    // Set default favicon property for an author/person, if none.
+    aProperties.AppendElement(this._getAtomFor("defaultAuthorIcon"));
+
   nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   if (nodeStats && nodeStats.u && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasUnread"));
   if (nodeStats && nodeStats.n && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasNew"));
-  if (((source && source.busy) || (collID == "all" && SnowlService.refreshingCount > 0)) && !node.containerOpen)
+  if (((source && source.busy) ||
+      (collID == "all" && SnowlService.refreshingCount > 0)) &&
+      !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isBusy"));
   if (source && source.error && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasError"));
@@ -1428,7 +1483,8 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
 
   if ((query.queryFolder != SnowlPlaces.collectionsSourcesID &&
        query.queryFolder != SnowlPlaces.collectionsAuthorsID) &&
-      PlacesUtils.nodeIsContainer(node) && node.hasChildren && !node.containerOpen) {
+      PlacesUtils.nodeIsContainer(node) &&
+      node.hasChildren && !node.containerOpen) {
     // For custom view shortcuts and any user created folders.
     childStats = CollectionsView.getCollectionChildStats(node);
     if (childStats && childStats.u)
@@ -1488,7 +1544,7 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
   if (this._getColumnType(aColumn) != this.COLUMN_TYPE_TITLE)
     return "";
 
-  var node = this._visibleElements[aRow].node;
+  var node = this._visibleElements[aRow];
 
   // Custom handling for collections.
   let query = new SnowlQuery(node.uri);
@@ -1500,20 +1556,18 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
   let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   let source = SnowlService.sourcesByID[query.queryID];
 
-  if ((nodeStats && (nodeStats.n || nodeStats.busy)) ||
+  if (!this._visibleElements[aRow].icon ||
+      (nodeStats && (nodeStats.n || nodeStats.busy)) ||
       (source && (source.busy || source.error ||
       (source.attributes.refresh &&
       (source.attributes.refresh["status"] == "disabled" ||
        source.attributes.refresh["status"] == "paused")))))
     // Don't set icon, let css handle it for 'new' or 'busy' or 'error'.
     // "all" collection (only) has a busy property so we can set an indicator on
-    // a closed container.
+    // a closed container.  Also let css handle if no favicon.
     return "";
 
-  var icon = node.icon;
-  if (icon)
-    return icon.spec;
-  return "";
+  return this._visibleElements[aRow].icon;
 };
 
 /**
@@ -1532,10 +1586,10 @@ function SnowlTreeViewSetCellText(aRow, aColumn, aText) {
 /**
  * Overload itemRemoved, restore selection when any row is removed
  */
-PlacesTreeView.prototype._itemRemoved = PlacesTreeView.prototype.itemRemoved;
-PlacesTreeView.prototype.itemRemoved = SnowlTreeViewItemRemoved;
-function SnowlTreeViewItemRemoved(aParent, aItem, aOldIndex) {
-  this._itemRemoved(aParent, aItem, aOldIndex);
+PlacesTreeView.prototype._nodeRemoved = PlacesTreeView.prototype.nodeRemoved;
+PlacesTreeView.prototype.nodeRemoved = SnowlTreeViewNodeRemoved;
+function SnowlTreeViewNodeRemoved(aParentNode, aNode, aOldIndex) {
+  this._nodeRemoved(aParentNode, aNode, aOldIndex);
 
   // Restore; note that itemRemoved is called on each item manipulated in a sort.
   CollectionsView._tree.restoreSelection();
@@ -1553,20 +1607,20 @@ function SnowlTreeViewToggleOpenState(aRow) {
   this._toggleOpenState(aRow);
 
   // Restore itemdIds, if there are any selected in a closed container, on open.
-  let container = this._visibleElements[aRow].node;
+  let container = this._visibleElements[aRow];
   let selItemIds = CollectionsView.itemIds;
   if (container.containerOpen && container.hasChildren) {
     for (let i=0; i < container.childCount; i++) {
       let child = container.getChild(i);
       if (selItemIds.indexOf(child.itemId) != -1)
-        CollectionsView._tree.view.selection.toggleSelect(child.viewIndex);
+        CollectionsView._tree.view.selection.toggleSelect(child._viewIndex);
     }
   }
 
   // Don't autoselect folder on close.
   if (selItemIds.indexOf(container.itemId) == -1 &&
-      CollectionsView._tree.view.selection.isSelected(container.viewIndex))
-    CollectionsView._tree.view.selection.toggleSelect(container.viewIndex);
+      CollectionsView._tree.view.selection.isSelected(container._viewIndex))
+    CollectionsView._tree.view.selection.toggleSelect(container._viewIndex);
 
   // Ensure twisty row doesn't move in the view, otherwise getCellAt is no
   // longer valid in onClick, plus it's annoying.  Usually restoreSelection()
@@ -1611,14 +1665,20 @@ PlacesUIUtils.getBestTitle =
       nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
       if (nodeStats) {
         if (collID == "all")
-          titleStats = " (New:" + nodeStats.n + " Unread:" + nodeStats.u + " Total:" + nodeStats.t + ")";
+          titleStats = " (New:" + nodeStats.n +
+                       " Unread:" + nodeStats.u +
+                       " Total:" + nodeStats.t + ")";
         else
-          titleStats = " (" + nodeStats.n + " " + nodeStats.u + " " + nodeStats.t + ")";
+          titleStats = " (" + nodeStats.n + " " +
+                              nodeStats.u + " " +
+                              nodeStats.t + ")";
       }
       else {
         childStats = CollectionsView._collectionChildStats[aNode.itemId];
         if (childStats && !aNode.containerOpen)
-          titleStats = " (" + childStats.n + " " + childStats.u + " " + childStats.t + ")";
+          titleStats = " (" + childStats.n + " " +
+                              childStats.u + " " +
+                              childStats.t + ")";
       }
 
       title = title + titleStats;

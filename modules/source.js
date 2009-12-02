@@ -323,35 +323,28 @@ SnowlSource.prototype = {
     return this.faviconSvc;
   },
 
-  // XXX: If a favicon is not in cache, getFaviconForPage throws, but we do
-  // not want to try getFaviconImageForPage as that returns a default moz image.
-  // Perhaps overkill to try to get a data uri for the favicon via additional
-  // favicon methods. So we will try the former, and use the below for first
-  // time visits for sources we have so far, til this can be fixed properly.
+  // If a favicon is not in places, getFaviconForPage throws, but we do not want
+  // to try getFaviconImageForPage as that returns a default moz image.  Best
+  // efforts and tricks to get a favicon.
   get faviconURI() {
     if (this.humanURI) {
       try {
-        // If the page has been visited and the icon is in cache
+        // Due to private browsing changes, the favicon will only be in places
+        // if the page has been bookmarked.
         return this.faviconSvc.getFaviconForPage(this.humanURI);
       }
       catch(ex) {
-        // Try to get the image, returns moz default if not found
-//        return this.faviconSvc.getFaviconImageForPage(this.humanURI);
-//        return this.faviconSvc.getFaviconLinkForIcon(this.humanURI);
+        // Not bookmarked.
+        if (this.constructor.name == "SnowlFeed")
+          // Get the favicon - they're usually here for feeds..  If not, an
+          // atom is set for defaultFeedIcon and css handles it.
+          return URI.get('http://' + this.humanURI.host + '/favicon.ico');
+
+        if (this.constructor.name == "SnowlTwitter")
+          // Get the favicon - Twitter.
+          return URI.get("http://static.twitter.com/images/favicon.ico");
       }
     }
-
-    // The default favicon for feed sources.
-    // FIXME: get icon from collections table instead of hardcoding
-    if (this.constructor.name == "SnowlFeed")
-      return URI.get("chrome://snowl/skin/livemarkFolder-16.png");
-
-    // The default favicon for twitter.
-    // FIXME: get icon from collections table instead of hardcoding
-    if (this.constructor.name == "SnowlTwitter")
-      return URI.get("http://static.twitter.com/images/favicon.ico");
-
-    return null;
   },
 
   /**
@@ -636,7 +629,7 @@ SnowlSource.prototype = {
           "WHERE id = " + this.id);
 
       // Finally, clean up Places bookmarks with sourceID in its prefixed uri.
-      SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + this.id, true);
+      SnowlPlaces.removePlacesItemsByURI("snowl:sId=" + this.id + "&", true);
 
       SnowlDatastore.dbConnection.commitTransaction();
     }

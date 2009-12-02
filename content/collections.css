@@ -57,6 +57,16 @@
   height: 16px;
 }
 
+/* Default favicon for feeds if none */
+#sourcesViewTreeChildren::-moz-tree-image(defaultFeedIcon) {
+  list-style-image: url("chrome://browser/skin/livemark-item.png");
+}
+
+/* Default favicon for author/person if none */
+#sourcesViewTreeChildren::-moz-tree-image(defaultAuthorIcon) {
+  list-style-image: url("chrome://snowl/skin/person-16.png");
+}
+
 /* A different icon than folders */
 #sourcesViewTreeChildren::-moz-tree-image(container, title-All\ Sources),
 #sourcesViewTreeChildren::-moz-tree-image(container, title-All\ Authors) {

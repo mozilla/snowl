@@ -247,12 +247,12 @@ SnowlPerson.prototype = {
         statement.params.iconURL = this.iconURL;
         statement.step();
         this.id = SnowlDatastore.dbConnection.lastInsertRowID;
-  
-        // XXX lookup favicon in collections table rather than hardcoding
+
+        // Person icon - if null, default icon applied via css.
         let iconURI =
           this.iconURL ? URI.get(this.iconURL) :
           this.homeURL ? SnowlSource.faviconSvc.getFaviconForPage(this.homeURL) :
-          URI.get("chrome://snowl/skin/person-16.png");
+          null;
     
         // Create places record, placeID stored into people table record.
         //SnowlPlaces._log.info("Author name:iconURI.spec - " + name + " : " + iconURI.spec);
@@ -364,11 +364,11 @@ SnowlIdentity.create = function(sourceID, externalID, name, homeURL, iconURL) {
     personStatement.step();
     let personID = SnowlDatastore.dbConnection.lastInsertRowID;
 
-    // XXX lookup favicon in collections table rather than hardcoding
+    // Person icon - if null, default icon applied via css.
     let iconURI =
       iconURL ? URI.get(iconURL) :
       homeURL ? SnowlSource.faviconSvc.getFaviconForPage(homeURL) :
-      URI.get("chrome://snowl/skin/person-16.png");
+      null;
 
     // Create places record, placeID stored into people table record.
 //SnowlPlaces._log.info("Author name:iconURI.spec - " + name + " : " + iconURI.spec);

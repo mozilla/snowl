@@ -105,7 +105,8 @@
                     value="default"/>
           <menuitem label="&viewSources.label;"
                     value="sources"/>
-          <menuitem label="&viewAuthors.label;"
+          <menuitem id="collectionVewAuthor"
+                    label="&viewAuthors.label;"
                     value="authors"/>
           <menuseparator id="collectionVewMenuSep"/>
         </menupopup>

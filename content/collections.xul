@@ -79,8 +79,6 @@
               forcehideselection="Snowl/Collections|Snowl/User/ViewList"/>
     <menuitem id="placesContext_sortBy:name"
               forcehideselection="Snowl/Collections"/>
-    <menuitem id="placesContext_show:info"
-              forcehideselection="Snowl/Collections"/>
 
     <menuitem id="snowlCollectionNewViewMenuitem"
               insertbefore="placesContext_new:bookmark"
@@ -88,7 +86,6 @@
               accesskey="&newView.accesskey;"
               selectiontype="any"
               selection="any"
-              hideifnoinsertionpoint="true"
               oncommand="CollectionsView.newView();"/>
     <menuitem id="snowlCollectionRemoveViewMenuitem"
               insertbefore="placesContext_show:info"
@@ -98,11 +95,17 @@
               selection="Snowl/User/ViewList"
               forcehideselection="query"
               oncommand="CollectionsView.removeView();"/>
+    <menuitem id="snowlCollectionMarkAllRead"
+              insertbefore="placesContext_show:info"
+              label="&markRead.label;"
+              accesskey="&markRead.accesskey;"
+              selection="Snowl/Collections"
+              oncommand="CollectionsView.markCollectionRead();"/>
     <menuitem id="snowlCollectionMarkRead"
               insertbefore="placesContext_show:info"
               label="&markRead.label;"
               accesskey="&markRead.accesskey;"
-              selection="Snowl/Collections|Snowl/Collections/Source|Snowl/Collections/Author"
+              selection="Snowl/Collections/Source|Snowl/Collections/Author"
               oncommand="CollectionsView.markCollectionRead();"/>
     <menuitem id="snowlCollectionRefreshMenuitem"
               insertbefore="placesContext_show:info"

@@ -1104,6 +1104,7 @@ function SnowlQuery(aUri) {
     }
     else if (this.queryUri.indexOf("snowl:") != -1) {
       this.queryProtocol = "snowl:";
+      this.querySourceID = this.queryUri.split("snowl:sId=")[1].split("&")[0];
       this.queryID = this.queryUri.split(".id=")[1].split("&")[0];
       if (this.queryUri.indexOf("&a.id=") != -1) {
         this.queryGroupIDColumn = "people.id";
@@ -1121,6 +1122,7 @@ SnowlQuery.prototype = {
   queryUri: null,
   queryProtocol: null,
   queryID: null,
+  querySourceID: null,
   queryFolder: null,
   queryTypeSource: false,
   queryTypeAuthor: false,
@@ -1260,6 +1262,10 @@ this._log.info("setPlacesVersion: " + verInfo);
       parent = this.collectionsAuthorsID;
       anno = this.SNOWL_COLLECTIONS_AUTHOR_ANNO;
       properties = "author";
+
+      // If Authors collection not built, return.
+      if (this.collectionsAuthorsID == -1)
+        return null;
     }
     else
       return null;
@@ -1271,17 +1277,19 @@ this._log.info("setPlacesVersion: " + verInfo);
                                            this.DEFAULT_INDEX,
                                            aName);
       PlacesUtils.annotations.
-                  setPageAnnotation(uri,
+//                  setPageAnnotation(uri,
+                  setItemAnnotation(placeID,
                                     anno,
                                     properties,
                                     0,
                                     this.EXPIRE_NEVER);
 
-//this._log.info(aTable + " iconURI.spec - " + (aIconURI ? aIconURI.spec : "null"));
-      PlacesUtils.favicons.
-                  setAndLoadFaviconForPage(uri,
-                                           aIconURI,
-                                           false);
+      if (aIconURI)
+        // Skip if no icon URI, default icon set via css.
+        PlacesUtils.favicons.
+                    setAndLoadFaviconForPage(uri,
+                                             aIconURI,
+                                             true);
     }
     catch(ex) {
       this._log.error("persistPlace: parentId:aName:uri - " +
@@ -1299,6 +1307,7 @@ this._log.info("setPlacesVersion: " + verInfo);
  * @aPrefix - if true, find by prefixed partial uri
  */
   removePlacesItemsByURI: function (aUri, aPrefix) {
+    this._log.debug("removePlacesItemsByURI: aUri:aPrefix - " + aUri + " : " + aPrefix);
     let node, bookmarkIds = [], uniqueIds = [];
     let query = PlacesUtils.history.getNewQuery();
     query.setFolders([SnowlPlaces.collectionsSystemID], 1);
