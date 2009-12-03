@@ -1163,7 +1163,10 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     else {
       let selection = this._tree.view.nodeForTreeIndex(this._tree.currentSelectedIndex);
       let query = new SnowlQuery(selection.uri);
-  
+
+      if (query.queryFolder == SnowlPlaces.collectionsSystemID ||
+          query.queryFolder == SnowlPlaces.collectionsSourcesID)
+        document.getElementById("snowlCollectionRefreshAllMenuitem").hidden = false;
       if (query.queryTypeSource) {
         let source = SnowlService.sourcesByID[query.queryID];
         if (source && source.attributes.refresh["status"] == "paused") {
@@ -1464,6 +1467,10 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
     aProperties.AppendElement(this._getAtomFor("defaultAuthorIcon"));
 
   nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+  if ((query.queryTypeSource || query.queryTypeAuthor) && !nodeStats)
+    // Collection stats object with 0 records not returned, so create here.
+    nodeStats = {t:0, u:0, n:0};
+
   if (nodeStats && nodeStats.u && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("hasUnread"));
   if (nodeStats && nodeStats.n && !node.containerOpen)
@@ -1477,7 +1484,8 @@ function SnowlTreeViewGetCellProperties(aRow, aColumn, aProperties) {
   if (source && source.attributes.refresh &&
       source.attributes.refresh["status"] == "disabled" && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isDisabled"));
-  if (source && source.attributes.refresh &&
+  if (source && !source.busy && (nodeStats && !nodeStats.n) &&
+      source.attributes.refresh &&
       source.attributes.refresh["status"] == "paused" && !node.containerOpen)
     aProperties.AppendElement(this._getAtomFor("isPaused"));
 
@@ -1553,8 +1561,12 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
               (query.queryFolder == SnowlPlaces.collectionsSystemID ||
                query.queryFolder == SnowlPlaces.collectionsSourcesID ||
                query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
-  let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
   let source = SnowlService.sourcesByID[query.queryID];
+
+  let nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+  if ((query.queryTypeSource || query.queryTypeAuthor) && !nodeStats)
+    // Collection stats object with 0 records not returned, so create here.
+    nodeStats = {t:0, u:0, n:0};
 
   if (!this._visibleElements[aRow].icon ||
       (nodeStats && (nodeStats.n || nodeStats.busy)) ||
@@ -1663,6 +1675,10 @@ PlacesUIUtils.getBestTitle =
                query.queryFolder == SnowlPlaces.collectionsSystemID ? "all" : null;
 
       nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+      if ((query.queryTypeSource || query.queryTypeAuthor) && !nodeStats)
+        // Collection stats object with 0 records not returned, so create here.
+        nodeStats = {t:0, u:0, n:0};
+
       if (nodeStats) {
         if (collID == "all")
           titleStats = " (New:" + nodeStats.n +

@@ -1066,9 +1066,9 @@ let SnowlDatastore = {
           collectionID = type == "all" ?
               "all" : type[0] + statement.row["collectionID"];
 
-          Total =  statement.row["total"];
-          Read = statement.row["read"];
-          New = statement.row["new"];
+          Total = statement.row["total"] ? statement.row["total"] : 0;
+          Read =  statement.row["read"]  ? statement.row["read"] : 0;
+          New =   statement.row["new"]   ? statement.row["new"] : 0;
           collectionStats[collectionID] = {
             t: Total,
             u: Total - Read + MESSAGE_NEW * New,
@@ -1206,8 +1206,10 @@ this._log.info("setPlacesVersion: " + verInfo);
   },
 
   get collectionsAuthorsID() {
+    // Lack of optional Authors collection indicated by -1 value.
     delete this.collectionsAuthorsID;
-    return this.collectionsAuthorsID = this.snowlPlacesQueries["snowlCollectionsAuthors"];
+    return this.collectionsAuthorsID = this.snowlPlacesQueries["snowlCollectionsAuthors"] ?
+                                       this.snowlPlacesQueries["snowlCollectionsAuthors"] : -1;
   },
   set collectionsAuthorsID(val) {
     delete this.collectionsAuthorsID;
@@ -1390,7 +1392,7 @@ this._log.info("setPlacesVersion: " + verInfo);
       let queryName = PlacesUtils.annotations.
                                   getItemAnnotation(items[i], aAnno);
       map[queryName] = items[i];
-this._log.info("buildNameItemMap: " + queryName + " - " + items[i]);
+      this._log.debug("buildNameItemMap: " + queryName + " - " + items[i]);
     }
 
     return map;

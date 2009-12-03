@@ -372,7 +372,7 @@ let SnowlService = {
           source.attributes.refresh["status"] != "paused" &&
           source.attributes.refresh["status"] != "disabled")
         // Do not autorefresh (as opposed to user initiated refresh) if a source
-        // is permanently disabled (404 error eg); do not refresh busy source.
+        // is permanently disabled (404 error eg) or paused or busy.
         staleSources.push(source);
     }
     this.refreshAllSources(staleSources);
@@ -398,11 +398,10 @@ let SnowlService = {
     for each (let source in allSources) {
       cachedsource = this.sourcesByID[source.id];
       if (cachedsource) {
-        if (cachedsource.attributes.refresh["status"] == "paused")
-          continue;
         cachedsource.busy = true;
         cachedsource.error = false;
-        cachedsource.attributes.refresh["status"] = "active";
+        if (cachedsource.attributes.refresh["status"] != "paused")
+          cachedsource.attributes.refresh["status"] = "active";
         cachedsource.persistAttributes();
       }
 
