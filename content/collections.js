@@ -1569,7 +1569,7 @@ function SnowlTreeViewGetImageSrc(aRow, aColumn) {
     nodeStats = {t:0, u:0, n:0};
 
   if (!this._visibleElements[aRow].icon ||
-      (nodeStats && (nodeStats.n || nodeStats.busy)) ||
+      (nodeStats && nodeStats.n) ||
       (source && (source.busy || source.error ||
       (source.attributes.refresh &&
       (source.attributes.refresh["status"] == "disabled" ||
