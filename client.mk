@@ -52,9 +52,9 @@ name              := snowl
 version           := 0.3
 
 # These variables control publication of the extension to a remote website.
-site_url_base     := https://people.mozilla.com/~myk/snowl/dist
+site_url_base     := https://ftp.mozilla.org/pub/mozilla.org/labs/snowl
 site_path_local   := dist
-site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl/dist
+site_path_remote  := stage.mozilla.org:/home/ftp/pub/labs/snowl
 
 # The minimum and maximum versions of Firefox with which the extension
 # is compatible.  These are used in both the install and update manifests.
