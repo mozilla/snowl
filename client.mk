@@ -49,7 +49,7 @@ name              := snowl
 # 1.4x0d200909191530, where "x0d" is required by a peculiarity of Mozilla's
 # version comparator (nsIVersionComparator) and the rest of the string is
 # a timestamp.
-version           := 0.3
+version           := 0.4
 
 # These variables control publication of the extension to a remote website.
 site_url_base     := https://ftp.mozilla.org/pub/mozilla.org/labs/snowl
