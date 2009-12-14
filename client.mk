@@ -59,4 +59,4 @@ site_path_remote  := people.mozilla.com:/home/myk/public_html/snowl/dist
 # The minimum and maximum versions of Firefox with which the extension
 # is compatible.  These are used in both the install and update manifests.
 fx_min_version    := 3.5
-fx_max_version    := 3.6b1pre
+fx_max_version    := 3.6.*
