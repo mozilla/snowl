@@ -92,13 +92,13 @@
 
 /* Collection loading/refreshing indicator */
 #sourcesViewTreeChildren::-moz-tree-image(isBusy) {
-/* XXX: Try the animated image.  Possibly causes a low level race condition
+/* XXX: Backout the animated image, Bug 535583.  Causes a low level race condition
  * which increases with number of rows with the image, after the image is no longer
  * valid for a row property; no amount of view nulling etc etc could fix this.
  * It seems the tree keeps invalidating itself once an anim image is loaded.
-  list-style-image: url("chrome://snowl/content/icons/arrow_refresh_small.png");
-*/
   list-style-image: url("chrome://global/skin/icons/loading_16.png");
+*/
+  list-style-image: url("chrome://snowl/content/icons/arrow_refresh_small.png");
 }
 
 /* Error on collection indicator */
