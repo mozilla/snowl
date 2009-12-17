@@ -1749,12 +1749,12 @@ gMessageViewWindow.XULBrowserWindow.setOverLink =
       // Source
       if (statusbartext.indexOf("&u=") != -1) {
         statusbartext = decodeURI(statusbartext);
-        statusbartext = statusbartext.split("&u=")[1].split("&")[0];
+        statusbartext = statusbartext.split("&u=")[1].replace(/&$/, "");
       }
       // Author
       else if (statusbartext.indexOf("&e=") != -1) {
           statusbartext = decodeURI(statusbartext);
-          statusbartext = statusbartext.split("&e=")[1].split("&")[0];
+          statusbartext = statusbartext.split("&e=")[1].replace(/&$/, "");
           statusbartext = statusbartext == "" ? " " : statusbartext;
       }
     }
