@@ -58,5 +58,5 @@ site_path_remote  := stage.mozilla.org:/home/ftp/pub/labs/snowl
 
 # The minimum and maximum versions of Firefox with which the extension
 # is compatible.  These are used in both the install and update manifests.
-fx_min_version    := 3.5
+fx_min_version    := 3.6
 fx_max_version    := 3.6.*
