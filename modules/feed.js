@@ -387,6 +387,16 @@ SnowlFeed.prototype = {
   _processFeed: function(feed, received) {
     let messages = [];
 
+    // Check fields properties from nsIFeed.
+    let fields = feed.QueryInterface(Ci.nsIFeedContainer).
+                 fields.QueryInterface(Ci.nsIPropertyBag2).enumerator;
+    while (fields.hasMoreElements()) {
+      let field = fields.getNext().QueryInterface(Ci.nsIProperty);
+      // A bit loose here, perhaps create a language tags table.
+      if (field.name.match(/lang/g))
+        this.feedLanguage = field.name + ": " + field.value;
+    }
+
     for (let i = 0; i < feed.items.length; i++) {
       let entry = feed.items.queryElementAt(i, Ci.nsIFeedEntry);
 
@@ -471,92 +481,184 @@ SnowlFeed.prototype = {
 
     // Add headers.
     message.headers = {};
+
+    // Add fields properties from nsIFeedContainer.
+    let hasLanguage = false;
+    let hasMediacontent = false;
     let fields = aEntry.QueryInterface(Ci.nsIFeedContainer).
                  fields.QueryInterface(Ci.nsIPropertyBag).enumerator;
+
     while (fields.hasMoreElements()) {
       let field = fields.getNext().QueryInterface(Ci.nsIProperty);
+//this._log.info("_processEntry: field.name - " + field.name);
 
       // FIXME: create people records for these.
       if (field.name == "authors") {
         let count = 1;
+        // Note that the Fx feed processor normalizes author-like tags into
+        // authors fields, so the original tag is lost; the processor also
+        // formats rss author values (may have email in the string) into an
+        // atom structure.
+        let authStr = this.lastResult.version.match(/^atom/) ? "atom:author" :
+                                                               "atom:author";
+
         let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
         while (values.hasMoreElements()) {
           let value = values.getNext().QueryInterface(Ci.nsIFeedPerson);
+          count = count == 1 ? "" : count;
           // FIXME: store people records in a separate table with individual
           // columns for each person attribute (i.e. name, email, url)?
           if (value.name)
-            message.headers["atom:author" + (count == 1 ? "" : count) + "_name"] = value.name;
+            message.headers[authStr + count + "_name"] = value.name;
           if (value.email)
-            message.headers["atom:author" + (count == 1 ? "" : count) + "_email"] = value.email;
+            message.headers[authStr + count + "_email"] = value.email;
           if (value.uri && value.uri.spec)
-            message.headers["atom:author" + (count == 1 ? "" : count) + "_uri"] = value.uri.spec;
+            message.headers[authStr + count + "_url"] = value.uri.spec;
           count++;
         }
       }
 
       else if (field.name == "links") {
-        let rel, count = 1;
+        let count = 1;
         let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
         while (values.hasMoreElements()) {
-          let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-          // FIXME: store link records in a separate table with individual
-          // colums for each link attribute (i.e. href, type, rel, title)?
-          rel = value.get("rel") ? value.get("rel") : "";
-          message.headers["atom:link" + count + (rel ? "_" + rel : rel)] = value.get("href");
-          if (value.get("title"))
-            message.headers["atom:link" + count + "_title"] = value.get("title");
-          if (value.get("type"))
-            message.headers["atom:link" + count + "_type"] = value.get("type");
-          if (value.get("hreflang"))
-            message.headers["atom:link" + count  + "_hreflang"] = value.get("hreflang");
-          if (value.get("length"))
-            message.headers["atom:link" + count + "_length"] = value.get("length");
+          let properties = values.getNext().
+                                  QueryInterface(Ci.nsIPropertyBag2).enumerator;
+          while (properties.hasMoreElements()) {
+            let property = properties.getNext().QueryInterface(Ci.nsIProperty);
+            let propertyName = property.name.replace(/^null/, "");
+            message.headers["atom:link" + count + "_" + propertyName] = property.value;
+          }
           count++;
         }
       }
 
       else if (field.name == "categories") {
-        // Categories don't work, Bug 493175.
+        // Bug 493175: An atom 'category' doesn't seem to be added to the
+        // 'categories' field array, and the individual 'category' value is empty.
         let count = 1;
         let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
         while (values.hasMoreElements()) {
-          let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-          if (value.term)
-            message.headers["category" + count + "_term"] = value.term;
-          if (value.scheme)
-            message.headers["category" + count + "_scheme"] = value.scheme;
-          if (value.label)
-            message.headers["category" + count + "_label"] = value.label;
+          let properties = values.getNext().
+                                  QueryInterface(Ci.nsIPropertyBag2).enumerator;
+          while (properties.hasMoreElements()) {
+            let property = properties.getNext().
+                                      QueryInterface(Ci.nsIProperty);
+            // Bug 525655: namespace issue; 'prefix:tag' returned as 'nulltag'
+            // if namespace/prefix pair not tabled.
+            let propertyName = property.name.replace(/^null/, "");
+            if (this.lastResult.version.match(/^atom/))
+              message.headers["atom:category" + count + "_" + propertyName] = property.value;
+            else
+              // Unmassage nsIFeedEntry forcing of rss category into atom 'term'
+              // property structure.
+              if (property.name == "term")
+                message.headers["category" + count] = property.value;
+              else
+                message.headers["category" + count + "_" + propertyName] = property.value;
+          }
           count++;
         }
+      }
+
+      else if (field.name == "enclosure") {
+        // The fields property 'enclosure' is an nsIPropertyBag2.  Any instances
+        // of an enclosure tag are also found in nsIFeedEntry 'enclosures', which
+        // is an nsIArray of nsIPropertyBag2.  Let 'enclosures' processing handle
+        // for better numbering of multiple 'enclosure' items.
+        continue;
+      }
+
+      else if (field.name == "mediacontent") {
+        // The fields property 'mediacontent' is an nsIArray of nsIPropertyBag2.
+        // Any instances of a media:content tag are also found in nsIFeedEntry
+        // 'enclosures', which is an nsIArray of nsIPropertyBag2.
+        hasMediacontent = true;
+        continue;
+      }
+
+      else if (field.name == "mediagroup") {
+        // The fields property 'mediagroup' is an nsIPropertyBag2 containing an
+        // nsIArray of mediacontent nsIPropertyBag2.  Any instances of the 
+        // media:content tags are also found in nsIFeedEntry 'enclosures', which
+        // is an nsIArray of nsIPropertyBag2.
+        // XXX: handle this in the headers.
+        continue;
       }
 
       // For some reason, the values of certain simple fields (like RSS2 guid)
       // are property bags containing the value instead of the value itself.
       // For those, we need to unwrap the extra layer. This strange behavior
       // has been filed as bug 427907.
+      // Follow up: the guid tag can contain a child tag 'isPermaLink'.  But
+      // the whole nsIFeed and nsIFeedEntry structure is waay too complex, it
+      // would be nice if those interfaces returned JSON structures instead.
       else if (typeof field.value == "object") {
         if (field.value instanceof Ci.nsIPropertyBag2) {
-          let value = field.value.QueryInterface(Ci.nsIPropertyBag2).get(field.name);
+          let value = field.value.
+                            QueryInterface(Ci.nsIPropertyBag2).get(field.name);
           message.headers[field.name] = value;
+
+          let properties = field.value.
+                                 QueryInterface(Ci.nsIPropertyBag2).enumerator;
+          while (properties.hasMoreElements()) {
+            // Check for any additional field name properties; skip the already
+            // added main field name/value.
+            let property = properties.getNext().QueryInterface(Ci.nsIProperty);
+            if (property.name != field.name) {
+              let propertyName = property.name.replace(/^null/, "");
+              message.headers[field.name + "_" + propertyName] = property.value;
+            }
+          }
         }
         else if (field.value instanceof Ci.nsIArray) {
           let values = field.value.QueryInterface(Ci.nsIArray).enumerate();
           while (values.hasMoreElements()) {
-            // FIXME: values might not always have this interface.
-            let value = values.getNext().QueryInterface(Ci.nsIPropertyBag2);
-            message.headers[field.name] = value.get(field.name);
+            let value = values.getNext();
+            if (value instanceof Ci.nsIPropertyBag2) {
+              value = value.QueryInterface(Ci.nsIPropertyBag2);
+              message.headers[field.name] = value.get(field.name);
+            }
           }
         }
       }
 
       else {
-        message.headers[field.name] = field.value.substring(0, 500) +
-                                      (field.value.length > 500 ? " [...]" : "");
+        // Field is just a simple value.
+        let fieldName = field.name.replace(/^null/, "");
+        message.headers[fieldName] = field.value.substring(0, 500) +
+                                     (field.value.length > 500 ? " [...]" : "");
+      }
+
+      if (field.name.match(/lang/g)) {
+        // Use the entry's language field, otherwise use the feed's language.
+        hasLanguage = true;
       }
     }
 
-   return message;
+    // Add 'enclosures' property from nsIFeedEntry.  Note that mediacontent is
+    // always null though it exists - indicate media:content if found above in
+    // fields, not clean if feeds have mixed enclosure and media:content tags.
+    let encStr = hasMediacontent ? "media:content" : "enclosure";
+    for (let i = 0; aEntry.enclosures && i < aEntry.enclosures.length; i++ ) {
+      let count = 1;
+      let properties = aEntry.enclosures.
+                              queryElementAt(i, Ci.nsIPropertyBag2).enumerator;
+      while (properties.hasMoreElements()) {
+        let property = properties.getNext().QueryInterface(Ci.nsIProperty);
+        let propertyName = property.name.replace(/^null/, "");
+        message.headers[encStr + count + "_" + propertyName] = property.value;
+      }
+      count++;
+    }
+
+    if (aFeed.type)
+      message.headers["feed_type"] = aFeed.type;
+    if (!hasLanguage && this.feedLanguage)
+      message.headers["feed_language_tag"] = this.feedLanguage;
+    message.headers["feed_version"] = this.lastResult.version;
+
+    return message;
   },
 
   /**
