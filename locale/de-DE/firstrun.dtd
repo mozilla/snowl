@@ -1,0 +1,14 @@
+<!ENTITY snowl.title.getting.started.with.snowl "Erste Schritte mit Snowl">
+<!ENTITY snowl.p.you.ve.just.installed.snowl "Sie haben soeben Snowl installiert, ein Nachrichtenaustausch-Experiment in Ihrem Browser!">
+<!ENTITY snowl.firstrun.access.tips "Sie können auf Snowl zugreifen, indem Sie auf die Snowl-Schaltfläche <img src='chrome://snowl/content/icons/snowl-16.png'/> in der unteren linken Ecke Ihres Browserfensters klicken oder über das Menü <code>Extras &gt; Snowl</code>.">
+<!ENTITY snowl.firstrun.buttons "Fügen Sie Ihren Symbolleisten über <code>Ansicht &gt; Symbolleisten &gt; Anpassen...</code> Schaltflächenn hinzu, um schneller auf Snowl-Funktionen zugreifen zu können.">
+<!ENTITY snowl.firstrun.suscribe.howto "Bietet die Seite, die Sie gerade besuchen, einen Newsfeed an, können Sie diesen ganz einfach abonnieren, indem Sie auf das <img src='chrome://browser/skin/feeds/feedIcon16.png'/>-Symbol in der Adresszeile klicken.">
+<!ENTITY snowl.firstrun.suscribe.twitter "Abonnieren Sie Ihre Twitter-Nachrichten oder importieren Sie eine OPML-Datei, indem Sie auf die Snowl-Schaltfläche <img src='chrome://snowl/content/icons/snowl-16.png'/> in der unteren linken Ecke Ihres Browserfensters klicken oder über das Menü <code>Extras &gt; Snowl</code>.">
+<!ENTITY snowl.firstrun.read.messages "Lesen Sie Nachrichten in der <a href='&link.to.river;'>Verlaufs</a>-, <a href='&link.to.stream;'>Strom-</a>, und der <a href='&link.to.list;'>Listen</a>ansicht.">
+<!ENTITY snowl.firstrun.write.messages "Verfassen Sie eine Nachricht, indem Sie in irgendeiner Ansicht auf die Schreibschaltfläche <img src='chrome://snowl/content/icons/email_add.png' /> klicken.">
+<!ENTITY snowl.firstrun.get.involved "Jetzt sind Sie dran!">
+<!ENTITY snowl.a.learn.more.about.snowl "Erfahren Sie mehr über Snowl">
+<!ENTITY snowl.a.tell.us.what.you.think "erzählen Sie uns, was Sie über Snowl denken">
+<!ENTITY snowl.a.browse.bug.reports "durchsuchen Sie Fehlerberichte">
+<!ENTITY snowl.a.report.a.bug "berichten Sie selbst einen Fehler">
+<!ENTITY snowl.a.check.out.the.source "schauen Sie sich den Quelltext an">

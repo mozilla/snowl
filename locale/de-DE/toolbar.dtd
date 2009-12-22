@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Nachrichtenquellen abonnieren">
+<!ENTITY unsubscribeButton.tooltip "Ausgewählte Nachrichtenquellen abbestellen">
+<!ENTITY refreshButton.tooltip "Nachrichtenquellen neu laden">
+<!ENTITY exportButton.tooltip "Nachrichtenquellen im OPML-Format exportieren">
+<!ENTITY unreadButton.tooltip "Neue und ungelesene Nachrichten der ausgewählten Sammlungen anzeigen">
+<!ENTITY flaggedButton.tooltip "Markierte Nachrichten der ausgewählten Sammlungen anzeigen">
+<!ENTITY listToolbarButton.tooltip "Ansicht umschalten">
+<!ENTITY writeButton.tooltip "Eine Nachricht scheiben">
+<!ENTITY showDeletedButton.tooltip "Gelöschte Nachrichten der ausgewählten Sammlungen anzeigen">
+<!ENTITY purgeDeletedButton.tooltip "Gelöschte Nachrichten der ausgewählten Sammlungen entfernen">

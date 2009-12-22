@@ -1,3 +1,4 @@
+<!-- Subscribe pane -->
 <!ENTITY subscribe.title "订阅">
 <!ENTITY source.label "订阅一个信息源">
 <!ENTITY feeds.label "收取点">
@@ -12,11 +13,46 @@
 <!ENTITY closeButton.accesskey "B">
 <!ENTITY clearButton.label "清除">
 <!ENTITY clearButton.accesskey "C">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title "订阅该信息源">
+<!-- Customize pane -->
+<!ENTITY settings.title "自定义">
+<!ENTITY settings.label "为信息来源类型定制默认设置">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
 <!ENTITY mail.label "邮件">
 <!ENTITY mail.accesskey "M">
 <!ENTITY newsgroup.label "新闻组">
 <!ENTITY newsgroup.accesskey "N">
+<!-- General pane -->
 <!ENTITY general.title "常规">
+<!-- Subscriptions pane -->
 <!ENTITY subscriptions.title "订阅">
+<!-- Organize pane -->
 <!ENTITY organize.title "组织">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "刷新">
+<!ENTITY refreshText.label "刷新间隔可以自定义。">
+<!ENTITY refreshMinutes.label "刷新间隔">
+<!ENTITY refreshMinutes.accesskey "R">
+<!ENTITY minutes.label "分钟">
+<!ENTITY refreshStatus.label "这个来源当前的刷新连接状态。">
+<!ENTITY refreshState.label "状态：">
+<!ENTITY refreshDate.label "最近刷新：">
+<!ENTITY refreshCode.label "最近错误代码：">
+<!ENTITY refreshError.label "最近错误信息：">
+<!ENTITY retention.label "保留">
+<!ENTITY retentionCleanup.label "信息可以根据以下规则被删除。">
+<!ENTITY retentionUseType.label "对这个信息类型使用默认设置">
+<!ENTITY retentionUseType.accesskey "d">
+<!ENTITY retentionKeepAll.label "不要删除任何信息">
+<!ENTITY retentionKeepAll.accesskey "n">
+<!ENTITY retentionKeepRecent.label "全部删除但是保留最近的">
+<!ENTITY retentionKeepRecent.accesskey "r">
+<!ENTITY message.label "信息">
+<!ENTITY retentionDeleteMsg.label "删除这些信息即早于">
+<!ENTITY retentionDeleteMsg.accesskey "o">
+<!ENTITY daysOld.label "天">
+<!ENTITY retentionKeepFlagged.label "总是保留标记的信息">
+<!ENTITY retentionKeepFlagged.accesskey "k">

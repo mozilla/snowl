@@ -1,2 +1,58 @@
-<!ENTITY prefwindow.title "Snowl Einstellungen">
-<!ENTITY noPreferences.message "Snowl hat noch keine Einstellungen.">
+<!-- Subscribe pane -->
+<!ENTITY subscribe.title "Abonnieren">
+<!ENTITY source.label "Eine Nachrichtenquelle abonnieren">
+<!ENTITY feeds.label "Newsfeed">
+<!ENTITY feeds.accesskey "N">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Adresse:">
+<!ENTITY name.label "Name:">
+<!ENTITY subscribeButton.label "Abonnieren">
+<!ENTITY subscribeButton.accesskey "A">
+<!ENTITY closeButton.label "Zurück">
+<!ENTITY closeButton.accesskey "Z">
+<!ENTITY clearButton.label "Leeren">
+<!ENTITY clearButton.accesskey "L">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
+<!ENTITY page.title "Snowl - Nachrichtenquelle abonnieren">
+<!-- Customize pane -->
+<!ENTITY settings.title "Anpassen">
+<!ENTITY settings.label "Standardeinstellungen für eine Nachrichtenquelle anpassen">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
+<!ENTITY mail.label "E-Mail">
+<!ENTITY mail.accesskey "E">
+<!ENTITY newsgroup.label "Newsgroup">
+<!ENTITY newsgroup.accesskey "N">
+<!-- General pane -->
+<!ENTITY general.title "Allgemein">
+<!-- Subscriptions pane -->
+<!ENTITY subscriptions.title "Abonnements">
+<!-- Organize pane -->
+<!ENTITY organize.title "Organisieren">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Neu laden">
+<!ENTITY refreshText.label "Das Aktualisierungsintervall kann angepasst werden.">
+<!ENTITY refreshMinutes.label "Alle">
+<!ENTITY refreshMinutes.accesskey "A">
+<!ENTITY minutes.label "Minuten neu laden">
+<!ENTITY refreshStatus.label "Aktueller Verbindungsstatus dieser Quelle:">
+<!ENTITY refreshState.label "Status:">
+<!ENTITY refreshDate.label "Zuletzt neu geladen:">
+<!ENTITY refreshCode.label "Letzter Fehlercode:">
+<!ENTITY refreshError.label "Letzte Fehlernachricht:">
+<!ENTITY retention.label "Aufrechterhalten">
+<!ENTITY retentionCleanup.label "Nachrichten können nach den folgenden Regeln automatisch gelöscht werden:">
+<!ENTITY retentionUseType.label "Standardeinstellung für diesen Nachrichtentyp benutzen">
+<!ENTITY retentionUseType.accesskey "S">
+<!ENTITY retentionKeepAll.label "Keine Nachrichten löschen">
+<!ENTITY retentionKeepAll.accesskey "K">
+<!ENTITY retentionKeepRecent.label "Alle bis auf die neusten Nachrichten löschen">
+<!ENTITY retentionKeepRecent.accesskey "n">
+<!ENTITY message.label "Nachrichten">
+<!ENTITY retentionDeleteMsg.label "Nachrichten, die älter als">
+<!ENTITY retentionDeleteMsg.accesskey "ä">
+<!ENTITY daysOld.label "Tage sind, löschen">
+<!ENTITY retentionKeepFlagged.label "Markierte Nachrichten immer behalten">
+<!ENTITY retentionKeepFlagged.accesskey "b">

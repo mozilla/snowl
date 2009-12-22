@@ -1,6 +1,17 @@
-<!ENTITY placementButton.tooltip "Platzierung tauschen.">
-<!ENTITY currentButton.tooltip "Nur aktuelle Nachrichten anzeigen.">
-<!ENTITY unreadButton.tooltip "Nur ungelesene Nachrichten anzeigen.">
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Quelle">
 <!ENTITY authorCol.label "Autor">
 <!ENTITY subjectCol.label "Betreff">
 <!ENTITY timestampCol.label "Datum">
+<!ENTITY datereceivedCol.label "Empfangen am">
+<!ENTITY readCol.label "Gelesen">
+<!ENTITY flaggedCol.label "Markiert">
+<!ENTITY sortBy.label "Sortieren nach">
+<!ENTITY openListMessage.label "Nachricht öffnen">
+<!ENTITY openListMessage.accesskey "ö">
+<!ENTITY selectAll.label "Alle markieren">
+<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteMessages.label "Markierte Nachrichten löschen">
+<!ENTITY deleteMessages.accesskey "l">
+<!ENTITY undeleteMessages.label "Markierte Nachrichten wiederherstellen">
+<!ENTITY undeleteMessages.accesskey "W">

@@ -2,4 +2,9 @@
 <!ENTITY unsubscribeButton.tooltip "取消订阅选定的信息源。">
 <!ENTITY refreshButton.tooltip "刷新所有信息源。">
 <!ENTITY exportButton.tooltip "信息源导出为 OPML 。">
+<!ENTITY unreadButton.tooltip "选定的收藏集显示新的或者未读的消息。">
+<!ENTITY flaggedButton.tooltip "显示选定收藏集中的已标记信息。">
+<!ENTITY listToolbarButton.tooltip "切换视图工具栏。">
 <!ENTITY writeButton.tooltip "写信息。">
+<!ENTITY showDeletedButton.tooltip "选定的收藏集显示已删除信息。">
+<!ENTITY purgeDeletedButton.tooltip "在选定的收藏集清理所有已删除消息。">

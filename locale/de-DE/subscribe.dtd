@@ -1,8 +1,0 @@
-<!ENTITY page.title "Snowl: Nachrichtenquellen abonnieren">
-<!ENTITY feedsTab.label "Feeds">
-<!ENTITY twitterTab.label "Twitter">
-<!ENTITY opmlTab.label "OPML">
-<!ENTITY location.label "Quelle:">
-<!ENTITY subscribeButton.label "Abonnieren">
-<!ENTITY importOPMLButton.label "OPML-Datei importieren...">
-<!ENTITY closeButton.label "Schließen">

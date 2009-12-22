@@ -1,0 +1,14 @@
+<!ENTITY snowl.title.getting.started.with.snowl "开始使用 Snowl">
+<!ENTITY snowl.p.you.ve.just.installed.snowl "你刚刚安装了 Snowl ，一种在浏览器中处理各种消息的尝试。">
+<!ENTITY snowl.firstrun.access.tips "通过  <code>工具 &gt; Snowl</code> 菜单或者浏览器窗口左下角的 Snowl 按钮  <img src='chrome://snowl/content/icons/snowl-16.png'/> 使用 Snowl 。">
+<!ENTITY snowl.firstrun.buttons "通过 <code>查看 &gt; 工具栏 &gt; 定制…</code> 菜单选项可以在工具栏中添加按钮以便快速使用 Snowl 的各项功能。">
+<!ENTITY snowl.firstrun.suscribe.howto "访问带有收取点的网站时，点击 Firefox 地址栏中的收取点图标 <img src='chrome://browser/skin/feeds/feedIcon16.png'/> 即可订阅收取点。">
+<!ENTITY snowl.firstrun.suscribe.twitter "订阅 Twitter 或通过 <code>工具 &gt; Snowl</code> 菜单导入一个 OPML 文件 或者是浏览器窗口左下角的 Snowl 按钮 <img src='chrome://snowl/content/icons/snowl-16.png' /> 。">
+<!ENTITY snowl.firstrun.read.messages "在  <a href='&link.to.river;'>河流</a>，<a href='&link.to.stream;'>信息流</a>，和<a href='&link.to.list;'>列表 </a> 视图中阅读消息。">
+<!ENTITY snowl.firstrun.write.messages "在任意视图中点击撰写按钮 <img src='chrome://snowl/content/icons/email_add.png' /> 撰写消息。">
+<!ENTITY snowl.firstrun.get.involved "已参与！">
+<!ENTITY snowl.a.learn.more.about.snowl "了解 Snowl 有关的更多信息">
+<!ENTITY snowl.a.tell.us.what.you.think "告诉我们你的想法">
+<!ENTITY snowl.a.browse.bug.reports "浏览缺陷报告">
+<!ENTITY snowl.a.report.a.bug "报告一个缺陷">
+<!ENTITY snowl.a.check.out.the.source "查看源代码">

@@ -1,4 +1,12 @@
 <!ENTITY author.label "作者：">
+<!ENTITY author.accesskey "A">
 <!ENTITY subject.label "主题：">
+<!ENTITY subject.accesskey "S">
 <!ENTITY timestamp.label "日期：">
 <!ENTITY link.label "链接：">
+<!ENTITY pinButton.label "标题头别针">
+<!ENTITY pinButton.tooltip "切换别针状态设置或取消设置永久标题头">
+<!ENTITY toggleHeader.label "切换标题头">
+<!ENTITY toggleHeader.tooltip "将消息标题头状态切换到简短，基本或者完全模式；在基本或者完全模式下，调整后会保存高度">
+<!ENTITY deleteMessagesButton.label "删除信息">
+<!ENTITY deleteMessagesButton.tooltip "删除该信息">

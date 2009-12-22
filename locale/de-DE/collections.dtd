@@ -1,5 +1,36 @@
 <!ENTITY nameCol.label "Name">
-<!ENTITY subscribeButton.tooltip "Nachrichtenquellen abonnieren.">
-<!ENTITY unsubscribeButton.tooltip "Von Nachrichtenquellen abmelden.">
-<!ENTITY refreshButton.tooltip "Nachrichtenquellen neu laden.">
-<!ENTITY exportButton.tooltip "Nachrichtenquellen als OPML exportieren.">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Als gelesen markieren">
+<!ENTITY markRead.accesskey "g">
+<!ENTITY markAllRead.label "Alle als gelesen markieren">
+<!ENTITY refresh.label "Quelle neu laden">
+<!ENTITY refresh.accesskey "n">
+<!ENTITY refreshAll.label "Alle Quellen neu laden">
+<!ENTITY refreshAll.accesskey "Q">
+<!ENTITY pause.label "Aktualisierung anhalten">
+<!ENTITY pause.accesskey "a">
+<!ENTITY pauseAll.label "Alle Aktualisierungen anhalten">
+<!ENTITY resume.label "Aktualisierung fortsetzen">
+<!ENTITY resume.accesskey "f">
+<!ENTITY resumeAll.label "Alle Aktualisierungen fortsetzen">
+<!ENTITY removeSource.label "Quelle entfernen">
+<!ENTITY removeSource.accesskey "e">
+<!ENTITY removeAuthor.label "Autor entfernen">
+<!ENTITY removeAuthor.accesskey "r">
+<!ENTITY newView.label "Neue Ansicht...">
+<!ENTITY newView.accesskey "N">
+<!ENTITY removeView.label "Ansicht entfernen">
+<!ENTITY removeView.accesskey "f">
+<!ENTITY view.label "Ansicht:">
+<!ENTITY view.accesskey "A">
+<!ENTITY viewDefault.label "Standard">
+<!ENTITY viewSources.label "Quellen">
+<!ENTITY viewAuthors.label "Autoren">
+<!ENTITY search.label "Suchen:">
+<!ENTITY search.accesskey "S">
+<!ENTITY searchMessages.label "Nachrichten">
+<!ENTITY searchMessages.accesskey "N">
+<!ENTITY searchCollections.label "Sammlungen">
+<!ENTITY searchCollections.accesskey "S">
+<!ENTITY searchHelp.label "Hilfe">
+<!ENTITY searchHelp.accesskey "H">

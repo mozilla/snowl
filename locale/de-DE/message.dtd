@@ -1,4 +1,12 @@
 <!ENTITY author.label "Autor:">
+<!ENTITY author.accesskey "A">
 <!ENTITY subject.label "Betreff:">
+<!ENTITY subject.accesskey "B">
 <!ENTITY timestamp.label "Datum:">
 <!ENTITY link.label "Link:">
+<!ENTITY pinButton.label "Überschrift anheften">
+<!ENTITY pinButton.tooltip "Heftet diese Überschrift an den Anfang der Liste bzw. löst diese davon">
+<!ENTITY toggleHeader.label "Überschrift umschalten">
+<!ENTITY toggleHeader.tooltip "Zeit die Nachrichtenüberschrift in gekürzter, normaler oder vollständiger Länge an, damit nach einer Anpassung an Höhe gespart werden kann.">
+<!ENTITY deleteMessagesButton.label "Nachricht löschen">
+<!ENTITY deleteMessagesButton.tooltip "Diese Nachricht löschen">
