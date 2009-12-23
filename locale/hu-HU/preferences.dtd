@@ -1,3 +1,4 @@
+<!-- Subscribe pane -->
 <!ENTITY subscribe.title "Feliratkozás">
 <!ENTITY source.label "Feliratkozás az üzenetforrásra">
 <!ENTITY feeds.label "Hírforrás">
@@ -12,11 +13,46 @@
 <!ENTITY closeButton.accesskey "V">
 <!ENTITY clearButton.label "Törlés">
 <!ENTITY clearButton.accesskey "T">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title "Snowl: feliratkozás az üzenetforrásra">
+<!-- Customize pane -->
+<!ENTITY settings.title "Testreszabás">
+<!ENTITY settings.label "Alapértelmezett beállítások az üzenetforrás-típusra">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
 <!ENTITY mail.label "Levél">
 <!ENTITY mail.accesskey "L">
 <!ENTITY newsgroup.label "Hírcsoport">
 <!ENTITY newsgroup.accesskey "H">
+<!-- General pane -->
 <!ENTITY general.title "Általános">
+<!-- Subscriptions pane -->
 <!ENTITY subscriptions.title "Feliratkozások">
+<!-- Organize pane -->
 <!ENTITY organize.title "Szervezés">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Frissítés">
+<!ENTITY refreshText.label "A frissítés gyakorisága beállítható.">
+<!ENTITY refreshMinutes.label "Frissítés minden">
+<!ENTITY refreshMinutes.accesskey "F">
+<!ENTITY minutes.label "percben">
+<!ENTITY refreshStatus.label "A forráshoz tartozó aktuális frissítési kapcsolat állapota.">
+<!ENTITY refreshState.label "Állapot:">
+<!ENTITY refreshDate.label "Utolsó frissítés:">
+<!ENTITY refreshCode.label "Utolsó hibakód:">
+<!ENTITY refreshError.label "Utolsó hibaüzenet:">
+<!ENTITY retention.label "Megtartás">
+<!ENTITY retentionCleanup.label "Az üzenet a következő szabályok szerint törölhető">
+<!ENTITY retentionUseType.label "Alapértelmezett beállítások használata ennél az üzenettípusnál">
+<!ENTITY retentionUseType.accesskey "t">
+<!ENTITY retentionKeepAll.label "Ne töröljön semmilyen üzenetet">
+<!ENTITY retentionKeepAll.accesskey "n">
+<!ENTITY retentionKeepRecent.label "A legfrissebb kivételével törölje az összes üzenetet">
+<!ENTITY retentionKeepRecent.accesskey "r">
+<!ENTITY message.label "üzenet">
+<!ENTITY retentionDeleteMsg.label "Üzenetek törlése, amelyekkel régebbiek, mint">
+<!ENTITY retentionDeleteMsg.accesskey "r">
+<!ENTITY daysOld.label "nap">
+<!ENTITY retentionKeepFlagged.label "Jelölt üzenetek megtartása mindig">
+<!ENTITY retentionKeepFlagged.accesskey "j">

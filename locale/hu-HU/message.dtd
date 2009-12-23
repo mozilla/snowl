@@ -1,4 +1,12 @@
 <!ENTITY author.label "Szerző:">
+<!ENTITY author.accesskey "S">
 <!ENTITY subject.label "Tárgy:">
+<!ENTITY subject.accesskey "T">
 <!ENTITY timestamp.label "Dátum:">
 <!ENTITY link.label "Hivatkozás:">
+<!ENTITY pinButton.label "Fejléc kitűzése">
+<!ENTITY pinButton.tooltip "Megjeleníti vagy eltávolítja a fejlécet">
+<!ENTITY toggleHeader.label "Fejléc váltása">
+<!ENTITY toggleHeader.tooltip "Fejléc váltása rövid, alap és teljes nézet között; az alap és a teljes nézetnél a magasságbeállítások mentésre kerülnek.">
+<!ENTITY deleteMessagesButton.label "Üzenet törlése">
+<!ENTITY deleteMessagesButton.tooltip "Kiválasztott üzenet törlése">
