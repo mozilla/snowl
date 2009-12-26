@@ -127,7 +127,9 @@ var messageContent = {
 
       if (message.author && message.author.person)
         document.getElementById("briefAuthor").
-                 setAttribute("value", message.author.person.name);
+                 appendChild(document.createTextNode(message.author.person.name));
+        // If using xul:description...
+//                 setAttribute("value", message.author.person.name);
       document.getElementById("briefTimestamp").
                appendChild(document.createTextNode(SnowlDateUtils._formatDate(message.timestamp)));
 
@@ -143,6 +145,9 @@ var messageContent = {
       if (message.current == MESSAGE_NON_CURRENT_DELETED ||
           message.current == MESSAGE_CURRENT_DELETED)
         headerDeck.setAttribute("deleted", true);
+
+      // Highlight search text, if any.
+//      headerDeck.innerHTML = messageHeaderUtils.highlight("headers", headerDeck.innerHTML);
     }
     else {
       // Message no longer exists (removed source/author/message) but is in history.
@@ -164,16 +169,25 @@ var messageContent = {
     for ([name, value] in Iterator(this.headers)) {
       headerRow = document.createElementNS(HTML_NS, "tr");
       headerRow.className = "fullHeaderRow";
+
       headerRowLabel = document.createElementNS(HTML_NS, "td");
       headerRowLabel.className = "headerLabel " + name;
       headerRowLabel.textContent = name + ":";
       headerRow.appendChild(headerRowLabel);
+
       headerRowData = document.createElementNS(HTML_NS, "td");
       headerRowData.className = "headerData " + name;
-      headerRowData.textContent = value;
+      headerRowDataA = document.createElementNS(HTML_NS, "a");
+      headerRowDataA.textContent = value;
+      headerRowData.appendChild(headerRowDataA);
       headerRow.appendChild(headerRowData);
+
       fullHeaderTable.appendChild(headerRow);
     }
+
+    // Highlight search text, if any.
+//    headerDeck.parentNode.innerHTML = 
+//        messageHeaderUtils.highlight("headers", headerDeck.parentNode.innerHTML);
   },
 
   createBody: function(aType) {
@@ -201,7 +215,7 @@ var messageContent = {
       var contentBody = document.getElementById("contentBody");
 
       // Highlight search text, if any.
-      content.text = messageHeaderUtils.highlight(content.text);
+      content.text = messageHeaderUtils.highlight("messages", content.text);
 
       if (!contentBody)
         // If no contentBody element, we are going back in history to a new message
@@ -235,9 +249,11 @@ var messageHeaderUtils = {
 
   init: function() {
     var pin = document.getElementById("pinButton");
-    var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
+    var headerBcaster = gBrowserWindow.document.
+                                       getElementById("viewSnowlHeader");
     var headerDeck = document.getElementById("headerDeck");
-    var noHeader = parent.document.documentElement.getElementsByClassName("noHeader")[0];
+    var noHeader = parent.document.
+                          documentElement.getElementsByClassName("noHeader")[0];
     var checked = headerBcaster.getAttribute("checked") == "true";
     pin.checked = checked;
 
@@ -322,15 +338,15 @@ var messageHeaderUtils = {
 
     if (aType == "toggle") {
       // Toggled to next in 3 way
-      // XXX: set index to 1, as full header removed for now (createFullHeader
-      // will not run, nor will button toggle to full).
       headerDeck = document.getElementById("headerDeck");
       headerIndex = ++headerIndex > 2 ? 0 : headerIndex++;
       headerBcaster.setAttribute("headerIndex", headerIndex);
     }
 
-    headerDeck.setAttribute("header", headerIndex == 0 ? "brief" :
-                                      headerIndex == 1 ? "basic" : "full");
+    var headerType = headerIndex == 0 ? "brief" :
+                     headerIndex == 1 ? "basic" : "full";
+    headerDeck.setAttribute("header", headerType);
+    parent.document.body.setAttribute("header", headerType);
     parent.document.body.setAttribute("border", "6");
     parent.document.body.rows = headerIndex == 0 ? this.ROWS_BRIEF :
                                 headerIndex == 1 ? rowsBasic : rowsFull;
@@ -347,14 +363,21 @@ var messageHeaderUtils = {
     gBrowserWindow.SnowlMessageView.onDeleteMessage([messageContent.message])
   },
 
+  onClick: function(aEvent) {
+    if (aEvent.target.classList.contains("headerLabel") && aEvent.button == 0)
+      aEvent.target.classList.toggle("wrap");
+  },
+
   tooltip: function(aEvent, aShow) {
-    // Need to handle tooltips manually in xul-embedded-in-xhtml; tooltip element
-    // cannot be in the xhtml document either.
+    // Need to handle tooltips manually in xul-embedded-in-xhtml; tooltip
+    // element cannot be in the xhtml document either.
     var tooltip = gBrowserWindow.document.getElementById("snowlXulInXhtmlTooltip");
     if (aShow == 'show') {
       this.tiptimer = window.setTimeout(function() {
                         tooltip.label = aEvent.target.tooltipText;
-                        tooltip.openPopup(aEvent.target, "after_start", 0, 0, false, false);
+                        tooltip.openPopup(aEvent.target,
+                                          "after_start",
+                                          0, 0, false, false);
                       }, 800);
     }
     else if (aShow == 'hide') {
@@ -368,7 +391,7 @@ var messageHeaderUtils = {
   },
 
   // Highlight given phrase, skipping html tags & entities.
-  highlight: function(aContent) {
+  highlight: function(aWhat, aContent) {
     var term, terms = [], highlightTerms = [], hlindex = 0;
     var sidebarWin = gBrowserWindow.document.
                                     getElementById("sidebar").contentWindow;
@@ -377,27 +400,37 @@ var messageHeaderUtils = {
     if (!collectionsView)
       return aContent;
 
-    var searchMsgs = collectionsView._searchFilter.
-                                     getAttribute("searchtype") == "messages";
+    var searchWhat = collectionsView._searchFilter.
+                                     getAttribute("searchtype");
     var searchTerms = collectionsView.Filters["searchterms"];
+    var searchIgnoreCase = collectionsView._searchFilter.
+                                           getAttribute("ignorecase") == "true" ?
+                                           true : false;
+    var flags = "g" + (searchIgnoreCase ? "i" : "");
 
-    if (!searchTerms || !searchMsgs)
+    if (!searchTerms || (searchWhat != aWhat && searchWhat != "msghdr"))
       return aContent;
 
+//window.SnowlUtils._log.info("highlight: searchWhat - "+searchWhat);
+
+    // Both sqlite fts and regex terms are stored in Filters["searchterms"]
+    // the same way.  So highlight processing is the same for both, even
+    // though the actual match retrieval query strings are different.
     terms = searchTerms.match("[^\\s\"']+|\"[^\"]*\"|'[^']*'", "g");
     while (terms && (term = terms.shift())) {
-      // Remove negation term, OR term, quotes ", last wildcard *.
-      term = term.replace(/^-.*|^OR|\"|\*\"$|\*$/g, "");
-      // Replace all non word symbols with . since sqlite does not match symbols
-      // exactly, ie for term of "one-off", "one---off", "one++off" sqlite returns
-      // a match for "one off"; for "one off" sqlite returns "one-off" etc. etc.
-      // and we need to highlight these.
-      // XXX: term that sqlite does not match (exact quoted term) will be hightlighted
-      // if it's nevertheless in a valid result page.
+      // Remove negation term, OR term, NEAR[/n] term, quotes ", last wildcard *.
+      term = term.replace(/^-.*|^OR|^NEAR($|\/{1}[1-9]{1}$)|\"|\*\"$|\*$/g, "");
+      // Replace all non word symbols with . since sqlite does not match
+      // symbols exactly, ie for term of "one-off", "one---off", "one++off"
+      // sqlite returns a match for "one off"; for "one off" sqlite returns
+      // "one-off" etc. etc. and we need to highlight these.
+      // XXX: term that sqlite does not match (exact quoted term) will be
+      // hightlighted if it's nevertheless in a valid result page.
       term = term.replace(/[^\w\u0080-\uFFFFF]+/g, ".");
       // Make lower case for highlight array.
-      // XXX: unicode? Bug 394604.  Result is that while sqlite may match the
-      // record, unless the user input is exactly what is on the page, it won't show.
+      // XXX: unicode? Bug 394604.  Result is that while sqlite may match
+      // the record, unless the user input is exactly what is on the page,
+      // it won't show.
       term = term.toLowerCase();
 
       if (term)
@@ -408,14 +441,23 @@ var messageHeaderUtils = {
     // Create | delimited string of strings and words for highligher.
     searchTerms = highlightTerms.join("|");
 
-    var regexp = new RegExp("(<[\\s\\S]*?>|&.*?;)|(" + searchTerms + ")", "gi");
+//window.SnowlUtils._log.info("highlight: searchTerms - "+searchTerms);
+    var headerLabel = false;
+
+    var regexp = new RegExp("(<[\\s\\S]*?>|&.*?;)|(" + searchTerms + ")", flags);
     return aContent.replace(regexp, function($0, $1, $2) {
+//window.SnowlUtils._log.info("highlight: regex $0:$1:$2 - "+$0+" : "+$1+" : "+$2);
+      if ($1)
+        // Matched a tag, remember if it's a headerLabel and don't highlight
+        // any perchance match of a header name.
+        headerLabel = $1.match(/class="headerLabel/g) ? true : false;
       if ($2) {
         var hlterm = $2;
         hlindex = highlightTerms.indexOf(hlterm.replace(/[^\w\u0080-\uFFFFF]+/g, ".").
                                                 toLowerCase());
       }
-      return $1 || '<span class="hldefault hl' + hlindex +'">' + $2 + "</span>";
+      return $1 || (headerLabel ?
+          $2 : '<span class="hldefault hl' + hlindex +'">' + $2 + "</span>");
     });
   }
 

@@ -35,12 +35,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#body {
-  margin: 0px;
+#messageHeader {
+  background-color: -moz-dialog;
 }
 
-#contentBody {
-  margin: 8px;
+#messageFrame[header="brief"] > #messageHeader,
+#messageFrame[header="basic"] > #messageHeader {
+  overflow-x: hidden;
+}
+
+/* Set visibility when header collapsed to prevent tab stops */
+#messageFrame[rows="0,*"] > #messageHeader {
+  visibility: collapse;
 }
 
 #noHeader {
@@ -52,23 +58,18 @@
   height: 20px;
 }
 
-#messageHeader {
-  background-color: -moz-dialog;
+#body {
+  margin: 0px;
 }
 
-/* Set visibility when header collapsed to prevent tab stops */
-#messageFrame[rows="0,*"] > #messageHeader {
-  visibility: collapse;
+#contentBody {
+  margin: 8px;
 }
 
-#headerDeck, #headerFullTable {
+table {
   font-family: sans-serif;
   border-spacing: 0px 0px;
   width: 100%;
-}
-
-#headerFull {
-  overflow-x: auto;
 }
 
 #noHeader[collapsed="true"],
@@ -79,8 +80,17 @@
   display: none;
 }
 /*
+tr {
+  border: 1px solid black;
+}
 td {
   border: 1px solid red;
+}
+div, p, a, pre {
+  border: 1px solid blue;
+}
+table {
+  border: 3px solid green;
 }*/
 
 .headerButtons {
@@ -100,26 +110,42 @@ td {
   width: 1%;
 }
 
+.headerLabel:hover {
+  cursor: pointer;
+}
+
+.headerLabel.wrap {
+  border-right: 1px solid black;
+}
+
+.headerLabel.wrap + .headerData > a {
+  white-space: normal;
+}
+
 .headerData {
   font-weight: normal;
   text-align: left;
   white-space: nowrap;
+  overflow-x: hidden;
+  max-width: 1em;
 }
 
-#briefHeaderRow > .headerData,
-.basicHeaderRow > .headerData {
-  min-width: 2em;
-  max-width: 14em;
-  overflow: hidden;
+#headerDeck[header="brief"] > #briefHeaderRow > .headerDataSubject {
+  width: 35%;
 }
 
-#briefHeaderRow .headerDataLast {
+#briefHeaderRow > .headerDataLast {
   padding-right: 4px;
-  width: 1%;
+  width: 5%;
+  max-width: none;
 }
 
 #briefHeaderRow > .flexer {
   width: 2%;
+}
+
+.fullHeaderRow > .headerData {
+  overflow-x: auto;
 }
 
 #headerDeck:not([header="brief"]) > #briefHeaderRow > .headerDataSubject,

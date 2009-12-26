@@ -63,6 +63,7 @@
   <body id="body"
         dir="&locale.dir;"
         onload="messageContent.createHeader();"
+        onclick="messageHeaderUtils.onClick(event);"
         onpageshow="messageHeaderUtils.init();">
     <table id="headerDeck">
       <tr id="briefHeaderRow">
@@ -86,19 +87,24 @@
                              onkeypress="messageHeaderUtils.onButtonKeyPress(event);"
                              tooltiptext="&toggleHeader.tooltip;"/>
         </td>
-<!-- -->
-        <td class="headerLabel headerLabelSubject" align="right">&subject.label;</td>
-        <td class="headerData headerDataSubject"><a id="subject"/></td>
+        <!-- Do not leave any space/comments or wrap/indent between headerLabel
+             and headerData </td><td elements as this will create a #text node and 
+             disrupt nextSibling usage. -->
+        <td class="headerLabel headerLabelSubject" align="right">&subject.label;</td><td
+            class="headerData headerDataSubject"><a id="subject"/></td>
         <td class="briefHeader flexer"/>
 
-        <td class="headerLabel briefHeader">&author.label;</td>
+        <!-- Using an xul:description allows for cropping and ellipses, but can't
+             highlight using html methods.
         <td class="briefHeader">
           <xul:description id="briefAuthor" crop="end" class="headerData"/>
-        </td>
+        </td> -->
+        <td class="headerLabel briefHeader">&author.label;</td><td
+            class="headerData briefHeader headerDataMiddle"><a id="briefAuthor"/></td>
         <td class="briefHeader flexer"/>
 
-        <td class="headerLabel briefHeader">&timestamp.label;</td>
-        <td id="briefTimestamp" class="headerData headerDataLast briefHeader"/>
+        <td class="headerLabel briefHeader">&timestamp.label;</td><td
+            class="headerData briefHeader headerDataLast"><a id="briefTimestamp"/></td>
 
         <td class="headerButtons basicHeaderRow" valign="top" rowspan="2">
           <xul:toolbarbutton id="deleteMessageButton"
@@ -112,12 +118,12 @@
       </tr>
 
       <tr class="basicHeaderRow">
-        <td class="headerLabel">&author.label;</td>
-        <td id="author" class="headerData"/>
+        <td class="headerLabel">&author.label;</td><td
+            class="headerData"><a id="author"/></td>
       </tr>
       <tr class="basicHeaderRow">
-        <td class="headerLabel" colspan="2">&timestamp.label;</td>
-        <td id="timestamp" class="headerData" colspan="2"/>
+        <td class="headerLabel" colspan="2">&timestamp.label;</td><td
+            class="headerData"><a id="timestamp" colspan="2"/></td>
       </tr>
 <!-- -->
     </table>
