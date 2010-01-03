@@ -64,10 +64,12 @@
         dir="&locale.dir;"
         onload="messageContent.createHeader();"
         onclick="messageHeaderUtils.onClick(event);"
+        onresize="messageHeaderUtils.onResize();"
+        onmousemove="messageHeaderUtils.onMouseMove(event);"
         onpageshow="messageHeaderUtils.init();">
     <table id="headerDeck">
-      <tr id="briefHeaderRow">
-        <td class="headerButtons" valign="top" rowspan="2">
+      <tr id="briefHeaderButtons">
+        <td class="headerButtons" valign="top" rowspan="5">
           <xul:toolbarbutton id="pinButton"
                              class="toolbarbutton-1"
                              type="checkbox"
@@ -80,17 +82,33 @@
           <xul:toolbarbutton id="headerButton"
                              class="toolbarbutton-1 tabbable"
                              header="full"
-                             oncommand="messageHeaderUtils.toggleHeader(null, 'toggle');"
+                             oncommand="messageHeaderUtils.toggleHeader(null, null, 'toggle');"
                              onmouseover="messageHeaderUtils.tooltip(event, 'show');"
                              onmousedown="messageHeaderUtils.tooltip(event, 'hide');"
                              onmouseout="messageHeaderUtils.tooltip(event, 'hide');"
                              onkeypress="messageHeaderUtils.onButtonKeyPress(event);"
                              tooltiptext="&toggleHeader.tooltip;"/>
         </td>
+      </tr>
+      <tr>
+        <td class="headerPadTop" colspan="2"/>
+        <td class="headerButtons basicHeaderRow" valign="top" rowspan="5">
+          <xul:toolbarbutton id="deleteMessageButton"
+                             class="toolbarbutton-1 tabbable"
+                             oncommand="messageHeaderUtils.onDeleteMessageButton()"
+                             onmouseover="messageHeaderUtils.tooltip(event, 'show');"
+                             onmousedown="messageHeaderUtils.tooltip(event, 'hide');"
+                             onmouseout="messageHeaderUtils.tooltip(event, 'hide');"
+                             tooltiptext="&deleteMessagesButton.tooltip;"/>
+        </td>
+     
+      </tr>
+
+      <tr id="briefHeaderRow">
         <!-- Do not leave any space/comments or wrap/indent between headerLabel
              and headerData </td><td elements as this will create a #text node and 
              disrupt nextSibling usage. -->
-        <td class="headerLabel headerLabelSubject" align="right">&subject.label;</td><td
+        <td class="headerLabel headerLabelSubject altrowA" align="right">&subject.label;</td><td
             class="headerData headerDataSubject"><a id="subject"/></td>
         <td class="briefHeader flexer"/>
 
@@ -105,35 +123,29 @@
 
         <td class="headerLabel briefHeader">&timestamp.label;</td><td
             class="headerData briefHeader headerDataLast"><a id="briefTimestamp"/></td>
-
-        <td class="headerButtons basicHeaderRow" valign="top" rowspan="2">
-          <xul:toolbarbutton id="deleteMessageButton"
-                             class="toolbarbutton-1 tabbable"
-                             oncommand="messageHeaderUtils.onDeleteMessageButton()"
-                             onmouseover="messageHeaderUtils.tooltip(event, 'show');"
-                             onmousedown="messageHeaderUtils.tooltip(event, 'hide');"
-                             onmouseout="messageHeaderUtils.tooltip(event, 'hide');"
-                             tooltiptext="&deleteMessagesButton.tooltip;"/>
-        </td>
       </tr>
 
+      <tr><td class="headerPadBottom" colspan="2"/></tr>
+
+
       <tr class="basicHeaderRow">
-        <td class="headerLabel">&author.label;</td><td
+        <td class="headerLabel altrowB">&author.label;</td><td
             class="headerData"><a id="author"/></td>
       </tr>
+
       <tr class="basicHeaderRow">
-        <td class="headerLabel" colspan="2">&timestamp.label;</td><td
-            class="headerData"><a id="timestamp" colspan="2"/></td>
+        <td class="headerLabel altrowA" colspan="2">&timestamp.label;</td><td
+            class="headerData"><a id="timestamp" colspan="3"/></td>
       </tr>
 <!-- -->
     </table>
-      <div id="headerFull">
-        <table id="headerFullTable" class="fullHeaderTable">
-          <tr class="fullHeaderRow">
-            <td class="fullHeaderRowSeparator" colspan="3"/>
-          </tr>
-        </table>
-      </div>
+
+    <!-- Full headers table rows are dynamically created. -->
+    <table id="headerFullTable" class="fullHeaderTable">
+      <tr class="fullHeaderRow">
+        <td class="fullHeaderRowSeparator" colspan="3"/>
+      </tr>
+    </table>
   </body>
 
 </html>

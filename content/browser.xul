@@ -155,6 +155,14 @@
             <menuitem observes="viewSnowlHeader"
                       label="&showHeader.label;"
                       accesskey="&showHeader.accesskey;"/>
+            <menuitem id="viewSnowlHeaderWrap"
+                      label="&wrapHeader.label;"
+                      autoCheck="false"
+                      type="checkbox"
+                      accesskey="&wrapHeader.accesskey;"
+                      checked="false"
+                      persist="checked"
+                      oncommand="Snowl.onSetHeaderWrap(event)"/>
             <menuseparator/>
             <menuitem id="snowlToolbarMenuitem"
                       label="&toolbar.label;"

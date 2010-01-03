@@ -41,7 +41,7 @@
 
 #messageFrame[header="brief"] > #messageHeader,
 #messageFrame[header="basic"] > #messageHeader {
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 /* Set visibility when header collapsed to prevent tab stops */
@@ -75,23 +75,10 @@ table {
 #noHeader[collapsed="true"],
 #headerDeck:not([header="brief"]) .briefHeader,
 #headerDeck[header="brief"] .basicHeaderRow,
-#headerDeck[header="brief"] + #headerFull,
-#headerDeck[header="basic"] + #headerFull {
+#headerDeck[header="brief"] + #headerFullTable,
+#headerDeck[header="basic"] + #headerFullTable {
   display: none;
 }
-/*
-tr {
-  border: 1px solid black;
-}
-td {
-  border: 1px solid red;
-}
-div, p, a, pre {
-  border: 1px solid blue;
-}
-table {
-  border: 3px solid green;
-}*/
 
 .headerButtons {
   white-space: nowrap;
@@ -110,16 +97,19 @@ table {
   width: 1%;
 }
 
-.headerLabel:hover {
+.headerLabel.wrapped:hover,
+.headerLabel.wrappable:hover {
   cursor: pointer;
 }
 
-.headerLabel.wrap {
-  border-right: 1px solid black;
+body.wrap > table > tr > .headerLabel:hover {
+  cursor: auto;
 }
 
+body.wrap > table > tr > .headerLabel + .headerData > a,
 .headerLabel.wrap + .headerData > a {
   white-space: normal;
+  word-wrap: break-word;
 }
 
 .headerData {
@@ -134,6 +124,8 @@ table {
   width: 35%;
 }
 
+/* The date is difficult to style, as it must stick to the right edge, which
+ * doesn't seem to allow for optimal wrapping and flexing and min widths. */
 #briefHeaderRow > .headerDataLast {
   padding-right: 4px;
   width: 5%;
@@ -141,24 +133,32 @@ table {
 }
 
 #briefHeaderRow > .flexer {
-  width: 2%;
+  width: 1%;
 }
 
-.fullHeaderRow > .headerData {
-  overflow-x: auto;
+.headerPadTop,
+.headerPadBottom{
+  height: .5em;
 }
 
-#headerDeck:not([header="brief"]) > #briefHeaderRow > .headerDataSubject,
-#headerDeck:not([header="brief"]) > #briefHeaderRow > .headerLabelSubject {
-  padding-top: .5em;
+#headerDeck:not([header="brief"]) > tr > .headerPadBottom {
+  display: none;
 }
 
 #headerDeck[deleted] > #briefHeaderRow > .headerDataSubject > #subject{
   text-decoration: line-through;
 }
 
+.fullHeaderRow > .headerData {
+  overflow-x: auto;
+}
+
+#headerFullTable > tr:nth-child(even) {
+  background: darkgray;
+}
+
 .fullHeaderRowSeparator {
-  border-bottom: 1px solid threedshadow;
+  border-top: 1px solid threedshadow;
   margin: 0 10px;
 }
 

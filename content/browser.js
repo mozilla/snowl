@@ -295,6 +295,27 @@ let Snowl = {
     }
   },
 
+  onSetHeaderWrap: function(aEvent) {
+    let contentDoc = gBrowser.selectedBrowser.contentDocument;
+    let messageHeader = contentDoc.getElementById("messageHeader");
+    let viewHdrChecked = document.getElementById("viewSnowlHeader").
+                                  getAttribute("checked") == "true";
+    let body = messageHeader.contentDocument.getElementById("body");
+    let headerDeck = messageHeader.contentDocument.getElementById("headerDeck");
+
+    // If a snowl message is in the tab, showing header, resize for wrapped flow.
+    if (messageHeader) {
+      if (aEvent.target.getAttribute("checked") == "true")
+        body.classList.add("wrap");
+      else
+        body.classList.remove("wrap");
+    }
+
+    if (viewHdrChecked)
+      messageHeader.contentWindow.wrappedJSObject.
+                    messageHeaderUtils.setHeaderSize(body, headerDeck);
+  },
+
   _toggleToolbar: function(event) {
     let doc = document.getElementById("sidebar").contentDocument;
     let toolbar = doc.getElementById("snowlToolbar");

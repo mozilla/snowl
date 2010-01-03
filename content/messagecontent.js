@@ -246,11 +246,17 @@ var messageContent = {
 
 var messageHeaderUtils = {
   ROWS_BRIEF: "30,*",
+  origWidth: null,
+  origHeight: null,
+  noResize: false,
 
   init: function() {
     var pin = document.getElementById("pinButton");
     var headerBcaster = gBrowserWindow.document.
                                        getElementById("viewSnowlHeader");
+    var wrap = gBrowserWindow.document.
+                              getElementById("viewSnowlHeaderWrap");
+    var body = document.getElementById("body");
     var headerDeck = document.getElementById("headerDeck");
     var noHeader = parent.document.
                           documentElement.getElementsByClassName("noHeader")[0];
@@ -263,7 +269,7 @@ var messageHeaderUtils = {
     if (checked) {
       // Collapse hover area, set header.
       noHeader.setAttribute("collapsed", true);
-      this.toggleHeader(headerDeck, "init");
+      this.toggleHeader(body, headerDeck, "init");
     }
     else {
       // Uncollapse hover area, hide header frame.
@@ -271,21 +277,60 @@ var messageHeaderUtils = {
       parent.document.body.rows = "0,*";
       noHeader.removeAttribute("collapsed");
     }
+
+    if (wrap.getAttribute("checked") == "true")
+      body.classList.add("wrap");
+    else
+      body.classList.remove("wrap");
+
+    // Fires after onresize done, store new width and height.
+    window.addEventListener("MozScrolledAreaChanged",
+                            function () {
+                              messageHeaderUtils.origWidth = 
+                                  parent.document.body.
+                                         clientWidth;
+                              messageHeaderUtils.origHeight = 
+                                  parent.document.getElementById("messageHeader").
+                                         clientHeight; },
+                            false);
   },
 
   onMouseOver: function(aEvent) {
     var node = aEvent.target;
     var messageHeader = document.getElementById("messageHeader");
+    var body = messageHeader.contentDocument.getElementById("body");
     var headerDeck = messageHeader.contentDocument.getElementById("headerDeck");
     var pin = messageHeader.contentDocument.getElementById("pinButton");
     if (node.id != "noHeader" || pin.hasAttribute("checked"))
       return;
 
     this.headertimer = window.setTimeout(function() {
-                         messageHeaderUtils.toggleHeader(headerDeck);
+                         messageHeaderUtils.toggleHeader(body, headerDeck, "hover");
                          document.getElementById("noHeader").
                                   setAttribute("collapsed", true);
                        }, 500);
+  },
+
+  onMouseMove: function(aEvent) {
+    var node = aEvent.target;
+    if (node.classList.contains("headerLabel")) {
+      // Hovering a header label.  Set cursor to indicate toggle for wrap mode
+      // based on wrap state and wrappability.
+      if (node.nextSibling.clientWidth < node.nextSibling.firstChild.offsetWidth)
+        node.classList.add("wrappable");
+      else
+        node.classList.remove("wrappable");
+
+      var dataCStyle = window.getComputedStyle(node, null)
+      // Need the height of the <a> content as the containing <td> sizes to match
+      // any other <td> in the row that has expanded to fit wrapped content.
+      var dataHt = node.nextSibling.firstChild.scrollHeight;
+      var dataLnHt = dataCStyle.getPropertyValue("line-height").replace(/px/, "");
+      if (dataHt != dataLnHt)
+        node.classList.add("wrapped");
+      else
+        node.classList.remove("wrapped");
+    }
   },
 
   onMouseOut: function(aEvent) {
@@ -297,6 +342,9 @@ var messageHeaderUtils = {
     if (node.id != "messageHeader" || pin.hasAttribute("checked"))
       return;
 
+    // Set noResize in scope of messageHeader frame document, which listens for
+    // the onResize event.
+    messageHeader.contentWindow.wrappedJSObject.messageHeaderUtils.noResize = true;
     document.getElementById("messageFrame").setAttribute("border", "0");
     document.getElementById("messageFrame").setAttribute("rows", "0,*");
     document.getElementById("noHeader").removeAttribute("collapsed");
@@ -320,25 +368,54 @@ var messageHeaderUtils = {
     headerBcaster.setAttribute("checked", pin.checked);
   },
 
-  toggleHeader: function(headerDeck, aType) {
+  setHeaderSize: function(aBody, aHeaderDeck) {
+    // Calculate how to set header height, given wrap toggling and splitter dnd.
     var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
     var headerIndex = parseInt(headerBcaster.getAttribute("headerIndex"));
     var rowsBasic = headerBcaster.getAttribute("rowsBasic");
     var rowsFull = headerBcaster.getAttribute("rowsFull");
+    if ((this.isWrapped(aHeaderDeck) || aBody.classList.contains("wrap")) &&
+        headerIndex != 2)
+      // Reset header frame height to flow wrapped content.  Full header scrolls,
+      // so not necessary for 2.
+      parent.document.body.rows = aBody.scrollHeight + ",*";
+    else
+      // Restore user set height if nothing wraps, or on init and mouseover/out.
+      parent.document.body.rows = headerIndex == 0 ? this.ROWS_BRIEF :
+                                  headerIndex == 1 ? rowsBasic : rowsFull;
 
-    if (aType != "init" && headerBcaster.getAttribute("checked") == "true") {
-      // To set a header height: must first be in non Brief header, pin must be
-      // checked, height can be dnd adjusted as desired, then header must be
-      // toggled to save the height.
-      if (headerIndex == 1)
-        headerBcaster.setAttribute("rowsBasic", parent.document.body.rows);
-      if (headerIndex == 2)
-        headerBcaster.setAttribute("rowsFull", parent.document.body.rows);
+    this.noResize = true;
+  },
+
+  isWrapped: function(aHeaderDeck) {
+    // Is any row in the brief/basic headers wrapped?  Not just toggled to wrap,
+    // but also flowed to multiple lines.
+    var oneWrapped = false;
+    var headerDeck = aHeaderDeck;
+
+    var wrappedNodes = headerDeck.getElementsByClassName("wrap");
+    for (var i = 0; i < wrappedNodes.length && !oneWrapped; i++) {
+      var node = wrappedNodes[i];
+      var dataCStyle = window.getComputedStyle(node, null)
+      var dataHt = dataCStyle.getPropertyValue("height");
+      var dataLnHt = dataCStyle.getPropertyValue("line-height");
+      if (dataHt != dataLnHt)
+        oneWrapped = true;
     }
+
+    return oneWrapped;
+  },
+
+  toggleHeader: function(aBody, aHeaderDeck, aType) {
+    var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
+    var headerIndex = parseInt(headerBcaster.getAttribute("headerIndex"));
+    var body = aBody ? aBody :
+                       document.getElementById("body");
+    var headerDeck = aHeaderDeck ? aHeaderDeck :
+                                   document.getElementById("headerDeck");
 
     if (aType == "toggle") {
       // Toggled to next in 3 way
-      headerDeck = document.getElementById("headerDeck");
       headerIndex = ++headerIndex > 2 ? 0 : headerIndex++;
       headerBcaster.setAttribute("headerIndex", headerIndex);
     }
@@ -348,13 +425,15 @@ var messageHeaderUtils = {
     headerDeck.setAttribute("header", headerType);
     parent.document.body.setAttribute("header", headerType);
     parent.document.body.setAttribute("border", "6");
-    parent.document.body.rows = headerIndex == 0 ? this.ROWS_BRIEF :
-                                headerIndex == 1 ? rowsBasic : rowsFull;
 
     // The message is found in the scope of the parent frameset document.
     var messageContent = parent.wrappedJSObject.messageContent;
     if (headerIndex == 2 && !messageContent._headers)
       messageContent.createFullHeader(headerDeck);
+
+    // Set the size to persisted values or make sure toggling results in nice
+    // headers wrapped content flow.
+    this.setHeaderSize(body, headerDeck);
   },
 
   onDeleteMessageButton: function() {
@@ -364,8 +443,61 @@ var messageHeaderUtils = {
   },
 
   onClick: function(aEvent) {
-    if (aEvent.target.classList.contains("headerLabel") && aEvent.button == 0)
-      aEvent.target.classList.toggle("wrap");
+    if (aEvent.button != 0)
+      return;
+
+    var node = aEvent.target;
+    if (node.classList.contains("headerLabel")) {
+      // Clicked on a header label.
+      var body = document.getElementById("body");
+      var headerDeck = document.getElementById("headerDeck");
+      if (!body.classList.contains("wrap")) {
+        // Set wrap and resize only if global wrap not set.
+        node.classList.toggle("wrap");
+        this.setHeaderSize(body, headerDeck);
+      }
+    }
+  },
+
+  onResize: function() {
+    var messageHeader = parent.document.getElementById("messageHeader");
+    var body = document.getElementById("body");
+    var headerDeck = document.getElementById("headerDeck");
+    var headerBcaster = gBrowserWindow.document.getElementById("viewSnowlHeader");
+    var headerIndex = parseInt(headerBcaster.getAttribute("headerIndex"));
+    var rowsBasic = headerBcaster.getAttribute("rowsBasic");
+    var rowsFull = headerBcaster.getAttribute("rowsFull");
+    var newWidth = parent.document.body.clientWidth;
+    var newHeight = messageHeader.clientHeight;
+
+    if (this.origWidth != newWidth && headerIndex != 2) {
+      // If the sidebar width has changed, make sure things reflow nicely; since
+      // the full header has a scrollbar, only necessary for brief/basic headers.
+      if (this.isWrapped(headerDeck) || body.classList.contains("wrap"))
+        // Reset header frame height to flow wrapped content.
+        parent.document.body.rows = body.scrollHeight + ",*";
+      else
+        // Restore user set height if nothing wraps.
+        parent.document.body.rows = headerIndex == 0 ? this.ROWS_BRIEF :
+                                    headerIndex == 1 ? rowsBasic : rowsFull;
+    }
+
+    if (this.noResize) {
+      // Do not resize if size changed due to header label click, or
+      // mouseover/out header show/hide.  All height resizes must come from
+      // dragging the frame border, for persisting height.
+      this.noResize = false;
+      return;
+    }
+
+    if (this.origHeight != newHeight && this.origWidth == newWidth) {
+      // Just height changed, must be only due to dnd resize, persist new height.
+      // There is no frames event that would make persisting height more direct.
+      if (headerIndex == 1)
+        headerBcaster.setAttribute("rowsBasic", parent.document.body.rows);
+      if (headerIndex == 2)
+        headerBcaster.setAttribute("rowsFull", parent.document.body.rows);
+    }
   },
 
   tooltip: function(aEvent, aShow) {

@@ -61,6 +61,8 @@
 
 <!ENTITY showHeader.label                     "Show Header">
 <!ENTITY showHeader.accesskey                 "H">
+<!ENTITY wrapHeader.label                     "Wrap All Headers">
+<!ENTITY wrapHeader.accesskey                 "W">
 <!ENTITY toolbar.label                        "Sidebar Toolbar">
 <!ENTITY toolbar.accesskey                    "d">
 
