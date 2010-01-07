@@ -1,0 +1,64 @@
+<!-- The Tools > Snowl menu. -->
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY listView.label "Lista">
+<!ENTITY listView.accesskey "l">
+<!ENTITY riverView.label "Río">
+<!ENTITY riverView.accesskey "R">
+<!ENTITY streamView.label "Flujo">
+<!ENTITY streamView.accesskey "t">
+<!ENTITY checkForNewMessages.label "Comprobar Nuevos Mensajes">
+<!ENTITY checkForNewMessages.accesskey "c">
+<!ENTITY subscribe.label "Suscribir...">
+<!ENTITY subscribe.accesskey "s">
+<!ENTITY importOPML.label "Importar OPML...">
+<!ENTITY importOPML.accesskey "i">
+<!ENTITY exportOPML.label "Exportar OPML...">
+<!ENTITY exportOPML.accesskey "x">
+<!ENTITY options.label "Opciones">
+<!ENTITY options.accesskey "O">
+<!ENTITY rebuildDB.label "Reconstruir base de datos de Lugares">
+<!ENTITY rebuildDB.accesskey "D">
+<!-- These labels and access keys are for items in the View > Sidebar menu,
+   - where the user needs more context that these are for Snowl commands,
+   - since the sidebar menu also includes commands for non-Snowl functions. 
+-->
+<!ENTITY listViewSidebarMenuItem.label "Recopilación de Mensajes">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Recopilación de Mensajes">
+<!ENTITY streamViewSidebarMenuItem.label "Flujo de Mensaje">
+<!ENTITY streamViewSidebarMenuItem.accesskey "t">
+<!ENTITY streamViewSidebar.label "Flujo de Mensaje">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY snowlLayoutMenu.label "Diseños">
+<!ENTITY snowlLayoutMenu.accesskey "y">
+<!ENTITY layoutClassic.label "Clásico">
+<!ENTITY layoutClassic.accesskey "C">
+<!ENTITY layoutVertical.label "Vertical">
+<!ENTITY layoutVertical.accesskey "V">
+<!ENTITY layoutWideMessage.label "Mensaje Ancho">
+<!ENTITY layoutWideMessage.accesskey "M">
+<!ENTITY layoutWideThread.label "Lista Ancha">
+<!ENTITY layoutWideThread.accesskey "L">
+<!ENTITY layoutStacked.label "Apilado">
+<!ENTITY layoutStacked.accesskey "S">
+<!ENTITY showHeader.label "Mostrar Cabecera">
+<!ENTITY showHeader.accesskey "H">
+<!ENTITY wrapHeader.label "Reducir todas las cabeceras">
+<!ENTITY wrapHeader.accesskey "W">
+<!ENTITY toolbar.label "Barra de herramientas lateral">
+<!ENTITY toolbar.accesskey "d">
+<!-- These labels and access keys are for toolbar buttons -->
+<!ENTITY toggleList.label "Lista">
+<!ENTITY toggleList.tooltip "Mostrar/Ocultar la Lista de Mensajes de Snowl">
+<!ENTITY toggleStream.label "Flujo">
+<!ENTITY toggleStream.tooltip "Mostrar/Ocultar el Flujo de mensajes Snowl">
+<!ENTITY toggleRiver.label "Río">
+<!ENTITY toggleRiver.tooltip "Mostrar/Ocultar el Río Snowl de Mensajes">

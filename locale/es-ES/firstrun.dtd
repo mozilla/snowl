@@ -1,0 +1,14 @@
+<!ENTITY snowl.title.getting.started.with.snowl "Empezando con Snowl">
+<!ENTITY snowl.p.you.ve.just.installed.snowl "Acabas de instalar Snowl, un experimento de mensajería en el navegador.">
+<!ENTITY snowl.firstrun.access.tips "Accede a Snowl desde el menú <code>Herramientas&gt;Snowl</code> or desde el botón Snowl <img src='chrome://snowl/content/icons/snowl-16.png'/> en la parte inferior izquierda de la ventana de tu navegador.">
+<!ENTITY snowl.firstrun.buttons "Añade botones a tu barra de herramientas para un acceso más rápido a las características de Snowl desde el menú <code>Vista&gt;Barra de Herramientas&gt;Personalizar…</code>">
+<!ENTITY snowl.firstrun.suscribe.howto "Suscribirse a canales pulsando sobre el icono de canal <img src='chrome://browser/skin/feeds/feedIcon16.png'/> que aparece en la barra de direcciones de Firefox cuando visita una web con un canal.">
+<!ENTITY snowl.firstrun.suscribe.twitter "Suscribirse a Twitter o importar un archivo OPML desde el menú <code>Herramientas &gt; Snowl</code> o el botón Snowl <img src='chrome://snowl/content/icons/snowl-16.png'/> abajo a la izquierda de la ventana del navegador.">
+<!ENTITY snowl.firstrun.read.messages "Leer mensajes en las vistas de <a href='&link.to.river;'>río</a>, <a href='&link.to.stream;'>flujo</a>, y <a href='&link.to.list;'>lista</a>.">
+<!ENTITY snowl.firstrun.write.messages "Escribir mensajes pulsando el botón de escribir <img src='chrome://snowl/content/icons/email_add.png'/> en cualquier vista.">
+<!ENTITY snowl.firstrun.get.involved "¡Participa!">
+<!ENTITY snowl.a.learn.more.about.snowl "Aprende más sobre Snowl">
+<!ENTITY snowl.a.tell.us.what.you.think "cuéntanos lo que piensas">
+<!ENTITY snowl.a.browse.bug.reports "busca informe de errores">
+<!ENTITY snowl.a.report.a.bug "informa de un error">
+<!ENTITY snowl.a.check.out.the.source "comprueba el origen">

@@ -1,0 +1,58 @@
+<!-- Subscribe pane -->
+<!ENTITY subscribe.title "Suscribir">
+<!ENTITY source.label "Suscribir a un origen de mensaje">
+<!ENTITY feeds.label "Canal">
+<!ENTITY feeds.accesskey "F">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Ubicación:">
+<!ENTITY name.label "Nombre:">
+<!ENTITY subscribeButton.label "Suscribir">
+<!ENTITY subscribeButton.accesskey "S">
+<!ENTITY closeButton.label "Atrás">
+<!ENTITY closeButton.accesskey "B">
+<!ENTITY clearButton.label "Limpiar">
+<!ENTITY clearButton.accesskey "C">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
+<!ENTITY page.title "Snowl: Suscribir a un origen de mensaje">
+<!-- Customize pane -->
+<!ENTITY settings.title "Personalizar">
+<!ENTITY settings.label "Personalizar configuración predeterminada para un tipo de Origen de Mensaje">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
+<!ENTITY mail.label "Correo">
+<!ENTITY mail.accesskey "M">
+<!ENTITY newsgroup.label "Grupo de noticias">
+<!ENTITY newsgroup.accesskey "N">
+<!-- General pane -->
+<!ENTITY general.title "General">
+<!-- Subscriptions pane -->
+<!ENTITY subscriptions.title "Suscripciones">
+<!-- Organize pane -->
+<!ENTITY organize.title "Organizar">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Refrescar">
+<!ENTITY refreshText.label "El intervalo de refresco debe personalizarse.">
+<!ENTITY refreshMinutes.label "Refrescar cada">
+<!ENTITY refreshMinutes.accesskey "R">
+<!ENTITY minutes.label "minutos">
+<!ENTITY refreshStatus.label "Estado actual del refresco de conexión para este origen.">
+<!ENTITY refreshState.label "Estado:">
+<!ENTITY refreshDate.label "Último refresco:">
+<!ENTITY refreshCode.label "Último código de error:">
+<!ENTITY refreshError.label "Último mensaje de error:">
+<!ENTITY retention.label "Retención">
+<!ENTITY retentionCleanup.label "Los mensajes puedes borrarse según la siguiente reglas.">
+<!ENTITY retentionUseType.label "Utilizar configuración predeterminada para este tipo de mensaje">
+<!ENTITY retentionUseType.accesskey "d">
+<!ENTITY retentionKeepAll.label "No borrar ningún mensaje">
+<!ENTITY retentionKeepAll.accesskey "n">
+<!ENTITY retentionKeepRecent.label "Borrar todo menos los más recientes">
+<!ENTITY retentionKeepRecent.accesskey "r">
+<!ENTITY message.label "mensajes">
+<!ENTITY retentionDeleteMsg.label "Borrar mensajes más viejos de">
+<!ENTITY retentionDeleteMsg.accesskey "o">
+<!ENTITY daysOld.label "días">
+<!ENTITY retentionKeepFlagged.label "Mantener siempre mensajes marcados">
+<!ENTITY retentionKeepFlagged.accesskey "k">
