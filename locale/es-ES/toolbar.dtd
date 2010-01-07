@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Suscribirse a fuentes de mensajes.">
+<!ENTITY unsubscribeButton.tooltip "Desuscribirse de las fuentes de mensajes seleccionadas.">
+<!ENTITY refreshButton.tooltip "Refrescar todas las fuentes de mensajes.">
+<!ENTITY exportButton.tooltip "Exportar mensaje como OPML.">
+<!ENTITY unreadButton.tooltip "Mostrar mensajes nuevos y no leídos de colecciones seleccionadas.">
+<!ENTITY flaggedButton.tooltip "Mostrar mensajes marcados de colecciones seleccionadas.">
+<!ENTITY listToolbarButton.tooltip "Conmutar Ver barra de herramientas.">
+<!ENTITY writeButton.tooltip "Escribir un mensaje.">
+<!ENTITY showDeletedButton.tooltip "Mostrar mensajes borrados de colecciones seleccionadas.">
+<!ENTITY purgeDeletedButton.tooltip "Eliminar todos los mensajes borrados de colecciones seleccionadas.">

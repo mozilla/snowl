@@ -50,6 +50,7 @@ locale  snowl   cs-CZ   @chrome_path@locale/cs-CZ/
 locale  snowl   da-DK   @chrome_path@locale/da-DK/
 locale  snowl   de-DE   @chrome_path@locale/de-DE/
 locale  snowl   en-US   @chrome_path@locale/en-US/
+locale  snowl   es-ES   @chrome_path@locale/es-ES/
 locale  snowl   fr-FR   @chrome_path@locale/fr-FR/
 locale  snowl   hu-HU   @chrome_path@locale/hu-HU/
 locale  snowl   ja-JP   @chrome_path@locale/ja-JP/
