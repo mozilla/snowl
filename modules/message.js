@@ -149,11 +149,14 @@ SnowlMessage.delete = function(aMessage) {
             "DELETE FROM people " +
             "WHERE id = " + message.author.person.id);
 
-      // Finally, clean up Places bookmark by author's placeID.  A collections
-      // tree rebuild is triggered by Places on removeItem of a visible item,
-      // triggering a select event.  Need to bypass in onSelect.
-      SnowlMessage.prototype.CollectionsView.noSelect = true;
-      PlacesUtils.bookmarks.removeItem(message.author.person.placeID);
+      // Finally, clean up Places bookmark by author's placeID.  If authors
+      // collections are not being built, placeID will be null, so skip.
+      // A collections tree rebuild is triggered by Places on removeItem of a
+      // visible item, triggering a select event.  Need to bypass in onSelect.
+      if (message.author.person.placeID) {
+        SnowlMessage.prototype.CollectionsView.noSelect = true;
+        PlacesUtils.bookmarks.removeItem(message.author.person.placeID);
+      }
     }
 
     SnowlDatastore.dbConnection.commitTransaction();
