@@ -158,6 +158,10 @@ SnowlCollection.prototype = {
         this._messageIndex[message.id] = message;
       }
     }
+    catch(ex) {
+      this._log.error("Error retrieving messages - " + ex);
+      return this._messages = [];
+    }
     finally {
       statement.reset();
     }
@@ -258,13 +262,16 @@ SnowlCollection.prototype = {
       if (condition.type != "ARRAY")
         for (let [name, value] in Iterator(condition.parameters)) {
           statement.params[name] = value;
-this._log.info("_generateStatement: name:value - "+name+" : "+value.toString());
-this._log.info("_generateStatement: params - "+statement.params[name]);
+//this._log.info("_generateStatement: name:value - "+name+" : "+value.toString());
+//this._log.info("_generateStatement: params - "+statement.params[name]);
       }
 
     for each (let condition in this.filters)
-      for (let [name, value] in Iterator(condition.parameters))
+      for (let [name, value] in Iterator(condition.parameters)) {
         statement.params[name] = value;
+//this._log.info("_generateStatement: name:value - "+name+" : "+value.toString());
+//this._log.info("_generateStatement: params - "+statement.params[name]);
+      }
 
     return statement;
   },

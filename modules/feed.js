@@ -431,10 +431,14 @@ SnowlFeed.prototype = {
     message.source = this;
     message.externalID = aExternalID;
     message.subject = aEntry.title.text;
-    message.timestamp = aEntry.updated               ? new Date(SnowlDateUtils.RFC822Date(aEntry.updated))
-                      : aEntry.published             ? new Date(SnowlDateUtils.RFC822Date(aEntry.published))
-                      : aEntry.fields.get("dc:date") ? ISO8601DateUtils.parse(aEntry.fields.get("dc:date"))
+    message.timestamp = aEntry.updated   ? new Date(SnowlDateUtils.RFC822Date(aEntry.updated))
+                      : aEntry.published ? new Date(SnowlDateUtils.RFC822Date(aEntry.published))
                       : null;
+    if (!message.timestamp && aEntry.fields.get("dc:date")) {
+      // This date routine throws for really invalid dates.
+      try { message.timestamp = ISO8601DateUtils.parse(aEntry.fields.get("dc:date")) }
+      catch(ex) { message.timestamp = null; }
+    }
     message.received = aReceived;
     message.link = aEntry.link;
 
@@ -628,6 +632,10 @@ SnowlFeed.prototype = {
         let fieldName = field.name.replace(/^null/, "");
         message.headers[fieldName] = field.value.substring(0, 500) +
                                      (field.value.length > 500 ? " [...]" : "");
+
+        // One last try to get a valid date..
+        if (!message.timestamp && fieldName == "publicationDate")
+          message.timestamp = new Date(SnowlDateUtils.RFC822Date(field.value));
       }
 
       if (field.name.match(/lang/g)) {
