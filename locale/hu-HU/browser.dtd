@@ -4,6 +4,7 @@
 <!-- These labels and access keys are for items in the Tools > Snowl menu,
    - where the user doesn't need to be reminded that these are Snowl commands,
    - since it is obvious from their placement in the Snowl menu. 
+
 -->
 <!ENTITY listView.label "Lista">
 <!ENTITY listView.accesskey "l">
@@ -26,6 +27,7 @@
 <!-- These labels and access keys are for items in the View > Sidebar menu,
    - where the user needs more context that these are for Snowl commands,
    - since the sidebar menu also includes commands for non-Snowl functions. 
+
 -->
 <!ENTITY listViewSidebarMenuItem.label "Üzenetlista">
 <!ENTITY listViewSidebarMenuItem.accesskey "l">
@@ -36,6 +38,7 @@
 <!-- These labels and access keys are for items in the Tools > Snowl menu,
    - where the user doesn't need to be reminded that these are Snowl commands,
    - since it is obvious from their placement in the Snowl menu. 
+
 -->
 <!ENTITY snowlLayoutMenu.label "Elrendezés">
 <!ENTITY snowlLayoutMenu.accesskey "e">
@@ -51,6 +54,8 @@
 <!ENTITY layoutStacked.accesskey "H">
 <!ENTITY showHeader.label "Fejléc megjelenítése">
 <!ENTITY showHeader.accesskey "F">
+<!ENTITY wrapHeader.label "Fejlécek összecsukása">
+<!ENTITY wrapHeader.accesskey "C">
 <!ENTITY toolbar.label "Oldalsáv eszköztár">
 <!ENTITY toolbar.accesskey "d">
 <!-- These labels and access keys are for toolbar buttons -->

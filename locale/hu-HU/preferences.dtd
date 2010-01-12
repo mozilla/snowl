@@ -20,6 +20,7 @@
 <!ENTITY settings.label "Alapértelmezett beállítások az üzenetforrás-típusra">
 <!-- The entities below are commented out because they aren't being used yet,
    - and they may change before we start using them, so don't localize them. 
+
 -->
 <!ENTITY mail.label "Levél">
 <!ENTITY mail.accesskey "L">
