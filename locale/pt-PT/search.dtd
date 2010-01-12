@@ -1,0 +1,26 @@
+<!-- Search Help -->
+<!ENTITY search.title "Ajuda para Pesquisar">
+<!ENTITY search.caption "Guia de Pesquisa de Mensagens">
+<!ENTITY search.header1 "A Pesquisa tem como base as capacidades e limitações do SQLite's Full Text Search (FTS).">
+<!ENTITY search.header2 "Sintaxe válida:">
+<!ENTITY search.explanation1 "Iguala todos os itens que começam com 'foo'; ambos 'foo' e 'foobar'.">
+<!ENTITY search.explanation2 "Iguala todos os itens que contenham exactamente 'foo'; 'foo' mas não 'foobar'.">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Iguala todos os itens com 'foo' e 'bar'.">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Iguala todos os itens com 'foo' ou 'bar'.">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Iguala todos os itens com 'foo' e 'bar' mas não 'baz'.">
+<!ENTITY search.example6 "">
+<!ENTITY search.explanation6 "Nota: só pode existir UM termo de negação e tem que ser o ÚLTIMO termo da pesquisa.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Iguala todos os itens onde 'foo' está PERTO de 'bar', significando até N palavras de 'bar'. Os valores válidos para N são entre 0-9 (o padrão é 10 se N está em branco).">
+<!ENTITY search.explanation8 "Igual todos os itens onde 'foo' está até 2 palavras de 'bar' e 'bar' está até 10 palavras de ''baz biff''.">
+<!ENTITY search.header3 "Os erros de sintaxe são indicados por um fundo vermelho.">
+<!ENTITY search.header4 "Sintaxe inválida:">
+<!ENTITY search.explanation9 "O prefixo asterisco é inválido.">
+<!ENTITY search.explanation10 "Espaços no início e no final não são válidos entre aspas.">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Símbolos não alfanuméricos são inválidos caso usados sem aspas.">
+<!ENTITY search.explanation12 "O conteúdo entre aspas não pode ser negado.">
+<!ENTITY search.header5 "Procurar por símbolos entre aspas retorna resultados inesperados. Também, os asteriscos não são suportados no meio de palavras.">

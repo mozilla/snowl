@@ -1,0 +1,58 @@
+<!-- Subscribe pane -->
+<!ENTITY subscribe.title "Subscrever">
+<!ENTITY source.label "Subscrever a uma Fonte de Mensagens">
+<!ENTITY feeds.label "Feed">
+<!ENTITY feeds.accesskey "F">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Localização:">
+<!ENTITY name.label "Nome:">
+<!ENTITY subscribeButton.label "Subscrever">
+<!ENTITY subscribeButton.accesskey "S">
+<!ENTITY closeButton.label "Voltar">
+<!ENTITY closeButton.accesskey "V">
+<!ENTITY clearButton.label "Apagar">
+<!ENTITY clearButton.accesskey "A">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
+<!ENTITY page.title "Snowl: Subscrever a uma Fonte de Mensagens">
+<!-- Customize pane -->
+<!ENTITY settings.title "Personalizar">
+<!ENTITY settings.label "Personalizar as configurações padrão para um tipo de Fonte de Mensagem">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
+<!ENTITY mail.label "E-Mail">
+<!ENTITY mail.accesskey "M">
+<!ENTITY newsgroup.label "Grupo de Discussão">
+<!ENTITY newsgroup.accesskey "G">
+<!-- General pane -->
+<!ENTITY general.title "Geral">
+<!-- Subscriptions pane -->
+<!ENTITY subscriptions.title "Subscrições">
+<!-- Organize pane -->
+<!ENTITY organize.title "Organizar">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Recarregar">
+<!ENTITY refreshText.label "O intervalo de actualização pode ser personalizado.">
+<!ENTITY refreshMinutes.label "Recarregar a cada">
+<!ENTITY refreshMinutes.accesskey "R">
+<!ENTITY minutes.label "minutos">
+<!ENTITY refreshStatus.label "Estado actual de actualização de ligação para esta fonte.">
+<!ENTITY refreshState.label "Estado:">
+<!ENTITY refreshDate.label "Última actualização:">
+<!ENTITY refreshCode.label "Último código de erro:">
+<!ENTITY refreshError.label "Última mensagem de erro:">
+<!ENTITY retention.label "Retenção">
+<!ENTITY retentionCleanup.label "As mensagens podem ser apagadas de acordo com as seguintes regras.">
+<!ENTITY retentionUseType.label "Usar configuração padrão para este tipo de mensagem">
+<!ENTITY retentionUseType.accesskey "d">
+<!ENTITY retentionKeepAll.label "Não apagar quaisquer mensagens">
+<!ENTITY retentionKeepAll.accesskey "q">
+<!ENTITY retentionKeepRecent.label "Apagar todos excepto os mais recentes">
+<!ENTITY retentionKeepRecent.accesskey "r">
+<!ENTITY message.label "mensagens">
+<!ENTITY retentionDeleteMsg.label "Apagar mensagens com mais de">
+<!ENTITY retentionDeleteMsg.accesskey "m">
+<!ENTITY daysOld.label "dias">
+<!ENTITY retentionKeepFlagged.label "Mantenher sempre mensagens sinalizadas">
+<!ENTITY retentionKeepFlagged.accesskey "M">
