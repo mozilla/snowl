@@ -1,0 +1,14 @@
+<!ENTITY snowl.title.getting.started.with.snowl "Snowl kezdeti lépések">
+<!ENTITY snowl.p.you.ve.just.installed.snowl "A Snowl, a kísérleti üzenetolvasó a böngészőben telepítése befejeződött.">
+<!ENTITY snowl.firstrun.access.tips "A Snowl indítása az <code>Eszközök &gt; Snowl</code> menüpont kiválasztásával, vagy a bal alsó sarokban található Snowl ikonra <img src='chrome://snowl/content/icons/snowl-16.png'/> kattintva lehetséges.">
+<!ENTITY snowl.firstrun.buttons "A gyorsabb elérés érdekében az eszköztárra is felhelyezhető a Snowl ikon a <code>Nézet &gt; Eszköztárak &gt; Testreszabás…</code> menüpont alatt.">
+<!ENTITY snowl.firstrun.suscribe.howto "A hírforrásokra feliratkozni az adott weboldal meglátogatásakor, a Firefox címsorban megjelenő <img src='chrome://browser/skin/feeds/feedIcon16.png'/> ikonra kattintva lehetséges.">
+<!ENTITY snowl.firstrun.suscribe.twitter "Twitterre feliratkozni, vagy OPML fájlt importálni a <code>Eszközök &gt; Snowl</code> menüpont alatt, vagy a bal alsó sarokban található <img src='chrome://snowl/content/icons/snowl-16.png' /> ikonra kattintva lehetséges.">
+<!ENTITY snowl.firstrun.read.messages "Az üzeneteket a <a href='&link.to.river;'>folyam</a>, <a href='&link.to.stream;'>stream</a>, és <a href='&link.to.list;'>lista </a> nézetekben lehet.">
+<!ENTITY snowl.firstrun.write.messages "Üzenetet írni bármely nézetben az üzenet gomb <img src='chrome://snowl/content/icons/email_add.png' /> megnyomásával lehetséges.">
+<!ENTITY snowl.firstrun.get.involved "Legyen közreműködő!">
+<!ENTITY snowl.a.learn.more.about.snowl "Tudjon meg többet a Snowl-ról">
+<!ENTITY snowl.a.tell.us.what.you.think "mondja el mit gondol">
+<!ENTITY snowl.a.browse.bug.reports "nézze át a hibabejelentéseket">
+<!ENTITY snowl.a.report.a.bug "hibabejelentés">
+<!ENTITY snowl.a.check.out.the.source "nézze meg a forrást">

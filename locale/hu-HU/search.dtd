@@ -1,0 +1,26 @@
+<!-- Search Help -->
+<!ENTITY search.title "Keresés súgó">
+<!ENTITY search.caption "Üzenetkereső segédlet">
+<!ENTITY search.header1 "A keresés az SQLite teljes szöveges keresésén alapszik (annak lehetőségeivel és korlátaival).">
+<!ENTITY search.header2 "Érvényes szintaxis:">
+<!ENTITY search.explanation1 "Illeszkedik a 'foo'-val kezdődő elemekre, így a 'foo'-ra és a 'foobar'-ra is.">
+<!ENTITY search.explanation2 "Csak a 'foo' elemekre illeszkedik, a 'foobar'-ra nem.">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Minden elemre illeszkedik ami 'foo' ÉS 'bar'.">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Minden elemre illeszkedik ami 'foo' VAGY 'bar'.">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Minden elemre illeszkedik ami 'foo' ÉS 'bar', de NEM 'baz'.">
+<!ENTITY search.example6 "">
+<!ENTITY search.explanation6 "Megjegyzés: csak EGYETLEN negáló feltétel lehet és annak az utolsónak kell lennie a keresési feltételben.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Illeszkedik minden elemre, ahol a 'foo' a 'bar' KÖZELÉBEN található N szón belül. Az N érték 0 és 9 között lehet (az alapértelmezett 10, ha az N nincs megadva).">
+<!ENTITY search.explanation8 "Illeszkedik minden elemre, ahol a 'foo' két 'bar' között van és 'bar' a ''baz biff''-től maximum 10 szóra található.">
+<!ENTITY search.header3 "A szintaktikai hiba piros háttérrel jelenik meg.">
+<!ENTITY search.header4 "Hibás szintaxis:">
+<!ENTITY search.explanation9 "A helyettesítő karakter előtagként való használata nem megengedett.">
+<!ENTITY search.explanation10 "Idézett szövegekben">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "A nem alfanumerikus szimbólumok használata nem megengedett a nem idézett szövegekben.">
+<!ENTITY search.explanation12 "Időzőjelbe tett szöveg nem negálható.">
+<!ENTITY search.header5 "Idézőjelbe tett szöveg keresése nem megfelelő eredménnyel zárult. Továbbá, a helyettesítő karakterek nem támogatottal a szavakon belül.">
