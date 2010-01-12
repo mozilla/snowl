@@ -4,6 +4,7 @@
 <!-- These labels and access keys are for items in the Tools > Snowl menu,
    - where the user doesn't need to be reminded that these are Snowl commands,
    - since it is obvious from their placement in the Snowl menu. 
+
 -->
 <!ENTITY listView.label "Nachrichtenliste">
 <!ENTITY listView.accesskey "m">
@@ -26,6 +27,7 @@
 <!-- These labels and access keys are for items in the View > Sidebar menu,
    - where the user needs more context that these are for Snowl commands,
    - since the sidebar menu also includes commands for non-Snowl functions. 
+
 -->
 <!ENTITY listViewSidebarMenuItem.label "Nachrichtensammlungen">
 <!ENTITY listViewSidebarMenuItem.accesskey "s">
@@ -36,6 +38,7 @@
 <!-- These labels and access keys are for items in the Tools > Snowl menu,
    - where the user doesn't need to be reminded that these are Snowl commands,
    - since it is obvious from their placement in the Snowl menu. 
+
 -->
 <!ENTITY snowlLayoutMenu.label "Ansichten">
 <!ENTITY snowlLayoutMenu.accesskey "l">
@@ -51,6 +54,8 @@
 <!ENTITY layoutStacked.accesskey "G">
 <!ENTITY showHeader.label "Überschrift anzeigen">
 <!ENTITY showHeader.accesskey "Ü">
+<!ENTITY wrapHeader.label "Alle Überschriften ausblenden">
+<!ENTITY wrapHeader.accesskey "b">
 <!ENTITY toolbar.label "Werkzeugleiste anzeigen">
 <!ENTITY toolbar.accesskey "k">
 <!-- These labels and access keys are for toolbar buttons -->
