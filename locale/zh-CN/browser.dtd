@@ -4,6 +4,7 @@
 <!-- These labels and access keys are for items in the Tools > Snowl menu,
    - where the user doesn't need to be reminded that these are Snowl commands,
    - since it is obvious from their placement in the Snowl menu. 
+
 -->
 <!ENTITY listView.label "列表视图">
 <!ENTITY listView.accesskey "l">
@@ -26,6 +27,7 @@
 <!-- These labels and access keys are for items in the View > Sidebar menu,
    - where the user needs more context that these are for Snowl commands,
    - since the sidebar menu also includes commands for non-Snowl functions. 
+
 -->
 <!ENTITY listViewSidebarMenuItem.label "信息列表">
 <!ENTITY listViewSidebarMenuItem.accesskey "l">
@@ -36,6 +38,7 @@
 <!-- These labels and access keys are for items in the Tools > Snowl menu,
    - where the user doesn't need to be reminded that these are Snowl commands,
    - since it is obvious from their placement in the Snowl menu. 
+
 -->
 <!ENTITY snowlLayoutMenu.label "布局">
 <!ENTITY snowlLayoutMenu.accesskey "y">
@@ -51,6 +54,8 @@
 <!ENTITY layoutStacked.accesskey "S">
 <!ENTITY showHeader.label "显示标题头">
 <!ENTITY showHeader.accesskey "H">
+<!ENTITY wrapHeader.label "所有标题自动换行">
+<!ENTITY wrapHeader.accesskey "W">
 <!ENTITY toolbar.label "侧边栏">
 <!ENTITY toolbar.accesskey "d">
 <!-- These labels and access keys are for toolbar buttons -->

@@ -20,6 +20,7 @@
 <!ENTITY settings.label "为信息来源类型定制默认设置">
 <!-- The entities below are commented out because they aren't being used yet,
    - and they may change before we start using them, so don't localize them. 
+
 -->
 <!ENTITY mail.label "邮件">
 <!ENTITY mail.accesskey "M">
