@@ -174,24 +174,18 @@
   
         </menu>
         <menuseparator/>
-        <menuitem label="&subscribe.label;" accesskey="&subscribe.accesskey;"
-                  oncommand="Snowl.openSnowlPreferences('subscribe');"/>
         <menuitem label="&importOPML.label;" accesskey="&importOPML.accesskey;"
                   oncommand="Snowl.onImportOPML()"/>
         <menuitem label="&exportOPML.label;" accesskey="&exportOPML.accesskey;"
                   oncommand="Snowl.onExportOPML()"/>
-        <menuseparator/>
         <menuitem id="snowlRebuildDBMenuitem"
                   disabled="true"
                   label="&rebuildDB.label;"
                   accesskey="&rebuildDB.accesskey;"
                   oncommand="Snowl.onRebuildPlacesDatabase();"/>
-        <!-- Commented out because we don't currently have any preferences
-           - (except the Subscribe pane, but users access that via another
-           - menu item). -->
-        <!--<menuseparator/>-->
-        <!--<menuitem label="&options.label;" accesskey="&options.accesskey;"-->
-        <!--          oncommand="Snowl.openSnowlPreferences();"/>-->
+        <menuseparator/>
+        <menuitem label="&options.label;" accesskey="&options.accesskey;"
+                  oncommand="Snowl.openSnowlPreferences();"/>
       </menupopup>
     </menu>
   </menupopup>

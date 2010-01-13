@@ -71,8 +71,8 @@ const SNOWL_HANDLER_TITLE = "Snowl";
 const REFRESH_CHECK_INTERVAL = 60 * 1000; // 60 seconds
 // How often to check message retention policies, in milliseconds.
 // TODO: retention check run based on last run.
-const RETENTION_CHECK_INTERVAL = 60 * 1000 * 60 * 12 ; // 12 hours
-//const RETENTION_CHECK_INTERVAL = 30 * 1000; // 30 seconds
+const RETENTION_CHECK_INTERVAL = 60 * 1000 * 60 * 6; // 6 hours
+//const RETENTION_CHECK_INTERVAL = 60 * 1000 * 4; // 4 minutes
 
 let SnowlService = {
   get gBrowserWindow() {
