@@ -70,7 +70,7 @@
             <label id="refreshMinutes"
                    value="&refreshMinutes.label;"
                    control="refresh.minutes"
-                   accesskey="refreshMinutes.accesskey;"/>
+                   accesskey="&refreshMinutes.accesskey;"/>
             <textbox id="refresh.minutes"
                      type="number"
                      min="1"

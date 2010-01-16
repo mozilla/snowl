@@ -430,7 +430,7 @@ SnowlFeed.prototype = {
 
     message.source = this;
     message.externalID = aExternalID;
-    message.subject = aEntry.title.text;
+    message.subject = aEntry.title.text == null ? "" : aEntry.title.text;
     message.timestamp = aEntry.updated   ? new Date(SnowlDateUtils.RFC822Date(aEntry.updated))
                       : aEntry.published ? new Date(SnowlDateUtils.RFC822Date(aEntry.published))
                       : null;
