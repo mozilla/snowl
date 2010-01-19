@@ -11,6 +11,10 @@
 # ActiveState Komodo project file
 \.kpf$
 
+# Eclipse files
+\.externalToolBuilders$
+\.project$
+
 # the local mirror of the web distribution directory, for developers
 # who distribute their builds via the website
 ^dist$
@@ -19,3 +23,7 @@
 ^test/harness/app/update.test$
 ^test/profile$
 ^test/unit/test_.*\.log$
+
+# generic utility dir
+syntax: regexp
+^archive-bkup$
