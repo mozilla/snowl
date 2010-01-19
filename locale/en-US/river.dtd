@@ -5,6 +5,7 @@
 <!ENTITY decrementPeriodButton.tooltip "Previous day">
 <!ENTITY incrementPeriodButton.tooltip "Next day">
 
+<!ENTITY unsubscribe.title            "Unsubscribe">
 <!ENTITY periodDay.label              "Day">
 <!ENTITY periodWeek.label             "Week">
 <!ENTITY periodMonth.label            "Month">

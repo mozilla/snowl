@@ -1681,9 +1681,9 @@ PlacesUIUtils.getBestTitle =
 
       if (nodeStats) {
         if (collID == "all")
-          titleStats = " (New:" + nodeStats.n +
-                       " Unread:" + nodeStats.u +
-                       " Total:" + nodeStats.t + ")";
+          titleStats = " (" + strings.get("statsNew") + nodeStats.n +
+                       " " + strings.get("statsUnread") + nodeStats.u +
+                       " " + strings.get("statsTotal") + nodeStats.t + ")";
         else
           titleStats = " (" + nodeStats.n + " " +
                               nodeStats.u + " " +

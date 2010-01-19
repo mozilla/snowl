@@ -82,7 +82,7 @@
   </keyset>
 
   <panel id="sourcePanel" onpopupshowing="Sources.onPopupShowing(event)">
-    <button label="Unsubscribe" oncommand="Sources.onCommandUnstoreButton(event)"/>
+    <button label="&unsubscribe.title;" oncommand="Sources.onCommandUnstoreButton(event)"/>
   </panel>
 
   <stack flex="1" align="start" pack="end" >
