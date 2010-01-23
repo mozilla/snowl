@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Bron">
+<!ENTITY authorCol.label "Schrijver">
+<!ENTITY subjectCol.label "Onderwerp">
+<!ENTITY timestampCol.label "Datum">
+<!ENTITY datereceivedCol.label "Datum ontvangen">
+<!ENTITY readCol.label "Gelezen">
+<!ENTITY flaggedCol.label "Gelabeld">
+<!ENTITY sortBy.label "Sorteren op">
+<!ENTITY openListMessage.label "Bericht openen">
+<!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Alles selecteren">
+<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteMessages.label "Geselecteerde berichten verwijderen">
+<!ENTITY deleteMessages.accesskey "w">
+<!ENTITY undeleteMessages.label "Geselecteerde berichten terugzetten">
+<!ENTITY undeleteMessages.accesskey "u">

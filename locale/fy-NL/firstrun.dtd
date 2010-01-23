@@ -1,0 +1,14 @@
+<!ENTITY snowl.title.getting.started.with.snowl "Starte mei Snowl">
+<!ENTITY snowl.p.you.ve.just.installed.snowl "Jo hawwe krekt Snowl ynstallearre, in eksperiment yn kommunisearje yn de browser.">
+<!ENTITY snowl.firstrun.access.tips "Iepenje Snowl fia it <code>Ekstra &gt; Snowl</code> menu of de Snowlknop <img src='chrome://snowl/content/icons/snowl-16.png'/> yn de linkerûnderhoeke fan jo browserskerm.">
+<!ENTITY snowl.firstrun.buttons "Foegje knoppen ta oan jo arkbalken foar flugger tagong ta Snowl opsjes fia de <code>Byld &gt; Arkbalken &gt; Oanpasse…</code> menu-opsje.">
+<!ENTITY snowl.firstrun.suscribe.howto "Abonnearje op feeds troch te klikken op it feedikoantsje <img src='chrome://browser/skin/feeds/feedIcon16.png'/> dy't ferskynt yn de Firefox adresbalke as jo in side besykje mei in feed.">
+<!ENTITY snowl.firstrun.suscribe.twitter "Abonnearje o-p Twitter of ymportearje in OPML-bestân fia it <code>Ekstra &gt; Snowl</code> menu of de Snowlknop <img src='chrome://snowl/content/icons/snowl-16.png'/> yn de linkerûnderhoeke fan jo browserskerm.">
+<!ENTITY snowl.firstrun.read.messages "Lês berjochten yn de <a href='&link.to.river;'>rivier</a>, <a href='&link.to.stream;'>stream</a> en <a href='&link.to.list;'>list </a> bylden.">
+<!ENTITY snowl.firstrun.write.messages "Skriuw in berjocht troch te kliken op de skriuwknop <img src='chrome://snowl/content/icons/email_add.png' /> yn elk byld.">
+<!ENTITY snowl.firstrun.get.involved "Doch mei!">
+<!ENTITY snowl.a.learn.more.about.snowl "Lear mear oer Snowl">
+<!ENTITY snowl.a.tell.us.what.you.think "fertel ús wat jo tinke">
+<!ENTITY snowl.a.browse.bug.reports "blêdzje troch bugreports">
+<!ENTITY snowl.a.report.a.bug "rapportearje in bug">
+<!ENTITY snowl.a.check.out.the.source "kontrolearje de boarne">

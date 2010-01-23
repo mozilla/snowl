@@ -1,0 +1,64 @@
+<!-- The Tools > Snowl menu. -->
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY listView.label "List">
+<!ENTITY listView.accesskey "l">
+<!ENTITY riverView.label "Rivier">
+<!ENTITY riverView.accesskey "R">
+<!ENTITY streamView.label "Stream">
+<!ENTITY streamView.accesskey "t">
+<!ENTITY checkForNewMessages.label "Kontrolearje op nije berjochten">
+<!ENTITY checkForNewMessages.accesskey "c">
+<!ENTITY subscribe.label "Abonnearje...">
+<!ENTITY subscribe.accesskey "b">
+<!ENTITY importOPML.label "Ymportearje OPML...">
+<!ENTITY importOPML.accesskey "y">
+<!ENTITY exportOPML.label "Eksportearje OPML...">
+<!ENTITY exportOPML.accesskey "k">
+<!ENTITY options.label "Opsjes">
+<!ENTITY options.accesskey "O">
+<!ENTITY rebuildDB.label "Plakken database op 'e nij opboue">
+<!ENTITY rebuildDB.accesskey "d">
+<!-- These labels and access keys are for items in the View > Sidebar menu,
+   - where the user needs more context that these are for Snowl commands,
+   - since the sidebar menu also includes commands for non-Snowl functions. 
+-->
+<!ENTITY listViewSidebarMenuItem.label "Berjochtkolleksjes">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Berjochtkolleksjes">
+<!ENTITY streamViewSidebarMenuItem.label "Berjochtstream">
+<!ENTITY streamViewSidebarMenuItem.accesskey "t">
+<!ENTITY streamViewSidebar.label "Berjochtstream">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY snowlLayoutMenu.label "Layouts">
+<!ENTITY snowlLayoutMenu.accesskey "y">
+<!ENTITY layoutClassic.label "Klassyk">
+<!ENTITY layoutClassic.accesskey "K">
+<!ENTITY layoutVertical.label "Fertikaal">
+<!ENTITY layoutVertical.accesskey "F">
+<!ENTITY layoutWideMessage.label "Breed berjocht">
+<!ENTITY layoutWideMessage.accesskey "b">
+<!ENTITY layoutWideThread.label "Brede list">
+<!ENTITY layoutWideThread.accesskey "l">
+<!ENTITY layoutStacked.label "Stapele">
+<!ENTITY layoutStacked.accesskey "S">
+<!ENTITY showHeader.label "Toan kop">
+<!ENTITY showHeader.accesskey "k">
+<!ENTITY wrapHeader.label "Alle koppen gearfetsje">
+<!ENTITY wrapHeader.accesskey "A">
+<!ENTITY toolbar.label "Sidebalke-arkbalke">
+<!ENTITY toolbar.accesskey "d">
+<!-- These labels and access keys are for toolbar buttons -->
+<!ENTITY toggleList.label "Snowl wiksel listbyld">
+<!ENTITY toggleList.tooltip "Wiksel listbyld">
+<!ENTITY toggleStream.label "Snowl wiksel streambyld">
+<!ENTITY toggleStream.tooltip "Wiksel streambyld">
+<!ENTITY toggleRiver.label "Snowl wiksel rivierbyld">
+<!ENTITY toggleRiver.tooltip "Wiksel rivierbyld">

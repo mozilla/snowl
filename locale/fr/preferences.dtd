@@ -1,3 +1,4 @@
+<!-- Subscribe pane -->
 <!ENTITY subscribe.title "S'abonner">
 <!ENTITY source.label "S'abonner à une source de messages">
 <!ENTITY feeds.label "Flux">
@@ -12,11 +13,46 @@
 <!ENTITY closeButton.accesskey "r">
 <!ENTITY clearButton.label "Effacer">
 <!ENTITY clearButton.accesskey "c">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
 <!ENTITY page.title "Snowl : s'abonner à une source de messages">
+<!-- Customize pane -->
+<!ENTITY settings.title "Personnaliser">
+<!ENTITY settings.label "Personnaliser les paramètres par défaut pour une source de messages">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
 <!ENTITY mail.label "Courriel">
 <!ENTITY mail.accesskey "u">
 <!ENTITY newsgroup.label "Groupe">
 <!ENTITY newsgroup.accesskey "g">
+<!-- General pane -->
 <!ENTITY general.title "Général">
+<!-- Subscriptions pane -->
 <!ENTITY subscriptions.title "Abonnements">
+<!-- Organize pane -->
 <!ENTITY organize.title "Organiser">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Actualiser">
+<!ENTITY refreshText.label "L'intervalle entre deux actualisations est personnalisable">
+<!ENTITY refreshMinutes.label "Actualiser toutes les">
+<!ENTITY refreshMinutes.accesskey "A">
+<!ENTITY minutes.label "minutes">
+<!ENTITY refreshStatus.label "Statut courant de l'actualisation pour cette source.">
+<!ENTITY refreshState.label "Statut :">
+<!ENTITY refreshDate.label "Dernière actualisation :">
+<!ENTITY refreshCode.label "Dernier code d'erreur :">
+<!ENTITY refreshError.label "Dernier message d'erreur :">
+<!ENTITY retention.label "Retenue">
+<!ENTITY retentionCleanup.label "Les messages peuvent être détruits en fonction des règles suivantes.">
+<!ENTITY retentionUseType.label "Utiliser les paramètres par défaut pour ce type de message">
+<!ENTITY retentionUseType.accesskey "U">
+<!ENTITY retentionKeepAll.label "Ne détruire aucun message">
+<!ENTITY retentionKeepAll.accesskey "N">
+<!ENTITY retentionKeepRecent.label "Tout détruire sauf les">
+<!ENTITY retentionKeepRecent.accesskey "T">
+<!ENTITY message.label "derniers messages">
+<!ENTITY retentionDeleteMsg.label "Détruire les messages qui datent de plus de">
+<!ENTITY retentionDeleteMsg.accesskey "D">
+<!ENTITY daysOld.label "jours">
+<!ENTITY retentionKeepFlagged.label "Toujours conserver les messages marqués">
+<!ENTITY retentionKeepFlagged.accesskey "C">

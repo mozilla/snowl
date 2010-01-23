@@ -30,9 +30,21 @@
 <!ENTITY viewAuthors.label            "Authors">
 <!ENTITY search.label                 "Search:">
 <!ENTITY search.accesskey             "S">
-<!ENTITY searchMessages.label         "Messages">
+<!ENTITY searchSubject.label          "Subject">
+<!ENTITY searchSubject.accesskey      "S">
+<!ENTITY searchSender.label           "Sender">
+<!ENTITY searchSender.accesskey       "n">
+<!ENTITY searchRecipient.label        "Recipient">
+<!ENTITY searchRecipient.accesskey    "R">
+<!ENTITY searchHeaders.label          "All Headers">
+<!ENTITY searchHeaders.accesskey      "d">
+<!ENTITY searchMessages.label         "Messages (FTS)">
 <!ENTITY searchMessages.accesskey     "M">
+<!ENTITY searchMessagesRE.label       "Messages (RegEx)">
+<!ENTITY searchMessagesRE.accesskey   "e">
 <!ENTITY searchCollections.label      "Collections">
 <!ENTITY searchCollections.accesskey  "C">
+<!ENTITY searchIgnoreCase.label       "Ignore Case">
+<!ENTITY searchIgnoreCase.accesskey   "I">
 <!ENTITY searchHelp.label             "Help">
 <!ENTITY searchHelp.accesskey         "H">

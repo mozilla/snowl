@@ -1,0 +1,36 @@
+<!ENTITY nameCol.label "Namme">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Markearje as lêzen">
+<!ENTITY markRead.accesskey "l">
+<!ENTITY markAllRead.label "Markearje alles as lêzen">
+<!ENTITY refresh.label "Boarne ferfarske">
+<!ENTITY refresh.accesskey "f">
+<!ENTITY refreshAll.label "Alle boarnen ferfarske">
+<!ENTITY refreshAll.accesskey "A">
+<!ENTITY pause.label "Ferfarskjen pausearje">
+<!ENTITY pause.accesskey "p">
+<!ENTITY pauseAll.label "Al it ferfarskjen pausearje">
+<!ENTITY resume.label "Trochgean mei ferfarskjen">
+<!ENTITY resume.accesskey "m">
+<!ENTITY resumeAll.label "Trochgean mei al it ferfarskjen">
+<!ENTITY removeSource.label "Boarne fuortsmite">
+<!ENTITY removeSource.accesskey "f">
+<!ENTITY removeAuthor.label "Auteur fuortsmite">
+<!ENTITY removeAuthor.accesskey "u">
+<!ENTITY newView.label "Nij byld...">
+<!ENTITY newView.accesskey "N">
+<!ENTITY removeView.label "Byld fuortsmite">
+<!ENTITY removeView.accesskey "y">
+<!ENTITY view.label "Byld:">
+<!ENTITY view.accesskey "B">
+<!ENTITY viewDefault.label "Standert">
+<!ENTITY viewSources.label "Boarnen">
+<!ENTITY viewAuthors.label "Auteurs">
+<!ENTITY search.label "Sykje:">
+<!ENTITY search.accesskey "S">
+<!ENTITY searchMessages.label "Berjochten">
+<!ENTITY searchMessages.accesskey "B">
+<!ENTITY searchCollections.label "Kolleksjes">
+<!ENTITY searchCollections.accesskey "K">
+<!ENTITY searchHelp.label "Help">
+<!ENTITY searchHelp.accesskey "H">

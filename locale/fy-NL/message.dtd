@@ -1,0 +1,12 @@
+<!ENTITY author.label "Auteur:">
+<!ENTITY author.accesskey "A">
+<!ENTITY subject.label "Underwerp:">
+<!ENTITY subject.accesskey "S">
+<!ENTITY timestamp.label "Satum:">
+<!ENTITY link.label "Keppeling:">
+<!ENTITY pinButton.label "Pinkop">
+<!ENTITY pinButton.tooltip "Wiksel pin om om permaninte kop yn/út te stellen">
+<!ENTITY toggleHeader.label "Wiksle kop">
+<!ENTITY toggleHeader.tooltip "Wiksel berjochtkop nei koart, basis of folslein">
+<!ENTITY deleteMessagesButton.label "Berjocht fuortsmite">
+<!ENTITY deleteMessagesButton.tooltip "Dit berjocht fuortsmite">

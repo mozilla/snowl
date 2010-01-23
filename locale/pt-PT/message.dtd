@@ -7,6 +7,6 @@
 <!ENTITY pinButton.label "Fixar Cabeçalho">
 <!ENTITY pinButton.tooltip "Carregue no pino para fixar ou esconder o cabeçalho permanentemente">
 <!ENTITY toggleHeader.label "Mostrar Cabeçalho">
-<!ENTITY toggleHeader.tooltip "Mudar o cabeçalho da mensagem para breve, básico ou completo; no cabeçalho básico ou completo, carregue para guardar a altura após ajuste">
+<!ENTITY toggleHeader.tooltip "Mudar o cabeçalho da mensagem para breve, básico ou completo">
 <!ENTITY deleteMessagesButton.label "Apagar Mensagem">
 <!ENTITY deleteMessagesButton.tooltip "Apagar esta Mensagem">

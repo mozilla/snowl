@@ -1,0 +1,36 @@
+<!ENTITY nameCol.label "Namn">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Merk som lesen">
+<!ENTITY markRead.accesskey "M">
+<!ENTITY markAllRead.label "Mark All as Read">
+<!ENTITY refresh.label "Oppdater kjelde">
+<!ENTITY refresh.accesskey "O">
+<!ENTITY refreshAll.label "Oppdater alle kjelder">
+<!ENTITY refreshAll.accesskey "a">
+<!ENTITY pause.label "Pause Refresh">
+<!ENTITY pause.accesskey "P">
+<!ENTITY pauseAll.label "Pause All Refresh">
+<!ENTITY resume.label "Resume Refresh">
+<!ENTITY resume.accesskey "m">
+<!ENTITY resumeAll.label "Resume All Refresh">
+<!ENTITY removeSource.label "Fjern kjelde">
+<!ENTITY removeSource.accesskey "F">
+<!ENTITY removeAuthor.label "Fjern forfattar">
+<!ENTITY removeAuthor.accesskey "o">
+<!ENTITY newView.label "New View…">
+<!ENTITY newView.accesskey "V">
+<!ENTITY removeView.label "Remove View">
+<!ENTITY removeView.accesskey "w">
+<!ENTITY view.label "View:">
+<!ENTITY view.accesskey "V">
+<!ENTITY viewDefault.label "Standard">
+<!ENTITY viewSources.label "Kjelder">
+<!ENTITY viewAuthors.label "Forfattarar">
+<!ENTITY search.label "Søk:">
+<!ENTITY search.accesskey "S">
+<!ENTITY searchMessages.label "Meldingar">
+<!ENTITY searchMessages.accesskey "M">
+<!ENTITY searchCollections.label "Samlingar">
+<!ENTITY searchCollections.accesskey "S">
+<!ENTITY searchHelp.label "Hjelp">
+<!ENTITY searchHelp.accesskey "H">

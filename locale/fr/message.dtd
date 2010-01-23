@@ -1,4 +1,12 @@
 <!ENTITY author.label "Auteur :">
+<!ENTITY author.accesskey "A">
 <!ENTITY subject.label "Sujet :">
+<!ENTITY subject.accesskey "S">
 <!ENTITY timestamp.label "Date :">
 <!ENTITY link.label "Lien :">
+<!ENTITY pinButton.label "Fixer l'en-tête">
+<!ENTITY pinButton.tooltip "Active/désactive l'en-tête permanent">
+<!ENTITY toggleHeader.label "Activer/désactiver l'en-tête">
+<!ENTITY toggleHeader.tooltip "En-tête du message en mode minimal, basique ou complet.">
+<!ENTITY deleteMessagesButton.label "Supprimer le message">
+<!ENTITY deleteMessagesButton.tooltip "Supprimer ce message">

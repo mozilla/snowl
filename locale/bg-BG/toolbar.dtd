@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Абониране към източници на съобщения.">
+<!ENTITY unsubscribeButton.tooltip "Отменя абонамента към избрания източник.">
+<!ENTITY refreshButton.tooltip "Презарежда източниците на съобщения.">
+<!ENTITY exportButton.tooltip "Експортира източниците на съобщения като OPML.">
+<!ENTITY unreadButton.tooltip "Показване на нечетените съобщения за избраните колекции.">
+<!ENTITY flaggedButton.tooltip "Показване на маркираните съобщения за избраните колекции.">
+<!ENTITY listToolbarButton.tooltip "Превключване на лентата с инструментите">
+<!ENTITY writeButton.tooltip "Писане на съобщение.">
+<!ENTITY showDeletedButton.tooltip "Показване на изтритите съобщения за избраните колекции.">
+<!ENTITY purgeDeletedButton.tooltip "Изчистване на изтритите съобщения за избраните колекции.">

@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Abonner på meldingskjelder.">
+<!ENTITY unsubscribeButton.tooltip "Stopp abonnementet frå valde meldingskjelder.">
+<!ENTITY refreshButton.tooltip "Oppdater alle meldingskjelder.">
+<!ENTITY exportButton.tooltip "Ekspoter meldingskjelder som OPML.">
+<!ENTITY unreadButton.tooltip "Vis nye og uleste meldingar for valde samlingar.">
+<!ENTITY flaggedButton.tooltip "Show flagged messages for selected collections.">
+<!ENTITY listToolbarButton.tooltip "Toggle View toolbar.">
+<!ENTITY writeButton.tooltip "Skriv ei melding.">
+<!ENTITY showDeletedButton.tooltip "Vis sletta meldingar for valde samlingar.">
+<!ENTITY purgeDeletedButton.tooltip "Ta vekk alle sletta meldingar frå valde samlingar.">

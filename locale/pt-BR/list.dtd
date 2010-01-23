@@ -1,6 +1,0 @@
-<!ENTITY placementButton.tooltip "Substituir localidade.">
-<!ENTITY currentButton.tooltip "Mostrar somente mensagens correntes.">
-<!ENTITY unreadButton.tooltip "Mostrar somente mensagens não lidas.">
-<!ENTITY authorCol.label "Autor">
-<!ENTITY subjectCol.label "Assunto">
-<!ENTITY timestampCol.label "Data">

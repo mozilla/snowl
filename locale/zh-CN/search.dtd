@@ -3,7 +3,9 @@
 <!ENTITY search.caption "搜索信息教程">
 <!ENTITY search.header1 "搜索功能基于 SQLite 的全文检索（FTS）功能和限制。">
 <!ENTITY search.header2 "有效语法：">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
 <!ENTITY search.explanation1 "匹配所有以“ foo ”开头的项目；同时匹配“ foo ”和“ foobar ”。">
+<!ENTITY search.example2 "&quot;foo&quot;">
 <!ENTITY search.explanation2 "匹配所有完整包含“ foo ”的项目；匹配“ foo ”但是不匹配“ foobar ”。">
 <!ENTITY search.example3 "foo bar">
 <!ENTITY search.explanation3 "匹配所有既包含“ foo ”也包含“ bar ”的项目。">
@@ -15,12 +17,22 @@
 <!ENTITY search.explanation6 "注意：只能有一个排除项，且必须是整个搜索查询的最后一项。">
 <!ENTITY search.example7 "foo ~N bar">
 <!ENTITY search.explanation7 "匹配所有“ foo ”靠近“ bar ”的项目，也就是说距离“ bar ”在 N 个词以内。 N 的有效值为0-9（如果 N 为空则默认为10）。">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
 <!ENTITY search.explanation8 "匹配所有“ foo ”距离“ bar ”两个词以内且且“ bar ”距离“ baz biff ”10个词以内的项目。">
 <!ENTITY search.header3 "红色底色标明了语法错误。">
 <!ENTITY search.header4 "无效的语法">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
 <!ENTITY search.explanation9 "通配符前缀无效。">
+<!ENTITY search.example10 "&quot; foo bar &quot;">
 <!ENTITY search.explanation10 "引号内的字符串首尾不能有空格">
 <!ENTITY search.example11 "foo bar -baz">
 <!ENTITY search.explanation11 "未用引号括起来的字符串里不能包含字母数字以外的符号。">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
 <!ENTITY search.explanation12 "引号内的字符串不能排除。">
 <!ENTITY search.header5 "引号内要查找的符号返回了预期之外的结果。此外，不支持在词语内使用通配符。">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "查找 'foo bar', 'foo-bar'.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "查找 'foo bar'.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "查找 'foo b r', 'foo b=r', etc. but not 'foo bar'.">

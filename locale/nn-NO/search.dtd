@@ -1,0 +1,38 @@
+<!-- Search Help -->
+<!ENTITY search.title "Søk i hjelp">
+<!ENTITY search.caption "Søk i meldingsguide">
+<!ENTITY search.header1 "Søk er basert på SQLite sitt Full Text Search (FTS) evner og avgrensingar.">
+<!ENTITY search.header2 "Gyldig syntaks:">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
+<!ENTITY search.explanation1 "Samsvar alle element som startar med «foo»; både «foo» og «foobar».">
+<!ENTITY search.example2 "&quot;foo&quot;">
+<!ENTITY search.explanation2 "Samsvar alle element som nøyaktig inneheld «foo»; «foo» men ikkje «foobar».">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Samsvar alle element med «foo» OG «bar».">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Sansvar alle element med anten «foo» ELLER «bar».">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Samsvar alle element med «foo» OG «bar» men IKKJE «baz».">
+<!ENTITY search.example6 "">
+<!ENTITY search.explanation6 "Merknad: det kan berre vere EIT negasjonsledd og det må vere det SISTE i søkespørjinga .">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Samsvar alle element der «foo» er NÆR «bar», som tyder innanfor N-ord av «bar». Gyldige verdiar for N er 0-9 (standard er 10 om N er tom).">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
+<!ENTITY search.explanation8 "Samsvar alle element der 'foo' er innanfor 2 ord av «bar» og 'bar' er innanfor 10 ord av ''baz biff''.">
+<!ENTITY search.header3 "Syntaksfeil vert indikerte med raud bakgrunn.">
+<!ENTITY search.header4 "Ugyldig syntaks:">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
+<!ENTITY search.explanation9 "Jokerteikn-forstaving er ugyldig">
+<!ENTITY search.example10 "&quot; foo bar  &quot;">
+<!ENTITY search.explanation10 "Leiande og etterfølgjande mellomrom er ugyldig i ein sitert streng.">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Ikkje-alfanumeriske symbol er ugyldige i ikkje-siterte strengar.">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
+<!ENTITY search.explanation12 "Siterte strengar kan ikkje negerast.">
+<!ENTITY search.header5 "Søking etter symbol i siterte strengar gjev tilbake uventa resultat. Dessutan er jokerteikn ikkje støtta inne i ord.">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "Finds 'foo bar', 'foo-bar'.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "Finds 'foo bar'.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "Finds 'foo b r', 'foo b=r', etc. but not 'foo bar'.">

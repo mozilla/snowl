@@ -1,0 +1,38 @@
+<!-- Search Help -->
+<!ENTITY search.title "Sykhelp">
+<!ENTITY search.caption "Sykje berjochtengids">
+<!ENTITY search.header1 "Sykjen is basearre op SQLLite's Full Text Search (FTS) mooglikheden en beheinings.">
+<!ENTITY search.header2 "Falide syntaks:">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
+<!ENTITY search.explanation1 "Lyk oan alle items begjinnend mei 'foo'; sawol 'foo' en 'foobar'.">
+<!ENTITY search.example2 "&quot;foo&quot;">
+<!ENTITY search.explanation2 "Lyk oan alle items mei eksakt 'foo'; sawol 'foo' en 'foobar'.">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Lyk oan alle items mei sawol 'foo' en 'foobar'.">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Lyk oan alle items mei of 'foo' of 'foobar'.">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Lyk oan alle items mei 'foo' EN 'bar' mar net 'baz'.">
+<!ENTITY search.example6 ".">
+<!ENTITY search.explanation6 "Let op: der kin mar IEN oerlizterm wêze en it moat de LÊSTE term yn de sykopdracht wêze.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Lyk oan alle items wêr't 'foo' is tichtby 'bar', wat betsjut mei N wurden of 'bar'. Falide weardenfoar N binne 0-9 (standert is 10 as N blanko is).">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
+<!ENTITY search.explanation8 "Lyk oan alle items wêr't 'foo' is yn 2 wurden of 'bar' en 'bar' is yn 10 wurden fan &quot;baz biff&quot;.">
+<!ENTITY search.header3 "Syntaksflaters wurde oanjûn mei in reade eftergrûn.">
+<!ENTITY search.header4 "Ynfalide syntaks:">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
+<!ENTITY search.explanation9 "Joker foarheaksel is ynfalide.">
+<!ENTITY search.example10 "&quot; foo bar  &quot;">
+<!ENTITY search.explanation10 "Foar- en neirinnende spaasjes binne ynfalide yn in oanhelle tekst.">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Net alfanûmerike symboalen binne ynfalide yn net-oanhelle tekst.">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
+<!ENTITY search.explanation12 "Oanhelle tekst kin net negearre wurde.">
+<!ENTITY search.header5 "Sykje nei symboalen yn oanhelle tekst jout net-ferwachte resultaten. Fierder, jokers wurde net stipe binnen wurden.">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "Finds 'foo bar', 'foo-bar'.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "Finds 'foo bar'.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "Finds 'foo b r', 'foo b=r', etc. but not 'foo bar'.">

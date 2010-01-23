@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Autentikaasje nedich">
+<!ENTITY realm.label "De boarne seit:">
+<!ENTITY username.label "Brûkersnamme:">
+<!ENTITY password.label "Wachtwurd:">
+<!ENTITY showPassword.label "Toan wachtwurd:">
+<!ENTITY rememberPassword.label "Unthâld dit wachtwurd as it goed is">

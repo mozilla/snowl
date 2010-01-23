@@ -3,7 +3,9 @@
 <!ENTITY search.caption "Nachrichtenguide durchsuchen">
 <!ENTITY search.header1 "Die Suche basiert auf den Möglichkeiten und Beschränkungen der SQLite Volltextsuche (FTS).">
 <!ENTITY search.header2 "Gültige Syntax:">
+<!ENTITY search.example1 "wom, &quot;wom*&quot;">
 <!ENTITY search.explanation1 "Alle Elemente finden, die mit „wom“ beginnen (z.B. „wom“ und „wombat“)">
+<!ENTITY search.example2 "&quot;wom&quot;">
 <!ENTITY search.explanation2 "Alle Elemente finden, die genau „wom“ enthalten (z.B. „wom“, aber nicht „wombat“)">
 <!ENTITY search.example3 "wom bat">
 <!ENTITY search.explanation3 "Alle Elemente finden, die „wom“ und „bat“ enthalten.">
@@ -11,16 +13,26 @@
 <!ENTITY search.explanation4 "Alle Elemente finden, die entweder „wom“ oder „bat“ enthalten.">
 <!ENTITY search.example5 "wom bat -bar">
 <!ENTITY search.explanation5 "Alle Elemente finden, die „wom“ und „bat“, aber nicht „bar“ enthalten.">
-<!ENTITY search.example6 "wom bat -bar">
+<!ENTITY search.example6 "">
 <!ENTITY search.explanation6 "Hinweis: Es darf nur eine Verneinung vorhanden sein, die ans Ende der Suchanfrage gestellt werden muss.">
 <!ENTITY search.example7 "wom ~N bat">
 <!ENTITY search.explanation7 "Alle Elemente finden, bei denen „wom“ in der Nähe von „bat“ liegt, es dürfen also nur N Wörter dazwischen sein. Erlaubte Werte für N sind 0 bis 9 (bzw. 10, wenn N leer gelassen wird).">
+<!ENTITY search.example8 "wom ~2 bat ~ &quot;bar biff&quot;">
 <!ENTITY search.explanation8 "Alle Elemente finden, bei denen „wom“ innerhalb von zwei Wörtern zu „bat“ liegt und „bat“ innerhalb von zehn Wörtern zu „bar biff“ liegt.">
 <!ENTITY search.header3 "Syntaxfehler werden durch eine rote Markierung gekennzeichnet.">
 <!ENTITY search.header4 "Ungültige Syntax:">
+<!ENTITY search.example9 "&quot;*wom bat&quot;, *bat">
 <!ENTITY search.explanation9 "Das Voranstellen eines Platzhalters ist ungültig.">
+<!ENTITY search.example10 "&quot;wom bat &quot;">
 <!ENTITY search.explanation10 "Eine Zeichenkette in Anführungszeichen darf nicht mit Leerzeichen beginnen oder abschließen.">
 <!ENTITY search.example11 ".wom-bat?">
 <!ENTITY search.explanation11 "Zeichen, die nicht alphanumerisch sind, müssen zwischen Anführungszeichen stehen.">
+<!ENTITY search.example12 "-&quot;wom bat&quot;">
 <!ENTITY search.explanation12 "Zeichenketten in Anführungszeichen dürfen nicht verneint werden.">
 <!ENTITY search.header5 "Die Suche nach Symbolen, die sich Zeichenketten in Anführungszeichen befinden, könnte unerwartete Ergebnisse zurückliefern. Weiterhin sind keine Platzhalter in Wörtern erlaubt.">
+<!ENTITY search.example13 "&quot;wom-----bat&quot;">
+<!ENTITY search.explanation13 "Findet 'wom bat', 'wom-bat'.">
+<!ENTITY search.example14 "&quot;wom-bat&quot;">
+<!ENTITY search.explanation14 "Findet 'wom bat'.">
+<!ENTITY search.example15 "&quot; wom b*t&quot;">
+<!ENTITY search.explanation15 "Findet 'wom b t', 'wom b=t', usw., aber nicht 'wom bat'.">

@@ -1,0 +1,9 @@
+<!ENTITY page.title "Snowl: Berichtenrivier">
+<!ENTITY bodyButton.tooltip "Berichtsamenvattingen/inhoud weergeven.">
+<!ENTITY orderButton.tooltip "Berichtenvolgorde omkeren.">
+<!ENTITY columnsButton.tooltip "Berichten weergeven in kolommen.">
+<!ENTITY decrementPeriodButton.tooltip "Vorige dag">
+<!ENTITY incrementPeriodButton.tooltip "Volgende dag">
+<!ENTITY periodDay.label "Dag">
+<!ENTITY periodWeek.label "Week">
+<!ENTITY periodMonth.label "Maand">

@@ -1,0 +1,12 @@
+<!ENTITY author.label "Schrijver:">
+<!ENTITY author.accesskey "S">
+<!ENTITY subject.label "Onderwerp:">
+<!ENTITY subject.accesskey "O">
+<!ENTITY timestamp.label "Datum:">
+<!ENTITY link.label "Koppeling:">
+<!ENTITY pinButton.label "Header vastzetten">
+<!ENTITY pinButton.tooltip "Vastzetten wisselen om permanente header in te stellen of vrij te geven">
+<!ENTITY toggleHeader.label "Header wisselen">
+<!ENTITY toggleHeader.tooltip "Wissel de berichtheader naar kort, basis of volledig">
+<!ENTITY deleteMessagesButton.label "Bericht verwijderen">
+<!ENTITY deleteMessagesButton.tooltip "Dit bericht verwijderen">

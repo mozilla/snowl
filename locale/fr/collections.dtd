@@ -1,7 +1,36 @@
 <!ENTITY nameCol.label "Nom">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Marquer comme lu">
+<!ENTITY markRead.accesskey "u">
+<!ENTITY markAllRead.label "Marquer comme lu">
 <!ENTITY refresh.label "Rafraîchir">
 <!ENTITY refresh.accesskey "R">
 <!ENTITY refreshAll.label "Rafraîchir toutes les sources">
-<!ENTITY refreshAll.accesskey "a">
-<!ENTITY unsubscribe.label "Se désabonner">
-<!ENTITY unsubscribe.accesskey "d">
+<!ENTITY refreshAll.accesskey "c">
+<!ENTITY pause.label "Interrompre l'actualisation">
+<!ENTITY pause.accesskey "I">
+<!ENTITY pauseAll.label "Interrompre toutes les actualisations">
+<!ENTITY resume.label "Reprendre l'actualisation">
+<!ENTITY resume.accesskey "R">
+<!ENTITY resumeAll.label "Reprendre toutes les actualisations">
+<!ENTITY removeSource.label "Retirer la source">
+<!ENTITY removeSource.accesskey "s">
+<!ENTITY removeAuthor.label "Retirer l'auteur">
+<!ENTITY removeAuthor.accesskey "a">
+<!ENTITY newView.label "Nouvelle vue…">
+<!ENTITY newView.accesskey "v">
+<!ENTITY removeView.label "Retirer la vue">
+<!ENTITY removeView.accesskey "u">
+<!ENTITY view.label "Vue :">
+<!ENTITY view.accesskey "v">
+<!ENTITY viewDefault.label "Par défaut">
+<!ENTITY viewSources.label "Sources">
+<!ENTITY viewAuthors.label "Auteurs">
+<!ENTITY search.label "Rechercher :">
+<!ENTITY search.accesskey "h">
+<!ENTITY searchMessages.label "Messages">
+<!ENTITY searchMessages.accesskey "M">
+<!ENTITY searchCollections.label "Collections">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Aide">
+<!ENTITY searchHelp.accesskey "d">

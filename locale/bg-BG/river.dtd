@@ -1,0 +1,9 @@
+<!ENTITY page.title "Snowl: Поток от съобщения">
+<!ENTITY bodyButton.tooltip "Показване на кратки пълни съобщения.">
+<!ENTITY orderButton.tooltip "Обръщане на реда на съобщенията.">
+<!ENTITY columnsButton.tooltip "Показване на съобщенията в колони.">
+<!ENTITY decrementPeriodButton.tooltip "Преден ден">
+<!ENTITY incrementPeriodButton.tooltip "Следващ ден">
+<!ENTITY periodDay.label "Ден">
+<!ENTITY periodWeek.label "Седница">
+<!ENTITY periodMonth.label "Месец">

@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Kjelde">
+<!ENTITY authorCol.label "Forfattar">
+<!ENTITY subjectCol.label "Emne">
+<!ENTITY timestampCol.label "Dato">
+<!ENTITY datereceivedCol.label "Date Received">
+<!ENTITY readCol.label "Read">
+<!ENTITY flaggedCol.label "Flagged">
+<!ENTITY sortBy.label "Sort By ">
+<!ENTITY openListMessage.label "Opne melding">
+<!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Vel alle">
+<!ENTITY selectAll.accesskey "a">
+<!ENTITY deleteMessages.label "Slettvalde meldingar">
+<!ENTITY deleteMessages.accesskey "D">
+<!ENTITY undeleteMessages.label "Angre sletting av valde meldingar">
+<!ENTITY undeleteMessages.accesskey "A">

@@ -1,8 +1,0 @@
-<!ENTITY page.title "Snowl: Inscrever em fontes de mensagens">
-<!ENTITY feedsTab.label "Feeds">
-<!ENTITY twitterTab.label "Twitter">
-<!ENTITY opmlTab.label "OPML">
-<!ENTITY location.label "Localização:">
-<!ENTITY subscribeButton.label "Inscrever">
-<!ENTITY importOPMLButton.label "Importar arquivo OPML...">
-<!ENTITY closeButton.label "Fechar">
