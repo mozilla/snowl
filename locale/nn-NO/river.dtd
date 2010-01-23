@@ -1,0 +1,9 @@
+<!ENTITY page.title "Snowl: meldingselv">
+<!ENTITY bodyButton.tooltip "Vis meldingssamandrag/innhald">
+<!ENTITY orderButton.tooltip "Snu rekkjefølgje på meldingane">
+<!ENTITY columnsButton.tooltip "Vis meldingane i spalter">
+<!ENTITY decrementPeriodButton.tooltip "Førre dag">
+<!ENTITY incrementPeriodButton.tooltip "Neste dag">
+<!ENTITY periodDay.label "Dag">
+<!ENTITY periodWeek.label "Veke">
+<!ENTITY periodMonth.label "Måna">

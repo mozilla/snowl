@@ -1,5 +1,0 @@
-<!ENTITY subscribeButton.tooltip "Začne odebírat ze zrojů zpráv.">
-<!ENTITY unsubscribeButton.tooltip "Zruší odběr z vybraných zrojů zpráv.">
-<!ENTITY refreshButton.tooltip "Obnoví všechny zdroje zpráv.">
-<!ENTITY exportButton.tooltip "Exportuje zdroje zpráv jako OPML.">
-<!ENTITY writeButton.tooltip "Napíše zprávu.">

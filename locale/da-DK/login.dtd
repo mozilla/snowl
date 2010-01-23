@@ -1,6 +1,0 @@
-<!ENTITY dialog.title "Godkendelse anmodes">
-<!ENTITY realm.label "Kilden siger:">
-<!ENTITY username.label "Brugernavn:">
-<!ENTITY password.label "Adgangkode:">
-<!ENTITY showPassword.label "Vis adgangskode">
-<!ENTITY rememberPassword.label "Husk denne adgangskode når den er korrekt.">

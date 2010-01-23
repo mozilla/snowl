@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Abonneren op berichtenbronnen">
+<!ENTITY unsubscribeButton.tooltip "Abonnement op geselecteerde berichtenbronnen opzeggen.">
+<!ENTITY refreshButton.tooltip "Alle berichtenbronnen verversen.">
+<!ENTITY exportButton.tooltip "Berichtenbronnen exporteren als OPML.">
+<!ENTITY unreadButton.tooltip "Nieuwe en ongelezen berichten weergeven voor geselecteerde bronnen.">
+<!ENTITY flaggedButton.tooltip "Gelabelde berichten voor geselecteerde collecties weergeven.">
+<!ENTITY listToolbarButton.tooltip "Werkbalk Beeld wisselen">
+<!ENTITY writeButton.tooltip "Een bericht schrijven">
+<!ENTITY showDeletedButton.tooltip "Verwijderde berichten voor geselecteerde collecties weergeven.">
+<!ENTITY purgeDeletedButton.tooltip "Alle verwijderde berichten uit geselecteerde collecties definitief verwijderen.">

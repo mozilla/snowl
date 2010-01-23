@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Autentisering førespurd">
+<!ENTITY realm.label "Kjelda seier:">
+<!ENTITY username.label "Brukarnamn:">
+<!ENTITY password.label "Passord:">
+<!ENTITY showPassword.label "Vis passord">
+<!ENTITY rememberPassword.label "Hugs dette passordet om det er korrekt">

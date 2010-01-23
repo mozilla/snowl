@@ -1,0 +1,38 @@
+<!-- Search Help -->
+<!ENTITY search.title "Zoekhulp">
+<!ENTITY search.caption "Gids bij berichten zoeken">
+<!ENTITY search.header1 "Zoeken is gebaseerd op SQLite Full Text Search (FTS) met dezelfde mogelijkheden en beperkingen.">
+<!ENTITY search.header2 "Geldige opmaak:">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
+<!ENTITY search.explanation1 "Alle berichten zoeken die beginnen met ‘foo’; zowel ‘foo’ als ‘foobar’.">
+<!ENTITY search.example2 "&quot;foo&quot;">
+<!ENTITY search.explanation2 "Alle berichten zoeken die exact ‘foo’ bevatten; ‘foo’ maar niet ‘foobar’.">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Alle berichten zoeken met zowel ‘foo’ als ‘bar’.">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Alle berichten zoeken met ‘foo’ of ‘bar’.">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Alle berichten zoeken met ‘foo’ EN ‘bar’ maar NIET ‘baz’.">
+<!ENTITY search.example6 "-">
+<!ENTITY search.explanation6 "Opmerking: er kan slechts één uitzonderingsterm worden opgegeven en dit dient de laatste term in de zoekopdracht te zijn.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Alle berichten zoeken waar ‘foo’ zich VLAKBIJ ‘bar’ bevindt, d.w.z. binnen N woorden van ‘bar’. Geldige waarden voor N zijn 0-9 (standaard is 10 indien N blanco is).">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
+<!ENTITY search.explanation8 "Alle berichten zoeken waar ‘foo’ zich binnen 2 woorden van ‘bar’ bevindt en ‘bar’ zich binnen 10 woorden van ‘baz biff’ bevindt.">
+<!ENTITY search.header3 "Opmaakfouten worden weergegeven met een rode achtergrond.">
+<!ENTITY search.header4 "Ongeldige opmaak:">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
+<!ENTITY search.explanation9 "Wildcards vooraf zijn ongeldig.">
+<!ENTITY search.example10 "&quot; foo bar  &quot;">
+<!ENTITY search.explanation10 "Voorafgaande en volgende spaties zijn ongeldig in een aangehaald zinsdeel.">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Niet-alfanumerieke symbolen zijn ongeldig in niet-aangehaalde zinsdelen.">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
+<!ENTITY search.explanation12 "Aangehaalde zinsdelen kunnen niet worden uitgezonderd.">
+<!ENTITY search.header5 "Zoeken naar symbolen in aangehaalde zinsdelen geeft onverwachte resultaten. Daarbij worden wildcards niet ondersteund binnen woorden.">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "Zoekt ‘foo bar’, ‘foo-bar’.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "Zoekt ‘foo bar’.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "Zoekt ‘foo b r’, ‘foo b=r’, enz., maar niet ‘foo bar’.">

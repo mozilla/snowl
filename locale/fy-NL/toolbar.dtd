@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Abonnearje op berjochtboarnen.">
+<!ENTITY unsubscribeButton.tooltip "Abonnemint opsizze op selektearre berjochtboarnen.">
+<!ENTITY refreshButton.tooltip "Ferfarsk alle berjochtboarnen.">
+<!ENTITY exportButton.tooltip "Eksportearje berjochtboarnen as OPML.">
+<!ENTITY unreadButton.tooltip "Toan nije en net-lêzen berjochten foar selektearre kolleksjes.">
+<!ENTITY flaggedButton.tooltip "Toan berjochten mei in flagge foar selektearre kolleksjes.">
+<!ENTITY listToolbarButton.tooltip "Wiksel byld arkbalke.">
+<!ENTITY writeButton.tooltip "Skriuw in berjocht.">
+<!ENTITY showDeletedButton.tooltip "Toan fuortsmiten berjochten foar selektearre kolleksjes.">
+<!ENTITY purgeDeletedButton.tooltip "Smit alle fuortsmiten berjochten fan selektearre kolleksjes folslein fuort.">

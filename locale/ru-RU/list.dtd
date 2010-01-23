@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Источник">
+<!ENTITY authorCol.label "Автор">
+<!ENTITY subjectCol.label "Тема">
+<!ENTITY timestampCol.label "Дата">
+<!ENTITY datereceivedCol.label "Дата получения">
+<!ENTITY readCol.label "Прочитано">
+<!ENTITY flaggedCol.label "Флаг">
+<!ENTITY sortBy.label "Сортировать по">
+<!ENTITY openListMessage.label "Открыть сообщение">
+<!ENTITY openListMessage.accesskey "О">
+<!ENTITY selectAll.label "Выбрать всё">
+<!ENTITY selectAll.accesskey "В">
+<!ENTITY deleteMessages.label "Удалить выделенное">
+<!ENTITY deleteMessages.accesskey "У">
+<!ENTITY undeleteMessages.label "Восстановить выделенное">
+<!ENTITY undeleteMessages.accesskey "с">

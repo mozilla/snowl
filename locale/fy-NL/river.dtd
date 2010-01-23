@@ -1,0 +1,9 @@
+<!ENTITY page.title "Snowl: Rivier fan berjochten">
+<!ENTITY bodyButton.tooltip "Toan berjocht gearfetting/ynhâld">
+<!ENTITY orderButton.tooltip "Draai de folchoarder fan de berjochten om.">
+<!ENTITY columnsButton.tooltip "Toan de berjochten yn kolommen.">
+<!ENTITY decrementPeriodButton.tooltip "Foarige dei">
+<!ENTITY incrementPeriodButton.tooltip "Folgjende dei">
+<!ENTITY periodDay.label "Dei">
+<!ENTITY periodWeek.label "Wike">
+<!ENTITY periodMonth.label "Moanne">

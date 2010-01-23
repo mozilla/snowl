@@ -1,0 +1,12 @@
+<!ENTITY author.label "Автор:">
+<!ENTITY author.accesskey "А">
+<!ENTITY subject.label "Относно:">
+<!ENTITY subject.accesskey "О">
+<!ENTITY timestamp.label "Дата:">
+<!ENTITY link.label "Връзка:">
+<!ENTITY pinButton.label "Показване на заглавката">
+<!ENTITY pinButton.tooltip "Превключва показването и скриването на заглавката">
+<!ENTITY toggleHeader.label "Превключване на заглавката">
+<!ENTITY toggleHeader.tooltip "Превключва заглавката на съобщението от кратка, основна и пълна">
+<!ENTITY deleteMessagesButton.label "Изтриване на съобщение">
+<!ENTITY deleteMessagesButton.tooltip "Изтриване на това съобщение">

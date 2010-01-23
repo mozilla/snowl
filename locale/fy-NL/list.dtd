@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Boarne">
+<!ENTITY authorCol.label "Auteur">
+<!ENTITY subjectCol.label "Underwerp">
+<!ENTITY timestampCol.label "Datum">
+<!ENTITY datereceivedCol.label "Untfongen gegevens">
+<!ENTITY readCol.label "Lêzen">
+<!ENTITY flaggedCol.label "Flagge">
+<!ENTITY sortBy.label "Sortearre op">
+<!ENTITY openListMessage.label "Iepen berjocht">
+<!ENTITY openListMessage.accesskey "I">
+<!ENTITY selectAll.label "Selektearje alles">
+<!ENTITY selectAll.accesskey "S">
+<!ENTITY deleteMessages.label "Selektearre berjochten fuortsmite">
+<!ENTITY deleteMessages.accesskey "f">
+<!ENTITY undeleteMessages.label "Selektearre berjochten tebeksette">
+<!ENTITY undeleteMessages.accesskey "t">

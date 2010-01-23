@@ -1,8 +1,17 @@
 <!ENTITY page.title "Snowl">
-<!ENTITY placementButton.tooltip "Inverser l'emplacement.">
-<!ENTITY unreadButton.tooltip "Ne voir que les messages non lus.">
+<!ENTITY sourceCol.label "Source">
 <!ENTITY authorCol.label "Auteur">
 <!ENTITY subjectCol.label "Sujet">
 <!ENTITY timestampCol.label "Date">
+<!ENTITY datereceivedCol.label "Données reçues">
+<!ENTITY readCol.label "Lus">
+<!ENTITY flaggedCol.label "Marqués">
+<!ENTITY sortBy.label "Classer par">
 <!ENTITY openListMessage.label "Ouvrir le message">
 <!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Tout sélectionner">
+<!ENTITY selectAll.accesskey "T">
+<!ENTITY deleteMessages.label "Supprimer les messages sélectionnés">
+<!ENTITY deleteMessages.accesskey "S">
+<!ENTITY undeleteMessages.label "Récupérer les messages sélectionnés">
+<!ENTITY undeleteMessages.accesskey "R">

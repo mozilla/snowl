@@ -7,6 +7,6 @@
 <!ENTITY pinButton.label "Inmovilizar cabecera">
 <!ENTITY pinButton.tooltip "Conmutar inmovilizar cabecera permanente">
 <!ENTITY toggleHeader.label "Conmutar Cabecera">
-<!ENTITY toggleHeader.tooltip "Conmutar cabecera de mensaje de entre breve, básica o completa; en cabecera básica o completa, conmutar para guardar altura después de ajustar">
+<!ENTITY toggleHeader.tooltip "Conmutar cabecera de mensaje de entre breve, básica o completa">
 <!ENTITY deleteMessagesButton.label "Borrar Mensaje">
 <!ENTITY deleteMessagesButton.tooltip "Borrar este Mensaje">

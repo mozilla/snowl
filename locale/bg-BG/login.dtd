@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "Удостоверяване">
+<!ENTITY realm.label "Източниците казват:">
+<!ENTITY username.label "Потребител:">
+<!ENTITY password.label "Парола:">
+<!ENTITY showPassword.label "Показване на паролата">
+<!ENTITY rememberPassword.label "Запомняне на вярна парола">

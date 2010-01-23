@@ -1,0 +1,58 @@
+<!-- Subscribe pane -->
+<!ENTITY subscribe.title "Abonneren">
+<!ENTITY source.label "Abonneren op een berichtenbron">
+<!ENTITY feeds.label "Feed">
+<!ENTITY feeds.accesskey "F">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Locatie:">
+<!ENTITY name.label "Naam:">
+<!ENTITY subscribeButton.label "Abonneren">
+<!ENTITY subscribeButton.accesskey "A">
+<!ENTITY closeButton.label "Terug">
+<!ENTITY closeButton.accesskey "r">
+<!ENTITY clearButton.label "Wissen">
+<!ENTITY clearButton.accesskey "W">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
+<!ENTITY page.title "Snowl: Abonneren op berichtenbron">
+<!-- Customize pane -->
+<!ENTITY settings.title "Aanpassen">
+<!ENTITY settings.label "Standaardinstellingen voor een berichtenbrontype aanpassen">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
+<!ENTITY mail.label "Mail">
+<!ENTITY mail.accesskey "M">
+<!ENTITY newsgroup.label "Newsgroup">
+<!ENTITY newsgroup.accesskey "N">
+<!-- General pane -->
+<!ENTITY general.title "Algemeen">
+<!-- Subscriptions pane -->
+<!ENTITY subscriptions.title "Abonnementen">
+<!-- Organize pane -->
+<!ENTITY organize.title "Organiseren">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Verversen">
+<!ENTITY refreshText.label "Het verversingsinterval kan worden aangepast.">
+<!ENTITY refreshMinutes.label "Elke">
+<!ENTITY refreshMinutes.accesskey "E">
+<!ENTITY minutes.label "minuten verversen">
+<!ENTITY refreshStatus.label "Huidige verversingsstatus voor deze bron.">
+<!ENTITY refreshState.label "Status:">
+<!ENTITY refreshDate.label "Laatst ververst:">
+<!ENTITY refreshCode.label "Laatste foutcode:">
+<!ENTITY refreshError.label "Laatste foutbericht:">
+<!ENTITY retention.label "Behoud">
+<!ENTITY retentionCleanup.label "Berichten kunnen worden verwijderd volgens de volgende regels.">
+<!ENTITY retentionUseType.label "Standaardinstelling voor dit berichttype gebruiken">
+<!ENTITY retentionUseType.accesskey "d">
+<!ENTITY retentionKeepAll.label "Geen berichten verwijderen">
+<!ENTITY retentionKeepAll.accesskey "G">
+<!ENTITY retentionKeepRecent.label "Alles behalve de meest recente">
+<!ENTITY retentionKeepRecent.accesskey "r">
+<!ENTITY message.label "berichten verwidjeren">
+<!ENTITY retentionDeleteMsg.label "Berichten verwijderen die ouder zijn dan">
+<!ENTITY retentionDeleteMsg.accesskey "o">
+<!ENTITY daysOld.label "dagen">
+<!ENTITY retentionKeepFlagged.label "Gelabelde berichten altijd behouden">
+<!ENTITY retentionKeepFlagged.accesskey "h">

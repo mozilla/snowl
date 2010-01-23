@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Подписаться на источники сообщений.">
+<!ENTITY unsubscribeButton.tooltip "Отписаться от выбранных источников сообщений.">
+<!ENTITY refreshButton.tooltip "Обновить все источники сообщений.">
+<!ENTITY exportButton.tooltip "Экспортировать источники сообщний в OPML.">
+<!ENTITY unreadButton.tooltip "Показывать новые и непрочитанные сообщения в выделенные коллекциях.">
+<!ENTITY flaggedButton.tooltip "Показывать сообщения с флажком из выделенных коллекций.">
+<!ENTITY listToolbarButton.tooltip "Переключить панель Вид.">
+<!ENTITY writeButton.tooltip "Написать сообщение.">
+<!ENTITY showDeletedButton.tooltip "Показать удвлённые сообщения в выделенные коллекциях.">
+<!ENTITY purgeDeletedButton.tooltip "Очистить выделенные коллекции от удалённых сообщений.">

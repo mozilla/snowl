@@ -3,10 +3,12 @@
 <!ENTITY search.caption "Guía de Búsqueda de mensajes">
 <!ENTITY search.header1 "Buscar está basado en las capacidades y limitaciones de Full Text Search (FTS) de SQLite">
 <!ENTITY search.header2 "Sintaxis válida:">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
 <!ENTITY search.explanation1 "Coinciden todos los elementos que empiezan con 'foo'; o 'foo' y 'foobar'.">
+<!ENTITY search.example2 "&quot;foo&quot;">
 <!ENTITY search.explanation2 "Coinciden todos los elementos que contienen exactamente 'foo'; 'foo' pero no 'foobar'.">
 <!ENTITY search.example3 "foo bar">
-<!ENTITY search.explanation3 "C">
+<!ENTITY search.explanation3 "Coinciden todos los elementos con 'foo' y 'bar'.">
 <!ENTITY search.example4 "foo | bar">
 <!ENTITY search.explanation4 "Coinciden todos los elementos con 'foo' o 'bar'.">
 <!ENTITY search.example5 "foo bar -baz">
@@ -15,12 +17,22 @@
 <!ENTITY search.explanation6 "Nota: solo puede haber UN término de negación y debe estar al final al final de la sentencia de búsqueda.">
 <!ENTITY search.example7 "foo ~N bar">
 <!ENTITY search.explanation7 "Coinciden todos los elementos en los que 'foo' está CERCA de 'bar,">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
 <!ENTITY search.explanation8 "Coinciden todos lo elementos en los que 'foo' a dos palabras de 'bar' y 'bar' está hasta 10 palabras de &quot;baz biff&quot;.">
 <!ENTITY search.header3 "Errores de sintaxis se indican con fondo en rojo.">
 <!ENTITY search.header4 "Sintaxis no válida:">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
 <!ENTITY search.explanation9 "El prefijo comodín no es válido.">
+<!ENTITY search.example10 "&quot; foo bar  &quot;">
 <!ENTITY search.explanation10 "Espacios al inicio y al final no son válidos en una cadena entrecomillada.">
 <!ENTITY search.example11 ".foo-bar?">
 <!ENTITY search.explanation11 "Símbolos no alfanuméricos no son válidos en cadenas no entrecomilladas.">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
 <!ENTITY search.explanation12 "Cadenas entrecomilladas no pueden ser negadas.">
 <!ENTITY search.header5 "La búsqueda de símbolos en cadenas entrecomilladas devuelve resultados inesperados. Además, los comodines no están soportados dentro de palabras.">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "Busca 'foo bar', 'foo-bar'.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "Busca 'foo bar'.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "Busca 'foo b r', 'foo b=r', etc., pero no 'foo bar'.">

@@ -1,0 +1,38 @@
+<!-- Search Help -->
+<!ENTITY search.title "Nápověda hledání">
+<!ENTITY search.caption "Průvodce oznámeními vyhledávání">
+<!ENTITY search.header1 "Vyhledávání je založeno na schopnostech a omezeních fulltextového vyhledávání SQLite (FTS).">
+<!ENTITY search.header2 "Správná syntaxe:">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
+<!ENTITY search.explanation1 "Souhlasí všechny položky začínající na 'foo'; 'foo' i 'foobar'.">
+<!ENTITY search.example2 "&quot;foo&quot;">
+<!ENTITY search.explanation2 "Souhlasí všechny položky obsahující přesně 'foo'; 'foo' ale ne 'foobar'.">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Souhlasí všechny položky s 'foo' a 'bar' zároveň.">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Souhlasí všechny položky buď s 'foo' nebo 'bar'.">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Souhlasí všechny položky s 'foo' a 'bar' ne 'baz'.">
+<!ENTITY search.example6 "">
+<!ENTITY search.explanation6 "Poznámka: zde se může nacházet pouze JEDEN záporný výraz a musí být POSLEDNÍ výraz v hledaném dotazu.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Match all items where 'foo' is NEAR 'bar', meaning within N words of 'bar'.  Valid values for N are 0-9 (default is 10 if N is blank).">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
+<!ENTITY search.explanation8 "Match all items where 'foo' is within 2 words of 'bar' and 'bar' is within 10 words of 'baz biff'.">
+<!ENTITY search.header3 "Chyby syntaxe jsou označené červeným pozadím.">
+<!ENTITY search.header4 "Špatná syntaxe:">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
+<!ENTITY search.explanation9 "Wildcard prefixing is invalid.">
+<!ENTITY search.example10 "&quot; foo bar  &quot;">
+<!ENTITY search.explanation10 "Mezery na začátku a na konci jsou špatné v řetězci v uvozovkách.">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Non alphanumeric symbols are invalid in nonquoted strings.">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
+<!ENTITY search.explanation12 "Quoted strings cannot be negated.">
+<!ENTITY search.header5 "Searching for symbols in quoted strings returns unexpected results.  In addition, wildcards are not supported within words.">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "Finds 'foo bar', 'foo-bar'.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "Finds 'foo bar'.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "Finds 'foo b r', 'foo b=r', etc. but not 'foo bar'.">

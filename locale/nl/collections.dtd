@@ -1,0 +1,36 @@
+<!ENTITY nameCol.label "Naam">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Als gelezen markeren">
+<!ENTITY markRead.accesskey "M">
+<!ENTITY markAllRead.label "Alles als gelezen markeren">
+<!ENTITY refresh.label "Bron vernieuwen">
+<!ENTITY refresh.accesskey "V">
+<!ENTITY refreshAll.label "Alle bronnen vernieuwen">
+<!ENTITY refreshAll.accesskey "u">
+<!ENTITY pause.label "Verversing pauzeren">
+<!ENTITY pause.accesskey "P">
+<!ENTITY pauseAll.label "Alle verversing pauzeren">
+<!ENTITY resume.label "Verversing hervatten">
+<!ENTITY resume.accesskey "a">
+<!ENTITY resumeAll.label "Alle verversing hervatten">
+<!ENTITY removeSource.label "Bron verwijderen">
+<!ENTITY removeSource.accesskey "w">
+<!ENTITY removeAuthor.label "Schrijver verwijderen">
+<!ENTITY removeAuthor.accesskey "j">
+<!ENTITY newView.label "Nieuwe weergave…">
+<!ENTITY newView.accesskey "N">
+<!ENTITY removeView.label "Weergave verwijderen">
+<!ENTITY removeView.accesskey "d">
+<!ENTITY view.label "Weergave:">
+<!ENTITY view.accesskey "g">
+<!ENTITY viewDefault.label "Standaard">
+<!ENTITY viewSources.label "Bronnen">
+<!ENTITY viewAuthors.label "Schrijvers">
+<!ENTITY search.label "Zoeken:">
+<!ENTITY search.accesskey "Z">
+<!ENTITY searchMessages.label "Berichten">
+<!ENTITY searchMessages.accesskey "h">
+<!ENTITY searchCollections.label "Collecties">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Help">
+<!ENTITY searchHelp.accesskey "p">

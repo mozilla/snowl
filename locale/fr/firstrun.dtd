@@ -1,14 +1,14 @@
-<!ENTITY snowl.title.getting.started.with.snowl "Getting Started with Snowl">
-<!ENTITY snowl.p.you.ve.just.installed.snowl "You've just installed Snowl, an experiment in messaging in the browser.">
-<!ENTITY snowl.firstrun.access.tips "Access Snowl from the <code>Tools > Snowl</code> menu or the Snowl button <img src='chrome://snowl/content/icons/snowl-16.png'/> in the bottom left corner of your browser window.">
-<!ENTITY snowl.firstrun.buttons "Add buttons to your toolbars for quicker access to Snowl features via the <code>View > Toolbars > Customize…</code> menu option.">
-<!ENTITY snowl.firstrun.suscribe.howto "Subscribe to feeds by clicking the feed icon <img src='chrome://browser/skin/feeds/feedIcon16.png'/> that appears in the Firefox location bar when you visit a web site with a feed and selecting Snowl from the list of feed readers on the feed preview page.">
-<!ENTITY snowl.firstrun.suscribe.twitter "Subscribe to Twitter or import an OPML file from the <code>Tools > Snowl</code> menu or the Snowl button <img src='chrome://snowl/content/icons/snowl-16.png' /> in the bottom left corner of your browser window.">
-<!ENTITY snowl.firstrun.read.messages "Read messages in the <a href='&link.to.river;'>river</a>, <a href='&link.to.stream;'>stream</a>, and <a href='&link.to.list;'>list </a> views.">
-<!ENTITY snowl.firstrun.write.messages "Write a message by pressing the write button <img src='chrome://snowl/content/icons/email_add.png' /> in any view.">
-<!ENTITY snowl.firstrun.get.involved "Get involved!">
-<!ENTITY snowl.a.learn.more.about.snowl "Learn more about Snowl">
-<!ENTITY snowl.a.tell.us.what.you.think "tell us what you think">
-<!ENTITY snowl.a.browse.bug.reports "browse bug reports">
-<!ENTITY snowl.a.report.a.bug "report a bug">
-<!ENTITY snowl.a.check.out.the.source "check out the source">
+<!ENTITY snowl.title.getting.started.with.snowl "Débuter avec Snowl">
+<!ENTITY snowl.p.you.ve.just.installed.snowl "Vous venez d'installer Snowl, une extension expérimentale de gestion du courrier dans le navigateur.">
+<!ENTITY snowl.firstrun.access.tips "Accéder à Snowl depuis le menu <code>Outils &gt; Snowl</code> ou le bouton Snowl <img src='chrome://snowl/content/icons/snowl-16.png'/> en bas à gauche de la fenêtre de votre navigateur.">
+<!ENTITY snowl.firstrun.buttons "Ajouter des boutons à vos barres d'outils pour un accès plus rapide aux éléments de Snowl en passant par le menu <code>Affichage &gt; Barres d'outils &gt; Personnaliser…</code>">
+<!ENTITY snowl.firstrun.suscribe.howto "Pour vous abonner aux flux, cliquer sur leur icône <img src='chrome://browser/skin/feeds/feedIcon16.png'/> apparaissant dans la barre d'adresse de Firefox lors de la visite d'un site Web en disposant.">
+<!ENTITY snowl.firstrun.suscribe.twitter "S'abonner à Twitter ou importer un fichier OPML depuis le menu <code>Outils &gt; Snowl</code> ou le bouton Snowl <img src='chrome://snowl/content/icons/snowl-16.png' /> dans le coin en bas à gauche de votre fenêtre de navigateur.">
+<!ENTITY snowl.firstrun.read.messages "Lisez vos messages messages dans une <a href='&link.to.river;'>rivière</a>, <a href='&link.to.stream;'>un flux</a>, et <a href='&link.to.list;'>list </a> des vues.">
+<!ENTITY snowl.firstrun.write.messages "Écrivez un message en cliquant sur le bouton pour écrire <img src='chrome://snowl/content/icons/email_add.png' /> depuis tout affichage.">
+<!ENTITY snowl.firstrun.get.involved "Impliquez-vous !">
+<!ENTITY snowl.a.learn.more.about.snowl "Apprenez-en davantage sur Snowl">
+<!ENTITY snowl.a.tell.us.what.you.think "Donnez-nous votre avis">
+<!ENTITY snowl.a.browse.bug.reports "Parcourez les rapports de bug">
+<!ENTITY snowl.a.report.a.bug "Rapportez un bug">
+<!ENTITY snowl.a.check.out.the.source "Jetez un coup d'œil au code source">

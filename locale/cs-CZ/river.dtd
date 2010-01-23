@@ -1,9 +1,0 @@
-<!ENTITY page.title "Snowl: Řeka zpráv">
-<!ENTITY bodyButton.tooltip "Zobrazí shrnutí/obsah zprávy">
-<!ENTITY orderButton.tooltip "Převrátí pořádí zpráv.">
-<!ENTITY columnsButton.tooltip "Zobrazí zprávy ve sloupcích.">
-<!ENTITY periodAnytime.label "Kdykoliv">
-<!ENTITY periodToday.label "Dnes">
-<!ENTITY periodYesterday.label "Včera">
-<!ENTITY periodLast7Days.label "Posledních 7 dní">
-<!ENTITY periodLast4Weeks.label "Poslední 4 týdny">

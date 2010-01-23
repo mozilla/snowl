@@ -1,0 +1,38 @@
+<!-- Search Help -->
+<!ENTITY search.title "Aide pour la recherche">
+<!ENTITY search.caption "Guide des messages de recherche">
+<!ENTITY search.header1 "La recherche est basée sur la recherche de texte intégral SQLite (« Full Text Search ») et ses limites.">
+<!ENTITY search.header2 "Syntaxe valide :">
+<!ENTITY search.example1 "foo, &quot;foo*&quot;">
+<!ENTITY search.explanation1 "Recherche tous les éléments commençant par « foo », par exemple « foo » et « foobar ».">
+<!ENTITY search.example2 "&quot;foo&quot;">
+<!ENTITY search.explanation2 "Recherche tous les éléments contenant exactement par « foo », par exemple « foo » mais pas « foobar ».">
+<!ENTITY search.example3 "foo bar">
+<!ENTITY search.explanation3 "Recherche tous les éléments avec « foo » ET « bar ».">
+<!ENTITY search.example4 "foo | bar">
+<!ENTITY search.explanation4 "Recherche tous les éléments avec « foo » OU « bar ».">
+<!ENTITY search.example5 "foo bar -baz">
+<!ENTITY search.explanation5 "Recherche tous les éléments avec « foo » ET « bar » mais SANS « baz ».">
+<!ENTITY search.example6 ".">
+<!ENTITY search.explanation6 "Notez : il ne peut y avoir qu'UN SEUL terme négatif et il doit le DERNIER élément de la chaîne de requête.">
+<!ENTITY search.example7 "foo ~N bar">
+<!ENTITY search.explanation7 "Recherche tous les éléments dans lesquels « foo » est PRÈS DE « bar », ce qui veut dire dans un rayon de N mots autour de « bar ». Les valeurs correctes de N sont comprises entre 0 et 9 (par défaut 10 si N est laissé vide).">
+<!ENTITY search.example8 "foo ~2 bar ~ &quot;baz biff&quot;">
+<!ENTITY search.explanation8 "Récupère tous les éléments dans lesquels « foo » est proche à deux mots près de « bar » et « bar » dans un rayon de dix mots autour de « bazz biff ».">
+<!ENTITY search.header3 "Les erreurs de syntaxe sont indiquées par un arrière-plan rouge.">
+<!ENTITY search.header4 "Syntaxe non valide :">
+<!ENTITY search.example9 "&quot;*foo bar&quot;, *bar">
+<!ENTITY search.explanation9 "Le caractère de remplacement (joker) est invalide">
+<!ENTITY search.example10 "&quot; foo bar  &quot;">
+<!ENTITY search.explanation10 "Les espaces en tête ou en fin de chaîne citée sont invalides">
+<!ENTITY search.example11 ".foo-bar?">
+<!ENTITY search.explanation11 "Les symboles alphanumériques ne sont pas valides dans les chaînes hors-citation.">
+<!ENTITY search.example12 "-&quot;foo bar&quot;">
+<!ENTITY search.explanation12 "Les chaînes citées ne peuvent être exclues">
+<!ENTITY search.header5 "La recherche des symboles dans les chaînes citées a retourné des résultats inattendus. De plus, les caractères jokers ne sont pas pris en charge dans les mots.">
+<!ENTITY search.example13 "&quot;foo-----bar&quot;">
+<!ENTITY search.explanation13 "Trouve 'foo bar', 'foo-bar'.">
+<!ENTITY search.example14 "&quot;foo-bar&quot;">
+<!ENTITY search.explanation14 "Trouve 'foo bar'.">
+<!ENTITY search.example15 "&quot;foo b*r&quot;">
+<!ENTITY search.explanation15 "Trouve 'foo b r', 'foo b=r', etc. mais pas 'foo bar'.">
