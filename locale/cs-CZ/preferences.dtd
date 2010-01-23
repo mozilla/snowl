@@ -1,0 +1,58 @@
+<!-- Subscribe pane -->
+<!ENTITY subscribe.title "Odebírat">
+<!ENTITY source.label "Odebírat zdroj zpráv">
+<!ENTITY feeds.label "Kanál">
+<!ENTITY feeds.accesskey "k">
+<!ENTITY twitter.label "Twitter">
+<!ENTITY twitter.accesskey "T">
+<!ENTITY location.label "Umístění:">
+<!ENTITY name.label "Název:">
+<!ENTITY subscribeButton.label "Odebírat">
+<!ENTITY subscribeButton.accesskey "O">
+<!ENTITY closeButton.label "Zpět">
+<!ENTITY closeButton.accesskey "Z">
+<!ENTITY clearButton.label "Vymazat">
+<!ENTITY clearButton.accesskey "V">
+<!-- This is used by subscribe.xul, which also uses this DTD file. -->
+<!ENTITY page.title "Snowl: Odebírat zdroj zpráv">
+<!-- Customize pane -->
+<!ENTITY settings.title "Customize">
+<!ENTITY settings.label "Customize default settings for a Message Source type">
+<!-- The entities below are commented out because they aren't being used yet,
+   - and they may change before we start using them, so don't localize them. 
+-->
+<!ENTITY mail.label "Pošta">
+<!ENTITY mail.accesskey "P">
+<!ENTITY newsgroup.label "Diskusní skupina">
+<!ENTITY newsgroup.accesskey "D">
+<!-- General pane -->
+<!ENTITY general.title "Hlavní">
+<!-- Subscriptions pane -->
+<!ENTITY subscriptions.title "Příspěvky">
+<!-- Organize pane -->
+<!ENTITY organize.title "Setřídit">
+<!-- Refresh and Retention panel entities, currently used by Properties dialog -->
+<!ENTITY refresh.label "Refresh">
+<!ENTITY refreshText.label "The refresh interval may be customized.">
+<!ENTITY refreshMinutes.label "Refresh every">
+<!ENTITY refreshMinutes.accesskey "R">
+<!ENTITY minutes.label "minutes">
+<!ENTITY refreshStatus.label "Current refresh connection status for this source.">
+<!ENTITY refreshState.label "Status:">
+<!ENTITY refreshDate.label "Last refreshed:">
+<!ENTITY refreshCode.label "Last error code:">
+<!ENTITY refreshError.label "Last error message:">
+<!ENTITY retention.label "Retention">
+<!ENTITY retentionCleanup.label "Messages can be deleted according to the following rules.">
+<!ENTITY retentionUseType.label "Use default setting for this message type">
+<!ENTITY retentionUseType.accesskey "d">
+<!ENTITY retentionKeepAll.label "Don't delete any messages">
+<!ENTITY retentionKeepAll.accesskey "n">
+<!ENTITY retentionKeepRecent.label "Delete all but the most recent">
+<!ENTITY retentionKeepRecent.accesskey "r">
+<!ENTITY message.label "messages">
+<!ENTITY retentionDeleteMsg.label "Delete messages older than">
+<!ENTITY retentionDeleteMsg.accesskey "o">
+<!ENTITY daysOld.label "days">
+<!ENTITY retentionKeepFlagged.label "Always keep flagged messages">
+<!ENTITY retentionKeepFlagged.accesskey "k">

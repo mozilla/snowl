@@ -1,0 +1,12 @@
+<!ENTITY author.label "Autor:">
+<!ENTITY author.accesskey "A">
+<!ENTITY subject.label "Tytuł:">
+<!ENTITY subject.accesskey "S">
+<!ENTITY timestamp.label "Data:">
+<!ENTITY link.label "Odnośnik:">
+<!ENTITY pinButton.label "Pin Header">
+<!ENTITY pinButton.tooltip "Toggle pin to set and unset permanent header">
+<!ENTITY toggleHeader.label "Toggle Header">
+<!ENTITY toggleHeader.tooltip "Toggle message header to brief, basic, or full">
+<!ENTITY deleteMessagesButton.label "Delete Message">
+<!ENTITY deleteMessagesButton.tooltip "Delete this Message">

@@ -1,0 +1,6 @@
+<!ENTITY dialog.title "認証を要求されました">
+<!ENTITY realm.label "情報源による提示:">
+<!ENTITY username.label "ユーザー名:">
+<!ENTITY password.label "パスワード:">
+<!ENTITY showPassword.label "パスワードを表示する">
+<!ENTITY rememberPassword.label "このパスワードが正しければ記憶する">

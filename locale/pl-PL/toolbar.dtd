@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Subskrybuj źródła wiadomości.">
+<!ENTITY unsubscribeButton.tooltip "Anuluj subskrypcję wybranych źródeł wiadomości.">
+<!ENTITY refreshButton.tooltip "Odśwież wszystkie źródła wiadomości.">
+<!ENTITY exportButton.tooltip "Wyeksportuj źródła wiadomości jako OPML.">
+<!ENTITY unreadButton.tooltip "Show new and unread messages for selected collections.">
+<!ENTITY flaggedButton.tooltip "Show flagged messages for selected collections.">
+<!ENTITY listToolbarButton.tooltip "Toggle View toolbar.">
+<!ENTITY writeButton.tooltip "Napisz wiadomość.">
+<!ENTITY showDeletedButton.tooltip "Show deleted messages for selected collections.">
+<!ENTITY purgeDeletedButton.tooltip "Purge all deleted messages from selected collections.">

@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Source">
+<!ENTITY authorCol.label "作者">
+<!ENTITY subjectCol.label "題名">
+<!ENTITY timestampCol.label "日時">
+<!ENTITY datereceivedCol.label "Date Received">
+<!ENTITY readCol.label "Read">
+<!ENTITY flaggedCol.label "Flagged">
+<!ENTITY sortBy.label "Sort By ">
+<!ENTITY openListMessage.label "Open Message">
+<!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "すべて選択">
+<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteMessages.label "Delete Selected Messages">
+<!ENTITY deleteMessages.accesskey "D">
+<!ENTITY undeleteMessages.label "Undelete Selected Messages">
+<!ENTITY undeleteMessages.accesskey "U">

@@ -1,0 +1,9 @@
+<!ENTITY page.title "Snowl: メッセージの流れ">
+<!ENTITY bodyButton.tooltip "メッセージの要約・内容を表示します。">
+<!ENTITY orderButton.tooltip "メッセージの順序を反転します。">
+<!ENTITY columnsButton.tooltip "Show the messages in columns.">
+<!ENTITY decrementPeriodButton.tooltip "Previous day">
+<!ENTITY incrementPeriodButton.tooltip "Next day">
+<!ENTITY periodDay.label "Day">
+<!ENTITY periodWeek.label "Week">
+<!ENTITY periodMonth.label "Month">

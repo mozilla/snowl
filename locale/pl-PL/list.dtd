@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Source">
+<!ENTITY authorCol.label "Autor">
+<!ENTITY subjectCol.label "Tytuł">
+<!ENTITY timestampCol.label "Data">
+<!ENTITY datereceivedCol.label "Date Received">
+<!ENTITY readCol.label "Read">
+<!ENTITY flaggedCol.label "Flagged">
+<!ENTITY sortBy.label "Sort By ">
+<!ENTITY openListMessage.label "Otwórz wiadomość">
+<!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Select All">
+<!ENTITY selectAll.accesskey "A">
+<!ENTITY deleteMessages.label "Delete Selected Messages">
+<!ENTITY deleteMessages.accesskey "D">
+<!ENTITY undeleteMessages.label "Undelete Selected Messages">
+<!ENTITY undeleteMessages.accesskey "U">
