@@ -204,7 +204,19 @@ SnowlCollection.prototype = {
       "people.name AS people_name",
       "people.placeID AS people_placeID",
       "people.homeURL AS people_homeURL",
-      "people.iconURL AS people_iconURL"
+      "people.iconURL AS people_iconURL" /*,
+      "content.id AS content_id",
+      "content.content AS content_content",
+      "content.mediaType AS content_mediaType",
+      "content.baseURI AS content_baseURI",
+      "content.languageTag AS content_languageTag",
+      "summary.id AS summary_id",
+      "summary.content AS summary_content",
+      "summary.mediaType AS summary_mediaType",
+      "summary.baseURI AS summary_baseURI",
+      "summary.languageTag AS summary_languageTag",
+      "partsText.content AS partsText_content"
+*/
     ];
 
     if (this.groupIDColumn) {
@@ -216,7 +228,26 @@ SnowlCollection.prototype = {
       "SELECT " + columns.join(", ") + " FROM sources " +
       "JOIN messages ON sources.id = messages.sourceID " +
       "LEFT JOIN identities ON messages.authorID = identities.id " +
-      "LEFT JOIN people ON identities.personID = people.id ";
+      "LEFT JOIN people ON identities.personID = people.id " +
+
+      // The partType conditions for the next two LEFT JOINS have to be
+      // in the join constraints because if they were in the WHERE clause
+      // they would exclude messages without parts, whereas we want
+      // to retrieve messages whether or not they have these parts.
+/*
+      "LEFT JOIN parts AS content ON messages.id = content.messageID " +
+      "AND content.partType = " + PART_TYPE_CONTENT + " " +
+
+      "LEFT JOIN parts AS summary ON messages.id = summary.messageID " +
+      "AND summary.partType = " + PART_TYPE_SUMMARY + " " +
+
+      "LEFT JOIN partsText ON content.id = partsText.rowid " +
+*/
+      "";
+
+//    if ()
+//      query += 
+//      "LEFT JOIN partsText AS partsText ON parts.id = partsText.docid ";
 
     let conditions = [], operator;
 

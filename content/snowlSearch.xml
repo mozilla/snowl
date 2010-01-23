@@ -149,13 +149,51 @@
                          xbl:inherits="disabled"
                          oncommand="document.getBindingParent(this).openSearchPopup(event);">
         <xul:menupopup id="message-search-popup">
+          <xul:menuitem id="searchSubjectMenuitem"
+                        label="&searchSubject.label;"
+                        accesskey="&searchSubject.accesskey;"
+                        type="radio"
+                        name="searchPopup"
+                        value="subject"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuitem id="searchSenderMenuitem"
+                        label="&searchSender.label;"
+                        accesskey="&searchSender.accesskey;"
+                        type="radio"
+                        name="searchPopup"
+                        value="sender"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuitem id="searchRecipientMenuitem"
+                        label="&searchRecipient.label;"
+                        accesskey="&searchRecipient.accesskey;"
+                        type="radio"
+                        disabled="true"
+                        name="searchPopup"
+                        value="recipient"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuitem id="searchHeadersMenuitem"
+                        label="&searchHeaders.label;"
+                        accesskey="&searchHeaders.accesskey;"
+                        type="radio"
+                        name="searchPopup"
+                        value="headers"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuseparator id="searchMsgsSep"/>
           <xul:menuitem id="searchMessagesMenuitem"
                         label="&searchMessages.label;"
                         accesskey="&searchMessages.accesskey;"
                         type="radio"
                         name="searchPopup"
+                        value="messagesFTS"
+                        oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuitem id="searchMessagesREMenuitem"
+                        label="&searchMessagesRE.label;"
+                        accesskey="&searchMessagesRE.accesskey;"
+                        type="radio"
+                        name="searchPopup"
                         value="messages"
                         oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuseparator id="searchColasSep"/>
           <xul:menuitem id="searchCollectionsMenuitem"
                         label="&searchCollections.label;"
                         accesskey="&searchCollections.accesskey;"
@@ -163,6 +201,13 @@
                         name="searchPopup"
                         value="collections"
                         oncommand="document.getBindingParent(this).itemChecked(event);"/>
+          <xul:menuseparator id="searchHelpSep"/>
+          <xul:menuitem id="searchIgnoreCaseMenuitem"
+                        label="&searchIgnoreCase.label;"
+                        accesskey="&searchIgnoreCase.accesskey;"
+                        type="checkbox"
+                        checked="true"
+                        oncommand="document.getBindingParent(this).ignoreCaseChecked(event);"/>
           <xul:menuseparator id="searchHelpSep"/>
           <xul:menuitem id="searchHelpMenuitem"
                         label="&searchHelp.label;"
@@ -190,12 +235,14 @@
     <implementation>
       <constructor><![CDATA[
         // Set checkstate of menupopup items.
-        if (this.searchType == "messages")
-          document.getElementById("searchMessagesMenuitem").
-                   setAttribute('checked', true);
-        else
-          document.getElementById("searchCollectionsMenuitem").
-                   setAttribute('checked', true);
+        document.getElementById("message-search-popup").
+                 getElementsByAttribute("value", this.searchType)[0].
+                 setAttribute('checked', true);
+        // Set ignorecase menuitem.
+        document.getElementById("searchIgnoreCaseMenuitem").
+                 setAttribute('checked', this.ignoreCase);
+        CollectionsView.onSearchIgnoreCase(this.ignoreCase);
+          
 
         // Need to create string bundle manually instead of using <xul:stringbundle/>
         // see bug 63370 for details (per other workarounds).
@@ -215,8 +262,13 @@
       <field name="_strings">null</field>
 
       <field name="_searchFilterEmptytext" readonly="true"><![CDATA[({
-        0: this._strings.GetStringFromName("searchMessagesEmptyText"),
-        1: this._strings.GetStringFromName("searchCollectionsEmptyText")
+        "subject"     : this._strings.GetStringFromName("searchSubjectEmptyText"),
+        "sender"      : this._strings.GetStringFromName("searchSenderEmptyText"),
+        "recipient"   : this._strings.GetStringFromName("searchRecipientEmptyText"),
+        "headers"     : this._strings.GetStringFromName("searchHeadersEmptyText"),
+        "messagesFTS" : this._strings.GetStringFromName("searchMessagesFTSEmptyText"),
+        "messages"    : this._strings.GetStringFromName("searchMessagesEmptyText"),
+        "collections" : this._strings.GetStringFromName("searchCollectionsEmptyText")
       })]]></field>
 
       <property name="searchType"
@@ -227,11 +279,28 @@
                        return val;">
       </property>
 
+      <property name="ignoreCase"
+                onget="let ic = this.searchFilter.getAttribute('ignorecase') == 'true' ?
+                                true : false;
+                       return ic;"
+                onset="this.searchFilter.setAttribute('ignorecase', val);
+                       document.persist('searchFilter', 'ignorecase');
+                       return val;">
+      </property>
+
       <method name="itemChecked">
         <parameter name="aEvent"/>
         <body><![CDATA[
           this.searchType = aEvent.target.value;
           this.setEmptyText();
+        ]]></body>
+      </method>
+
+      <method name="ignoreCaseChecked">
+        <parameter name="aEvent"/>
+        <body><![CDATA[
+          this.ignoreCase = aEvent.target.hasAttribute('checked');
+          CollectionsView.onSearchIgnoreCase(this.ignoreCase);
         ]]></body>
       </method>
 
@@ -246,14 +315,24 @@
 
       <method name="setEmptyText">
         <body><![CDATA[
-          let index = this.searchType == "messages" ? 0 : 1;
-          this.searchFilter.setAttribute("emptytext",
-                                         this._searchFilterEmptytext[index]);
+          this.searchFilter.
+               setAttribute("emptytext",
+                            this._searchFilterEmptytext[this.searchType]);
           let input = document.getAnonymousElementByAttribute(this.searchFilter,
                                                               "anonid",
                                                               "input");
           input.focus();
           input.blur();
+        ]]></body>
+      </method>
+
+      <method name="setBusy">
+        <parameter name="aBusy"/>
+        <body><![CDATA[
+          if (aBusy)
+            this.searchFilter.setAttribute("busy", true);
+          else
+            this.searchFilter.removeAttribute("busy");
         ]]></body>
       </method>
     </implementation>

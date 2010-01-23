@@ -97,6 +97,11 @@ let CollectionsView = {
     return this._toggleListToolbarButton = document.getElementById("listToolbarButton");
   },
 
+  get _searchButton() {
+    delete this._searchButton;
+    return this._searchButton = document.getElementById("snowlListViewSearchButton");
+  },
+
   get itemIds() {
     let intArray = [];
     let strArray = this._tree.getAttribute("itemids").split(",");
@@ -321,9 +326,9 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     if (this._tree.view.selection.count == 0) {
       this._tree.currentSelectedIndex = -1;
       this.itemIds = -1;
-      let searchMsgs = this._searchFilter.getAttribute("searchtype") == "messages";
+      let searchCols = this._searchFilter.getAttribute("searchtype") == "collections";
       let searchEmpty = this._searchFilter.getAttribute("empty") == "true";
-      if (!isBookmark && (!searchMsgs || searchEmpty)) {
+      if (!isBookmark && (searchCols || searchEmpty)) {
         gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
         return;
       }
@@ -345,9 +350,13 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     let constraints = this.getSelectionConstraints();
 
     if (!constraints) {
-        gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
-        return;
+      gMessageViewWindow.SnowlMessageView.onCollectionsDeselect();
+      return;
     }
+
+    if (this._searchFilter.value)
+      // Switching selection while in search, show busy.
+      this._searchButton.parentNode.setBusy(true);
 
     let collection = new SnowlCollection(null,
                                          name,
@@ -383,11 +392,21 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
   },
 
   onSearch: function(aValue) {
+    let searchType = this._searchFilter.getAttribute("searchtype");
+//    let searchTypeRE = this._searchFilter.getAttribute("searchtype");
+//    let searchRE = searchType == "subject" ||
+//                   searchType == "sender" ||
+//                   searchType == "headers" ||
+//                   searchType == "messages";
+    let searchMsgsFTS = searchType == "messagesFTS";
+    let searchCols = searchType == "collections";
+
+    // Edit check routine.
     let term, terms = [], filterTerms = [];
-    let searchMsgs = this._searchFilter.getAttribute("searchtype") == "messages";
-    let searchCols = this._searchFilter.getAttribute("searchtype") == "collections";
-    let quotes = aValue.match("\"", "g");
+    let quotes = aValue.match(/^"|[^\\]"/g);
     let quotesClosed = (!quotes || quotes.length%2 == 0) ? true : false;
+//    let quotesEscaped = aValue.match(/\\"/g);
+//    let quotesClosedEscaped = (!quotesEscaped || quotesEscaped.length%2 == 0) ? true : false;
     let oneNegation = false;
     // XXX: It would be nice to do unicode properly, \p{L} - Bug 258974.
     let invalidInitial = new RegExp("^[^\"\\w\\u0080-\\uFFFF]|\\\|(?=\\s*[\|\-])+|\~(?!\\d(?=$|\\s)|\\s|$)");
@@ -395,56 +414,92 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     let invalidUnquoted = new RegExp("^[^\-|\~|\\w\\u0080-\\uFFFF]{1}?|.(?=[^\\w\\u0080-\\uFFFF])");
     let invalidQuoted = new RegExp("\"(?=[^\'\\w\\u0080-\\uFFFF])");
 
-    if ((aValue != "" && aValue.match(invalidInitial)) ||
-        (!quotesClosed && aValue.substr(aValue.lastIndexOf("\""), aValue.length).
-                                 search(invalidQuoted) != -1)) {
+    if (aValue.match(/[^\\]""/g) ||
+        (aValue != "" && (searchMsgsFTS && aValue.match(invalidInitial))) ||
+        (searchMsgsFTS && !quotesClosed &&
+         aValue.substr(aValue.lastIndexOf("\""), aValue.length).
+                search(invalidQuoted) != -1)) {
       this._searchFilter.setAttribute("invalid", true);
-      return;
+      return false;
     }
+this._log.info("onSearch: aValue - "+ aValue);
 
-    terms = aValue.match("[^\\s\"']+|\"[^\"]*\"*|'[^']*'*", "g");
+    // Negation - is its own term for messages, included in term for headers.
+    terms = searchMsgsFTS ? aValue.match("[^\\s\"']+|\"[^\"]*\"*|'[^']*'*", "g") :
+                            aValue.match(/(-?"(?:[^\\"]+|\\.)*?"|\S+)/g);
+//                            aValue.match("(-?\"[^\"]+\"|[^\"\\s]+)", "g");
+this._log.info("onSearch: terms - "+ terms);
+this._log.info("onSearch: quotesClosed - "+ quotesClosed);
 
     while (terms && (term = terms.shift())) {
-      if (term.match(/\"/g)) {
-        // Quoted term: invalid if already have negation term; cannot be empty or
-        // end in space(s); cannot start with space(s) or invalid chars.
-        if (oneNegation || term.match(/[\s\"](?=")/g) || term.match(invalidQuoted)) {
-          this._searchFilter.setAttribute("invalid", true);
-          return;
+this._log.info("onSearch: term - "+ term);
+      if (searchMsgsFTS) {
+        // SQLite FTS based search.
+        if (term.match(/\"/g)) {
+          // Quoted term: invalid if already have negation term; cannot be empty
+          // or end in space(s); cannot start with space(s) or invalid chars.
+          if (oneNegation || term.match(/[\s\"](?=")/g) || term.match(invalidQuoted)) {
+            this._searchFilter.setAttribute("invalid", true);
+            return false;
+          }
+        }
+        else {
+          // Unquoted term: invalid if already have negation term; | term cannot
+          // lead a term and must be standalone; must start with valid chars and
+          // cannot contain invalid chars.
+          if (oneNegation || term.match(/\|(?=\S)/) || term.match(invalidUnquoted)) {
+            this._searchFilter.setAttribute("invalid", true);
+            return false;
+          }
+
+          // Negation: can only have one negation term and it must be the last
+          // term (error on rest of search string ending in space indicates this)
+          // and cannot contain invalid chars.
+          if (term[0] == "-") {
+            oneNegation = true;
+            if (aValue.substr(aValue.lastIndexOf("\-"), aValue.length).
+                                     search(invalidNegation) > -1) {
+              this._searchFilter.setAttribute("invalid", true);
+              return false;
+            }
+          }
+
+          if (term == "|")
+            // Unquoted | means OR.  We do not use OR because it is 1)twice the
+            // typing, 2)english-centric.
+            term = "OR"
+          else if (term[0] == "~")
+            // Unquoted ~ means NEAR.  We do not use NEAR because it is 1)4x the
+            // typing, 2)english-centric.
+            term = "NEAR" + (term[1] ? "/" + term[1] : "");
+          else
+            // Add asterisk to non quoted term for sqlite fts non-exact match.
+            term = SnowlUtils.appendAsterisks(term);
         }
       }
       else {
-        // Unquoted term: invalid if already have negation term; | term cannot
-        // lead a term and must be standalone; must start with valid chars and
-        // cannot contain invalid chars.
-        if (oneNegation || term.match(/\|(?=\S)/)|| term.match(invalidUnquoted)) {
-          this._searchFilter.setAttribute("invalid", true);
-          return;
-        }
+//this._log.info("onSearch: quotesClosed - "+ quotesClosed);
+        // Regex based search.
+        if (!quotesClosed)
+          return false;
 
-        // Negation: can only have one negation term and it must be the last
-        // term (error on rest of search string ending in space indicates this)
-        // and cannot contain invalid chars.
-        if (term[0] == "-") {
+        // At least one negation term, all subsequent negation terms must follow
+        // each other and come at the end of the search string.
+        if (term[0] == "-")
           oneNegation = true;
-          if (aValue.substr(aValue.lastIndexOf("\-"), aValue.length).
-                                   search(invalidNegation) > -1) {
-            this._searchFilter.setAttribute("invalid", true);
-            return;
-          }
+
+        // Term: invalid if already have negation term and this term is not also
+        // a negation term; NEAR ~ invalid.
+        if ((oneNegation && !term.match(/^[-|]/)) ||
+            term[0] == "~") {
+          this._searchFilter.setAttribute("invalid", true);
+          return false;
         }
 
         if (term == "|")
           // Unquoted | means OR.  We do not use OR because it is 1)twice the
           // typing, 2)english-centric.
           term = "OR"
-        else if (term[0] == "~")
-          // Unquoted ~ means NEAR.  We do not use NEAR because it is 1)4x the
-          // typing, 2)english-centric.
-          term = "NEAR" + (term[1] ? "/" + term[1] : "");
-        else
-          // Add asterisk to non quoted term for sqlite fts non-exact match.
-          term = SnowlUtils.appendAsterisks(term);
       }
 
       filterTerms.push(term);
@@ -453,32 +508,72 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     this._searchFilter.removeAttribute("invalid");
 
     if (aValue.charAt(aValue.length - 1).match(/\s|\||\~/) ||
+//        aValue.match(/^[-\\]$/) ||
         (aValue.charAt(aValue.length - 1).match(/-/) &&
          aValue.charAt(aValue.length - 2).match(/\s/)) ||
         (aValue.charAt(aValue.length - 1).match(/\d/) &&
          aValue.charAt(aValue.length - 2).match(/\~/)) ||
+//        (aValue.charAt(aValue.length - 1).match(/\\/) &&
+//         aValue.charAt(aValue.length - 2).match(/\s|-/)) ||
         !quotesClosed)
       // Don't run search on a space, or OR |, or negation -, or unclosed quote ",
-      // or NEAR ~ number.
-      return;
+      // or NEAR ~ number, or \ for escaped quotes.
+      return false;
+
+    this._searchButton.parentNode.setBusy(true);
 
     // Save string.
-    this.Filters["searchterms"] = aValue ? filterTerms.join(" ") : null;
+    if (searchMsgsFTS)
+      this.Filters["searchterms"] = aValue ? filterTerms.join(" ") : null;
+
+    // Post edit check processing for regex terms string.
+    else {
+      let regexTerms = [];
+this._log.info("onSearch: searchRE filterTerms - "+ filterTerms);
+
+      // Array for highlighter.
+      this.Filters["searchterms"] = aValue ? filterTerms : null;
+
+      for each (term in filterTerms)
+        // Extra special handling to escape \ unless it escapes a "; escape
+        // special chars; remove leading "; remove last quote " making sure to
+        // preserve negation and escaped quotes; unescape escaped quotes \".
+        regexTerms.push(term.replace(/(\\)(?=[^"]|$)/g, "\\\\\\$1").
+                             replace(/([.^$*+?&<>()[{}|\]])/g, "\\$1").
+                             replace(/^"/, "").
+                             replace(/(-?"|[^\\])"/g, "$1").
+                             replace(/\\"/g, '"'));
+this._log.info("onSearch: searchRE regexTerms - "+ regexTerms);
+
+      // Unquoted array for regex.
+      SnowlDatastore._dbRegexp.termsArray = regexTerms;
+    }
+
+//this._log.info("onSearch: this.Filters[searchterms] - "+ this.Filters["searchterms"]);
 
     if (aValue) {
       if (searchCols)
-        // Search collections.
-        this.searchCollections(aValue);
-      if (searchMsgs)
+        // Search collections.  Do this on a timeout to allow css to decorate
+        // throbber.
+        setTimeout(function() {
+          CollectionsView.searchCollections(aValue);
+        }, 0)
+      else
         // Search selected or 'All Messages' if no explicit selection.
         gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
     }
     else {
-      if (searchMsgs) {
-        // XXX: Reloads current page from cache to clear highlights.  But maybe
-        // nicer to unhighlight and avoid reload stutter..
-        // TODO: Clear cache for all snowl xhtml pages in history, above not an issue.
-        gMessageViewWindow.BrowserReload();
+      if (searchCols){
+        // Reset the collections tree.
+        this._tree.place = this._tree.place;
+        this.noSelect = true;
+        this._tree.restoreSelection();
+        this._searchButton.parentNode.setBusy(false);
+      }
+      else {
+        // TODO: Clear highlights, if any, in bf cache.
+        let browserWin = gMessageViewWindow.gBrowser.contentWindow;
+        browserWin.wrappedJSObject.messageHeaderUtils.higlightClear();
 
         if (this.itemIds == -1)
           // If no selection and clearing searchbox, clear list (don't select 'All').
@@ -487,13 +582,11 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
           // Re-select the selected collections.
           gMessageViewWindow.SnowlMessageView.onFilter(this.Filters);
       }
-      if (searchCols){
-        // Reset the collections tree.
-        this._tree.place = this._tree.place;
-        this.noSelect = true;
-        this._tree.restoreSelection();
-      }
     }
+  },
+
+  onSearchIgnoreCase: function(aChecked) {
+    SnowlDatastore._dbRegexp.ignoreCase = aChecked;
   },
 
   onSearchHelp: function() {
@@ -705,7 +798,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     // Mark all selected source/author collection messages as not new (unread)
     // upon the collection being no longer selected.  Note: shift-click on a
     // collection will leave new state when unselected.
-    let itemId, uri, sources = [], authors = [], query, all = false;
+    let itemId, uri, query, collID, nodeStats, all = false;
+    let sources = [], authors = [];
     let itemIds = this.itemIds;
     let currentIndexItemId =
         this._tree.view.nodeForTreeIndex(this._tree.currentIndex).itemId
@@ -719,6 +813,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       try {
         uri = PlacesUtils.bookmarks.getBookmarkURI(itemId).spec;
       } catch (ex) { continue;} // Not a query item.
+
       query = new SnowlQuery(uri);
       if (query.queryFolder == SnowlPlaces.collectionsSystemID ||
           query.queryFolder == SnowlPlaces.collectionsSourcesID ||
@@ -726,6 +821,17 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
         all = true;
         break;
       }
+
+      collID = query.queryTypeSource ? "s" + query.queryID :
+               query.queryTypeAuthor ? "a" + query.queryID :
+              (query.queryFolder == SnowlPlaces.collectionsSystemID ||
+               query.queryFolder == SnowlPlaces.collectionsSourcesID ||
+               query.queryFolder == SnowlPlaces.collectionsAuthorsID) ? "all" : null;
+      nodeStats = SnowlService.getCollectionStatsByCollectionID()[collID];
+      if (!nodeStats || nodeStats.n == 0)
+        // No new messages in this collection, go on.
+        continue;
+
       if (query.queryTypeSource && sources.indexOf(query.queryID, 0) < 0)
         sources.push(query.queryID);
       if (query.queryTypeAuthor && authors.indexOf(query.queryID, 0) < 0)
@@ -1022,7 +1128,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
     let searchFolders = [];
     let view = this._collectionsViewMenu.value;
     if (view && view != "default")
-      // Limit search to authors/sources/custom if that view selected, else all
+      // Limit search to authors/sources/custom if that view selected, else all.
       searchFolders = view == "sources" ? [SnowlPlaces.collectionsSourcesID] :
                       view == "authors" ? [SnowlPlaces.collectionsAuthorsID] :
                                           [parseInt(view)];
@@ -1031,12 +1137,12 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
       searchFolders = [SnowlPlaces.collectionsSystemID];
     }
 
-    if (!aSearchString)
-      this._tree.place = this._tree.place;
-    else {
+//    if (!aSearchString)
+//      this._tree.place = this._tree.place;
+//    else {
       this._tree.applyFilter(aSearchString, searchFolders);
-      
-    }
+      this._searchButton.parentNode.setBusy(false);
+//    }
   },
 
   isMessageForSelectedCollection: function(aMessage) {
@@ -1100,6 +1206,8 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
           // Collection folder that returns all records, reset constraints
           // and break.  There may be other such 'system' collections but more
           // likely collections will be rows which are user defined snowl: queries.
+//          constraints = [{expression:"sources.id > :zero",
+//                          parameters:"0"}];
           constraints = [];
           stop = true;
           break;

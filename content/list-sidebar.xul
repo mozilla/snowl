@@ -85,10 +85,9 @@
                type="search"
                emptytext=""
                searchtype="messages"
-               persist="searchtype"
+               persist="searchtype ignorecase"
                oncommand="CollectionsView.onSearch(this.value)"/>
     </toolbaritem>
-    <toolbarspring/>
     <toolbaritem id="viewBox"
                  align="center">
       <label value="&view.label;"

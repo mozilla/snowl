@@ -63,7 +63,7 @@
 }
 
 #contentBody {
-  margin: 8px;
+  margin: 22px 8px 8px 8px;
 }
 
 table {
@@ -165,35 +165,55 @@ body.wrap > table > tr > .headerLabel + .headerData > a,
 /* The search highlight generator will create as many unique classnames as there
  * are search terms, in the form .hl#, and 7 styles are defined here, the rest
  * default. Theme here is 'Blue Variations' but any customization is possible. */
-.hldefault, .hl0 {
+.hl, .hl0,
+.hl > a, .hl0 > a {
   background: #0000CD;
   color: white;
 }
-.hl1 {
+.hl1,
+.hl1 > a {
   background: #4682B4;
   color: white;
 }
-.hl2 {
+.hl2,
+.hl2 > a {
   background: #4169E1;
   color: white;
 }
-.hl3 {
+.hl3,
+.hl3 > a {
   background: #6495ED;
   color: white;
 }
-.hl4 {
+.hl4,
+.h4l > a {
   background: #1E90FF;
   color: white;
 }
-.hl5 {
+.hl5,
+.hl5 > a {
   background: #87CEFA;
   color: white;
 }
-.hl6 {
+.hl6,
+.hl6 > a {
   background: #00BFFF;
   color: white;
 }
-
+#hlMarkerContainer {
+  position:fixed;
+  top:0;
+  right:0;
+  width:10px;
+  height:100%;
+  background:#eee;
+}
+.hlMarker {
+  position:absolute;
+  width:12px;
+  height:3px;
+  cursor:pointer;
+}
 /* Icon courtesy of http://sozai.7gates.net/en/docs/pushpin_icon01/ */
 #pinButton {
   list-style-image: url("chrome://snowl/content/icons/pushpin.gif");

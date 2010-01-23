@@ -135,6 +135,10 @@ let SnowlMessageView = {
   },
 
   getCellText: function(aRow, aColumn) {
+    if (!this._collection.messages[aRow])
+      // Prevent transient throw.
+      return null;
+
     // FIXME: use _columnProperties instead of hardcoding column
     // IDs and property names here.
     switch(aColumn.id) {
@@ -161,6 +165,10 @@ let SnowlMessageView = {
   },
 
   getCellProperties: function (aRow, aColumn, aProperties) {
+    if (!this._collection.messages[aRow])
+      // Prevent transient throw.
+      return null;
+
     // We have to set this on each cell rather than on the row as a whole
     // because the text styling we apply to unread/deleted messages has to be
     // specified by the ::-moz-tree-cell-text pseudo-element, which inherits
@@ -193,10 +201,9 @@ let SnowlMessageView = {
       this._setFlagged(aRow);
     if (aColumn.id == "snowlReadCol") {
       let read = this._collection.messages[aRow].read;
-      this._collection.messages[aRow].read = (read == MESSAGE_UNREAD ||
-                                              read == MESSAGE_NEW) ?
-                                              MESSAGE_READ : MESSAGE_UNREAD;
-      this._collection.messages[aRow].persist();
+      read = read == MESSAGE_UNREAD || read == MESSAGE_NEW ? MESSAGE_READ :
+                                                             MESSAGE_UNREAD;
+      this._setRead(read, aRow);
     }
   },
 
@@ -301,19 +308,50 @@ let SnowlMessageView = {
                                  " current = " + MESSAGE_CURRENT + ")",
                      parameters: {} });
 
-    // FIXME: use a left join here once the SQLite bug breaking left joins to
-    // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
     if (this.Filters["searchterms"]) {
-      filters.push({ expression: "messages.id IN " +
-                                 "(SELECT messageID FROM parts" +
-                                 " JOIN partsText ON parts.id = partsText.docid" +
-                                 " WHERE partsText.content MATCH :filter)",
-                     parameters: { filter: this.Filters["searchterms"] } });
+      let searchExpressions = {
+        "subject"     : "(messages.subject REGEXP :filter)",
+        "sender"      : "(identities_externalID REGEXP :filter OR" +
+                        " people_name REGEXP :filter)",
+        "headers"     : "(messages.headers REGEXP :filter)",
+        // FIXME: use a left join here once the SQLite bug breaking left joins to
+        // virtual tables has been fixed (i.e. after we upgrade to SQLite 3.5.7+).
+        "messages"    : "messages.id IN " +
+                        "(SELECT messageID FROM parts" +
+                        " JOIN partsText ON parts.id = partsText.docid" +
+                        " WHERE partsText.content REGEXP :filter)",
+        "messagesFTS" : "messages.id IN " +
+                        "(SELECT messageID FROM parts" +
+                        " JOIN partsText ON parts.id = partsText.docid" +
+                        " WHERE partsText.content MATCH :filter)",
+//        "messages" : "(partsText_content REGEXP :filter)",
+//        "messages" : "(summary_content REGEXP :filter OR content_content REGEXP :filter)",
+        "XXX"      : "XXX",
+      };
+      let searchFilters = {
+        "subject"     : "SUBJECT",
+        "sender"      : "SENDER",
+        "headers"     : "HEADERS",
+        "messages"    : "MESSAGES",
+        "messagesFTS" : this.Filters["searchterms"],
+        "XXX"         : "XXX" //this.Filters["searchterms"]
+      };
+
+      let searchType = this.CollectionsView._searchFilter.getAttribute("searchtype");
+      let searchExpression = searchExpressions[searchType];
+      let searchFilter = searchFilters[searchType];
+//this._log.info("_applyFilters: searchFilter - "+ searchFilter);
+
+      filters.push({ expression: searchExpression,
+                     parameters: { filter: searchFilter } });
     }
 
     this._collection.filters = filters;
     this._collection.invalidate();
-    this._rebuildView();
+
+    setTimeout(function() {
+      SnowlMessageView._rebuildView();
+    }, 0)
   },
 
   setCollection: function(collection, aFilters) {
@@ -338,12 +376,14 @@ let SnowlMessageView = {
 
     this._sort();
 
-    if (this.Filters["searchterms"])
+    this.CollectionsView._searchButton.parentNode.setBusy(false);
+    if (this.Filters["searchterms"]) {
       if (this._collection.messages[0])
         // Select first item when searching.
         this._tree.view.selection.select(0);
       else
         this._collection._messages = [];
+    }
 
     // Scroll back to the top of the tree.
     // XXX: need to preserve selection.
@@ -594,8 +634,8 @@ let SnowlMessageView = {
       this._setRead(readState);
   },
 
-  _setRead: function(aRead) {
-    let row = this._tree.currentIndex;
+  _setRead: function(aRead, aRow) {
+    let row = aRow == null ? this._tree.currentIndex : aRow;
     let message = this._collection.messages[row];
     message.read = aRead;
     message.persist();

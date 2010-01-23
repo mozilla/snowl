@@ -63,6 +63,14 @@
   cursor: default;
 }
 
+#snowlFilter[busy] .textbox-search-clear {
+  list-style-image: url("chrome://global/skin/icons/loading_16.png");
+}
+
+#snowlFilter[busy] .textbox-search-clear:hover {
+  list-style-image: url("chrome://global/skin/icons/Search-close.png");
+}
+
 #snowlSubscribeButton {
   list-style-image: url("chrome://snowl/content/icons/add.png");
 }

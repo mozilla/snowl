@@ -37,7 +37,8 @@
    - ***** END LICENSE BLOCK ***** -->
 
 <!DOCTYPE html [
-  <!ENTITY %    htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "DTD/xhtml1-strict.dtd">
+  <!ENTITY %    htmlDTD PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+                               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
   %htmlDTD;
   <!ENTITY %  globalDTD SYSTEM "chrome://global/locale/global.dtd">
   %globalDTD;
@@ -59,14 +60,14 @@
             src="chrome://snowl/content/messagecontent.js"/>
 
   </head>
-<!--  -->
+  <!-- Use onpageshow instead of onload -->
   <body id="body"
         dir="&locale.dir;"
-        onload="messageContent.createHeader();"
         onclick="messageHeaderUtils.onClick(event);"
         onresize="messageHeaderUtils.onResize();"
         onmousemove="messageHeaderUtils.onMouseMove(event);"
-        onpageshow="messageHeaderUtils.init();">
+        onpageshow="messageHeaderUtils.init();"
+        onunloadXX="messageHeaderUtils.onUnload();">
     <table id="headerDeck">
       <tr id="briefHeaderButtons">
         <td class="headerButtons" valign="top" rowspan="5">
@@ -108,7 +109,7 @@
         <!-- Do not leave any space/comments or wrap/indent between headerLabel
              and headerData </td><td elements as this will create a #text node and 
              disrupt nextSibling usage. -->
-        <td class="headerLabel headerLabelSubject altrowA" align="right">&subject.label;</td><td
+        <td class="headerLabel headerLabelSubject" align="right">&subject.label;</td><td
             class="headerData headerDataSubject"><a id="subject"/></td>
         <td class="briefHeader flexer"/>
 
@@ -129,12 +130,12 @@
 
 
       <tr class="basicHeaderRow">
-        <td class="headerLabel altrowB">&author.label;</td><td
+        <td class="headerLabel">&author.label;</td><td
             class="headerData"><a id="author"/></td>
       </tr>
 
       <tr class="basicHeaderRow">
-        <td class="headerLabel altrowA" colspan="2">&timestamp.label;</td><td
+        <td class="headerLabel" colspan="2">&timestamp.label;</td><td
             class="headerData"><a id="timestamp" colspan="3"/></td>
       </tr>
 <!-- -->

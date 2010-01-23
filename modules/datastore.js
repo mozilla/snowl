@@ -450,21 +450,105 @@ let SnowlDatastore = {
    * statement with a regexp function.
    *
    * Usage:
-   * (0) = Name of getter returning regex object to test.
+   * (0) = Name of string passed from the sqlite query, for a tokenized regexp.
+   *       For a dynamic regex, the string is first set by calling regExp(val),
+   *       then executing the sqlite query with the dynamic function token.
    * (1) = Column value to test.
-   * Statement eg, "WHERE attributes REGEXP_TEST 'FLAGGED_TRUE'"
+   * Statement eg, "WHERE attributes REGEXP 'FLAGGED_TRUE'"
    *
    * @return {Boolean} indicates if regex test successful; record returned if true.
    */
   _dbRegexp: {
-     get FLAGGED_TRUE() {
-       if (!this._FLAGGED_TRUE)
-         this._FLAGGED_TRUE = new RegExp('"flagged":true');
-       return this._FLAGGED_TRUE;
-     },
+    // Valid tokens for the sql regexp expression for test.
+    get ValidTokens() {
+      if (!this._ValidTokens)
+        this._ValidTokens = {
+          "FLAGGED_TRUE" : /"flagged":true/g
+        };
+      return this._ValidTokens;
+    },
+
+    // Valid parms for the sql regexp expression and preprocessing re for match.
+    get ValidParms() {
+      if (!this._ValidParms)
+        this._ValidParms = {
+          "SUBJECT"  : null,
+          "SENDER"   : null,
+          "MESSAGES" : null,
+          // Remove header names, of format |"name":| - only search values.
+          "HEADERS"  : /[{,]\"[^\"]*\":/g
+        };
+      return this._ValidParms;
+    },
+
+    get termsArray() {
+      return this._termsArray;
+    },
+
+    set termsArray(newVal) {
+      this._termsArray = newVal;
+    },
+
+    get ignoreCase() {
+      return this._ignoreCase;
+    },
+
+    set ignoreCase(newVal) {
+      this._ignoreCase = newVal ? true : false;
+    },
+
+    get headerToSearchRE() {
+      return this._headerToSearchRE;
+    },
+
+    set headerToSearchRE(newStr) {
+      this._headerToSearchRE = newStr;
+    },
+
+    // Dynamic regexp for headers using the search string placed in termsArray.
+    RegexMatch: function(aStr, aParm) {
+//SnowlDatastore._log.info("RegexMatch: START:aStr - "); //+" : "+str);
+      let str;
+      let match = true;
+      let matchOr = false;
+      let matchNot = false;
+      let flags = "g" + (this.ignoreCase ? "i" : "");
+
+      str = this.ValidParms[aParm] ? aStr.replace(this.ValidParms[aParm], "") :
+                                     aStr;
+      str = str == null ? "" : str;
+//SnowlDatastore._log.info("RegexMatch: str - " +str);
+
+      for each(term in this.termsArray) {
+//SnowlDatastore._log.info("RegexMatch: term:match:matchOr:matchNot - " +
+//    term+" : "+match+" : " +matchOr+" : " +matchNot);
+        if (/^OR?/.test(term)) {
+          matchOr = match || matchOr;
+          match = true;
+          continue;
+        }
+
+        if (term[0] == "-") {
+          if (str.match(term.slice(1), flags))
+            return false;
+          else
+            continue;
+        }
+
+        match = (str.match(term, flags) && match ? true : false);
+//SnowlDatastore._log.info("RegexMatch: match - "+match);
+      }
+
+      return match || matchOr;
+    },
 
     onFunctionCall: function(aArgs) {
-      return this[aArgs.getString(0)].test(aArgs.getString(1)) ? true : false;
+      if (aArgs.getString(0) in this.ValidParms)
+        return this.RegexMatch(aArgs.getString(1), aArgs.getString(0));
+      else if (aArgs.getString(0) in this.ValidTokens)
+        return aArgs.getString(1).match(this.ValidTokens[aArgs.getString(0)]) ? true : false;
+        // For some reason, test does not return all matches..
+//        return (this.ValidTokens[aArgs.getString(0)]).test(aArgs.getString(1)) ? true : false;
     }
   },
 
@@ -1053,8 +1137,12 @@ let SnowlDatastore = {
 
   collectionStatsByCollectionID: function() {
     // Stats object for collections tree properties.
-    let statement, type, types = ["all", "source", "author"];
+    let statement, type, types = ["all", "source"];
     let collectionID, Total, Read, New, collectionStats = {};
+
+    if (SnowlPlaces.collectionsAuthorsID != -1)
+      // Authors collection being built, also calc author stats.
+      types.push("author");
 
     try {
       for each (type in types) {
