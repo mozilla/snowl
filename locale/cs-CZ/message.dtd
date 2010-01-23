@@ -1,0 +1,12 @@
+<!ENTITY author.label "Autor:">
+<!ENTITY author.accesskey "A">
+<!ENTITY subject.label "Předmět:">
+<!ENTITY subject.accesskey "S">
+<!ENTITY timestamp.label "Datum:">
+<!ENTITY link.label "Odkaz:">
+<!ENTITY pinButton.label "Pin Header">
+<!ENTITY pinButton.tooltip "Toggle pin to set and unset permanent header">
+<!ENTITY toggleHeader.label "Přepnout záhlaví">
+<!ENTITY toggleHeader.tooltip "Toggle message header to brief, basic, or full">
+<!ENTITY deleteMessagesButton.label "Smazat zprávu">
+<!ENTITY deleteMessagesButton.tooltip "Smazat tuto zprávu">

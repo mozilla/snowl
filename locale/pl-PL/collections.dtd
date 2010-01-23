@@ -1,0 +1,36 @@
+<!ENTITY nameCol.label "Nazwa">
+<!-- Collections contextmenu -->
+<!ENTITY markRead.label "Mark as Read">
+<!ENTITY markRead.accesskey "d">
+<!ENTITY markAllRead.label "Mark All as Read">
+<!ENTITY refresh.label "Odśwież">
+<!ENTITY refresh.accesskey "O">
+<!ENTITY refreshAll.label "Odśwież wszystkie źródła">
+<!ENTITY refreshAll.accesskey "w">
+<!ENTITY pause.label "Pause Refresh">
+<!ENTITY pause.accesskey "P">
+<!ENTITY pauseAll.label "Pause All Refresh">
+<!ENTITY resume.label "Resume Refresh">
+<!ENTITY resume.accesskey "m">
+<!ENTITY resumeAll.label "Resume All Refresh">
+<!ENTITY removeSource.label "Remove Source">
+<!ENTITY removeSource.accesskey "S">
+<!ENTITY removeAuthor.label "Remove Author">
+<!ENTITY removeAuthor.accesskey "A">
+<!ENTITY newView.label "New View…">
+<!ENTITY newView.accesskey "V">
+<!ENTITY removeView.label "Remove View">
+<!ENTITY removeView.accesskey "w">
+<!ENTITY view.label "View:">
+<!ENTITY view.accesskey "V">
+<!ENTITY viewDefault.label "Default">
+<!ENTITY viewSources.label "Sources">
+<!ENTITY viewAuthors.label "Authors">
+<!ENTITY search.label "Search:">
+<!ENTITY search.accesskey "S">
+<!ENTITY searchMessages.label "Messages">
+<!ENTITY searchMessages.accesskey "M">
+<!ENTITY searchCollections.label "Collections">
+<!ENTITY searchCollections.accesskey "C">
+<!ENTITY searchHelp.label "Help">
+<!ENTITY searchHelp.accesskey "H">

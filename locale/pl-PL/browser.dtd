@@ -1,0 +1,64 @@
+<!-- The Tools > Snowl menu. -->
+<!ENTITY snowlMenu.label "Snowl">
+<!ENTITY snowlMenu.accesskey "w">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY listView.label "Lista wiadomości">
+<!ENTITY listView.accesskey "L">
+<!ENTITY riverView.label "Rzeka wiadomości">
+<!ENTITY riverView.accesskey "R">
+<!ENTITY streamView.label "Strumień">
+<!ENTITY streamView.accesskey "S">
+<!ENTITY checkForNewMessages.label "Sprawdź, czy są nowe wiadomości">
+<!ENTITY checkForNewMessages.accesskey "S">
+<!ENTITY subscribe.label "Subskrybuj...">
+<!ENTITY subscribe.accesskey "s">
+<!ENTITY importOPML.label "Zaimportuj OPML...">
+<!ENTITY importOPML.accesskey "i">
+<!ENTITY exportOPML.label "Wyeksportuj OPML...">
+<!ENTITY exportOPML.accesskey "e">
+<!ENTITY options.label "Opcje">
+<!ENTITY options.accesskey "O">
+<!ENTITY rebuildDB.label "Rebuild Places Database">
+<!ENTITY rebuildDB.accesskey "D">
+<!-- These labels and access keys are for items in the View > Sidebar menu,
+   - where the user needs more context that these are for Snowl commands,
+   - since the sidebar menu also includes commands for non-Snowl functions. 
+-->
+<!ENTITY listViewSidebarMenuItem.label "Lista wiadomości">
+<!ENTITY listViewSidebarMenuItem.accesskey "l">
+<!ENTITY listViewSidebar.label "Lista wiadomości">
+<!ENTITY streamViewSidebarMenuItem.label "Strumień wiadomości">
+<!ENTITY streamViewSidebarMenuItem.accesskey "s">
+<!ENTITY streamViewSidebar.label "Strumień wiadomości">
+<!-- These labels and access keys are for items in the Tools > Snowl menu,
+   - where the user doesn't need to be reminded that these are Snowl commands,
+   - since it is obvious from their placement in the Snowl menu. 
+-->
+<!ENTITY snowlLayoutMenu.label "Układy">
+<!ENTITY snowlLayoutMenu.accesskey "u">
+<!ENTITY layoutClassic.label "Klasyczny">
+<!ENTITY layoutClassic.accesskey "K">
+<!ENTITY layoutVertical.label "Pionowy">
+<!ENTITY layoutVertical.accesskey "P">
+<!ENTITY layoutWideMessage.label "Szeroka wiadomość">
+<!ENTITY layoutWideMessage.accesskey "w">
+<!ENTITY layoutWideThread.label "Szeroka lista">
+<!ENTITY layoutWideThread.accesskey "l">
+<!ENTITY layoutStacked.label "Stos">
+<!ENTITY layoutStacked.accesskey "S">
+<!ENTITY showHeader.label "Show Header">
+<!ENTITY showHeader.accesskey "H">
+<!ENTITY wrapHeader.label "Wrap All Headers">
+<!ENTITY wrapHeader.accesskey "W">
+<!ENTITY toolbar.label "Pasek narzędzi panelu">
+<!ENTITY toolbar.accesskey "n">
+<!-- These labels and access keys are for toolbar buttons -->
+<!ENTITY toggleList.label "Snowl - przełącz widok listy">
+<!ENTITY toggleList.tooltip "Przełącz widok listy">
+<!ENTITY toggleStream.label "Snowl - przełącz widok strumienia">
+<!ENTITY toggleStream.tooltip "Przełącz widok strumienia">
+<!ENTITY toggleRiver.label "Snowl - przełącz widok rzeki">
+<!ENTITY toggleRiver.tooltip "Przełącz widok rzeki">

@@ -1,0 +1,10 @@
+<!ENTITY subscribeButton.tooltip "Začne odebírat ze zrojů zpráv.">
+<!ENTITY unsubscribeButton.tooltip "Zruší odběr z vybraných zrojů zpráv.">
+<!ENTITY refreshButton.tooltip "Obnoví všechny zdroje zpráv.">
+<!ENTITY exportButton.tooltip "Exportuje zdroje zpráv jako OPML.">
+<!ENTITY unreadButton.tooltip "Zobrazí nové a nepřečtené zprávy ve vybraných kolekcích.">
+<!ENTITY flaggedButton.tooltip "Show flagged messages for selected collections.">
+<!ENTITY listToolbarButton.tooltip "Přepne panel nástrojů zobrazení.">
+<!ENTITY writeButton.tooltip "Napíše zprávu.">
+<!ENTITY showDeletedButton.tooltip "Zobrazí smazané zprávy ve vybraných kolekcích.">
+<!ENTITY purgeDeletedButton.tooltip "Vyčistit všechny smazané zprávy z vybraných kolekcí.">

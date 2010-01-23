@@ -1,0 +1,9 @@
+<!ENTITY page.title "Snowl: Rzeka wiadmości">
+<!ENTITY bodyButton.tooltip "Wyświetlaj podsumowania/zawartość wiadomości.">
+<!ENTITY orderButton.tooltip "Odwróć kolejność wiadomości.">
+<!ENTITY columnsButton.tooltip "Wyświetlaj wiadomości w kolumnach.">
+<!ENTITY decrementPeriodButton.tooltip "Previous day">
+<!ENTITY incrementPeriodButton.tooltip "Next day">
+<!ENTITY periodDay.label "Day">
+<!ENTITY periodWeek.label "Week">
+<!ENTITY periodMonth.label "Month">

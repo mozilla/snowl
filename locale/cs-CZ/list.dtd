@@ -1,0 +1,17 @@
+<!ENTITY page.title "Snowl">
+<!ENTITY sourceCol.label "Zdroj">
+<!ENTITY authorCol.label "Autor">
+<!ENTITY subjectCol.label "Předmět">
+<!ENTITY timestampCol.label "Datum">
+<!ENTITY datereceivedCol.label "Date Received">
+<!ENTITY readCol.label "Read">
+<!ENTITY flaggedCol.label "Flagged">
+<!ENTITY sortBy.label "Sort By ">
+<!ENTITY openListMessage.label "Otevřít zprávu">
+<!ENTITY openListMessage.accesskey "O">
+<!ENTITY selectAll.label "Vybrat vše">
+<!ENTITY selectAll.accesskey "v">
+<!ENTITY deleteMessages.label "Smazat vybrané zprávy">
+<!ENTITY deleteMessages.accesskey "S">
+<!ENTITY undeleteMessages.label "Zrušit vymazání vybraných zpráv">
+<!ENTITY undeleteMessages.accesskey "Z">
