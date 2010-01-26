@@ -319,11 +319,11 @@ let SnowlMessageView = {
         "messages"    : "messages.id IN " +
                         "(SELECT messageID FROM parts" +
                         " JOIN partsText ON parts.id = partsText.docid" +
-                        " WHERE partsText.content REGEXP :filter)",
-        "messagesFTS" : "messages.id IN " +
+                        " WHERE partsText.content MATCH :filter)",
+        "messagesRE"  : "messages.id IN " +
                         "(SELECT messageID FROM parts" +
                         " JOIN partsText ON parts.id = partsText.docid" +
-                        " WHERE partsText.content MATCH :filter)",
+                        " WHERE partsText.content REGEXP :filter)",
 //        "messages" : "(partsText_content REGEXP :filter)",
 //        "messages" : "(summary_content REGEXP :filter OR content_content REGEXP :filter)",
         "XXX"      : "XXX",
@@ -332,8 +332,8 @@ let SnowlMessageView = {
         "subject"     : "SUBJECT",
         "sender"      : "SENDER",
         "headers"     : "HEADERS",
-        "messages"    : "MESSAGES",
-        "messagesFTS" : this.Filters["searchterms"],
+        "messages"    : this.Filters["searchterms"],
+        "messagesRE"  : "MESSAGES",
         "XXX"         : "XXX" //this.Filters["searchterms"]
       };
 

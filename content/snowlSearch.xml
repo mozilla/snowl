@@ -184,14 +184,14 @@
                         accesskey="&searchMessages.accesskey;"
                         type="radio"
                         name="searchPopup"
-                        value="messagesFTS"
+                        value="messages"
                         oncommand="document.getBindingParent(this).itemChecked(event);"/>
           <xul:menuitem id="searchMessagesREMenuitem"
                         label="&searchMessagesRE.label;"
                         accesskey="&searchMessagesRE.accesskey;"
                         type="radio"
                         name="searchPopup"
-                        value="messages"
+                        value="messagesRE"
                         oncommand="document.getBindingParent(this).itemChecked(event);"/>
           <xul:menuseparator id="searchColasSep"/>
           <xul:menuitem id="searchCollectionsMenuitem"
@@ -266,8 +266,8 @@
         "sender"      : this._strings.GetStringFromName("searchSenderEmptyText"),
         "recipient"   : this._strings.GetStringFromName("searchRecipientEmptyText"),
         "headers"     : this._strings.GetStringFromName("searchHeadersEmptyText"),
-        "messagesFTS" : this._strings.GetStringFromName("searchMessagesFTSEmptyText"),
         "messages"    : this._strings.GetStringFromName("searchMessagesEmptyText"),
+        "messagesRE"  : this._strings.GetStringFromName("searchMessagesEmptyTextRE"),
         "collections" : this._strings.GetStringFromName("searchCollectionsEmptyText")
       })]]></field>
 

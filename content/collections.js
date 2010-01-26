@@ -398,7 +398,7 @@ this._log.info("onClick: START itemIds - " +this.itemIds.toSource());
 //                   searchType == "sender" ||
 //                   searchType == "headers" ||
 //                   searchType == "messages";
-    let searchMsgsFTS = searchType == "messagesFTS";
+    let searchMsgsFTS = searchType == "messages";
     let searchCols = searchType == "collections";
 
     // Edit check routine.

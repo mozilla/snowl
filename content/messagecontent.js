@@ -71,6 +71,7 @@ var messageContent = {
   },
 
   init: function() {
+//window.SnowlUtils._log.info("messageContent.init:  ");
     // When message.xhtml is loaded on new message selection, onload handlers in
     // the messageHeader.xhtml and messageBody.xhtml frames run independently,
     // and before its own onload handler.  So we must have init() as inline script
@@ -150,8 +151,8 @@ var messageContent = {
         headerDeck.setAttribute("deleted", true);
 
       // Highlight search text, if any.
-      var window = parent.document.getElementById("messageHeader").contentWindow;
-      messageHeaderUtils.highlight("basicheaders", window);
+      var win = parent.document.getElementById("messageHeader").contentWindow;
+      messageHeaderUtils.highlight("basicheaders", win);
     }
     else {
       // Message no longer exists (removed source/author/message) but is in history.
@@ -191,21 +192,19 @@ var messageContent = {
     }
 
     // Highlight search text, if any.
-    var window = parent.document.getElementById("messageHeader").contentWindow;
-    messageHeaderUtils.highlight("headers", window);
+    var win = parent.document.getElementById("messageHeader").contentWindow;
+    messageHeaderUtils.highlight("headers", win);
   },
 
   createBody: function(aType) {
-//    var doc = parent.document.getElementById("messageBody").top.document; //contentWindow;
-//    var win = parent.document.getElementById("messageBody").contentWindow;
-//    messageHeaderUtils.highlight("messages", window);
-//document.getElementById("body"); //
-    // Fires after load completely done, see if highlighing is on.
-//    frame.addEventListener("load",
-//                           function () {
-//                             messageHeaderUtils.highlight("messages", win)
-//                           },
-//                           false);
+//window.SnowlUtils._log.info("createBody: ");
+    var contentBody = document.getElementById("contentBody");
+
+    if (!contentBody)
+      // If no contentBody element, we are going back in history to a new
+      // message but which contains a linked page and not message content;
+      // just return.
+      return;
 
     // The message is found in the scope of the parent frameset document.
     var messageContent = parent.wrappedJSObject.messageContent;
@@ -228,15 +227,8 @@ var messageContent = {
       content.base = null;
       content.lang = null;
     }
+
     if (content) {
-      var contentBody = document.getElementById("contentBody");
-
-      if (!contentBody)
-        // If no contentBody element, we are going back in history to a new
-        // message but which contains a linked page and not message content;
-        // just return.
-        return;
-
       if (content.type == "text") {
         SnowlUtils.linkifyText(content.text,
                                contentBody,
@@ -251,22 +243,10 @@ var messageContent = {
         if (docFragment)
           contentBody.appendChild(docFragment);
       }
-window.SnowlUtils._log.info("createBody: DONE");
-    var win = parent.document.getElementById("messageBody").contentWindow;
-    var frame = parent.document; //.document.getElementById("messageBody");
-    frame.load = messageHeaderUtils.highlight("messages", win);
-//    win.load = function () {
-//  window.setTimeout(function () { messageHeaderUtils.highlight("messages", win) }, 550);
-//}
-    
-//    messageHeaderUtils.highlight("messages", win);
 
     // Highlight search text, if any.
-//    var window = parent.document.getElementById("messageBody").contentWindow;
-//    messageHeaderUtils.highlight("messages", window);
-
-//    if (this.hilightMode)
-//      messageHeaderUtils.higlightSetMarkers();
+    var win = parent.document.getElementById("messageBody").contentWindow;
+    messageHeaderUtils.highlight("messages", win);
     }
   }
 
@@ -282,7 +262,7 @@ var messageHeaderUtils = {
   noResize: false,
 
   init: function() {
-window.SnowlUtils._log.info("init: ");
+//window.SnowlUtils._log.info("messageHeaderUtils.init: ");
     var pin = document.getElementById("pinButton");
     var headerBcaster = gBrowserWindow.document.
                                        getElementById("viewSnowlHeader");
@@ -322,13 +302,17 @@ window.SnowlUtils._log.info("init: ");
   },
 
   setDimensions: function() {
+//window.SnowlUtils._log.info("setDimensions: ");
     messageHeaderUtils.origWidth = parent.document.body.clientWidth;
     messageHeaderUtils.origHeight =
         parent.document.getElementById("messageHeader").clientHeight;
+    // Adjust search markers, if any.  Content scroll listener doesn't fire if
+    // header is sized.
+    messageHeaderUtils.highlightSetMarkers();
   },
 
   onUnload: function() {
-window.SnowlUtils._log.info("onUnload: ");
+//window.SnowlUtils._log.info("onUnload: ");
     window.removeEventListener("MozScrolledAreaChanged",
                                function () { messageHeaderUtils.setDimensions() },
                                false);
@@ -337,7 +321,7 @@ window.SnowlUtils._log.info("onUnload: ");
   onMouseOver: function(aEvent) {
     var node = aEvent.target;
     var messageHeader = document.getElementById("messageHeader");
-    var body = messageHeader.contentDocument.getElementById("body");
+    var body = messageHeader.contentDocument.body;
     var headerDeck = messageHeader.contentDocument.getElementById("headerDeck");
     var pin = messageHeader.contentDocument.getElementById("pinButton");
     if (node.id != "noHeader" || pin.hasAttribute("checked"))
@@ -578,7 +562,7 @@ window.SnowlUtils._log.info("onUnload: ");
     var searchType = collectionsView._searchFilter.
                                      getAttribute("searchtype");
     var searchTerms = collectionsView.Filters["searchterms"];
-    var searchMsgsFTS = searchType == "messagesFTS";
+    var searchMsgsFTS = searchType == "messages";
     var searchIgnoreCase = collectionsView._searchFilter.
                                            getAttribute("ignorecase") == "true" ?
                                            true : false;
@@ -663,6 +647,7 @@ window.SnowlUtils._log.info("highlight: aType:searchType:searchTerms - "+
     if (highlightTerms.length == 0)
       return;
 
+    var messageContent = parent.wrappedJSObject.messageContent;
     messageContent.hilightMode = true;
 //window.SnowlUtils._log.info("highlight: regexTerms - "+regexTerms);
 
@@ -680,14 +665,13 @@ window.SnowlUtils._log.info("highlight: aType:searchType:searchTerms - "+
 
       // Must go backwards to process ranges in a node, to preserve offsets..
       for (var i = rangeCount; i > 0; i--) {
-//window.SnowlUtils._log.info("highlight: sel:i - "+sel+" : "+i);
+//window.SnowlUtils._log.info("highlight: sel:i - "+selection+" : "+i);
         range = selection.getRangeAt(i-1);
 //window.SnowlUtils._log.info("highlight: range:startOffset:endOffset - "+
-//  range+" : "+range.startOffset+" : "+range.endOffset+" : "+x);
+//  range+" : "+range.startOffset+" : "+range.endOffset);
 
         hlnode = document.createElementNS(HTML_NS, "span");
         hlnode.setAttribute("class", "hlterms hl hl" + hlindex);
-        hlnode.setAttribute("i", i);
 
 //        range.surroundContents(hlnode);
         hlnode.appendChild(range.extractContents());
@@ -698,12 +682,16 @@ window.SnowlUtils._log.info("highlight: aType:searchType:searchTerms - "+
 
       selection.removeAllRanges();
     }
+                                  messageHeaderUtils.highlightSetMarkers();
 
-    if (aType == "messages")
-      window.setTimeout(function () {
-                          messageHeaderUtils.highlightSetMarkers();
-                        }, 0);
-//      this.highlightSetMarkers();
+    if (aType == "Xmessages") {
+      // Make sure marker position is reset once content is loaded or resized.
+      document.addEventListener("MozScrolledAreaChanged",
+                                function () {
+                                  messageHeaderUtils.highlightSetMarkers();
+                                },
+                                false);
+    }
   },
 
   /*
@@ -712,10 +700,11 @@ window.SnowlUtils._log.info("highlight: aType:searchType:searchTerms - "+
    * http://www.penguinus.com/dev/searchmarker/
    */
   highlightSetMarkers : function() {
-window.SnowlUtils._log.info("highlightSetMarkers: START");
-//    if (!this.hilightMode)
-//      return;
-//window.SnowlUtils._log.info("highlightSetMarkers:");
+    var messageContent = parent.wrappedJSObject.messageContent;
+window.SnowlUtils._log.info("highlightSetMarkers: START:mode - "+messageContent.hilightMode);
+    if (!messageContent.hilightMode)
+      return;
+//window.SnowlUtils._log.info("highlightSetMarkers: CONTINUE");
 
     var messageBody = parent.document.getElementById("messageBody");
     var body = messageBody.contentDocument.body;
@@ -730,21 +719,21 @@ window.SnowlUtils._log.info("highlightSetMarkers: START");
     var scrollBarOffsetTop = width ? 28 : width;
     var scrollBarOffsetBot = width ? 48 : width;
 
-//    if (!width)
+    if (!width)
       // No need for marker unless there's a scrollbar.
-//      return;
+      return;
 
     // Create element to contain the markers.
     var markerDiv = document.createElementNS(HTML_NS, "div");
     markerDiv.setAttribute("id", "hlMarkerContainer");
-    body.appendChild(markerDiv);
-//window.SnowlUtils._log.info("highlightSetMarkers: markerDiv");
+    contentBody.appendChild(markerDiv);
+//window.SnowlUtils._log.info("highlightSetMarkersX: markerDiv");
 
     // Find all hilighted <span> entries.
     var searchResults = body.getElementsByClassName("hlterms");
     for (var i = 0; i < searchResults.length; ++i) {
       var searchResult = searchResults[i];
-//window.SnowlUtils._log.info("highlightSetMarkers: searchResult - "+searchResult);
+//window.SnowlUtils._log.info("highlightSetMarkersX: searchResult - "+searchResult);
 
       // Get the absolute y location of the term as a percentage and calculate
       // position based on visible area height, adjusted for scrollbarbuttons.
@@ -775,17 +764,26 @@ window.SnowlUtils._log.info("highlightSetMarkers: START");
   },
 
   higlightClear : function() {
+window.SnowlUtils._log.info("higlightClear:  ");
     var messageBody = document.getElementById("messageBody");
     var doc = messageBody.contentDocument;
-    var body = messageBody.contentDocument.getElementById("body");
+    var contentBody = doc.getElementById("contentBody");
+    var marker = doc.getElementById("hlMarkerContainer");
     var hlspans = doc.getElementsByClassName("hlterms");
     var hlspan;
+/*
+    doc.removeEventListener("MozScrolledAreaChanged",
+                              function () {
+                                messageHeaderUtils.highlightSetMarkers();
+                              },
+                              false);
+*/
+    if (marker)
+      contentBody.removeChild(marker);
+//window.SnowlUtils._log.info("higlightClear: marker - "+marker.id);
 
     // Remove our <span> nodes, moving their children to the span's location in
     // the DOM.  DOM nodes collection is dynamic, so have to go backwards..
-    // Note: this method leaves DOM text nodes fragmented if <span> overlaps
-    // with other tags, but there is no visual issue and regex would be worse.
-    // It is also possible to simply reload the page, but the result is stutter.
     for (var i = hlspans.length; i > 0 ; i--) {
       hlspan = hlspans[i-1];
       while (hlspan.hasChildNodes())
@@ -793,8 +791,9 @@ window.SnowlUtils._log.info("highlightSetMarkers: START");
       hlspan.parentNode.removeChild(hlspan);
     }
 
-    if (doc.getElementById("hlMarkerContainer"))
-      body.removeChild(doc.getElementById("hlMarkerContainer"));
+    // Merges all adjacent text nodes which had been split up by the <span>.
+    // Text child nodes within <a href> tags remain fragmented.
+    contentBody.normalize();
   }
 
 };
